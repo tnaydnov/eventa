@@ -12,7 +12,7 @@ import { secureGuard, jsonError } from '@/lib/route-helpers';
  * Uses Zod (profileSetupSchema) for field-level validation.
  */
 export async function PATCH(req: NextRequest) {
-  const guard = secureGuard(req, 'profile', RATE_LIMITS.standard);
+  const guard = await secureGuard(req, 'profile', RATE_LIMITS.standard);
   if (guard instanceof NextResponse) return guard;
   const session = guard;
 

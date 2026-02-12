@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest, checkCsrf, type SessionPayload } from '@/lib/session';
 import { checkRateLimit, getClientIp, type RateLimitConfig } from '@/lib/rate-limit';
+import { getServiceClient } from '@/lib/supabase';
 
 /** Shorthand for JSON error response. */
 export function jsonError(error: string, status: number): NextResponse {
@@ -12,22 +13,22 @@ export function jsonError(error: string, status: number): NextResponse {
 }
 
 /**
- * Secure-route guard: CSRF → session → rate-limit.
+ * Secure-route guard: CSRF → session → rate-limit → ban check.
  * Returns the authenticated session on success, or
  * a NextResponse error that should be returned immediately.
  *
  * Usage:
  * ```ts
- * const guard = secureGuard(req, 'my-route', RATE_LIMITS.standard);
+ * const guard = await secureGuard(req, 'my-route', RATE_LIMITS.standard);
  * if (guard instanceof NextResponse) return guard;
  * const session = guard; // SessionPayload
  * ```
  */
-export function secureGuard(
+export async function secureGuard(
   req: NextRequest,
   rateLimitKey: string,
   limit: RateLimitConfig
-): NextResponse | SessionPayload {
+): Promise<NextResponse | SessionPayload> {
   if (!checkCsrf(req)) return jsonError('Forbidden', 403);
 
   const session = getSessionFromRequest(req);
@@ -36,6 +37,15 @@ export function secureGuard(
   const ip = getClientIp(req.headers);
   const rl = checkRateLimit(`${rateLimitKey}:${ip}`, limit);
   if (!rl.allowed) return jsonError('Too many requests', 429);
+
+  // Check if participant was banned since JWT was issued
+  const sb = getServiceClient();
+  const { data: participant } = await sb
+    .from('participants')
+    .select('is_banned')
+    .eq('id', session.sub)
+    .single();
+  if (participant?.is_banned) return jsonError('Account banned', 403);
 
   return session;
 }

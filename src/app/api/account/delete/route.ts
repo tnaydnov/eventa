@@ -10,7 +10,7 @@ import { secureGuard, jsonError } from '@/lib/route-helpers';
  * Permanently deletes the authenticated participant and all their associated data.
  */
 export async function POST(req: NextRequest) {
-  const guard = secureGuard(req, 'account-delete', RATE_LIMITS.strict);
+  const guard = await secureGuard(req, 'account-delete', RATE_LIMITS.strict);
   if (guard instanceof NextResponse) return guard;
   const session = guard;
 

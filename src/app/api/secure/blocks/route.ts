@@ -12,7 +12,7 @@ import { secureGuard, jsonError } from '@/lib/route-helpers';
  * and clears notifications between the pair.
  */
 export async function POST(req: NextRequest) {
-  const guard = secureGuard(req, 'block', RATE_LIMITS.strict);
+  const guard = await secureGuard(req, 'block', RATE_LIMITS.strict);
   if (guard instanceof NextResponse) return guard;
   const session = guard;
 

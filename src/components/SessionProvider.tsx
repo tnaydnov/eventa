@@ -58,14 +58,16 @@ export default function SessionProvider({
       if (stored) {
         try {
           const s = JSON.parse(stored);
-          if (s.eventSlug === eventSlug) {
+          // Validate required fields before trusting localStorage data
+          if (s.eventSlug === eventSlug && s.eventId && s.participantId) {
             setEventContext(s.eventId);
             useSessionStore.getState().setSession(s);
             setRestored(true);
             return;
           }
         } catch {
-          // corrupt data
+          // corrupt data — remove it
+          localStorage.removeItem('wedding_session');
         }
       }
 

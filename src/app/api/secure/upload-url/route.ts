@@ -16,7 +16,7 @@ const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp3', 
  *   - Chat media:    chat/{eventId}/{conversationId}/...
  */
 export async function POST(req: NextRequest) {
-  const guard = secureGuard(req, 'upload', RATE_LIMITS.upload);
+  const guard = await secureGuard(req, 'upload', RATE_LIMITS.upload);
   if (guard instanceof NextResponse) return guard;
   const session = guard;
 

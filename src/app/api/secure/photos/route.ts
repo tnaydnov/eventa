@@ -11,7 +11,7 @@ import { secureGuard, jsonError, isSafePath } from '@/lib/route-helpers';
  * Validates ownership of storage path and enforces MAX_PHOTOS limit.
  */
 export async function POST(req: NextRequest) {
-  const guard = secureGuard(req, 'photos-post', RATE_LIMITS.upload);
+  const guard = await secureGuard(req, 'photos-post', RATE_LIMITS.upload);
   if (guard instanceof NextResponse) return guard;
   const session = guard;
 
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
  * Delete a photo (storage + DB record). Verifies ownership.
  */
 export async function DELETE(req: NextRequest) {
-  const guard = secureGuard(req, 'photos-del', RATE_LIMITS.standard);
+  const guard = await secureGuard(req, 'photos-del', RATE_LIMITS.standard);
   if (guard instanceof NextResponse) return guard;
   const session = guard;
 
@@ -114,7 +114,7 @@ export async function DELETE(req: NextRequest) {
  * Body: { order: [{ id: string, order_index: number }] }
  */
 export async function PATCH(req: NextRequest) {
-  const guard = secureGuard(req, 'photos-reorder', RATE_LIMITS.standard);
+  const guard = await secureGuard(req, 'photos-reorder', RATE_LIMITS.standard);
   if (guard instanceof NextResponse) return guard;
   const session = guard;
 

@@ -56,12 +56,19 @@ export function useRealtimeHub(options: UseRealtimeOptions): void {
     if (!enabled) return;
 
     // Create stable wrapper handlers that delegate to the latest ref
-    const stablePostgres = postgresRef.current?.map((p, i) => ({
-      binding: p.binding,
-      handler: ((payload: Parameters<PostgresChangeHandler>[0]) => {
-        postgresRef.current?.[i]?.handler(payload);
-      }) as PostgresChangeHandler,
-    }));
+    // Use binding key for lookup instead of array index to avoid drift on reorder
+    const stablePostgres = postgresRef.current?.map((p) => {
+      const bk = `${p.binding.event}:${p.binding.schema}:${p.binding.table}:${p.binding.filter || ''}`;
+      return {
+        binding: p.binding,
+        handler: ((payload: Parameters<PostgresChangeHandler>[0]) => {
+          const current = postgresRef.current?.find(
+            (x) => `${x.binding.event}:${x.binding.schema}:${x.binding.table}:${x.binding.filter || ''}` === bk
+          );
+          current?.handler(payload);
+        }) as PostgresChangeHandler,
+      };
+    });
 
     subRef.current = subscribe(channelKey, {
       postgres: stablePostgres || [],

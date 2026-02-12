@@ -10,7 +10,7 @@ import { secureGuard, jsonError } from '@/lib/route-helpers';
  * Also updates participant last_seen_at.
  */
 export async function POST(req: NextRequest) {
-  const guard = secureGuard(req, 'heartbeat', RATE_LIMITS.standard);
+  const guard = await secureGuard(req, 'heartbeat', RATE_LIMITS.standard);
   if (guard instanceof NextResponse) return guard;
   const session = guard;
 

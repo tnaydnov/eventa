@@ -52,6 +52,17 @@ function getOrCreate(
 ): ManagedChannel {
   const existing = channels.get(key);
   if (existing && existing.status !== 'CLOSED') {
+    // Warn if new bindings are requested that weren't in the original channel setup
+    const existingKeys = new Set(existing.postgresBindings.map(bindingKey));
+    for (const b of bindings) {
+      const bk = bindingKey(b);
+      if (!existingKeys.has(bk)) {
+        console.warn(
+          `[RealtimeHub] Channel "${key}" reused but missing binding: ${bk}. ` +
+          'Events for this binding will not be delivered. Use a unique channelKey.'
+        );
+      }
+    }
     existing.refCount++;
     return existing;
   }

@@ -10,7 +10,7 @@ import { secureGuard, jsonError } from '@/lib/route-helpers';
  * Marks a conversation as read by updating the participant's last_read_at.
  */
 export async function POST(req: NextRequest) {
-  const guard = secureGuard(req, 'conv-read', RATE_LIMITS.standard);
+  const guard = await secureGuard(req, 'conv-read', RATE_LIMITS.standard);
   if (guard instanceof NextResponse) return guard;
   const session = guard;
 

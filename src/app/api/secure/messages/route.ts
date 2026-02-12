@@ -15,7 +15,7 @@ const ALLOWED_TYPES = new Set<string>(messageTypeValues);
  * Guards: conversation membership, block check, Zod validation.
  */
 export async function POST(req: NextRequest) {
-  const guard = secureGuard(req, 'msg', RATE_LIMITS.standard);
+  const guard = await secureGuard(req, 'msg', RATE_LIMITS.standard);
   if (guard instanceof NextResponse) return guard;
   const session = guard;
 
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
  * Clears text and media_path, sets is_deleted flag.
  */
 export async function PATCH(req: NextRequest) {
-  const guard = secureGuard(req, 'msg-del', RATE_LIMITS.standard);
+  const guard = await secureGuard(req, 'msg-del', RATE_LIMITS.standard);
   if (guard instanceof NextResponse) return guard;
   const session = guard;
 

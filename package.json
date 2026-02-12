@@ -5,7 +5,7 @@
   "description": "WedDate — dating app for wedding & event singles",
   "scripts": {
     "dev": "next dev",
-    "build": "next build --webpack",
+    "build": "next build --webpack && node scripts/fix-sw-paths.cjs",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"

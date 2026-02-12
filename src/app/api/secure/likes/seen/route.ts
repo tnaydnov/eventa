@@ -10,7 +10,7 @@ import { secureGuard, jsonError } from '@/lib/route-helpers';
  * Marks a specific like (or all incoming likes) as seen.
  */
 export async function POST(req: NextRequest) {
-  const guard = secureGuard(req, 'likes-seen', RATE_LIMITS.standard);
+  const guard = await secureGuard(req, 'likes-seen', RATE_LIMITS.standard);
   if (guard instanceof NextResponse) return guard;
   const session = guard;
 

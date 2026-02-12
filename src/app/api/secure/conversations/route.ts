@@ -9,7 +9,7 @@ import { secureGuard, jsonError } from '@/lib/route-helpers';
  * Guards: CSRF, auth, rate limit, self-chat, block check.
  */
 export async function POST(req: NextRequest) {
-  const guard = secureGuard(req, 'conv', RATE_LIMITS.standard);
+  const guard = await secureGuard(req, 'conv', RATE_LIMITS.standard);
   if (guard instanceof NextResponse) return guard;
   const session = guard;
 

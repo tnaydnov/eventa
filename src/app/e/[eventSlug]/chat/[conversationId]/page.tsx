@@ -94,9 +94,17 @@ export default function ChatRoomPage({
     setLoadingOlder(false);
   };
 
-  // ─── Scroll to bottom on new messages ─────────────────────────
+  // ─── Scroll to bottom only on NEW messages (not history load) ──
+  const prevMsgCountRef = useRef(0);
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Only auto-scroll when messages are appended (count grew), not prepended (history load)
+    if (messages.length > prevMsgCountRef.current && prevMsgCountRef.current > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    } else if (prevMsgCountRef.current === 0 && messages.length > 0) {
+      // Initial load — scroll to bottom immediately
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+    }
+    prevMsgCountRef.current = messages.length;
   }, [messages]);
 
   // ─── Load conversation + messages ─────────────────────────────

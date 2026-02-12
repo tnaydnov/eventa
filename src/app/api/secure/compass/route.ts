@@ -19,7 +19,7 @@ import { handleLocation } from './_actions/location';
 import { handleCheckEligible } from './_actions/check-eligible';
 
 export async function POST(req: NextRequest) {
-  const guard = secureGuard(req, 'compass', RATE_LIMITS.standard);
+  const guard = await secureGuard(req, 'compass', RATE_LIMITS.standard);
   if (guard instanceof NextResponse) return guard;
   const session = guard;
 

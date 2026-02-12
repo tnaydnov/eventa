@@ -20,12 +20,13 @@ export default function RealtimeNotificationListener() {
   const pathname = usePathname();
   const pathnameRef = useRef(pathname);
   const seenIds = useRef(new Set<string>());
+  const seenTimestamps = useRef(new Map<string, number>()); // Track when IDs were added
   const sessionRef = useRef(session);
   const lastPollTsRef = useRef(new Date().toISOString());
   const myConvoIdsRef = useRef(new Set<string>());
   sessionRef.current = session;
 
-  // Helper: refresh the full set of my conversation IDs
+  // Helper: refresh the full set of my conversation IDs (full replace, not merge-only)
   const refreshMyConvoIds = async (): Promise<Set<string>> => {
     const s = sessionRef.current;
     if (!s) return myConvoIdsRef.current;
@@ -34,9 +35,26 @@ export default function RealtimeNotificationListener() {
       .eq('event_id', s.eventId)
       .or(`a_participant_id.eq.${s.participantId},b_participant_id.eq.${s.participantId}`);
     if (data) {
-      for (const c of data) myConvoIdsRef.current.add(c.id);
+      myConvoIdsRef.current = new Set(data.map((c) => c.id));
     }
     return myConvoIdsRef.current;
+  };
+
+  // Helper: prune seenIds older than 5 minutes to prevent unbounded growth
+  const pruneSeenIds = () => {
+    const cutoff = Date.now() - 5 * 60 * 1000;
+    for (const [key, ts] of seenTimestamps.current) {
+      if (ts < cutoff) {
+        seenIds.current.delete(key);
+        seenTimestamps.current.delete(key);
+      }
+    }
+  };
+
+  // Helper: track a seen ID with timestamp
+  const markSeen = (key: string) => {
+    seenIds.current.add(key);
+    seenTimestamps.current.set(key, Date.now());
   };
 
   // Helper: check if current user is a member of a conversation (cache-first, single-row fallback)
@@ -101,19 +119,21 @@ export default function RealtimeNotificationListener() {
     })();
   }, [session]);
 
-  // Stable name cache (outside effect lifecycle)
-  const nameCache = useRef(new Map<string, string>());
+  // Stable name cache with TTL (5 min) — prevents stale names + unbounded growth
+  const nameCache = useRef(new Map<string, { name: string; ts: number }>());
   const getName = async (id: string): Promise<string> => {
-    if (nameCache.current.has(id)) return nameCache.current.get(id)!;
+    const cached = nameCache.current.get(id);
+    const now = Date.now();
+    if (cached && now - cached.ts < 5 * 60 * 1000) return cached.name;
     const { data } = await supabase.from('participants').select('display_name').eq('id', id).single();
     const name = data?.display_name || 'מישהו';
-    nameCache.current.set(id, name);
+    nameCache.current.set(id, { name, ts: now });
     return name;
   };
 
   const handleLike = async (likeId: string, fromId: string) => {
     if (seenIds.current.has(`like:${likeId}`)) return;
-    seenIds.current.add(`like:${likeId}`);
+    markSeen(`like:${likeId}`);
     const s = sessionRef.current;
     if (!s) return;
     const name = await getName(fromId);
@@ -150,7 +170,7 @@ export default function RealtimeNotificationListener() {
 
   const handleMessage = async (msgId: string, senderId: string, conversationId: string, text: string | null, type: string) => {
     if (seenIds.current.has(`msg:${msgId}`)) return;
-    seenIds.current.add(`msg:${msgId}`);
+    markSeen(`msg:${msgId}`);
     if (type === 'system') return; // don't count system messages as unread
     const name = await getName(senderId);
     useNotificationStore.getState().addGridHighlight({ participantId: senderId, type: 'message', timestamp: Date.now() });
@@ -210,6 +230,9 @@ export default function RealtimeNotificationListener() {
     const s = sessionRef.current;
     if (!s) return;
     const now = new Date().toISOString();
+
+    // Prune old dedup entries to prevent unbounded memory growth
+    pruneSeenIds();
 
     const { data: newLikes } = await supabase
       .from('likes').select('id, from_participant_id')

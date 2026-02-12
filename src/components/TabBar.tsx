@@ -48,6 +48,8 @@ export default function TabBar() {
           key={tab.path}
           className={pathname === tab.path ? 'active' : ''}
           onClick={() => router.push(tab.path)}
+          aria-label={tab.label}
+          aria-current={pathname === tab.path ? 'page' : undefined}
           style={{ position: 'relative' }}
         >
           {tab.icon}

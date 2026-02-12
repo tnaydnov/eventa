@@ -12,7 +12,7 @@ import { secureGuard, jsonError } from '@/lib/route-helpers';
  * Also removes the associated like_received notification.
  */
 export async function POST(req: NextRequest) {
-  const guard = secureGuard(req, 'likes-post', RATE_LIMITS.standard);
+  const guard = await secureGuard(req, 'likes-post', RATE_LIMITS.standard);
   if (guard instanceof NextResponse) return guard;
   const session = guard;
 
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const guard = secureGuard(req, 'likes-del', RATE_LIMITS.standard);
+  const guard = await secureGuard(req, 'likes-del', RATE_LIMITS.standard);
   if (guard instanceof NextResponse) return guard;
   const session = guard;
 
