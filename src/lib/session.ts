@@ -8,6 +8,7 @@ const COOKIE_NAME = 'ws_session';
 const MAX_AGE = 30 * 24 * 60 * 60; // 30 days
 
 export interface SessionPayload {
+  typ: 'session'; // discriminator — prevents admin tokens from passing session verification
   sub: string; // participantId
   eid: string; // eventId
   esl: string; // eventSlug
@@ -33,6 +34,7 @@ export function signSessionToken(data: {
   const now = Math.floor(Date.now() / 1000);
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
   const payload: SessionPayload = {
+    typ: 'session',
     sub: data.participantId,
     eid: data.eventId,
     esl: data.eventSlug,
@@ -65,6 +67,10 @@ export function verifySessionToken(token: string): SessionPayload | null {
     if (!crypto.timingSafeEqual(sigBuf, expectedBuf)) return null;
 
     const payload: SessionPayload = JSON.parse(Buffer.from(body, 'base64url').toString());
+
+    // Validate discriminator — reject admin tokens and malformed payloads
+    if (payload.typ !== 'session') return null;
+    if (!payload.sub || !payload.eid || !payload.esl) return null;
     if (payload.exp < Math.floor(Date.now() / 1000)) return null;
 
     return payload;

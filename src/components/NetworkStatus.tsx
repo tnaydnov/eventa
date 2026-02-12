@@ -15,10 +15,12 @@ export default function NetworkStatus() {
     // Initialize with current state
     setOnline(navigator.onLine);
 
+    let reconnectedTimer: ReturnType<typeof setTimeout> | null = null;
+
     const handleOnline = () => {
       setOnline(true);
       setShowReconnected(true);
-      setTimeout(() => setShowReconnected(false), 3000);
+      reconnectedTimer = setTimeout(() => setShowReconnected(false), 3000);
     };
 
     const handleOffline = () => {
@@ -30,6 +32,7 @@ export default function NetworkStatus() {
     window.addEventListener('offline', handleOffline);
 
     return () => {
+      if (reconnectedTimer) clearTimeout(reconnectedTimer);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };

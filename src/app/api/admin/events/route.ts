@@ -50,8 +50,10 @@ export async function GET(req: NextRequest) {
     }
 
     // Search by name or slug (case-insensitive)
+    // Escape PostgREST special chars (commas, parens, dots used in filter syntax)
     if (search && search.trim()) {
-      const term = `%${search.trim()}%`;
+      const escaped = search.trim().replace(/[,%().\\]/g, '');
+      const term = `%${escaped}%`;
       query = query.or(`name.ilike.${term},slug.ilike.${term}`);
     }
 

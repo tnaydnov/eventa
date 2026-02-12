@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
       await supabase.from('conversations').delete().in('id', convoIds);
     }
 
-    // 4-7. Delete likes, blocks, compass locations, notifications in parallel
+    // 4-7. Delete likes, blocks, compass locations, notifications, activity_log in parallel
     await Promise.all([
       supabase.from('likes').delete()
         .eq('event_id', eventId)
@@ -96,6 +96,9 @@ export async function POST(req: NextRequest) {
       supabase.from('notifications').delete()
         .eq('event_id', eventId)
         .eq('to_participant_id', participantId),
+      supabase.from('activity_log').delete()
+        .eq('event_id', eventId)
+        .eq('participant_id', participantId),
     ]);
 
     // Delete compass sessions after locations (FK dependency)

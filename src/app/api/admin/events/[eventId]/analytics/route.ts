@@ -44,6 +44,9 @@ export async function GET(
     }
 
     // ── Run all independent queries in parallel ──
+    // PostgREST defaults to 1000 rows; use explicit high limit for analytics.
+    const LIMIT = 100_000;
+
     const [
       participantsRes,
       photosRes,
@@ -58,44 +61,52 @@ export async function GET(
         .from('participants')
         .select('id, display_name, gender, attracted_to, age, created_at')
         .eq('event_id', eventId)
-        .eq('is_banned', false),
+        .eq('is_banned', false)
+        .limit(LIMIT),
 
       supabase
         .from('participant_photos')
         .select('participant_id')
-        .eq('event_id', eventId),
+        .eq('event_id', eventId)
+        .limit(LIMIT),
 
       supabase
         .from('likes')
         .select('id, from_participant_id, to_participant_id, created_at, seen_at')
-        .eq('event_id', eventId),
+        .eq('event_id', eventId)
+        .limit(LIMIT),
 
       supabase
         .from('conversations')
         .select('id, a_participant_id, b_participant_id, created_at')
-        .eq('event_id', eventId),
+        .eq('event_id', eventId)
+        .limit(LIMIT),
 
       supabase
         .from('messages')
         .select('id, conversation_id, sender_participant_id, type, created_at')
         .eq('event_id', eventId)
-        .eq('is_deleted', false),
+        .eq('is_deleted', false)
+        .limit(LIMIT),
 
       supabase
         .from('compass_sessions')
         .select('id, status, requested_by, created_at, activated_at, closed_at')
-        .eq('event_id', eventId),
+        .eq('event_id', eventId)
+        .limit(LIMIT),
 
       supabase
         .from('blocks')
         .select('id, blocker_id, blocked_id, had_like, had_conversation, had_match, created_at')
-        .eq('event_id', eventId),
+        .eq('event_id', eventId)
+        .limit(LIMIT),
 
       supabase
         .from('activity_log')
         .select('participant_id, action, created_at')
         .eq('event_id', eventId)
-        .order('created_at', { ascending: true }),
+        .order('created_at', { ascending: true })
+        .limit(LIMIT),
     ]);
 
     const participants = participantsRes.data || [];

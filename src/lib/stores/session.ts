@@ -36,5 +36,36 @@ export const useSessionStore = create<SessionState>((set) => ({
       localStorage.removeItem('wedding_session');
     }
     set({ session: null, participant: null, photos: [] });
+
+    // Reset ALL other stores to prevent stale data leak between sessions.
+    // Lazy-import to avoid circular dependency.
+    const { useGridStore } = require('./grid');
+    const { useChatsStore } = require('./chats');
+    const { useLikesStore } = require('./likes');
+    const { useBlocksStore } = require('./blocks');
+    const { useCompassStore } = require('./compass');
+    const { useMatchStore } = require('./matches');
+    const { useNotificationStore } = require('./notifications');
+    const { useSwipeStore } = require('./swipe');
+
+    useGridStore.setState({ participants: [], filter: 'all' });
+    useChatsStore.setState({ conversations: [], currentMessages: [] });
+    useLikesStore.setState({ receivedLikes: [], sentLikes: [] });
+    useBlocksStore.setState({ blocks: [], blockedIds: new Set() });
+    useCompassStore.setState({ activeSession: null, otherLocation: null, myHeading: 0 });
+    useMatchStore.setState({ pendingMatch: null, matches: [], matchesLoaded: false });
+    useNotificationStore.setState({
+      unreadLikes: 0,
+      unreadMessages: 0,
+      gridHighlights: [],
+      _unreadConvoIds: new Set(),
+      _initialized: false,
+    });
+    useSwipeStore.setState({
+      viewMode: 'grid',
+      dismissedIds: new Set(),
+      likedIds: new Set(),
+      likedIdsLoaded: false,
+    });
   },
 }));

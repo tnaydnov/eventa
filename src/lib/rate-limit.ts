@@ -10,16 +10,20 @@
 
 interface RateLimitEntry {
   timestamps: number[];
+  windowMs: number; // track which window this key uses
 }
 
 const store = new Map<string, RateLimitEntry>();
+
+// Cap the store size to prevent memory exhaustion under attack
+const MAX_STORE_SIZE = 10_000;
 
 // Cleanup old entries every 5 minutes
 if (typeof setInterval !== 'undefined') {
   setInterval(() => {
     const now = Date.now();
     for (const [key, entry] of store.entries()) {
-      entry.timestamps = entry.timestamps.filter((t) => now - t < 60_000);
+      entry.timestamps = entry.timestamps.filter((t) => now - t < entry.windowMs);
       if (entry.timestamps.length === 0) store.delete(key);
     }
   }, 300_000);
@@ -46,12 +50,13 @@ export function checkRateLimit(
   config: RateLimitConfig = DEFAULT_CONFIG
 ): { allowed: boolean; remaining: number; resetMs: number } {
   const now = Date.now();
-  const entry = store.get(identifier) || { timestamps: [] };
+  const entry = store.get(identifier) || { timestamps: [], windowMs: config.windowMs };
 
   // Remove old timestamps outside the window
   entry.timestamps = entry.timestamps.filter(
     (t) => now - t < config.windowMs
   );
+  entry.windowMs = config.windowMs;
 
   if (entry.timestamps.length >= config.maxRequests) {
     const oldest = entry.timestamps[0];
@@ -61,6 +66,17 @@ export function checkRateLimit(
 
   entry.timestamps.push(now);
   store.set(identifier, entry);
+
+  // Evict oldest entries if store is too large (DDoS protection)
+  if (store.size > MAX_STORE_SIZE) {
+    const keysIter = store.keys();
+    // Delete ~10% of oldest entries
+    for (let i = 0; i < MAX_STORE_SIZE * 0.1; i++) {
+      const { value, done } = keysIter.next();
+      if (done) break;
+      store.delete(value);
+    }
+  }
 
   return {
     allowed: true,

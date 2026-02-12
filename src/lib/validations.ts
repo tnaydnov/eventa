@@ -12,6 +12,8 @@ const envSchema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
   ADMIN_PASSWORD: z.string().min(12).optional(),
+  JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters').optional(),
+  CRON_SECRET: z.string().min(16).optional(),
 });
 
 /** Validate environment variables at import time (server + client) */
@@ -21,6 +23,8 @@ export function validateEnv() {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
+    JWT_SECRET: process.env.JWT_SECRET,
+    CRON_SECRET: process.env.CRON_SECRET,
   });
   if (!result.success) {
     console.error('❌ Invalid environment variables:', result.error.flatten().fieldErrors);
@@ -40,9 +44,11 @@ export const eventStatusValues = ['draft', 'active', 'paused', 'ended', 'archive
 export const profileSetupSchema = z.object({
   display_name: z
     .string()
-    .min(1, 'נא להזין שם')
-    .max(MAX_NAME_LENGTH, `שם ארוך מדי (עד ${MAX_NAME_LENGTH} תווים)`)
-    .transform((v) => v.trim()),
+    .transform((v) => v.trim())
+    .pipe(z.string()
+      .min(1, 'נא להזין שם')
+      .max(MAX_NAME_LENGTH, `שם ארוך מדי (עד ${MAX_NAME_LENGTH} תווים)`)
+    ),
   gender: z.enum(genderValues, { message: 'נא לבחור מגדר' }),
   attracted_to: z.enum(attractedToValues, { message: 'נא לבחור העדפה' }),
   bio: z
@@ -90,12 +96,14 @@ export const createEventSchema = z.object({
 });
 
 /* ---- Admin update event schema ---- */
+// Exclude 'archived' — must go through the dedicated archive endpoint
+const updateableStatusValues = eventStatusValues.filter((s) => s !== 'archived') as [string, ...string[]];
 export const updateEventSchema = z.object({
   is_active: z.boolean().optional(),
   name: z.string().min(1).max(100).optional(),
   slug: z.string().min(1).max(50).regex(/^[a-z0-9-]+$/, 'slug חייב להכיל רק אותיות קטנות, מספרים ומקפים').optional(),
   event_type: z.enum(eventTypeValues).optional(),
-  status: z.enum(eventStatusValues).optional(),
+  status: z.enum(updateableStatusValues).optional(),
   description: z.string().max(500).nullable().optional(),
   background_image: z.string().url().max(500).nullable().optional(),
 });

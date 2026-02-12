@@ -23,7 +23,7 @@ export default function DeleteAccountDialog({
 
   const handleDelete = async () => {
     setDeleting(true);
-    const success = await deleteAccount(session.participantId, session.eventId);
+    const success = await deleteAccount();
     if (success) {
       onDeleted();
     } else {

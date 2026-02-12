@@ -42,5 +42,16 @@ export function secureGuard(
 
 /** Reject path traversal and dangerous characters in storage paths. */
 export function isSafePath(p: string): boolean {
-  return !p.includes('..') && !p.includes('//') && !p.includes('\\') && !p.includes('\0');
+  // Decode URL-encoded characters before checking traversal patterns
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(p);
+  } catch {
+    return false; // Malformed encoding
+  }
+  // Reject traversal, absolute paths, and dangerous characters
+  if (decoded.includes('..') || decoded.includes('//') || decoded.includes('\\') || decoded.includes('\0')) return false;
+  // Reject absolute paths (Unix or Windows drive letters)
+  if (decoded.startsWith('/') || /^[a-zA-Z]:/.test(decoded)) return false;
+  return true;
 }

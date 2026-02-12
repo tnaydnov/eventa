@@ -17,19 +17,23 @@ export async function GET(req: NextRequest) {
     const supabase = getServiceClient();
 
     /* ── Run all independent queries in parallel ── */
+    // NOTE: PostgREST defaults to 1000 rows. We set an explicit high limit
+    // for analytics queries that need ALL rows for accurate aggregation.
+    const ANALYTICS_LIMIT = 100_000;
+
     const [
       eventsRes, participantsRes, photosRes, likesRes,
       conversationsRes, messagesRes, blocksRes, compassRes, snapshotsRes,
     ] = await Promise.all([
-      supabase.from('events').select('id, name, event_type, status, created_at, archived_at'),
-      supabase.from('participants').select('id, event_id, gender, attracted_to, age, display_name, created_at'),
-      supabase.from('participant_photos').select('participant_id, event_id'),
-      supabase.from('likes').select('id, event_id, from_participant_id, to_participant_id, seen_at, created_at'),
-      supabase.from('conversations').select('id, event_id, created_at'),
-      supabase.from('messages').select('id, event_id, conversation_id, sender_participant_id, type, created_at').eq('is_deleted', false),
-      supabase.from('blocks').select('id, event_id, blocker_id, blocked_id, had_like, had_conversation, had_match, created_at'),
-      supabase.from('compass_sessions').select('id, event_id, activated_at, closed_at'),
-      supabase.from('event_analytics_snapshots').select('event_id, snapshot'),
+      supabase.from('events').select('id, name, event_type, status, created_at, archived_at').limit(ANALYTICS_LIMIT),
+      supabase.from('participants').select('id, event_id, gender, attracted_to, age, display_name, created_at').limit(ANALYTICS_LIMIT),
+      supabase.from('participant_photos').select('participant_id, event_id').limit(ANALYTICS_LIMIT),
+      supabase.from('likes').select('id, event_id, from_participant_id, to_participant_id, seen_at, created_at').limit(ANALYTICS_LIMIT),
+      supabase.from('conversations').select('id, event_id, created_at').limit(ANALYTICS_LIMIT),
+      supabase.from('messages').select('id, event_id, conversation_id, sender_participant_id, type, created_at').eq('is_deleted', false).limit(ANALYTICS_LIMIT),
+      supabase.from('blocks').select('id, event_id, blocker_id, blocked_id, had_like, had_conversation, had_match, created_at').limit(ANALYTICS_LIMIT),
+      supabase.from('compass_sessions').select('id, event_id, activated_at, closed_at').limit(ANALYTICS_LIMIT),
+      supabase.from('event_analytics_snapshots').select('event_id, snapshot').limit(ANALYTICS_LIMIT),
     ]);
 
     const events       = eventsRes.data || [];

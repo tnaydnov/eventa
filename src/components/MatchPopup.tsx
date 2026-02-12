@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useMatchStore, useSessionStore } from '@/lib/store';
-import { getOrCreateConversation } from '@/lib/api';
+import { useMatchStore, useSessionStore, useGridStore } from '@/lib/store';
+import { getOrCreateConversation, getPhotoUrl } from '@/lib/api';
 
 /**
  * Fullscreen "It's a Match!" popup.
@@ -33,13 +33,11 @@ export default function MatchPopup() {
     if (!session || !pendingMatch) return;
 
     // Try to get my photo from the participants already loaded in grid
-    const { useGridStore } = require('@/lib/store');
     const me = useGridStore
       .getState()
       .participants.find((p: { id: string }) => p.id === session.participantId);
 
     if (me?.photos?.[0]) {
-      const { getPhotoUrl } = require('@/lib/api');
       setMyPhotoUrl(getPhotoUrl(me.photos[0].storage_path));
     } else {
       setMyPhotoUrl(null);

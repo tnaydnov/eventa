@@ -13,11 +13,13 @@ import { useSessionStore } from '@/lib/store';
 const HEARTBEAT_INTERVAL_MS = 60_000;
 
 export default function HeartbeatPinger() {
-  const session = useSessionStore((s) => s.session);
+  const participantId = useSessionStore((s) => s.session?.participantId);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (!session) return;
+    if (!participantId) return;
+
+    const controller = new AbortController();
 
     const sendHeartbeat = () => {
       // Only send when the tab is visible
@@ -25,6 +27,7 @@ export default function HeartbeatPinger() {
       fetch('/api/secure/heartbeat', {
         method: 'POST',
         credentials: 'include',
+        signal: controller.signal,
       }).catch(() => { /* ignore failures silently */ });
     };
 
@@ -43,10 +46,11 @@ export default function HeartbeatPinger() {
     document.addEventListener('visibilitychange', onVisibilityChange);
 
     return () => {
+      controller.abort();
       if (intervalRef.current) clearInterval(intervalRef.current);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [session]);
+  }, [participantId]);
 
   return null; // Renders nothing
 }

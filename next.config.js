@@ -10,7 +10,7 @@ const isDev = process.env.NODE_ENV !== 'production';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: false, // disabled: RealtimeHub manages WS outside React lifecycle
+  reactStrictMode: true, // enabled: RealtimeHub is resilient to double-mounts
   // Turbopack config (required for Next.js 16 alongside webpack plugins)
   turbopack: {},
   images: {

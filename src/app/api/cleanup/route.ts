@@ -51,16 +51,20 @@ async function handler(req: NextRequest) {
     const eventIds = oldEvents.map((e) => e.id);
 
     // Collect storage paths BEFORE deleting DB rows (otherwise we lose the references)
+    // Use high limit to avoid PostgREST 1000-row default truncating results
+    const FETCH_LIMIT = 100_000;
     const [{ data: photos }, { data: chatMedia }] = await Promise.all([
       supabase
         .from('participant_photos')
         .select('storage_path')
-        .in('event_id', eventIds),
+        .in('event_id', eventIds)
+        .limit(FETCH_LIMIT),
       supabase
         .from('messages')
         .select('media_path')
         .in('event_id', eventIds)
-        .not('media_path', 'is', null),
+        .not('media_path', 'is', null)
+        .limit(FETCH_LIMIT),
     ]);
 
     const photoStoragePaths = (photos || []).map((p) => p.storage_path);
@@ -100,6 +104,8 @@ async function handler(req: NextRequest) {
         supabase.from('likes').delete().eq('event_id', eventId),
         supabase.from('blocks').delete().eq('event_id', eventId),
         supabase.from('banned_devices').delete().eq('event_id', eventId),
+        supabase.from('activity_log').delete().eq('event_id', eventId),
+        supabase.from('event_analytics_snapshots').delete().eq('event_id', eventId),
       ]);
 
       // Messages → conversations (FK order)

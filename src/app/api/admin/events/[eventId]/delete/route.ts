@@ -91,6 +91,8 @@ export async function DELETE(
       supabase.from('blocks').delete().eq('event_id', eventId),
       supabase.from('banned_devices').delete().eq('event_id', eventId),
       supabase.from('notifications').delete().eq('event_id', eventId),
+      supabase.from('activity_log').delete().eq('event_id', eventId),
+      supabase.from('event_analytics_snapshots').delete().eq('event_id', eventId),
       compassCleanup,
     ]);
 

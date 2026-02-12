@@ -62,12 +62,14 @@ export function compressChatImage(file: File): Promise<File> {
 
 /**
  * Generate a thumbnail preview URL for immediate display.
- * Returns a blob URL that should be revoked when no longer needed.
+ * Returns a data URL. For production use, prefer URL.createObjectURL() — it's
+ * much lighter for large files (no base64 overhead).
  */
 export function createThumbnailUrl(file: File): Promise<string> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error('Failed to read file for thumbnail'));
     reader.readAsDataURL(file);
   });
 }

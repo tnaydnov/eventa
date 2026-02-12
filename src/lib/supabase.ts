@@ -1,11 +1,24 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const _supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const _supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-/* ── Event-scoped RLS context ──────────────────────────────────── */
+if (!_supabaseUrl || !_supabaseAnonKey) {
+  // Fail fast with a clear message instead of passing undefined to createClient
+  throw new Error(
+    'Missing required env: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set'
+  );
+}
 
+// Re-assign after guard so TypeScript knows these are `string`, not `string | undefined`
+const supabaseUrl: string = _supabaseUrl;
+const supabaseAnonKey: string = _supabaseAnonKey;
+
+/* ── Event-scoped RLS context (CLIENT-SIDE ONLY) ──────────────── */
+// This module-level var is safe because the anon client is only used
+// in the browser (single user per tab). Server-side code uses
+// getServiceClient() which does NOT read _currentEventId.
 let _currentEventId: string | null = null;
 
 /**
@@ -32,11 +45,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-/** Service-role client — server-side only, full DB access */
-export function getServiceClient() {
+/** Service-role client — server-side only, full DB access (cached singleton) */
+let _serviceClient: SupabaseClient | null = null;
+export function getServiceClient(): SupabaseClient {
+  if (_serviceClient) return _serviceClient;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceKey) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY');
-  return createClient(supabaseUrl, serviceKey);
+  _serviceClient = createClient(supabaseUrl, serviceKey);
+  return _serviceClient;
 }
 
 /** Generate a random 16-char hex join code */

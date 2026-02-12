@@ -6,12 +6,15 @@ import DOMPurify from 'dompurify';
  */
 export function sanitize(input: string): string {
   if (typeof window === 'undefined') {
-    // Server-side: strip all HTML tags with regex fallback
+    // Server-side: decode entities FIRST, then strip tags.
+    // (Reversing order prevents &lt;script&gt; from being decoded into <script>)
     return input
-      .replace(/<[^>]*>/g, '')
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
       .replace(/&amp;/g, '&')
+      .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+      .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCharCode(parseInt(h, 16)))
+      .replace(/<[^>]*>/g, '')
       .trim();
   }
 
