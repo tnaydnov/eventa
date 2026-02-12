@@ -6,13 +6,13 @@ import { RETENTION_DAYS, STORAGE_BATCH_SIZE } from '@/lib/constants';
 import { jsonError } from '@/lib/route-helpers';
 
 /**
- * POST /api/cleanup
+ * GET|POST /api/cleanup
  * Deletes all data for events that ended more than RETENTION_DAYS ago.
- * Intended to be called by a cron job (e.g. Vercel Cron).
+ * Intended to be called by a cron job (Vercel Cron sends GET).
  *
  * Auth: Bearer ${CRON_SECRET} header, timing-safe comparison via SHA-256.
  */
-export async function POST(req: NextRequest) {
+async function handler(req: NextRequest) {
   // Rate-limit even cron-authenticated requests (defense-in-depth)
   const ip = getClientIp(req.headers);
   const rl = checkRateLimit(`cleanup:${ip}`, RATE_LIMITS.strict);
@@ -122,3 +122,6 @@ export async function POST(req: NextRequest) {
     return jsonError('Cleanup failed', 500);
   }
 }
+
+// Vercel Cron sends GET requests — expose both methods
+export { handler as GET, handler as POST };

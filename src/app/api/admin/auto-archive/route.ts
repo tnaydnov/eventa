@@ -6,16 +6,15 @@ import { adminGuard, jsonError } from '../_helpers';
 import { adminAuditLog } from '@/lib/admin-auth';
 
 /**
- * POST /api/admin/auto-archive
+ * GET|POST /api/admin/auto-archive
  * Finds events that have ended more than RETENTION_DAYS ago
  * and are still in 'ended' status, then archives them one by one.
  *
  * Also auto-transitions active events past their ends_at to 'ended'.
  *
- * This can be called manually from the admin dashboard or
- * triggered by a cron job / Vercel cron.
+ * Auth: Admin cookie (POST from dashboard) OR CRON_SECRET bearer (GET from Vercel Cron).
  */
-export async function POST(req: NextRequest) {
+async function handler(req: NextRequest) {
   const denied = adminGuard(req, 'admin-auto-archive', RATE_LIMITS.strict);
   if (denied) return denied;
 
@@ -59,11 +58,16 @@ export async function POST(req: NextRequest) {
     if (archivable && archivable.length > 0) {
       for (const ev of archivable) {
         try {
-          // Call the archive endpoint internally
+          // Call the archive endpoint internally — forward auth headers
           const archiveUrl = new URL(`/api/admin/events/${ev.id}/archive`, req.url);
+          const headers: Record<string, string> = {};
+          const cookie = req.headers.get('cookie');
+          const auth = req.headers.get('authorization');
+          if (cookie) headers['cookie'] = cookie;
+          if (auth) headers['authorization'] = auth;
           const res = await fetch(archiveUrl.toString(), {
             method: 'POST',
-            headers: { cookie: req.headers.get('cookie') || '' },
+            headers,
           });
 
           if (res.ok) {
@@ -97,3 +101,6 @@ export async function POST(req: NextRequest) {
     return jsonError('Auto-archive failed', 500);
   }
 }
+
+// Vercel Cron sends GET — expose both methods
+export { handler as GET, handler as POST };

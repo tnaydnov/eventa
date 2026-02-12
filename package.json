@@ -1,17 +1,18 @@
 {
   "name": "weddate",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "description": "WedDate — dating app for wedding & event singles",
   "scripts": {
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "type": "module",
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
