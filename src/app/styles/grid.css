@@ -1,0 +1,73 @@
+/* ═══════════════════════════════════════════
+   Grid
+   ═══════════════════════════════════════════ */
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 8px;
+}
+
+.grid-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 3/4;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 120px 160px;
+}
+
+.grid-card:active {
+  transform: scale(0.97);
+}
+
+.grid-card-highlight {
+  animation: grid-glow 2.5s ease-in-out infinite;
+}
+
+@keyframes grid-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.88; }
+}
+
+@keyframes pulse-badge {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+.grid-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.grid-card .card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 8px 8px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.75));
+  color: white;
+}
+
+.grid-card .card-overlay .name {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.1px;
+}
+
+/* ── Likes section ── */
+.likes-section {
+  padding: 16px;
+}
+
+.likes-section h3 {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}

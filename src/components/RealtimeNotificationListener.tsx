@@ -1,0 +1,296 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { useRealtimeHub } from '@/hooks/useRealtimeHub';
+import { useAppResume } from '@/hooks/useAppResume';
+import { useSessionStore, useNotificationStore, useToastStore, useMatchStore } from '@/lib/store';
+import { getUnseenLikes, getUnreadConversations, getPhotoUrl } from '@/lib/api';
+import type { Like, Message } from '@/lib/database.types';
+
+/**
+ * Global realtime listener mounted in event layout.
+ * Uses RealtimeHub for stable subscriptions (survives StrictMode).
+ * Initializes unread state from DB on mount, then uses realtime + polling.
+ */
+export default function RealtimeNotificationListener() {
+  const session = useSessionStore((s) => s.session);
+  const toast = useToastStore((s) => s.show);
+  const pathname = usePathname();
+  const pathnameRef = useRef(pathname);
+  const seenIds = useRef(new Set<string>());
+  const sessionRef = useRef(session);
+  const lastPollTsRef = useRef(new Date().toISOString());
+  const myConvoIdsRef = useRef(new Set<string>());
+  sessionRef.current = session;
+
+  // Helper: refresh the full set of my conversation IDs
+  const refreshMyConvoIds = async (): Promise<Set<string>> => {
+    const s = sessionRef.current;
+    if (!s) return myConvoIdsRef.current;
+    const { data } = await supabase
+      .from('conversations').select('id')
+      .eq('event_id', s.eventId)
+      .or(`a_participant_id.eq.${s.participantId},b_participant_id.eq.${s.participantId}`);
+    if (data) {
+      for (const c of data) myConvoIdsRef.current.add(c.id);
+    }
+    return myConvoIdsRef.current;
+  };
+
+  // Helper: check if current user is a member of a conversation (cache-first, single-row fallback)
+  const isMyConversation = async (conversationId: string): Promise<boolean> => {
+    if (myConvoIdsRef.current.has(conversationId)) return true;
+    // Could be a brand-new conversation — do a targeted lookup
+    const s = sessionRef.current;
+    if (!s) return false;
+    const { data } = await supabase
+      .from('conversations')
+      .select('id')
+      .eq('id', conversationId)
+      .eq('event_id', s.eventId)
+      .or(`a_participant_id.eq.${s.participantId},b_participant_id.eq.${s.participantId}`)
+      .maybeSingle();
+    if (data) {
+      myConvoIdsRef.current.add(conversationId);
+      return true;
+    }
+    return false;
+  };
+
+  useEffect(() => { pathnameRef.current = pathname; }, [pathname]);
+
+  // ─── Initialize unread state from DB ──────────────────────
+  useEffect(() => {
+    if (!session) return;
+    const store = useNotificationStore.getState();
+    if (store._initialized) return;
+
+    (async () => {
+      const [unseenLikeSenders, unreadConvos] = await Promise.all([
+        getUnseenLikes(session.eventId, session.participantId),
+        getUnreadConversations(session.eventId, session.participantId),
+      ]);
+
+      // Populate grid highlights for unseen likes
+      for (const senderId of unseenLikeSenders) {
+        useNotificationStore.getState().addGridHighlight({
+          participantId: senderId,
+          type: 'like',
+          timestamp: Date.now(),
+        });
+      }
+      useNotificationStore.getState().setUnreadLikes(unseenLikeSenders.length);
+
+      // Populate grid highlights for unread messages + track unread convos
+      const convoIds: string[] = [];
+      for (const uc of unreadConvos) {
+        useNotificationStore.getState().addGridHighlight({
+          participantId: uc.otherParticipantId,
+          type: 'message',
+          timestamp: Date.now(),
+        });
+        convoIds.push(uc.conversationId);
+      }
+      useNotificationStore.getState().initializeUnreadConvos(convoIds);
+      useNotificationStore.getState().setInitialized(true);
+
+      // Pre-seed conversation ID cache for realtime filtering
+      refreshMyConvoIds();
+    })();
+  }, [session]);
+
+  // Stable name cache (outside effect lifecycle)
+  const nameCache = useRef(new Map<string, string>());
+  const getName = async (id: string): Promise<string> => {
+    if (nameCache.current.has(id)) return nameCache.current.get(id)!;
+    const { data } = await supabase.from('participants').select('display_name').eq('id', id).single();
+    const name = data?.display_name || 'מישהו';
+    nameCache.current.set(id, name);
+    return name;
+  };
+
+  const handleLike = async (likeId: string, fromId: string) => {
+    if (seenIds.current.has(`like:${likeId}`)) return;
+    seenIds.current.add(`like:${likeId}`);
+    const s = sessionRef.current;
+    if (!s) return;
+    const name = await getName(fromId);
+    useNotificationStore.getState().addGridHighlight({ participantId: fromId, type: 'like', timestamp: Date.now() });
+    useNotificationStore.getState().incrementLikes();
+
+    // Check if this creates a match (did I already like this person?)
+    const { data: iLikedThem } = await supabase
+      .from('likes')
+      .select('id')
+      .eq('event_id', s.eventId)
+      .eq('from_participant_id', s.participantId)
+      .eq('to_participant_id', fromId)
+      .maybeSingle();
+
+    if (iLikedThem) {
+      // It's a match! Fetch their photo for the popup
+      const { data: theirPhotos } = await supabase
+        .from('participant_photos')
+        .select('storage_path')
+        .eq('participant_id', fromId)
+        .order('order_index')
+        .limit(1);
+
+      useMatchStore.getState().setPendingMatch({
+        id: fromId,
+        displayName: name,
+        photoUrl: theirPhotos?.[0] ? getPhotoUrl(theirPhotos[0].storage_path) : null,
+      });
+    } else {
+      toast(`💖 ${name} שלח/ה לך לייק!`);
+    }
+  };
+
+  const handleMessage = async (msgId: string, senderId: string, conversationId: string, text: string | null, type: string) => {
+    if (seenIds.current.has(`msg:${msgId}`)) return;
+    seenIds.current.add(`msg:${msgId}`);
+    if (type === 'system') return; // don't count system messages as unread
+    const name = await getName(senderId);
+    useNotificationStore.getState().addGridHighlight({ participantId: senderId, type: 'message', timestamp: Date.now() });
+    if (!pathnameRef.current.includes(`/chat/${conversationId}`)) {
+      useNotificationStore.getState().addUnreadConvo(conversationId);
+      const preview = type === 'text' ? (text || '').slice(0, 40) : type === 'image' ? '📷 תמונה' : '🎤 הודעה קולית';
+      toast(`💬 ${name}: ${preview}`);
+    }
+  };
+
+  const handleLikeRemoved = async (fromId: string) => {
+    const s = sessionRef.current;
+    if (!s) return;
+    useNotificationStore.getState().removeGridHighlightByType(fromId, 'like');
+    useNotificationStore.getState().decrementLikes();
+    const name = await getName(fromId);
+    toast(`💔 ${name} הסיר/ה את הלייק`);
+  };
+
+  // ─── Realtime via Hub (stable, outside React lifecycle) ───
+  useRealtimeHub({
+    channelKey: `live-notify:${session?.eventId}:${session?.participantId}`,
+    postgres: [
+      {
+        binding: { event: 'INSERT', schema: 'public', table: 'likes', filter: `event_id=eq.${session?.eventId}` },
+        handler: (payload) => {
+          const like = payload.new as Like;
+          if (like.to_participant_id !== sessionRef.current?.participantId) return;
+          handleLike(like.id, like.from_participant_id);
+        },
+      },
+      {
+        binding: { event: 'DELETE', schema: 'public', table: 'likes', filter: `event_id=eq.${session?.eventId}` },
+        handler: (payload) => {
+          const old = payload.old as Like;
+          if (old.to_participant_id !== sessionRef.current?.participantId) return;
+          handleLikeRemoved(old.from_participant_id);
+        },
+      },
+      {
+        binding: { event: 'INSERT', schema: 'public', table: 'messages', filter: `event_id=eq.${session?.eventId}` },
+        handler: async (payload) => {
+          const msg = payload.new as Message;
+          if (msg.sender_participant_id === sessionRef.current?.participantId) return;
+          // Only process messages from conversations I'm part of
+          if (!(await isMyConversation(msg.conversation_id))) return;
+          handleMessage(msg.id, msg.sender_participant_id, msg.conversation_id, msg.text, msg.type);
+        },
+      },
+    ],
+    enabled: !!session,
+  });
+
+  // ─── Polling fallback ─────────────────────────────────────
+  const pollRef = useRef<() => Promise<void>>(async () => {});
+  pollRef.current = async () => {
+    const s = sessionRef.current;
+    if (!s) return;
+    const now = new Date().toISOString();
+
+    const { data: newLikes } = await supabase
+      .from('likes').select('id, from_participant_id')
+      .eq('event_id', s.eventId).eq('to_participant_id', s.participantId)
+      .gt('created_at', lastPollTsRef.current).order('created_at', { ascending: true });
+    if (newLikes) for (const like of newLikes) handleLike(like.id, like.from_participant_id);
+
+    // First get my conversation IDs, then only fetch messages from those
+    await refreshMyConvoIds();
+    const myConvoIds = [...myConvoIdsRef.current];
+
+    if (myConvoIds.length > 0) {
+      const { data: newMsgs } = await supabase
+        .from('messages').select('id, sender_participant_id, conversation_id, text, type')
+        .eq('event_id', s.eventId).neq('sender_participant_id', s.participantId)
+        .in('conversation_id', myConvoIds)
+        .gt('created_at', lastPollTsRef.current).order('created_at', { ascending: true });
+      if (newMsgs) for (const msg of newMsgs) handleMessage(msg.id, msg.sender_participant_id, msg.conversation_id, msg.text, msg.type);
+    }
+
+    // ── Reconcile: remove stale like highlights ──
+    // If a like was removed, the DELETE realtime event might have been missed.
+    // Re-fetch current unseen likes and remove any highlights that no longer exist.
+    const store = useNotificationStore.getState();
+    const likeHighlights = store.gridHighlights.filter((h) => h.type === 'like');
+    if (likeHighlights.length > 0) {
+      const { data: currentLikes } = await supabase
+        .from('likes')
+        .select('from_participant_id')
+        .eq('event_id', s.eventId)
+        .eq('to_participant_id', s.participantId)
+        .is('seen_at', null);
+      const activeLikerIds = new Set((currentLikes || []).map((l) => l.from_participant_id));
+      for (const h of likeHighlights) {
+        if (!activeLikerIds.has(h.participantId)) {
+          useNotificationStore.getState().removeGridHighlightByType(h.participantId, 'like');
+          useNotificationStore.getState().decrementLikes();
+        }
+      }
+    }
+
+    lastPollTsRef.current = now;
+  };
+
+  useEffect(() => {
+    if (!session) return;
+    lastPollTsRef.current = new Date().toISOString();
+
+    // Poll every 15s (realtime handles most updates; this is a safety net).
+    // Pause when tab is hidden to avoid wasting bandwidth.
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    const startPolling = () => {
+      if (interval) return;
+      interval = setInterval(() => pollRef.current?.(), 15_000);
+    };
+    const stopPolling = () => {
+      if (interval) { clearInterval(interval); interval = null; }
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        stopPolling();
+      } else {
+        // Catch up immediately when returning, then resume interval
+        pollRef.current?.();
+        startPolling();
+      }
+    };
+
+    startPolling();
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [session]);
+
+  // Catch up immediately when returning from background
+  useAppResume(() => { pollRef.current?.(); }, !!session);
+
+  return null;
+}

@@ -1,0 +1,81 @@
+/* ═══════════════════════════════════════════
+   Design System: Rose Gold Luxe
+   Glassmorphism · Gradient Mesh · Warm Palette
+   ═══════════════════════════════════════════ */
+
+:root {
+  --background: #0A0A0A;
+  --foreground: #F0EDE8;
+  --primary: #D4A59A;
+  --primary-light: #E8C4BB;
+  --primary-dark: #B8877C;
+  --accent-gold: #C9A580;
+  --card-bg: rgba(255, 255, 255, 0.04);
+  --card-border: rgba(255, 255, 255, 0.07);
+  --surface: rgba(255, 255, 255, 0.05);
+  --surface-light: rgba(255, 255, 255, 0.09);
+  --text-muted: #9B9B9B;
+  --success: #34D399;
+  --warning: #FBBF24;
+  --danger: #EF4444;
+  --glass-blur: 20px;
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.07);
+}
+
+html {
+  direction: rtl;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-rubik, 'Rubik', 'Segoe UI', Tahoma, Arial, sans-serif);
+  margin: 0;
+  padding: 0;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Gradient Mesh Background ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: -50px;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 600px 500px at 15% 25%, rgba(212, 165, 154, 0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 600px at 80% 70%, rgba(140, 100, 140, 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 700px 400px at 50% 90%, rgba(201, 165, 128, 0.06) 0%, transparent 70%);
+  animation: meshFloat 30s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes meshFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(-20px, 15px) scale(1.03); }
+  50% { transform: translate(15px, -10px) scale(0.97); }
+  75% { transform: translate(-8px, -18px) scale(1.02); }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(212, 165, 154, 0.3); border-radius: 4px; }
+
+/* ═══════════════════════════════════════════
+   Reduced motion
+   ═══════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  body::before {
+    animation: none !important;
+  }
+}
