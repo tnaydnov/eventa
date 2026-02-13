@@ -54,13 +54,16 @@ export async function handleClose(
     // Send system message in chat
     const convId = await findOrCreateConversation(supabase, cs.event_id, session.sub, otherId);
     if (convId) {
-      await supabase.from('messages').insert({
-        event_id: cs.event_id,
-        conversation_id: convId,
-        sender_participant_id: session.sub,
-        type: 'system',
-        text: '🧭 בקשת המצפן נדחתה',
-      });
+      await Promise.all([
+        supabase.from('messages').insert({
+          event_id: cs.event_id,
+          conversation_id: convId,
+          sender_participant_id: session.sub,
+          type: 'system',
+          text: '🧭 בקשת המצפן נדחתה',
+        }),
+        supabase.from('conversations').update({ last_message_at: new Date().toISOString() }).eq('id', convId),
+      ]);
     }
 
     // Notify sender so their compass-wait clears
@@ -83,13 +86,16 @@ export async function handleClose(
       recipientId
     );
     if (convId) {
-      await supabase.from('messages').insert({
-        event_id: cs.event_id,
-        conversation_id: convId,
-        sender_participant_id: cs.requested_by,
-        type: 'system',
-        text: '🧭 שלחתי לך בקשת מצפן אבל פספסת... שלח/י לי הודעה ונתאם!',
-      });
+      await Promise.all([
+        supabase.from('messages').insert({
+          event_id: cs.event_id,
+          conversation_id: convId,
+          sender_participant_id: cs.requested_by,
+          type: 'system',
+          text: '🧭 שלחתי לך בקשת מצפן אבל פספסת... שלח/י לי הודעה ונתאם!',
+        }),
+        supabase.from('conversations').update({ last_message_at: new Date().toISOString() }).eq('id', convId),
+      ]);
     }
   } else if (!reason) {
     // Cancelled by sender — notify the recipient

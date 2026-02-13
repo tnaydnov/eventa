@@ -60,7 +60,7 @@ export interface Conversation {
   a_participant_id: string;
   b_participant_id: string;
   created_at: string;
-  last_message_at: string;
+  last_message_at: string | null;
   a_last_read_at: string | null;
   b_last_read_at: string | null;
 }

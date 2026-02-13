@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS conversations (
   a_participant_id UUID NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
   b_participant_id UUID NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  last_message_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_message_at TIMESTAMPTZ DEFAULT NULL,
   a_last_read_at TIMESTAMPTZ,
   b_last_read_at TIMESTAMPTZ,
   UNIQUE (event_id, a_participant_id, b_participant_id)

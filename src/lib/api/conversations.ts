@@ -33,6 +33,7 @@ export async function getConversations(
     .select(CONVERSATION_COLUMNS)
     .eq('event_id', eventId)
     .or(`a_participant_id.eq.${myId},b_participant_id.eq.${myId}`)
+    .not('last_message_at', 'is', null)
     .order('last_message_at', { ascending: false })
     .limit(50);
 
