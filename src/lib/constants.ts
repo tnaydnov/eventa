@@ -27,7 +27,7 @@ export const GEO_THROTTLE_INTERVAL_MS = 1000;
 export const HEADING_SMOOTH_FACTOR = 0.2;
 
 /** Speed threshold (m/s) above which GPS heading is used instead of compass. */
-export const GPS_HEADING_SPEED_THRESHOLD = 0.8;
+export const GPS_HEADING_SPEED_THRESHOLD = 0.5;
 
 // ─── Photos ─────────────────────────────────────────────
 
