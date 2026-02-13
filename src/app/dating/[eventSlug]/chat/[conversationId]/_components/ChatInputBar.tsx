@@ -33,6 +33,7 @@ export default function ChatInputBar({
   handleMicTouchEnd,
   handleMicMouseDown,
   handleMicMouseUp,
+  handleMicMouseLeave,
 }: ChatInputBarProps) {
   if (recording) {
     if (recordingLocked) {
@@ -143,9 +144,7 @@ export default function ChatInputBar({
         onTouchEnd={handleMicTouchEnd}
         onMouseDown={handleMicMouseDown}
         onMouseUp={handleMicMouseUp}
-        onMouseLeave={() => {
-          if (recording) sendRecordedAudio();
-        }}
+        onMouseLeave={handleMicMouseLeave}
         aria-label="החזק להקלטה"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

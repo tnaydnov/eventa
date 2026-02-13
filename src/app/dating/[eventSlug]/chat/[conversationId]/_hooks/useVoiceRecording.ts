@@ -42,6 +42,7 @@ export interface VoiceRecordingHandlers {
   handleMicTouchEnd: () => void;
   handleMicMouseDown: () => void;
   handleMicMouseUp: () => void;
+  handleMicMouseLeave: () => void;
 }
 
 export function useVoiceRecording({
@@ -65,6 +66,8 @@ export function useVoiceRecording({
   const recordingCancelledRef = useRef(false);
   const streamRef = useRef<MediaStream | null>(null);
   const maxDurationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Tracks whether the finger/mouse is currently held down on the mic button */
+  const isHoldingRef = useRef(false);
 
   const cleanupRecording = () => {
     if (recordingTimerRef.current) {
@@ -84,6 +87,7 @@ export function useVoiceRecording({
     touchStartRef.current = null;
     recordingLockedRef.current = false;
     recordingCancelledRef.current = false;
+    isHoldingRef.current = false;
     setRecording(false);
     setRecordingLocked(false);
     setRecordingCancelled(false);
@@ -177,6 +181,13 @@ export function useVoiceRecording({
         setRecordingDuration((d) => d + 1);
       }, 1000);
 
+      // If finger/mouse already lifted before getUserMedia resolved,
+      // go straight to locked mode so user has send/cancel buttons.
+      if (!isHoldingRef.current) {
+        recordingLockedRef.current = true;
+        setRecordingLocked(true);
+      }
+
       // Auto-send after max duration to prevent huge files
       maxDurationTimerRef.current = setTimeout(() => {
         if (mediaRecorderRef.current?.state === 'recording') {
@@ -207,6 +218,7 @@ export function useVoiceRecording({
     touchStartRef.current = { x: touch.clientX, y: touch.clientY };
     recordingLockedRef.current = false;
     recordingCancelledRef.current = false;
+    isHoldingRef.current = true;
     setSlideOffset({ x: 0, y: 0 });
     startRecording();
   };
@@ -237,6 +249,7 @@ export function useVoiceRecording({
   };
 
   const handleMicTouchEnd = () => {
+    isHoldingRef.current = false;
     if (!recording) return;
     touchStartRef.current = null;
 
@@ -253,10 +266,19 @@ export function useVoiceRecording({
   // ─── Mouse fallback for desktop testing ─────────────────────
 
   const handleMicMouseDown = () => {
+    isHoldingRef.current = true;
     startRecording();
   };
 
   const handleMicMouseUp = () => {
+    isHoldingRef.current = false;
+    if (!recording) return;
+    if (recordingLockedRef.current) return;
+    sendRecordedAudio();
+  };
+
+  const handleMicMouseLeave = () => {
+    isHoldingRef.current = false;
     if (!recording) return;
     if (recordingLockedRef.current) return;
     sendRecordedAudio();
@@ -275,5 +297,6 @@ export function useVoiceRecording({
     handleMicTouchEnd,
     handleMicMouseDown,
     handleMicMouseUp,
+    handleMicMouseLeave,
   };
 }
