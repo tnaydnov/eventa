@@ -2,8 +2,8 @@ import imageCompression from 'browser-image-compression';
 
 /**
  * Compress an image file before upload.
- * - Profile photos: max 800px, max 200KB
- * - Chat images: max 1200px, max 400KB
+ * - Profile photos: max 1600px, max 800KB
+ * - Chat images: max 1600px, max 800KB
  */
 
 export interface CompressionOptions {
@@ -14,13 +14,13 @@ export interface CompressionOptions {
 }
 
 const PROFILE_PHOTO_OPTIONS: CompressionOptions = {
-  maxSizePx: 800,
-  maxSizeMB: 0.2,
+  maxSizePx: 1600,
+  maxSizeMB: 0.8,
 };
 
 const CHAT_IMAGE_OPTIONS: CompressionOptions = {
-  maxSizePx: 1200,
-  maxSizeMB: 0.4,
+  maxSizePx: 1600,
+  maxSizeMB: 0.8,
 };
 
 export async function compressImage(
@@ -38,7 +38,7 @@ export async function compressImage(
       maxWidthOrHeight: options.maxSizePx,
       useWebWorker: true,
       fileType: 'image/webp',
-      initialQuality: 0.8,
+      initialQuality: 0.9,
     });
 
     // Return as File with proper name (change extension to .webp)

@@ -126,7 +126,7 @@ export default function JoinPage({
           gap: '24px',
         }}
       >
-        <img src="/icons/Eventa_Logo.png" alt="Eventa" width={80} height={80} style={{ objectFit: 'contain' }} />
+        <img src="/icons/Eventa_Logo.png" alt="Eventa" width={140} height={140} style={{ objectFit: 'contain' }} />
         <h1 style={{ fontSize: '28px', color: 'var(--primary)', margin: 0 }}>
           ברוכים הבאים!
         </h1>
