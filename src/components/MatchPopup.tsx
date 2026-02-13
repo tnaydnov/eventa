@@ -130,7 +130,7 @@ export default function MatchPopup() {
                 fontSize: '15px',
                 marginTop: '8px',
               }}>
-                גם {pendingMatch.displayName} לייק/ה אותך!
+                גם {pendingMatch.displayName} עשו לך לייק!
               </p>
             </motion.div>
 

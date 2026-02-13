@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect, useState, useCallback, memo } from 'react';
+import { use, useEffect, useState, useCallback, useRef, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSessionStore, useLikesStore, useNotificationStore, useMatchStore } from '@/lib/store';
 import { getReceivedLikes, getSentLikes, getMatches, getPhotoUrl, markAllLikesSeen } from '@/lib/api';
@@ -52,6 +52,7 @@ export default function LikesPage({
   const [tab, setTab] = useState<'matches' | 'received' | 'sent'>('matches');
   // Stale-while-revalidate: only show spinner on first-ever load
   const [loading, setLoading] = useState(!matchesLoaded && receivedLikes.length === 0);
+  const lastFetchRef = useRef(0);
 
   const loadLikes = useCallback(async () => {
     const s = useSessionStore.getState().session;
@@ -65,22 +66,26 @@ export default function LikesPage({
     setSentLikes(sent);
     setMatches(matchList);
     setLoading(false);
+    lastFetchRef.current = Date.now();
   }, [setReceivedLikes, setSentLikes, setMatches]);
 
   useEffect(() => {
+    if (Date.now() - lastFetchRef.current < 10_000) return;
     loadLikes();
   }, [loadLikes, session]);
 
-  // Mark all likes as seen when entering the likes page
+  // Mark all likes as seen when entering the likes page (only if there are unread likes)
   useEffect(() => {
     if (!session) return;
-    markAllLikesSeen();
-    // Clear like badge + remove all like-type grid highlights
-    useNotificationStore.getState().setUnreadLikes(0);
-    const highlights = useNotificationStore.getState().gridHighlights;
-    for (const h of highlights) {
-      if (h.type === 'like') {
-        useNotificationStore.getState().removeGridHighlightByType(h.participantId, 'like');
+    const { unreadLikes } = useNotificationStore.getState();
+    if (unreadLikes > 0) {
+      markAllLikesSeen();
+      useNotificationStore.getState().setUnreadLikes(0);
+      const highlights = useNotificationStore.getState().gridHighlights;
+      for (const h of highlights) {
+        if (h.type === 'like') {
+          useNotificationStore.getState().removeGridHighlightByType(h.participantId, 'like');
+        }
       }
     }
   }, [session]);

@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSessionStore, useToastStore, useNotificationStore } from '@/lib/store';
+import { useSessionStore, useToastStore, useNotificationStore, useChatsStore } from '@/lib/store';
 import {
   getMessages,
   getMessagesBefore,
@@ -37,10 +37,14 @@ export default function ChatRoomPage({
   const session = useSessionStore((s) => s.session);
   const toast = useToastStore((s) => s.show);
 
+  // Seed from chats store for instant display
+  const cachedConv = useChatsStore((s) => s.conversations.find((c) => c.id === conversationId));
+  const cachedOther = cachedConv?.otherParticipant ?? null;
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [otherUser, setOtherUser] = useState<(Participant & { photos: ParticipantPhoto[] }) | null>(null);
+  const [loading, setLoading] = useState(!cachedOther);
+  const [otherUser, setOtherUser] = useState<(Participant & { photos: ParticipantPhoto[] }) | null>(cachedOther);
   const [showMenu, setShowMenu] = useState(false);
   const [sending, setSending] = useState(false);
   const [deleteMenuMsgId, setDeleteMenuMsgId] = useState<string | null>(null);
@@ -96,24 +100,29 @@ export default function ChatRoomPage({
   useEffect(() => {
     async function load() {
       if (!session) return;
-      setLoading(true);
+      if (!cachedOther) setLoading(true);
 
-      const { data: conv } = await supabase
-        .from('conversations')
-        .select('id, event_id, a_participant_id, b_participant_id, created_at, last_message_at, a_last_read_at, b_last_read_at')
-        .eq('id', conversationId)
-        .single();
+      // If we have cached other user, skip the conversation query — just fetch messages
+      let otherId: string | null = cachedOther?.id ?? null;
 
-      if (!conv) {
-        toast('השיחה לא נמצאה');
-        setLoading(false);
-        return;
+      if (!otherId) {
+        const { data: conv } = await supabase
+          .from('conversations')
+          .select('id, event_id, a_participant_id, b_participant_id, created_at, last_message_at, a_last_read_at, b_last_read_at')
+          .eq('id', conversationId)
+          .single();
+
+        if (!conv) {
+          toast('השיחה לא נמצאה');
+          setLoading(false);
+          return;
+        }
+
+        otherId =
+          conv.a_participant_id === session.participantId
+            ? conv.b_participant_id
+            : conv.a_participant_id;
       }
-
-      const otherId =
-        conv.a_participant_id === session.participantId
-          ? conv.b_participant_id
-          : conv.a_participant_id;
 
       const [msgs, other] = await Promise.all([
         getMessages(conversationId),
@@ -121,14 +130,15 @@ export default function ChatRoomPage({
       ]);
 
       setMessages(msgs);
-      setOtherUser(other);
+      if (other) setOtherUser(other);
       setLoading(false);
 
       markConversationRead(conversationId);
-      if (other) {
-        useNotificationStore.getState().removeGridHighlightByType(other.id, 'message');
+      const resolvedOther = other || cachedOther;
+      if (resolvedOther) {
+        useNotificationStore.getState().removeGridHighlightByType(resolvedOther.id, 'message');
         useNotificationStore.getState().removeUnreadConvo(conversationId);
-        compass.refreshEligibility(other.id);
+        compass.refreshEligibility(resolvedOther.id);
       }
     }
     load();

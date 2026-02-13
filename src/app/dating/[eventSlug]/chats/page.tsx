@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect, useState, useCallback, memo } from 'react';
+import { use, useEffect, useState, useCallback, useRef, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSessionStore, useChatsStore } from '@/lib/store';
 import { getConversations, getPhotoUrl } from '@/lib/api';
@@ -82,6 +82,7 @@ export default function ChatsPage({
   const { conversations, setConversations, updateConversationPreview, removeConversation } = useChatsStore();
   // Stale-while-revalidate: only show spinner on first-ever load
   const [loading, setLoading] = useState(conversations.length === 0);
+  const lastFetchRef = useRef(0);
 
   const loadChats = useCallback(async () => {
     const s = useSessionStore.getState().session;
@@ -89,9 +90,11 @@ export default function ChatsPage({
     const data = await getConversations(s.eventId, s.participantId);
     setConversations(data);
     setLoading(false);
+    lastFetchRef.current = Date.now();
   }, [setConversations]);
 
   useEffect(() => {
+    if (Date.now() - lastFetchRef.current < 10_000) return;
     loadChats();
   }, [loadChats, session]);
 

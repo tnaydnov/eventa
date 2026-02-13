@@ -91,26 +91,28 @@ export async function POST(req: NextRequest) {
 
     const cleanText = type === 'text' ? sanitizeWithLimit(text || '', MAX_MESSAGE_LENGTH) : null;
 
-    // Update last_message_at BEFORE inserting the message so that when the
-    // realtime INSERT event fires, the conversation is already visible
-    // (last_message_at != NULL) in the other user's chat list query.
-    await supabase
-      .from('conversations')
-      .update({ last_message_at: new Date().toISOString() })
-      .eq('id', conversationId);
-
-    const { data, error } = await supabase
-      .from('messages')
-      .insert({
-        event_id: session.eid,
-        conversation_id: conversationId,
-        sender_participant_id: session.sub,
-        type,
-        text: cleanText,
-        media_path: mediaPath || null,
-      })
-      .select()
-      .single();
+    // Run conversation timestamp update + message insert in parallel.
+    // The timestamp update ensures the conversation appears in chat lists
+    // when the realtime INSERT event fires.
+    const now = new Date().toISOString();
+    const [, { data, error }] = await Promise.all([
+      supabase
+        .from('conversations')
+        .update({ last_message_at: now })
+        .eq('id', conversationId),
+      supabase
+        .from('messages')
+        .insert({
+          event_id: session.eid,
+          conversation_id: conversationId,
+          sender_participant_id: session.sub,
+          type,
+          text: cleanText,
+          media_path: mediaPath || null,
+        })
+        .select()
+        .single(),
+    ]);
 
     if (error) {
       console.error('[MESSAGES_POST] insert error:', error);

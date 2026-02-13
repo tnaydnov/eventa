@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect, useState, useCallback, memo } from 'react';
+import { use, useEffect, useState, useCallback, useRef, memo } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSessionStore, useGridStore, useNotificationStore, useSwipeStore } from '@/lib/store';
@@ -98,6 +98,7 @@ export default function EventPage({
   const setViewMode = useSwipeStore((s) => s.setViewMode);
   // Stale-while-revalidate: only show spinner on first-ever load
   const [loading, setLoading] = useState(participants.length === 0);
+  const lastFetchRef = useRef(0);
 
   const loadGrid = useCallback(async () => {
     const s = useSessionStore.getState().session;
@@ -105,6 +106,7 @@ export default function EventPage({
     const data = await getGridParticipants(s.eventId, s.participantId);
     setParticipants(data);
     setLoading(false);
+    lastFetchRef.current = Date.now();
   }, [setParticipants]);
 
   // QR redirect
@@ -125,9 +127,12 @@ export default function EventPage({
     }
   }, [eventSlug, searchParams, router, session]);
 
-  // Load grid
+  // Load grid (skip if recently fetched — Realtime keeps data fresh)
   useEffect(() => {
-    if (session) loadGrid();
+    if (session) {
+      if (Date.now() - lastFetchRef.current < 10_000) return;
+      loadGrid();
+    }
   }, [session, eventSlug, loadGrid]);
 
   // Reload grid when user returns from background / switches back to app

@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSessionStore, useToastStore, useNotificationStore, useSwipeStore, useMatchStore } from '@/lib/store';
+import { useSessionStore, useToastStore, useNotificationStore, useSwipeStore, useMatchStore, useGridStore } from '@/lib/store';
 import { UserIcon } from '@/components/Icons';
 import {
   getParticipant,
@@ -32,22 +32,26 @@ export default function UserProfilePage({
   const toast = useToastStore((s) => s.show);
   const { addLiked, removeLiked } = useSwipeStore();
 
-  const [user, setUser] = useState<(Participant & { photos: ParticipantPhoto[] }) | null>(null);
+  // Seed from grid store for instant display (stale-while-revalidate)
+  const cached = useGridStore((s) => s.participants.find((p) => p.id === participantId)) ?? null;
+  const [user, setUser] = useState<(Participant & { photos: ParticipantPhoto[] }) | null>(cached);
   const [liked, setLiked] = useState(false);
   const [photoIndex, setPhotoIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cached);
   const [showBlockConfirm, setShowBlockConfirm] = useState(false);
+  const [messagePending, setMessagePending] = useState(false);
   const touchStartX = useRef<number | null>(null);
 
   useEffect(() => {
     async function load() {
       if (!session) return;
-      setLoading(true);
+      // Only show full spinner if we have no cached data
+      if (!cached) setLoading(true);
       const [p, isLiked] = await Promise.all([
         getParticipant(participantId),
         hasLiked(session.eventId, session.participantId, participantId),
       ]);
-      setUser(p);
+      if (p) setUser(p); // Update with fresh data (may have new photos/bio)
       setLiked(isLiked);
       setLoading(false);
 
@@ -61,22 +65,26 @@ export default function UserProfilePage({
   const handleLike = async () => {
     if (!session) return;
     if (liked) {
+      // Optimistic: update UI immediately, revert on failure
+      setLiked(false);
+      removeLiked(participantId);
+      useMatchStore.getState().removeMatch(participantId);
       const ok = await removeLike(participantId);
       if (ok) {
-        setLiked(false);
-        removeLiked(participantId); // Sync with swipe store so card reappears
-        useMatchStore.getState().removeMatch(participantId); // Remove from matches list
         toast('הלייק הוסר');
       } else {
+        // Revert
+        setLiked(true);
+        addLiked(participantId);
         toast('שגיאה בהסרת הלייק — נסו שוב');
       }
     } else {
+      // Optimistic: show liked immediately
+      setLiked(true);
+      addLiked(participantId);
       const result = await sendLike(participantId);
       if (result) {
-        setLiked(true);
-        addLiked(participantId); // Sync with swipe store so card stays hidden
         if (result.match && user) {
-          // It's a match! Show the popup
           useMatchStore.getState().setPendingMatch({
             id: participantId,
             displayName: user.display_name,
@@ -86,16 +94,21 @@ export default function UserProfilePage({
           toast('💗 לייק נשלח!');
         }
       } else {
+        // Revert
+        setLiked(false);
+        removeLiked(participantId);
         toast('שגיאה בשליחת הלייק — נסו שוב');
       }
     }
   };
 
   const handleMessage = async () => {
-    if (!session) return;
+    if (!session || messagePending) return;
+    setMessagePending(true);
     const conv = await getOrCreateConversation(
       participantId
     );
+    setMessagePending(false);
     if (conv) {
       router.push(`/dating/${eventSlug}/chat/${conv.id}`);
     } else {
@@ -310,10 +323,14 @@ export default function UserProfilePage({
             {liked ? 'ביטול לייק' : 'לייק'}
           </button>
 
-          <button className="profile-action-btn" onClick={handleMessage}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-            </svg>
+          <button className="profile-action-btn" onClick={handleMessage} disabled={messagePending} style={messagePending ? { opacity: 0.6 } : undefined}>
+            {messagePending ? (
+              <span style={{ width: '24px', height: '24px', border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite', display: 'inline-block' }} />
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+              </svg>
+            )}
             הודעה
           </button>
 

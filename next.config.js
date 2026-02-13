@@ -13,6 +13,9 @@ const nextConfig = {
   reactStrictMode: true, // enabled: RealtimeHub is resilient to double-mounts
   // Turbopack config (required for Next.js 16 alongside webpack plugins)
   turbopack: {},
+  experimental: {
+    optimizePackageImports: ['zustand', 'zod'],
+  },
   images: {
     remotePatterns: [
       {

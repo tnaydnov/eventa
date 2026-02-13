@@ -1,6 +1,7 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useSessionStore, useNotificationStore } from '@/lib/store';
 
 const GRID_ICON = (
@@ -25,7 +26,6 @@ const HEART_ICON = (
 );
 
 export default function TabBar() {
-  const router = useRouter();
   const pathname = usePathname();
   const session = useSessionStore((s) => s.session);
   const unreadLikes = useNotificationStore((s) => s.unreadLikes);
@@ -44,10 +44,11 @@ export default function TabBar() {
   return (
     <div className="tab-bar">
       {tabs.map((tab) => (
-        <button
+        <Link
           key={tab.path}
+          href={tab.path}
+          prefetch={true}
           className={pathname === tab.path ? 'active' : ''}
-          onClick={() => router.push(tab.path)}
           aria-label={tab.label}
           aria-current={pathname === tab.path ? 'page' : undefined}
           style={{ position: 'relative' }}
@@ -78,7 +79,7 @@ export default function TabBar() {
               {tab.badge > 9 ? '9+' : tab.badge}
             </span>
           )}
-        </button>
+        </Link>
       ))}
     </div>
   );
