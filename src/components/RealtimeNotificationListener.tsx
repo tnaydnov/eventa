@@ -173,8 +173,8 @@ export default function RealtimeNotificationListener() {
     markSeen(`msg:${msgId}`);
     if (type === 'system') return; // don't count system messages as unread
     const name = await getName(senderId);
-    useNotificationStore.getState().addGridHighlight({ participantId: senderId, type: 'message', timestamp: Date.now() });
     if (!pathnameRef.current.includes(`/chat/${conversationId}`)) {
+      useNotificationStore.getState().addGridHighlight({ participantId: senderId, type: 'message', timestamp: Date.now() });
       useNotificationStore.getState().addUnreadConvo(conversationId);
       const preview = type === 'text' ? (text || '').slice(0, 40) : type === 'image' ? '📷 תמונה' : '🎤 הודעה קולית';
       toast(`💬 ${name}: ${preview}`);

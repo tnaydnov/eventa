@@ -165,6 +165,11 @@ export default function ChatRoomPage({
           });
           if (newMsg.sender_participant_id !== session?.participantId && newMsg.type !== 'system') {
             markConversationRead(conversationId);
+            // Clear any grid highlight / unread badge that the global listener may have added
+            if (otherUser) {
+              useNotificationStore.getState().removeGridHighlightByType(otherUser.id, 'message');
+            }
+            useNotificationStore.getState().removeUnreadConvo(conversationId);
           }
         },
       },
