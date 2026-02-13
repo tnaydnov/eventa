@@ -1,4 +1,10 @@
 {
+  "regions": ["fra1"],
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 15
+    }
+  },
   "crons": [
     {
       "path": "/api/admin/auto-archive",
