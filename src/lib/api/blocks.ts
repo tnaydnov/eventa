@@ -1,3 +1,5 @@
+import { invalidateBlockedCache } from './helpers';
+
 /** Block another participant. */
 export async function blockParticipant(blockedId: string): Promise<boolean> {
   try {
@@ -6,6 +8,7 @@ export async function blockParticipant(blockedId: string): Promise<boolean> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ blockedId }),
     });
+    if (res.ok) invalidateBlockedCache();
     return res.ok;
   } catch {
     return false;

@@ -234,44 +234,51 @@ export default function RealtimeNotificationListener() {
     // Prune old dedup entries to prevent unbounded memory growth
     pruneSeenIds();
 
-    const { data: newLikes } = await supabase
-      .from('likes').select('id, from_participant_id')
-      .eq('event_id', s.eventId).eq('to_participant_id', s.participantId)
-      .gt('created_at', lastPollTsRef.current).order('created_at', { ascending: true });
+    // Fire independent queries in parallel
+    const [{ data: newLikes }, freshConvoIds] = await Promise.all([
+      supabase
+        .from('likes').select('id, from_participant_id')
+        .eq('event_id', s.eventId).eq('to_participant_id', s.participantId)
+        .gt('created_at', lastPollTsRef.current).order('created_at', { ascending: true }),
+      refreshMyConvoIds(),
+    ]);
+
     if (newLikes) for (const like of newLikes) handleLike(like.id, like.from_participant_id);
 
-    // First get my conversation IDs, then only fetch messages from those
-    await refreshMyConvoIds();
-    const myConvoIds = [...myConvoIdsRef.current];
+    const myConvoIds = [...freshConvoIds];
 
-    if (myConvoIds.length > 0) {
-      const { data: newMsgs } = await supabase
-        .from('messages').select('id, sender_participant_id, conversation_id, text, type')
-        .eq('event_id', s.eventId).neq('sender_participant_id', s.participantId)
-        .in('conversation_id', myConvoIds)
-        .gt('created_at', lastPollTsRef.current).order('created_at', { ascending: true });
-      if (newMsgs) for (const msg of newMsgs) handleMessage(msg.id, msg.sender_participant_id, msg.conversation_id, msg.text, msg.type);
-    }
-
-    // ── Reconcile: remove stale like highlights ──
-    // If a like was removed, the DELETE realtime event might have been missed.
-    // Re-fetch current unseen likes and remove any highlights that no longer exist.
-    const store = useNotificationStore.getState();
-    const likeHighlights = store.gridHighlights.filter((h) => h.type === 'like');
-    if (likeHighlights.length > 0) {
-      const { data: currentLikes } = await supabase
-        .from('likes')
-        .select('from_participant_id')
-        .eq('event_id', s.eventId)
-        .eq('to_participant_id', s.participantId)
-        .is('seen_at', null);
-      const activeLikerIds = new Set((currentLikes || []).map((l) => l.from_participant_id));
-      for (const h of likeHighlights) {
-        if (!activeLikerIds.has(h.participantId)) {
-          useNotificationStore.getState().removeGridHighlightByType(h.participantId, 'like');
-          useNotificationStore.getState().decrementLikes();
+    // Messages + reconciliation in parallel
+    const [msgResult, reconcileResult] = await Promise.all([
+      myConvoIds.length > 0
+        ? supabase
+            .from('messages').select('id, sender_participant_id, conversation_id, text, type')
+            .eq('event_id', s.eventId).neq('sender_participant_id', s.participantId)
+            .in('conversation_id', myConvoIds)
+            .gt('created_at', lastPollTsRef.current).order('created_at', { ascending: true })
+        : Promise.resolve({ data: null }),
+      // Reconcile: remove stale like highlights
+      (async () => {
+        const store = useNotificationStore.getState();
+        const likeHighlights = store.gridHighlights.filter((h) => h.type === 'like');
+        if (likeHighlights.length === 0) return;
+        const { data: currentLikes } = await supabase
+          .from('likes')
+          .select('from_participant_id')
+          .eq('event_id', s.eventId)
+          .eq('to_participant_id', s.participantId)
+          .is('seen_at', null);
+        const activeLikerIds = new Set((currentLikes || []).map((l) => l.from_participant_id));
+        for (const h of likeHighlights) {
+          if (!activeLikerIds.has(h.participantId)) {
+            useNotificationStore.getState().removeGridHighlightByType(h.participantId, 'like');
+            useNotificationStore.getState().decrementLikes();
+          }
         }
-      }
+      })(),
+    ]);
+
+    if (msgResult?.data) {
+      for (const msg of msgResult.data) handleMessage(msg.id, msg.sender_participant_id, msg.conversation_id, msg.text, msg.type);
     }
 
     lastPollTsRef.current = now;

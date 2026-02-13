@@ -12,11 +12,19 @@ export function getPhotoUrl(storagePath: string): string {
   return `${SUPABASE_URL}/storage/v1/object/public/photos/${storagePath}`;
 }
 
-/**
- * Fetch the set of participant IDs blocked by / blocking a user.
- * Shared across grid, likes, and conversations queries.
+/* ── Cached getBlockedIds ────────────────────────────────────
+ * The same blocked-IDs set is requested 5-6× during a single page load
+ * (grid, likes-received, likes-sent, matches, conversations…).
+ * Cache for 30 s to eliminate redundant DB round-trips.
  */
+const _blockedCache = new Map<string, { ids: Set<string>; ts: number }>();
+const BLOCKED_TTL = 30_000; // 30 seconds
+
 export async function getBlockedIds(eventId: string, myId: string): Promise<Set<string>> {
+  const key = `${eventId}:${myId}`;
+  const cached = _blockedCache.get(key);
+  if (cached && Date.now() - cached.ts < BLOCKED_TTL) return cached.ids;
+
   const { data: blocks } = await supabase
     .from('blocks')
     .select('blocker_id, blocked_id')
@@ -29,7 +37,13 @@ export async function getBlockedIds(eventId: string, myId: string): Promise<Set<
     ids.add(b.blocked_id);
   });
   ids.delete(myId);
+  _blockedCache.set(key, { ids, ts: Date.now() });
   return ids;
+}
+
+/** Invalidate the blocked-IDs cache (call after blocking/unblocking). */
+export function invalidateBlockedCache() {
+  _blockedCache.clear();
 }
 
 /**
@@ -49,13 +63,24 @@ export async function buildParticipantPhotoMaps(ids: string[]) {
   const allParticipants: Participant[] = [];
   const allPhotos: ParticipantPhoto[] = [];
 
-  // Batch .in() queries to stay under PostgREST URL length limits
+  if (ids.length === 0) return { pMap: new Map<string, Participant>(), phMap: new Map<string, ParticipantPhoto[]>() };
+
+  // Launch ALL batches in parallel instead of sequentially
+  const batches: string[][] = [];
   for (let i = 0; i < ids.length; i += BATCH_SIZE) {
-    const batch = ids.slice(i, i + BATCH_SIZE);
-    const [{ data: participants }, { data: photos }] = await Promise.all([
-      supabase.from('participants').select(PARTICIPANT_COLUMNS).in('id', batch),
-      supabase.from('participant_photos').select(PHOTO_COLUMNS).in('participant_id', batch).order('order_index'),
-    ]);
+    batches.push(ids.slice(i, i + BATCH_SIZE));
+  }
+
+  const results = await Promise.all(
+    batches.map((batch) =>
+      Promise.all([
+        supabase.from('participants').select(PARTICIPANT_COLUMNS).in('id', batch),
+        supabase.from('participant_photos').select(PHOTO_COLUMNS).in('participant_id', batch).order('order_index'),
+      ])
+    )
+  );
+
+  for (const [{ data: participants }, { data: photos }] of results) {
     if (participants) allParticipants.push(...participants);
     if (photos) allPhotos.push(...photos);
   }

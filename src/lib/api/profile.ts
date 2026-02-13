@@ -24,18 +24,19 @@ export async function updateProfile(
 export async function getParticipant(
   participantId: string
 ): Promise<(Participant & { photos: ParticipantPhoto[] }) | null> {
-  const { data: p } = await supabase
-    .from('participants')
-    .select(PARTICIPANT_COLUMNS)
-    .eq('id', participantId)
-    .single();
+  const [{ data: p }, { data: photos }] = await Promise.all([
+    supabase
+      .from('participants')
+      .select(PARTICIPANT_COLUMNS)
+      .eq('id', participantId)
+      .single(),
+    supabase
+      .from('participant_photos')
+      .select(PHOTO_COLUMNS)
+      .eq('participant_id', participantId)
+      .order('order_index'),
+  ]);
   if (!p) return null;
-
-  const { data: photos } = await supabase
-    .from('participant_photos')
-    .select(PHOTO_COLUMNS)
-    .eq('participant_id', participantId)
-    .order('order_index');
 
   return { ...p, photos: photos || [] };
 }

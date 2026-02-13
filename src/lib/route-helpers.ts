@@ -12,17 +12,35 @@ export function jsonError(error: string, status: number): NextResponse {
   return NextResponse.json({ error }, { status });
 }
 
+/* ── Ban-check cache ─────────────────────────────────────────
+ * Checking `is_banned` on every API call adds 50-200 ms. Since bans
+ * change rarely, cache the "not-banned" result for 5 minutes.
+ * When a participant IS banned the cache is very short-lived (10 s)
+ * so the ban takes effect quickly even if a stale entry was cached.
+ */
+const _banCache = new Map<string, { banned: boolean; ts: number }>();
+const BAN_CACHE_TTL = 5 * 60 * 1000; // 5 min for non-banned
+const BAN_CACHE_TTL_BANNED = 10_000;  // 10 s for banned (quick re-check)
+
+async function isBanned(participantId: string): Promise<boolean> {
+  const cached = _banCache.get(participantId);
+  if (cached) {
+    const ttl = cached.banned ? BAN_CACHE_TTL_BANNED : BAN_CACHE_TTL;
+    if (Date.now() - cached.ts < ttl) return cached.banned;
+  }
+  const sb = getServiceClient();
+  const { data } = await sb
+    .from('participants')
+    .select('is_banned')
+    .eq('id', participantId)
+    .single();
+  const banned = !!data?.is_banned;
+  _banCache.set(participantId, { banned, ts: Date.now() });
+  return banned;
+}
+
 /**
- * Secure-route guard: CSRF → session → rate-limit → ban check.
- * Returns the authenticated session on success, or
- * a NextResponse error that should be returned immediately.
- *
- * Usage:
- * ```ts
- * const guard = await secureGuard(req, 'my-route', RATE_LIMITS.standard);
- * if (guard instanceof NextResponse) return guard;
- * const session = guard; // SessionPayload
- * ```
+ * Secure-route guard: CSRF → session → rate-limit → ban check (cached).
  */
 export async function secureGuard(
   req: NextRequest,
@@ -38,14 +56,7 @@ export async function secureGuard(
   const rl = checkRateLimit(`${rateLimitKey}:${ip}`, limit);
   if (!rl.allowed) return jsonError('Too many requests', 429);
 
-  // Check if participant was banned since JWT was issued
-  const sb = getServiceClient();
-  const { data: participant } = await sb
-    .from('participants')
-    .select('is_banned')
-    .eq('id', session.sub)
-    .single();
-  if (participant?.is_banned) return jsonError('Account banned', 403);
+  if (await isBanned(session.sub)) return jsonError('Account banned', 403);
 
   return session;
 }

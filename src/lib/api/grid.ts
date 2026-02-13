@@ -30,23 +30,22 @@ export async function getGridParticipants(
   eventId: string,
   myId: string
 ): Promise<GridParticipant[]> {
-  const blockedIds = await getBlockedIds(eventId, myId);
-
-  // Get my profile for cross-attraction matching
-  const { data: myProfile } = await supabase
-    .from('participants')
-    .select('gender, attracted_to')
-    .eq('id', myId)
-    .single();
-
-  // Get participants (limit to 200 per event) — explicit columns (excludes future additions)
-  const { data: participants } = await supabase
-    .from('participants')
-    .select('id, event_id, device_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at')
-    .eq('event_id', eventId)
-    .eq('is_banned', false)
-    .neq('id', myId)
-    .limit(200);
+  // Fire independent queries in parallel
+  const [blockedIds, { data: myProfile }, { data: participants }] = await Promise.all([
+    getBlockedIds(eventId, myId),
+    supabase
+      .from('participants')
+      .select('gender, attracted_to')
+      .eq('id', myId)
+      .single(),
+    supabase
+      .from('participants')
+      .select('id, event_id, device_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at')
+      .eq('event_id', eventId)
+      .eq('is_banned', false)
+      .neq('id', myId)
+      .limit(200),
+  ]);
 
   if (!participants) return [];
 

@@ -17,30 +17,31 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = getServiceClient();
 
-    // Only update last_seen_at if stale (>2 min since last write)
-    // This cuts DB writes by ~5× while keeping activity_log accurate
-    const { data: current } = await supabase
-      .from('participants')
-      .select('last_seen_at')
-      .eq('id', session.sub)
-      .single();
+    // Fire the last_seen_at check and activity_log insert in parallel
+    const [{ data: current }] = await Promise.all([
+      supabase
+        .from('participants')
+        .select('last_seen_at')
+        .eq('id', session.sub)
+        .single(),
+      supabase.from('activity_log').insert({
+        event_id: session.eid,
+        participant_id: session.sub,
+        action: 'heartbeat',
+      }),
+    ]);
 
     const now = new Date().toISOString();
     const lastSeen = current?.last_seen_at ? new Date(current.last_seen_at).getTime() : 0;
     const stale = Date.now() - lastSeen > 2 * 60 * 1000; // 2 minutes
 
-    // Always log the heartbeat activity
-    await supabase.from('activity_log').insert({
-      event_id: session.eid,
-      participant_id: session.sub,
-      action: 'heartbeat',
-    });
-
     if (stale) {
-      await supabase
+      // Fire-and-forget — don't wait for the UPDATE to respond
+      supabase
         .from('participants')
         .update({ last_seen_at: now })
-        .eq('id', session.sub);
+        .eq('id', session.sub)
+        .then();
     }
 
     return NextResponse.json({ ok: true });

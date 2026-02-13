@@ -88,21 +88,21 @@ export async function POST(req: NextRequest) {
 
     const isMatch = !!reciprocal;
 
-    // Activity log (fire-and-forget)
-    supabase.from('activity_log').insert({
-      event_id: session.eid,
-      participant_id: session.sub,
-      action: 'like',
-    }).then();
-
-    // Create notification
-    await supabase.from('notifications').insert({
-      event_id: session.eid,
-      to_participant_id: toId,
-      type: 'like_received',
-      payload: { from_participant_id: session.sub, match: isMatch },
-      is_read: false,
-    });
+    // Activity log + notification — fire in parallel, don't block the response
+    Promise.all([
+      supabase.from('activity_log').insert({
+        event_id: session.eid,
+        participant_id: session.sub,
+        action: 'like',
+      }),
+      supabase.from('notifications').insert({
+        event_id: session.eid,
+        to_participant_id: toId,
+        type: 'like_received',
+        payload: { from_participant_id: session.sub, match: isMatch },
+        is_read: false,
+      }),
+    ]).catch(() => {}); // fire-and-forget
 
     return NextResponse.json({ ...data, match: isMatch });
   } catch (err) {

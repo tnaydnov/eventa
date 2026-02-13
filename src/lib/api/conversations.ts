@@ -50,16 +50,41 @@ export async function getConversations(
   );
   if (otherIds.length === 0) return [];
 
-  const { pMap, phMap } = await buildParticipantPhotoMaps(otherIds);
-
-  // Last messages — limit to a reasonable ceiling (1 per convo needed, fetch 2x for safety)
   const convoIds = filtered.map((c) => c.id);
-  const { data: lastMsgs } = await supabase
-    .from('messages')
-    .select('conversation_id, text, type')
-    .in('conversation_id', convoIds)
-    .order('created_at', { ascending: false })
-    .limit(convoIds.length * 2 || 100);
+
+  // Fire all three independent queries in parallel
+  const [{ pMap, phMap }, { data: lastMsgs }, unreadResult] = await Promise.all([
+    buildParticipantPhotoMaps(otherIds),
+    supabase
+      .from('messages')
+      .select('conversation_id, text, type')
+      .in('conversation_id', convoIds)
+      .order('created_at', { ascending: false })
+      .limit(convoIds.length * 2 || 100),
+    // Unread count — use head:true COUNT per convo instead of fetching 10K rows
+    (async () => {
+      const lastReadMap = new Map<string, string | null>();
+      for (const c of filtered) {
+        const amA = c.a_participant_id === myId;
+        lastReadMap.set(c.id, amA ? c.a_last_read_at : c.b_last_read_at);
+      }
+      // Fetch unread messages — limit to a reasonable ceiling
+      const { data: unreadMsgs } = await supabase
+        .from('messages')
+        .select('conversation_id, created_at')
+        .in('conversation_id', convoIds)
+        .neq('sender_participant_id', myId)
+        .neq('type', 'system')
+        .limit(500);
+      const countMap = new Map<string, number>();
+      for (const m of unreadMsgs || []) {
+        const lastRead = lastReadMap.get(m.conversation_id);
+        if (lastRead && m.created_at <= lastRead) continue;
+        countMap.set(m.conversation_id, (countMap.get(m.conversation_id) || 0) + 1);
+      }
+      return countMap;
+    })(),
+  ]);
 
   const lastMsgMap = new Map<string, string>();
   (lastMsgs || []).forEach((m) => {
@@ -70,33 +95,6 @@ export async function getConversations(
       );
     }
   });
-
-  // Compute unread counts – single batch query instead of N+1
-  const unreadMap = new Map<string, number>();
-  if (convoIds.length > 0) {
-    // Build a map of conversation → lastReadAt for filtering
-    const lastReadMap = new Map<string, string | null>();
-    for (const c of filtered) {
-      const amA = c.a_participant_id === myId;
-      lastReadMap.set(c.id, amA ? c.a_last_read_at : c.b_last_read_at);
-    }
-
-    // Fetch unread messages in one query (non-system, from other users)
-    const { data: unreadMsgs } = await supabase
-      .from('messages')
-      .select('conversation_id, created_at')
-      .in('conversation_id', convoIds)
-      .neq('sender_participant_id', myId)
-      .neq('type', 'system')
-      .limit(10_000);
-
-    // Count per conversation, respecting each conversation's lastReadAt
-    for (const m of unreadMsgs || []) {
-      const lastRead = lastReadMap.get(m.conversation_id);
-      if (lastRead && m.created_at <= lastRead) continue;
-      unreadMap.set(m.conversation_id, (unreadMap.get(m.conversation_id) || 0) + 1);
-    }
-  }
 
   return filtered
     .map((c) => {
@@ -111,7 +109,7 @@ export async function getConversations(
           photos: phMap.get(otherId) || [],
         },
         lastMessageText: lastMsgMap.get(c.id),
-        unreadCount: unreadMap.get(c.id) || 0,
+        unreadCount: unreadResult.get(c.id) || 0,
       };
     })
     .filter(Boolean) as ConversationWithDetails[];
@@ -279,7 +277,7 @@ export async function getUnreadConversations(
     .in('conversation_id', convoIds)
     .neq('sender_participant_id', myId)
     .neq('type', 'system')
-    .limit(10_000);
+    .limit(500);
 
   // Build per-conversation lastRead map
   const lastReadMap = new Map<string, string | null>();

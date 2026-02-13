@@ -38,15 +38,16 @@ export async function removeLike(toId: string): Promise<boolean> {
 
 /** Get likes received by the current user (with sender details). */
 export async function getReceivedLikes(eventId: string, myId: string) {
-  const blockedIds = await getBlockedIds(eventId, myId);
-
-  const { data: likes } = await supabase
-    .from('likes')
-    .select(LIKE_COLUMNS)
-    .eq('event_id', eventId)
-    .eq('to_participant_id', myId)
-    .order('created_at', { ascending: false })
-    .limit(100);
+  const [blockedIds, { data: likes }] = await Promise.all([
+    getBlockedIds(eventId, myId),
+    supabase
+      .from('likes')
+      .select(LIKE_COLUMNS)
+      .eq('event_id', eventId)
+      .eq('to_participant_id', myId)
+      .order('created_at', { ascending: false })
+      .limit(100),
+  ]);
 
   if (!likes) return [];
 
@@ -66,15 +67,16 @@ export async function getReceivedLikes(eventId: string, myId: string) {
 
 /** Get likes sent by the current user (with recipient details). */
 export async function getSentLikes(eventId: string, myId: string) {
-  const blockedIds = await getBlockedIds(eventId, myId);
-
-  const { data: likes } = await supabase
-    .from('likes')
-    .select(LIKE_COLUMNS)
-    .eq('event_id', eventId)
-    .eq('from_participant_id', myId)
-    .order('created_at', { ascending: false })
-    .limit(100);
+  const [blockedIds, { data: likes }] = await Promise.all([
+    getBlockedIds(eventId, myId),
+    supabase
+      .from('likes')
+      .select(LIKE_COLUMNS)
+      .eq('event_id', eventId)
+      .eq('from_participant_id', myId)
+      .order('created_at', { ascending: false })
+      .limit(100),
+  ]);
 
   if (!likes) return [];
 

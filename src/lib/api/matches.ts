@@ -13,14 +13,15 @@ export async function getMatches(
   eventId: string,
   myId: string,
 ): Promise<MatchEntry[]> {
-  const blockedIds = await getBlockedIds(eventId, myId);
-
-  // Find all participants where both directions of like exist
-  const { data: myLikes } = await supabase
-    .from('likes')
-    .select('to_participant_id, created_at')
-    .eq('event_id', eventId)
-    .eq('from_participant_id', myId);
+  // Fire independent queries in parallel
+  const [blockedIds, { data: myLikes }] = await Promise.all([
+    getBlockedIds(eventId, myId),
+    supabase
+      .from('likes')
+      .select('to_participant_id, created_at')
+      .eq('event_id', eventId)
+      .eq('from_participant_id', myId),
+  ]);
 
   if (!myLikes || myLikes.length === 0) return [];
 
