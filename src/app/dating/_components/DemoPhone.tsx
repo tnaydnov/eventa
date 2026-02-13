@@ -11,27 +11,25 @@ type Msg = { id: number; text: string; type: 'text' | 'system'; sent: boolean; t
 type Screen = 'grid' | 'swipe' | 'user' | 'chats' | 'chat' | 'likes' | 'profile' | 'compass';
 type LikesTab = 'matches' | 'received' | 'sent';
 
-const UP = (id: string) => `https://images.unsplash.com/photo-${id}?w=256&h=256&fit=crop&crop=face&q=80`;
-
 const USERS: User[] = [
-  { name: 'נועה', age: 24, city: 'תל אביב', bio: 'אוהבת ריקודים, מוזיקה וערבי יין 🍷', gender: 'נקבה', seed: 'Noa24f', lookingFor: 'קשר רציני', photo: UP('1494790108377-be9c29b29330') },
-  { name: 'איתי', age: 27, city: 'הרצליה', bio: 'סרפר בשבתות, שף חובב בימי חול 🏄‍♂️', gender: 'זכר', seed: 'Itay27m', lookingFor: 'משהו קליל', photo: UP('1506794778202-cad84cf45f1d') },
-  { name: 'מאיה', age: 25, city: 'רמת גן', bio: 'מעצבת גרפית, חולמת בגדול 🎨', gender: 'נקבה', seed: 'Maya25f', lookingFor: 'חברים/ות', photo: UP('1534528741775-53994a69daeb') },
-  { name: 'דניאל', age: 28, city: 'תל אביב', bio: 'מפתח תוכנה ואוהב טיולים בטבע 🌿', gender: 'זכר', seed: 'Daniel28m', lookingFor: 'קשר רציני', photo: UP('1500648767791-00dcc994a43e') },
-  { name: 'שיר', age: 23, city: 'חיפה', bio: 'סטודנטית לפסיכולוגיה, אוהבת חתולים 🐱', gender: 'נקבה', seed: 'Shir23f', lookingFor: 'עוד לא יודע/ת', photo: UP('1517841905240-472988babdf9') },
-  { name: 'עומר', age: 26, city: 'ראשון לציון', bio: 'מוזיקאי וצלם חובב 📸', gender: 'זכר', seed: 'Omer26m', lookingFor: 'משהו קליל', photo: UP('1507003211169-0a1dd7228f2d') },
-  { name: 'תמר', age: 25, city: 'תל אביב', bio: 'עורכת דין ביום, יוגיסטית בלילה 🧘‍♀️', gender: 'נקבה', seed: 'Tamar25f', lookingFor: 'קשר רציני', photo: UP('1524504388940-b1c1722653e1') },
-  { name: 'יונתן', age: 29, city: 'פתח תקווה', bio: 'מהנדס מזון, שוחרי אוכל טוב 🍕', gender: 'זכר', seed: 'Yonatan29m', lookingFor: 'חברים/ות', photo: UP('1519085360753-af0119f7cbe7') },
-  { name: 'ליאור', age: 24, city: 'גבעתיים', bio: 'רקדנית היפ-הופ, חיוכים 24/7 💃', gender: 'נקבה', seed: 'Lior24f', lookingFor: 'משהו קליל', photo: UP('1488426862026-3ee34a7d66df') },
-  { name: 'רועי', age: 27, city: 'כפר סבא', bio: 'רואה חשבון עם תשוקה לקומדיות 😂', gender: 'זכר', seed: 'Roi27m', lookingFor: 'עוד לא יודע/ת', photo: UP('1492562080023-ab3db95bfbce') },
-  { name: 'אגם', age: 22, city: 'הוד השרון', bio: 'סטודנטית לאומנות, צמחונית גאה 🌻', gender: 'נקבה', seed: 'Agam22f', lookingFor: 'חברים/ות', photo: UP('1531746020798-e6953c6e8e04') },
-  { name: 'אלון', age: 30, city: 'תל אביב', bio: 'יזם סטארטאפ עם חלום 🚀', gender: 'זכר', seed: 'Alon30m', lookingFor: 'קשר רציני', photo: UP('1531891437562-4301cf35b7e4') },
-  { name: 'נועם', age: 26, city: 'באר שבע', bio: 'מדריכת כושר ואוהבת טבע 💪', gender: 'נקבה', seed: 'Noam26f', lookingFor: 'משהו קליל', photo: UP('1544005313-94ddf0286df2') },
-  { name: 'גיל', age: 25, city: 'נתניה', bio: 'דיג׳יי בסופשים ומתכנת בשאר הזמן 🎵', gender: 'זכר', seed: 'Gil25m', lookingFor: 'עוד לא יודע/ת', photo: UP('1504257432389-52343af06ae3') },
-  { name: 'הילה', age: 23, city: 'רעננה', bio: 'אופטימיסטית מטבע, אוהבת ים 🌊', gender: 'נקבה', seed: 'Hila23f', lookingFor: 'קשר רציני', photo: UP('1529626455594-4ff0802cfb7e') },
-  { name: 'תומר', age: 28, city: 'מודיעין', bio: 'רופא שיניים בהכשרה, חייכו! 😁', gender: 'זכר', seed: 'Tomer28m', lookingFor: 'משהו קליל', photo: UP('1548372290-8d01b6c8e78c') },
-  { name: 'רוני', age: 24, city: 'תל אביב', bio: 'בואו נהיה חברות קודם ☕', gender: 'נקבה', seed: 'Roni24f', lookingFor: 'חברים/ות', photo: UP('1502823403499-6ccfcf4fb453') },
-  { name: 'עידו', age: 31, city: 'ירושלים', bio: 'עורך דין, ספרן מושבע, רץ מרתון 📚', gender: 'זכר', seed: 'Ido31m', lookingFor: 'קשר רציני', photo: UP('1504593811423-6dd665756598') },
+  { name: 'נועה', age: 24, city: 'תל אביב', bio: 'אוהבת ריקודים, מוזיקה וערבי יין 🍷', gender: 'נקבה', seed: 'Noa24f', lookingFor: 'קשר רציני', photo: '/demo/noa.jpg' },
+  { name: 'איתי', age: 27, city: 'הרצליה', bio: 'סרפר בשבתות, שף חובב בימי חול 🏄‍♂️', gender: 'זכר', seed: 'Itay27m', lookingFor: 'משהו קליל', photo: '/demo/itay.jpg' },
+  { name: 'מאיה', age: 25, city: 'רמת גן', bio: 'מעצבת גרפית, חולמת בגדול 🎨', gender: 'נקבה', seed: 'Maya25f', lookingFor: 'חברים/ות', photo: '/demo/maya.jpg' },
+  { name: 'דניאל', age: 28, city: 'תל אביב', bio: 'מפתח תוכנה ואוהב טיולים בטבע 🌿', gender: 'זכר', seed: 'Daniel28m', lookingFor: 'קשר רציני', photo: '/demo/daniel.jpg' },
+  { name: 'שיר', age: 23, city: 'חיפה', bio: 'סטודנטית לפסיכולוגיה, אוהבת חתולים 🐱', gender: 'נקבה', seed: 'Shir23f', lookingFor: 'עוד לא יודע/ת', photo: '/demo/shir.jpg' },
+  { name: 'עומר', age: 26, city: 'ראשון לציון', bio: 'מוזיקאי וצלם חובב 📸', gender: 'זכר', seed: 'Omer26m', lookingFor: 'משהו קליל', photo: '/demo/omer.jpg' },
+  { name: 'תמר', age: 25, city: 'תל אביב', bio: 'עורכת דין ביום, יוגיסטית בלילה 🧘‍♀️', gender: 'נקבה', seed: 'Tamar25f', lookingFor: 'קשר רציני', photo: '/demo/tamar.jpg' },
+  { name: 'יונתן', age: 29, city: 'פתח תקווה', bio: 'מהנדס מזון, שוחרי אוכל טוב 🍕', gender: 'זכר', seed: 'Yonatan29m', lookingFor: 'חברים/ות', photo: '/demo/yonatan.jpg' },
+  { name: 'ליאור', age: 24, city: 'גבעתיים', bio: 'רקדנית היפ-הופ, חיוכים 24/7 💃', gender: 'נקבה', seed: 'Lior24f', lookingFor: 'משהו קליל', photo: '/demo/lior.jpg' },
+  { name: 'רועי', age: 27, city: 'כפר סבא', bio: 'רואה חשבון עם תשוקה לקומדיות 😂', gender: 'זכר', seed: 'Roi27m', lookingFor: 'עוד לא יודע/ת', photo: '/demo/roi.jpg' },
+  { name: 'אגם', age: 22, city: 'הוד השרון', bio: 'סטודנטית לאומנות, צמחונית גאה 🌻', gender: 'נקבה', seed: 'Agam22f', lookingFor: 'חברים/ות', photo: '/demo/agam.jpg' },
+  { name: 'אלון', age: 30, city: 'תל אביב', bio: 'יזם סטארטאפ עם חלום 🚀', gender: 'זכר', seed: 'Alon30m', lookingFor: 'קשר רציני', photo: '/demo/alon.jpg' },
+  { name: 'נועם', age: 26, city: 'באר שבע', bio: 'מדריכת כושר ואוהבת טבע 💪', gender: 'נקבה', seed: 'Noam26f', lookingFor: 'משהו קליל', photo: '/demo/noam.jpg' },
+  { name: 'גיל', age: 25, city: 'נתניה', bio: 'דיג׳יי בסופשים ומתכנת בשאר הזמן 🎵', gender: 'זכר', seed: 'Gil25m', lookingFor: 'עוד לא יודע/ת', photo: '/demo/gil.jpg' },
+  { name: 'הילה', age: 23, city: 'רעננה', bio: 'אופטימיסטית מטבע, אוהבת ים 🌊', gender: 'נקבה', seed: 'Hila23f', lookingFor: 'קשר רציני', photo: '/demo/hila.jpg' },
+  { name: 'תומר', age: 28, city: 'מודיעין', bio: 'רופא שיניים בהכשרה, חייכו! 😁', gender: 'זכר', seed: 'Tomer28m', lookingFor: 'משהו קליל', photo: '/demo/tomer.jpg' },
+  { name: 'רוני', age: 24, city: 'תל אביב', bio: 'בואו נהיה חברות קודם ☕', gender: 'נקבה', seed: 'Roni24f', lookingFor: 'חברים/ות', photo: '/demo/roni.jpg' },
+  { name: 'עידו', age: 31, city: 'ירושלים', bio: 'עורך דין, ספרן מושבע, רץ מרתון 📚', gender: 'זכר', seed: 'Ido31m', lookingFor: 'קשר רציני', photo: '/demo/ido.jpg' },
 ];
 
 const LIKED_BY = new Set(['Shir23f', 'Agam22f', 'Roni24f']);
