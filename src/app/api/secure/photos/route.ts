@@ -95,11 +95,13 @@ export async function DELETE(req: NextRequest) {
       return jsonError('Forbidden', 403);
     }
 
-    // Always use DB-stored path — never trust client-supplied storagePath
-    if (photo.storage_path) {
-      await supabase.storage.from('photos').remove([photo.storage_path]);
-    }
-    await supabase.from('participant_photos').delete().eq('id', photoId);
+    // Storage removal + DB delete in parallel
+    await Promise.all([
+      photo.storage_path
+        ? supabase.storage.from('photos').remove([photo.storage_path])
+        : Promise.resolve(),
+      supabase.from('participant_photos').delete().eq('id', photoId),
+    ]);
 
     return NextResponse.json({ success: true });
   } catch (err) {

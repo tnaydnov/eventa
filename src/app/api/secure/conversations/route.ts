@@ -28,28 +28,28 @@ export async function POST(req: NextRequest) {
     const eventId = session.eid;
     const supabase = getServiceClient();
 
-    // Block check — refuse conversation if either party blocked the other
-    const { count: blockCount } = await supabase
-      .from('blocks')
-      .select('id', { count: 'exact', head: true })
-      .eq('event_id', eventId)
-      .or(
-        `and(blocker_id.eq.${myId},blocked_id.eq.${otherId}),and(blocker_id.eq.${otherId},blocked_id.eq.${myId})`
-      );
+    // Block check + existing conversation — fire in parallel
+    const [{ count: blockCount }, { data: existing }] = await Promise.all([
+      supabase
+        .from('blocks')
+        .select('id', { count: 'exact', head: true })
+        .eq('event_id', eventId)
+        .or(
+          `and(blocker_id.eq.${myId},blocked_id.eq.${otherId}),and(blocker_id.eq.${otherId},blocked_id.eq.${myId})`
+        ),
+      supabase
+        .from('conversations')
+        .select('id, event_id, a_participant_id, b_participant_id, created_at, last_message_at, a_last_read_at, b_last_read_at')
+        .eq('event_id', eventId)
+        .or(
+          `and(a_participant_id.eq.${myId},b_participant_id.eq.${otherId}),and(a_participant_id.eq.${otherId},b_participant_id.eq.${myId})`
+        )
+        .maybeSingle(),
+    ]);
 
     if ((blockCount ?? 0) > 0) {
       return jsonError('Cannot start conversation — user is blocked', 403);
     }
-
-    // Check existing
-    const { data: existing } = await supabase
-      .from('conversations')
-      .select('id, event_id, a_participant_id, b_participant_id, created_at, last_message_at, a_last_read_at, b_last_read_at')
-      .eq('event_id', eventId)
-      .or(
-        `and(a_participant_id.eq.${myId},b_participant_id.eq.${otherId}),and(a_participant_id.eq.${otherId},b_participant_id.eq.${myId})`
-      )
-      .maybeSingle();
 
     if (existing) return NextResponse.json(existing);
 

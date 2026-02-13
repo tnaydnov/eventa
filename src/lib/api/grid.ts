@@ -1,5 +1,4 @@
 import { supabase } from '../supabase';
-import type { ParticipantPhoto } from '../database.types';
 import type { GridParticipant } from '../store';
 import { getBlockedIds } from './helpers';
 
@@ -30,7 +29,7 @@ export async function getGridParticipants(
   eventId: string,
   myId: string
 ): Promise<GridParticipant[]> {
-  // Fire independent queries in parallel
+  // Fire independent queries in parallel — join photos in the same query
   const [blockedIds, { data: myProfile }, { data: participants }] = await Promise.all([
     getBlockedIds(eventId, myId),
     supabase
@@ -40,10 +39,11 @@ export async function getGridParticipants(
       .single(),
     supabase
       .from('participants')
-      .select('id, event_id, device_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at')
+      .select('id, event_id, device_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at, participant_photos(id, event_id, participant_id, storage_path, order_index, created_at)')
       .eq('event_id', eventId)
       .eq('is_banned', false)
       .neq('id', myId)
+      .order('order_index', { referencedTable: 'participant_photos' })
       .limit(200),
   ]);
 
@@ -58,23 +58,9 @@ export async function getGridParticipants(
     filtered = filtered.filter((p) => matchesCrossAttraction(myProfile, p));
   }
 
-  const ids = filtered.map((p) => p.id);
-  if (ids.length === 0) return [];
-
-  const { data: photos } = await supabase
-    .from('participant_photos')
-    .select('id, event_id, participant_id, storage_path, order_index, created_at')
-    .in('participant_id', ids)
-    .order('order_index');
-
-  const photoMap = new Map<string, ParticipantPhoto[]>();
-  (photos || []).forEach((ph) => {
-    if (!photoMap.has(ph.participant_id)) photoMap.set(ph.participant_id, []);
-    photoMap.get(ph.participant_id)!.push(ph);
-  });
-
   return filtered.map((p) => ({
     ...p,
-    photos: photoMap.get(p.id) || [],
-  }));
+    photos: (p as any).participant_photos || [],
+    participant_photos: undefined,
+  })) as GridParticipant[];
 }

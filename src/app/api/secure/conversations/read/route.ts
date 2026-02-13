@@ -23,36 +23,28 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = getServiceClient();
+    const now = new Date().toISOString();
 
-    // Verify conversation exists AND belongs to this event
-    const { data: conv, error: fetchErr } = await supabase
-      .from('conversations')
-      .select('a_participant_id, b_participant_id')
-      .eq('id', conversationId)
-      .eq('event_id', session.eid)
-      .single();
+    // Try both updates in parallel — only one will match
+    const [aRes, bRes] = await Promise.all([
+      supabase
+        .from('conversations')
+        .update({ a_last_read_at: now })
+        .eq('id', conversationId)
+        .eq('event_id', session.eid)
+        .eq('a_participant_id', session.sub)
+        .select('id'),
+      supabase
+        .from('conversations')
+        .update({ b_last_read_at: now })
+        .eq('id', conversationId)
+        .eq('event_id', session.eid)
+        .eq('b_participant_id', session.sub)
+        .select('id'),
+    ]);
 
-    if (fetchErr || !conv) {
-      return jsonError('Conversation not found', 404);
-    }
-
-    const isA = conv.a_participant_id === session.sub;
-    const isB = conv.b_participant_id === session.sub;
-
-    if (!isA && !isB) {
+    if ((aRes.data?.length ?? 0) === 0 && (bRes.data?.length ?? 0) === 0) {
       return jsonError('Not a participant in this conversation', 403);
-    }
-
-    const updateField = isA ? 'a_last_read_at' : 'b_last_read_at';
-
-    const { error } = await supabase
-      .from('conversations')
-      .update({ [updateField]: new Date().toISOString() })
-      .eq('id', conversationId);
-
-    if (error) {
-      console.error('[conversations/read] error:', error);
-      return jsonError('Failed to update read status', 500);
     }
 
     return NextResponse.json({ ok: true });

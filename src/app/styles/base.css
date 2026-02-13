@@ -51,6 +51,14 @@ body::before {
     radial-gradient(ellipse 700px 400px at 50% 90%, rgba(201, 165, 128, 0.06) 0%, transparent 70%);
   animation: meshFloat 30s ease-in-out infinite;
   pointer-events: none;
+  will-change: transform;
+}
+
+/* Disable continuous mesh animation on mobile for GPU/battery savings */
+@media (max-width: 768px) {
+  body::before {
+    animation: none;
+  }
 }
 
 @keyframes meshFloat {

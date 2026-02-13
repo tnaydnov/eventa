@@ -14,7 +14,7 @@ const nextConfig = {
   // Turbopack config (required for Next.js 16 alongside webpack plugins)
   turbopack: {},
   experimental: {
-    optimizePackageImports: ['zustand', 'zod'],
+    optimizePackageImports: ['zustand', 'zod', 'framer-motion'],
   },
   images: {
     remotePatterns: [

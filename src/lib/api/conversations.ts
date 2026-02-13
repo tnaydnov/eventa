@@ -62,23 +62,21 @@ export async function getConversations(
       .in('conversation_id', convoIds)
       .order('created_at', { ascending: false })
       .limit(convoIds.length * 2 || 100),
-    // Unread count — use head:true COUNT per convo instead of fetching 10K rows
+    // Unread count — single query, partition client-side
     (async () => {
+      const { data: unreadRows } = await supabase
+        .from('messages')
+        .select('conversation_id, created_at')
+        .in('conversation_id', convoIds)
+        .neq('sender_participant_id', myId)
+        .neq('type', 'system');
       const lastReadMap = new Map<string, string | null>();
       for (const c of filtered) {
         const amA = c.a_participant_id === myId;
         lastReadMap.set(c.id, amA ? c.a_last_read_at : c.b_last_read_at);
       }
-      // Fetch unread messages — limit to a reasonable ceiling
-      const { data: unreadMsgs } = await supabase
-        .from('messages')
-        .select('conversation_id, created_at')
-        .in('conversation_id', convoIds)
-        .neq('sender_participant_id', myId)
-        .neq('type', 'system')
-        .limit(500);
       const countMap = new Map<string, number>();
-      for (const m of unreadMsgs || []) {
+      for (const m of unreadRows || []) {
         const lastRead = lastReadMap.get(m.conversation_id);
         if (lastRead && m.created_at <= lastRead) continue;
         countMap.set(m.conversation_id, (countMap.get(m.conversation_id) || 0) + 1);
@@ -242,14 +240,13 @@ export async function getUnreadConversations(
 
   const convoIds = convos.map((c) => c.id);
 
-  // Single batch query for unread messages across conversations
+  // Single batch query — select only conversation_id to minimize transfer
   const { data: unreadMsgs } = await supabase
     .from('messages')
     .select('conversation_id, created_at')
     .in('conversation_id', convoIds)
     .neq('sender_participant_id', myId)
-    .neq('type', 'system')
-    .limit(500);
+    .neq('type', 'system');
 
   // Build per-conversation lastRead map
   const lastReadMap = new Map<string, string | null>();
