@@ -25,7 +25,7 @@ export const useSessionStore = create<SessionState>((set) => ({
   photos: [],
   setSession: (session) => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('wedding_session', JSON.stringify(session));
+      localStorage.setItem('eventa_session', JSON.stringify(session));
     }
     set({ session });
   },
@@ -33,7 +33,7 @@ export const useSessionStore = create<SessionState>((set) => ({
   setPhotos: (photos) => set({ photos }),
   clearSession: () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('wedding_session');
+      localStorage.removeItem('eventa_session');
     }
     set({ session: null, participant: null, photos: [] });
 

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 
 /**
- * Shared wrapper for legal pages (privacy, terms).
+ * Shared wrapper for legal pages (privacy, terms, community, etc.).
  * RTL, dark theme, constrained width, consistent spacing.
  * Styled with a subtle gradient header and professional typography.
  */
@@ -13,8 +13,10 @@ export default function LegalPageLayout({
 }: {
   children: ReactNode;
   title: string;
-  updatedAt: string;
+  updatedAt?: string;
 }) {
+  const linkStyle: React.CSSProperties = { color: 'var(--primary, #d4a59a)', textDecoration: 'none', whiteSpace: 'nowrap' };
+
   return (
     <div dir="rtl" style={{
       minHeight: '100vh',
@@ -29,9 +31,9 @@ export default function LegalPageLayout({
         background: 'linear-gradient(180deg, rgba(212, 165, 154, 0.08) 0%, transparent 100%)',
       }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontSize: '28px', marginBottom: '8px', display: 'block' }}>💒</span>
+          <span style={{ fontSize: '28px', marginBottom: '8px', display: 'block' }}>🎉</span>
           <span style={{ color: 'var(--primary, #d4a59a)', fontSize: '13px', fontWeight: 500, letterSpacing: '0.5px' }}>
-            Wedding Singles
+            Eventa
           </span>
         </Link>
         <h1 style={{
@@ -42,9 +44,11 @@ export default function LegalPageLayout({
         }}>
           {title}
         </h1>
-        <p style={{ fontSize: '13px', color: '#888', margin: 0 }}>
-          עודכן לאחרונה: {updatedAt}
-        </p>
+        {updatedAt && (
+          <p style={{ fontSize: '13px', color: '#888', margin: 0 }}>
+            עודכן לאחרונה: {updatedAt}
+          </p>
+        )}
       </header>
 
       {/* Content */}
@@ -60,16 +64,21 @@ export default function LegalPageLayout({
       {/* Footer */}
       <footer style={{
         borderTop: '1px solid rgba(255,255,255,0.08)',
-        padding: '24px',
+        padding: '24px 16px',
         textAlign: 'center',
         fontSize: '13px',
         color: '#666',
       }}>
-        <div style={{ display: 'flex', gap: '24px', justifyContent: 'center', marginBottom: '12px' }}>
-          <Link href="/privacy" style={{ color: 'var(--primary, #d4a59a)', textDecoration: 'none' }}>מדיניות פרטיות</Link>
-          <Link href="/terms" style={{ color: 'var(--primary, #d4a59a)', textDecoration: 'none' }}>תנאי שימוש</Link>
+        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <Link href="/terms" style={linkStyle}>תנאי שימוש</Link>
+          <Link href="/privacy" style={linkStyle}>מדיניות פרטיות</Link>
+          <Link href="/community" style={linkStyle}>כללי קהילה</Link>
+          <Link href="/safety" style={linkStyle}>טיפים לבטיחות</Link>
+          <Link href="/cookies" style={linkStyle}>מדיניות עוגיות</Link>
+          <Link href="/faq" style={linkStyle}>שאלות נפוצות</Link>
+          <Link href="/about" style={linkStyle}>אודות</Link>
         </div>
-        <p style={{ margin: 0 }}>© {new Date().getFullYear()} Wedding Singles. כל הזכויות שמורות.</p>
+        <p style={{ margin: 0 }}>© {new Date().getFullYear()} Eventa. כל הזכויות שמורות.</p>
       </footer>
     </div>
   );

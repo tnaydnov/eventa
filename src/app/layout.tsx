@@ -10,8 +10,12 @@ const rubik = Rubik({
 });
 
 export const metadata: Metadata = {
-  title: 'Wedding Singles',
-  description: 'מצאו את ההתאמה שלכם באירוע',
+  metadataBase: new URL('https://eventa.productions'),
+  title: {
+    default: 'Eventa — Turn Any Event Into an Experience',
+    template: '%s | Eventa',
+  },
+  description: 'Eventa מוסיפה שכבות חברתיות חכמות לאירועים — היכרויות, נטוורקינג, ומעורבות קהל.',
   manifest: '/manifest.json',
   icons: {
     apple: '/apple-touch-icon.png',
@@ -19,7 +23,24 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Wedding Singles',
+    title: 'Eventa',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'he_IL',
+    url: 'https://eventa.productions',
+    siteName: 'Eventa',
+    title: 'Eventa — Turn Any Event Into an Experience',
+    description: 'Eventa מוסיפה שכבות חברתיות חכמות לאירועים — היכרויות, נטוורקינג, ומעורבות קהל.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Eventa — Turn Any Event Into an Experience',
+    description: 'Eventa מוסיפה שכבות חברתיות חכמות לאירועים.',
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

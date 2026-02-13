@@ -54,7 +54,7 @@ export default function SessionProvider({
       }
 
       // Fallback: try restoring from localStorage (backward compat)
-      const stored = localStorage.getItem('wedding_session');
+      const stored = localStorage.getItem('eventa_session');
       if (stored) {
         try {
           const s = JSON.parse(stored);
@@ -67,7 +67,7 @@ export default function SessionProvider({
           }
         } catch {
           // corrupt data — remove it
-          localStorage.removeItem('wedding_session');
+          localStorage.removeItem('eventa_session');
         }
       }
 

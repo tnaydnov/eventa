@@ -1,5 +1,5 @@
 -- ============================================
--- Wedding Singles — Full Database Schema
+-- Eventa — Full Database Schema
 -- Execute this in Supabase SQL Editor
 -- ============================================
 

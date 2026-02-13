@@ -1,8 +1,8 @@
 {
-  "name": "weddate",
+  "name": "eventa",
   "version": "1.0.0",
   "private": true,
-  "description": "WedDate — dating app for wedding & event singles",
+  "description": "Eventa — event-based social matching app",
   "scripts": {
     "dev": "next dev",
     "build": "next build --webpack && node scripts/fix-sw-paths.cjs",

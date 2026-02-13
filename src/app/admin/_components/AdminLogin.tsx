@@ -18,7 +18,7 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
     <div className="admin-root" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
       <div className="admin-card" style={{ maxWidth: '380px', width: '100%', textAlign: 'center', padding: '32px' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔐</div>
-        <h1 style={{ color: 'var(--admin-accent)', marginTop: 0, marginBottom: '24px', fontSize: '22px' }}>ניהול Weddate</h1>
+        <h1 style={{ color: 'var(--admin-accent)', marginTop: 0, marginBottom: '24px', fontSize: '22px' }}>ניהול Eventa</h1>
         <input
           type="password"
           placeholder="סיסמת אדמין"

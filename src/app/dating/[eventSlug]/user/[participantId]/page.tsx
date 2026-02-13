@@ -1,0 +1,344 @@
+'use client';
+
+import { use, useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSessionStore, useToastStore, useNotificationStore, useSwipeStore, useMatchStore } from '@/lib/store';
+import { UserIcon } from '@/components/Icons';
+import {
+  getParticipant,
+  getPhotoUrl,
+  sendLike,
+  removeLike,
+  hasLiked,
+  getOrCreateConversation,
+  blockParticipant,
+  markLikeSeen,
+} from '@/lib/api';
+import { PageTransition, LikeAnimation } from '@/components/Animations';
+import MobileGuard from '@/components/MobileGuard';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import BlockConfirmDialog from '@/components/BlockConfirmDialog';
+import { LOOKING_FOR_LABELS } from '@/lib/constants';
+import type { Participant, ParticipantPhoto } from '@/lib/database.types';
+
+export default function UserProfilePage({
+  params,
+}: {
+  params: Promise<{ eventSlug: string; participantId: string }>;
+}) {
+  const { eventSlug, participantId } = use(params);
+  const router = useRouter();
+  const session = useSessionStore((s) => s.session);
+  const toast = useToastStore((s) => s.show);
+  const { addLiked, removeLiked } = useSwipeStore();
+
+  const [user, setUser] = useState<(Participant & { photos: ParticipantPhoto[] }) | null>(null);
+  const [liked, setLiked] = useState(false);
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [showBlockConfirm, setShowBlockConfirm] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      if (!session) return;
+      setLoading(true);
+      const [p, isLiked] = await Promise.all([
+        getParticipant(participantId),
+        hasLiked(session.eventId, session.participantId, participantId),
+      ]);
+      setUser(p);
+      setLiked(isLiked);
+      setLoading(false);
+
+      // Mark like from this user as seen (if any)
+      markLikeSeen(participantId);
+      useNotificationStore.getState().removeGridHighlightByType(participantId, 'like');
+    }
+    load();
+  }, [session, participantId]);
+
+  const handleLike = async () => {
+    if (!session) return;
+    if (liked) {
+      const ok = await removeLike(participantId);
+      if (ok) {
+        setLiked(false);
+        removeLiked(participantId); // Sync with swipe store so card reappears
+        useMatchStore.getState().removeMatch(participantId); // Remove from matches list
+        toast('הלייק הוסר');
+      } else {
+        toast('שגיאה בהסרת הלייק — נסו שוב');
+      }
+    } else {
+      const result = await sendLike(participantId);
+      if (result) {
+        setLiked(true);
+        addLiked(participantId); // Sync with swipe store so card stays hidden
+        if (result.match && user) {
+          // It's a match! Show the popup
+          useMatchStore.getState().setPendingMatch({
+            id: participantId,
+            displayName: user.display_name,
+            photoUrl: user.photos?.[0] ? getPhotoUrl(user.photos[0].storage_path) : null,
+          });
+        } else {
+          toast('💗 לייק נשלח!');
+        }
+      } else {
+        toast('שגיאה בשליחת הלייק — נסו שוב');
+      }
+    }
+  };
+
+  const handleMessage = async () => {
+    if (!session) return;
+    const conv = await getOrCreateConversation(
+      participantId
+    );
+    if (conv) {
+      router.push(`/dating/${eventSlug}/chat/${conv.id}`);
+    } else {
+      toast('שגיאה בפתיחת שיחה — נסו שוב');
+    }
+  };
+
+  const handleBlock = async () => {
+    if (!session) return;
+    const success = await blockParticipant(
+      participantId
+    );
+    if (success) {
+      toast('המשתמש נחסם');
+      router.back();
+    } else {
+      toast('שגיאה בחסימה — נסו שוב');
+    }
+  };
+
+  if (loading) {
+    return (
+      <MobileGuard>
+        <LoadingSpinner />
+      </MobileGuard>
+    );
+  }
+
+  if (!user) {
+    return (
+      <MobileGuard>
+        <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
+          <p>המשתמש לא נמצא</p>
+          <button className="btn btn-secondary" style={{ marginTop: '16px' }} onClick={() => router.back()}>
+            חזרה
+          </button>
+        </div>
+      </MobileGuard>
+    );
+  }
+
+  return (
+    <MobileGuard>
+      <PageTransition>
+        <div className="profile-view">
+        {/* Back button */}
+        <button
+          onClick={() => router.back()}
+          style={{
+            position: 'absolute',
+            top: 'calc(12px + env(safe-area-inset-top))',
+            right: '12px',
+            zIndex: 10,
+            background: 'rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            border: 'none',
+            borderRadius: '50%',
+            width: '44px',
+            height: '44px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            cursor: 'pointer',
+            fontSize: '18px',
+          }}
+        >
+          ✕
+        </button>
+
+        {/* Photos carousel with swipe + tap zones */}
+        <div
+          className="profile-photos"
+          onTouchStart={(e) => {
+            touchStartX.current = e.touches[0].clientX;
+          }}
+          onTouchEnd={(e) => {
+            if (touchStartX.current === null || user.photos.length <= 1) return;
+            const diff = touchStartX.current - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 50) {
+              if (diff > 0) {
+                // swipe left = next
+                setPhotoIndex((i) => (i + 1) % user.photos.length);
+              } else {
+                // swipe right = prev
+                setPhotoIndex((i) => (i - 1 + user.photos.length) % user.photos.length);
+              }
+            }
+            touchStartX.current = null;
+          }}
+          onClick={(e) => {
+            if (user.photos.length <= 1) return;
+            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            if (x < rect.width / 2) {
+              // tap left = prev
+              setPhotoIndex((i) => (i - 1 + user.photos.length) % user.photos.length);
+            } else {
+              // tap right = next
+              setPhotoIndex((i) => (i + 1) % user.photos.length);
+            }
+          }}
+        >
+          {user.photos.length > 0 ? (
+            <img
+              src={getPhotoUrl(user.photos[photoIndex].storage_path)}
+              alt={user.display_name}
+            />
+          ) : (
+            <div className="avatar-placeholder"><UserIcon size={64} /></div>
+          )}
+
+          {/* Photo dots */}
+          {user.photos.length > 1 && (
+            <>
+              {/* Progress bar at top */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '8px',
+                  left: '16px',
+                  right: '16px',
+                  display: 'flex',
+                  gap: '4px',
+                  zIndex: 5,
+                }}
+              >
+                {user.photos.map((_, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      flex: 1,
+                      height: '3px',
+                      borderRadius: '2px',
+                      background: i === photoIndex ? 'white' : 'rgba(255,255,255,0.35)',
+                      transition: 'background 0.25s',
+                    }}
+                  />
+                ))}
+              </div>
+              {/* Left/right arrow hints */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '8px',
+                  transform: 'translateY(-50%)',
+                  color: 'rgba(255,255,255,0.5)',
+                  fontSize: '24px',
+                  pointerEvents: 'none',
+                }}
+              >
+                ‹
+              </div>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  right: '8px',
+                  transform: 'translateY(-50%)',
+                  color: 'rgba(255,255,255,0.5)',
+                  fontSize: '24px',
+                  pointerEvents: 'none',
+                }}
+              >
+                ›
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Details */}
+        <div className="profile-details">
+          <div className="profile-name">
+            {user.display_name}
+            {user.age && <span style={{ fontSize: '18px', fontWeight: 400, color: 'var(--text-muted)', marginRight: '8px' }}>{user.age}</span>}
+          </div>
+          <div className="profile-gender">
+            {user.gender === 'male' ? 'גבר' : user.gender === 'female' ? 'אישה' : 'אחר'}
+            {user.city ? ` · ${user.city}` : ''}
+          </div>
+          {user.looking_for && (
+            <div style={{
+              display: 'inline-block',
+              marginTop: '8px',
+              padding: '4px 12px',
+              borderRadius: '20px',
+              background: 'rgba(212, 165, 154, 0.15)',
+              border: '1px solid rgba(212, 165, 154, 0.3)',
+              color: 'var(--primary)',
+              fontSize: '13px',
+              fontWeight: 500,
+            }}>
+              🎯 {LOOKING_FOR_LABELS[user.looking_for]}
+            </div>
+          )}
+          {user.bio && (
+            <p style={{ color: 'var(--text-muted)', fontSize: '15px', lineHeight: 1.5 }}>
+              {user.bio}
+            </p>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="profile-actions">
+          <button
+            className={`profile-action-btn ${liked ? 'liked' : ''}`}
+            onClick={handleLike}
+          >
+            <LikeAnimation liked={liked} />
+            {liked ? 'ביטול לייק' : 'לייק'}
+          </button>
+
+          <button className="profile-action-btn" onClick={handleMessage}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+            </svg>
+            הודעה
+          </button>
+
+          <button
+            className="profile-action-btn"
+            onClick={() => setShowBlockConfirm(true)}
+            style={{ color: 'var(--danger)' }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+            </svg>
+            חסימה
+          </button>
+        </div>
+      </div>
+      </PageTransition>
+
+      {/* Block confirmation dialog */}
+      <BlockConfirmDialog
+        isOpen={showBlockConfirm}
+        displayName={user.display_name}
+        onConfirm={handleBlock}
+        onClose={() => setShowBlockConfirm(false)}
+      />
+    </MobileGuard>
+  );
+}

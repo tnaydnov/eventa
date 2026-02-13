@@ -1,7 +1,10 @@
 User-agent: *
 Allow: /
 
+# Sitemap
+Sitemap: https://eventa.productions/sitemap.xml
+
 # Block sensitive routes
 Disallow: /admin
 Disallow: /api/
-Disallow: /e/*/test-login
+Disallow: /dating/*/test-login

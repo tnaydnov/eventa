@@ -190,7 +190,7 @@ export default function CompassRequestListener() {
     removeFromQueue(sid);
     toast('🧭 מצפן הופעל!');
     setAccepting(false);
-    router.push(`/e/${session.eventSlug}/compass/${sid}`);
+    router.push(`/dating/${session.eventSlug}/compass/${sid}`);
   };
 
   const handleDecline = async () => {
@@ -284,7 +284,7 @@ export default function CompassRequestListener() {
             onClick={() => {
               if (session) {
                 setMinimized(true);
-                router.push(`/e/${session.eventSlug}/user/${pending.fromId}`);
+                router.push(`/dating/${session.eventSlug}/user/${pending.fromId}`);
               }
             }}
           >

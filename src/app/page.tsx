@@ -1,52 +1,206 @@
-'use client';
+import Link from 'next/link';
+import type { Metadata } from 'next';
 
-import { useEffect, useState } from 'react';
-import { useSessionStore } from '@/lib/store';
-import { PageTransition } from '@/components/Animations';
-import MobileGuard from '@/components/MobileGuard';
-import { RingIcon, SparklesIcon } from '@/components/Icons';
+export const metadata: Metadata = {
+  title: 'Eventa — Turn Any Event Into an Experience',
+  description:
+    'Eventa adds smart social layers to events — dating, networking, and engagement tools that make your events unforgettable.',
+};
+
+const PRODUCTS = [
+  {
+    emoji: '💘',
+    title: 'Eventa Dating',
+    desc: 'שכבת היכרויות חכמה לכל אירוע — חתונות, מסיבות, אירועי חברה ועוד. האורחים סורקים QR, בונים פרופיל, ונהנים מלייקים, מאצ׳ים וצ׳אטים.',
+    href: '/dating',
+    cta: 'גלו עוד',
+    color: '#d4a59a',
+  },
+];
 
 export default function HomePage() {
-  const [mounted, setMounted] = useState(false);
-  const session = useSessionStore((s) => s.session);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
   return (
-    <MobileGuard>
-      <PageTransition>
-        <div className="app-container">
-          <div
+    <div
+      dir="rtl"
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(180deg, #0a0a0a 0%, #111 50%, #0a0a0a 100%)',
+        color: '#f0f0f0',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {/* ─── Nav ─── */}
+      <nav
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '20px 24px',
+          maxWidth: '1100px',
+          width: '100%',
+          margin: '0 auto',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '22px', fontWeight: 700 }}>
+          <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="18" stroke="#d4a59a" strokeWidth="2.5" opacity="0.4" />
+            <path d="M20 8l-2 5-5 2 5 2 2 5 2-5 5-2-5-2-2-5z" fill="#d4a59a" />
+          </svg>
+          <span style={{ color: '#fff' }}>Eventa</span>
+        </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <Link
+            href="/dating"
             style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '100dvh',
-              padding: '32px',
-              textAlign: 'center',
-              gap: '16px',
+              color: '#d4a59a',
+              textDecoration: 'none',
+              fontSize: '14px',
+              fontWeight: 500,
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: '1px solid rgba(212,165,154,0.3)',
+              transition: 'all 0.2s',
             }}
           >
-            <RingIcon size={64} color="var(--primary)" />
-            <h1 style={{ fontSize: '28px', color: 'var(--primary)' }}>
-              Wedding Singles
-            </h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: '16px' }}>
-              כדי להיכנס, סרקו את קוד ה-QR שקיבלתם באירוע
-            </p>
-            {session && (
-              <p style={{ color: 'var(--success)', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
-                <SparklesIcon size={16} color="var(--success)" /> יש לכם סשן פעיל — עברו לאירוע
-              </p>
-            )}
-          </div>
+            Dating
+          </Link>
         </div>
-      </PageTransition>
-    </MobileGuard>
+      </nav>
+
+      {/* ─── Hero ─── */}
+      <main
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+          padding: '40px 24px 60px',
+          maxWidth: '800px',
+          margin: '0 auto',
+        }}
+      >
+        <div
+          style={{
+            fontSize: '13px',
+            color: '#d4a59a',
+            fontWeight: 500,
+            letterSpacing: '0.5px',
+            marginBottom: '24px',
+            background: 'rgba(212,165,154,0.08)',
+            padding: '6px 16px',
+            borderRadius: '20px',
+            border: '1px solid rgba(212,165,154,0.15)',
+          }}
+        >
+          ✨ הפלטפורמה לחוויות באירועים
+        </div>
+
+        <h1
+          style={{
+            fontSize: 'clamp(32px, 6vw, 56px)',
+            fontWeight: 800,
+            lineHeight: 1.15,
+            marginBottom: '20px',
+            color: '#fff',
+          }}
+        >
+          הפכו כל אירוע
+          <br />
+          <span
+            style={{
+              background: 'linear-gradient(135deg, #d4a59a, #ff6b9d, #d4a59a)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            לחוויה בלתי נשכחת
+          </span>
+        </h1>
+
+        <p
+          style={{
+            fontSize: 'clamp(16px, 2.5vw, 20px)',
+            color: '#999',
+            maxWidth: '600px',
+            lineHeight: 1.7,
+            marginBottom: '48px',
+          }}
+        >
+          Eventa מוסיפה שכבות חברתיות חכמות לאירועים — היכרויות, נטוורקינג, ומעורבות קהל. הכל בדפדפן, בלי להוריד כלום.
+        </p>
+
+        {/* ─── Products Grid ─── */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '24px',
+            width: '100%',
+            maxWidth: '700px',
+          }}
+        >
+          {PRODUCTS.map((p) => (
+            <Link
+              key={p.href}
+              href={p.href}
+              style={{
+                textDecoration: 'none',
+                background: 'rgba(255,255,255,0.04)',
+                border: `1px solid rgba(212,165,154,0.15)`,
+                borderRadius: '20px',
+                padding: '32px 28px',
+                textAlign: 'center',
+                transition: 'all 0.3s',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '12px',
+              }}
+            >
+              <span style={{ fontSize: '48px' }}>{p.emoji}</span>
+              <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', margin: 0 }}>{p.title}</h2>
+              <p style={{ fontSize: '14px', color: '#999', lineHeight: 1.7, margin: 0 }}>{p.desc}</p>
+              <span
+                style={{
+                  marginTop: '8px',
+                  color: p.color,
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                {p.cta}
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M7 4l-6 6 6 6" />
+                </svg>
+              </span>
+            </Link>
+          ))}
+        </div>
+      </main>
+
+      {/* ─── Footer ─── */}
+      <footer
+        style={{
+          borderTop: '1px solid rgba(255,255,255,0.06)',
+          padding: '24px',
+          textAlign: 'center',
+          fontSize: '13px',
+          color: '#555',
+        }}
+      >
+        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <Link href="/privacy" style={{ color: '#777', textDecoration: 'none' }}>מדיניות פרטיות</Link>
+          <Link href="/terms" style={{ color: '#777', textDecoration: 'none' }}>תנאי שימוש</Link>
+          <Link href="/about" style={{ color: '#777', textDecoration: 'none' }}>אודות</Link>
+        </div>
+        <p style={{ margin: 0 }}>© {new Date().getFullYear()} Eventa. כל הזכויות שמורות.</p>
+      </footer>
+    </div>
   );
 }

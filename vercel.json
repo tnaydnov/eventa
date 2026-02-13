@@ -1,12 +1,27 @@
 {
   "crons": [
     {
-      "path": "/api/cleanup",
+      "path": "/api/admin/auto-archive",
       "schedule": "0 3 * * *"
     },
     {
-      "path": "/api/admin/auto-archive",
+      "path": "/api/cleanup",
       "schedule": "0 4 * * *"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/dating"
+        }
+      ]
     }
   ]
 }

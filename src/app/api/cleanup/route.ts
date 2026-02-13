@@ -7,9 +7,18 @@ import { jsonError } from '@/lib/route-helpers';
 
 /**
  * GET|POST /api/cleanup
- * Deletes all data for events that ended more than RETENTION_DAYS ago.
- * Intended to be called by a cron job (Vercel Cron sends GET).
+ * Archives and purges data for events that ended more than RETENTION_DAYS ago.
  *
+ * For each qualifying event (not yet archived):
+ *  1. Saves a full analytics snapshot to event_analytics_snapshots (permanent).
+ *  2. Deletes storage files (photos, chat media, backgrounds).
+ *  3. Cascade-deletes all user data from DB.
+ *  4. Marks the event as 'archived' (event row + snapshot kept forever).
+ *
+ * Events already archived are skipped — their data was purged during archival.
+ * The event row and analytics snapshot are NEVER deleted by this route.
+ *
+ * Intended to run after auto-archive (cron safety net for any missed events).
  * Auth: Bearer ${CRON_SECRET} header, timing-safe comparison via SHA-256.
  */
 async function handler(req: NextRequest) {
@@ -38,55 +47,122 @@ async function handler(req: NextRequest) {
     const supabase = getServiceClient();
     const cutoff = new Date(Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
-    // Find events that ended more than RETENTION_DAYS ago
+    // Find events past retention that are NOT yet archived
     const { data: oldEvents } = await supabase
       .from('events')
-      .select('id')
-      .lt('ends_at', cutoff);
+      .select('id, name')
+      .lt('ends_at', cutoff)
+      .neq('status', 'archived');
 
     if (!oldEvents || oldEvents.length === 0) {
-      return NextResponse.json({ message: 'Nothing to clean up', deleted: 0 });
+      return NextResponse.json({ message: 'Nothing to clean up', archived: 0 });
     }
 
-    const eventIds = oldEvents.map((e) => e.id);
+    let archivedCount = 0;
+    let totalDeletedFiles = 0;
 
-    // Collect storage paths BEFORE deleting DB rows (otherwise we lose the references)
-    // Use high limit to avoid PostgREST 1000-row default truncating results
-    const FETCH_LIMIT = 100_000;
-    const [{ data: photos }, { data: chatMedia }] = await Promise.all([
-      supabase
-        .from('participant_photos')
-        .select('storage_path')
-        .in('event_id', eventIds)
-        .limit(FETCH_LIMIT),
-      supabase
-        .from('messages')
-        .select('media_path')
-        .in('event_id', eventIds)
-        .not('media_path', 'is', null)
-        .limit(FETCH_LIMIT),
-    ]);
+    for (const event of oldEvents) {
+      const eventId = event.id;
 
-    const photoStoragePaths = (photos || []).map((p) => p.storage_path);
-    const chatMediaPaths = (chatMedia || []).filter((m) => m.media_path).map((m) => m.media_path!);
+      // ── Step 1: Save analytics snapshot (if none exists yet) ──
+      const { data: existingSnap } = await supabase
+        .from('event_analytics_snapshots')
+        .select('event_id')
+        .eq('event_id', eventId)
+        .maybeSingle();
 
-    // Delete storage files BEFORE DB rows (if storage fails, paths are still in DB for retry)
-    const allPaths = [...photoStoragePaths, ...chatMediaPaths];
-    for (let i = 0; i < allPaths.length; i += STORAGE_BATCH_SIZE) {
-      const batch = allPaths.slice(i, i + STORAGE_BATCH_SIZE);
-      await supabase.storage.from('photos').remove(batch);
-    }
+      if (!existingSnap) {
+        // Try to get full analytics via the analytics API (forwarding cron auth)
+        let snapshot: Record<string, unknown> | null = null;
 
-    // Delete background images from storage (best-effort)
-    const bgPaths = eventIds.flatMap((id) =>
-      ['jpg', 'png', 'webp'].map((ext) => `${id}/bg.${ext}`)
-    );
-    for (let i = 0; i < bgPaths.length; i += STORAGE_BATCH_SIZE) {
-      await supabase.storage.from('backgrounds').remove(bgPaths.slice(i, i + STORAGE_BATCH_SIZE));
-    }
+        try {
+          const analyticsUrl = new URL(
+            `/api/admin/events/${eventId}/analytics`,
+            req.url
+          );
+          const res = await fetch(analyticsUrl.toString(), {
+            headers: { authorization: authHeader },
+          });
+          if (res.ok) {
+            snapshot = await res.json();
+          }
+        } catch {
+          /* fallback below */
+        }
 
-    // Cascade-delete DB rows per event (respects FK ordering)
-    for (const eventId of eventIds) {
+        // Fallback: compute basic counts directly
+        if (!snapshot) {
+          const [pCount, lCount, cCount, mCount, bCount, csCount, phCount] =
+            await Promise.all([
+              supabase.from('participants').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
+              supabase.from('likes').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
+              supabase.from('conversations').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
+              supabase.from('messages').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
+              supabase.from('blocks').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
+              supabase.from('compass_sessions').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
+              supabase.from('participant_photos').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
+            ]);
+          snapshot = {
+            totalParticipants: pCount.count || 0,
+            totalLikes: lCount.count || 0,
+            totalConversations: cCount.count || 0,
+            totalMessages: mCount.count || 0,
+            totalBlocks: bCount.count || 0,
+            compassRequestsSent: csCount.count || 0,
+            totalPhotosUploaded: phCount.count || 0,
+            _partial: true, // flag: this is a basic fallback, not full analytics
+          };
+        }
+
+        (snapshot as Record<string, unknown>).archivedAt = new Date().toISOString();
+
+        const { error: snapErr } = await supabase
+          .from('event_analytics_snapshots')
+          .upsert({ event_id: eventId, snapshot }, { onConflict: 'event_id' });
+
+        if (snapErr) {
+          console.error(`[CLEANUP] snapshot error for ${eventId}:`, snapErr.message);
+          // Continue anyway — don't block data purge for snapshot failure
+        }
+      }
+
+      // ── Step 2: Delete storage files ──
+      const FETCH_LIMIT = 100_000;
+      const [{ data: photos }, { data: chatMedia }] = await Promise.all([
+        supabase
+          .from('participant_photos')
+          .select('storage_path')
+          .eq('event_id', eventId)
+          .limit(FETCH_LIMIT),
+        supabase
+          .from('messages')
+          .select('media_path')
+          .eq('event_id', eventId)
+          .not('media_path', 'is', null)
+          .limit(FETCH_LIMIT),
+      ]);
+
+      const photoPaths = (photos || []).map((p) => p.storage_path);
+      const mediaPaths = (chatMedia || [])
+        .filter((m) => m.media_path)
+        .map((m) => m.media_path!);
+      const allPaths = [...photoPaths, ...mediaPaths];
+
+      for (let i = 0; i < allPaths.length; i += STORAGE_BATCH_SIZE) {
+        await supabase.storage
+          .from('photos')
+          .remove(allPaths.slice(i, i + STORAGE_BATCH_SIZE));
+      }
+
+      // Background images (best-effort)
+      const bgPaths = ['jpg', 'png', 'webp'].map(
+        (ext) => `${eventId}/bg.${ext}`
+      );
+      await supabase.storage.from('backgrounds').remove(bgPaths);
+
+      totalDeletedFiles += allPaths.length + bgPaths.length;
+
+      // ── Step 3: Cascade-delete user data (FK order) ──
       // Compass: locations → sessions
       const { data: compassSessions } = await supabase
         .from('compass_sessions')
@@ -94,9 +170,15 @@ async function handler(req: NextRequest) {
         .eq('event_id', eventId);
       const csIds = (compassSessions || []).map((cs) => cs.id);
       if (csIds.length > 0) {
-        await supabase.from('compass_locations').delete().in('compass_session_id', csIds);
+        await supabase
+          .from('compass_locations')
+          .delete()
+          .in('compass_session_id', csIds);
       }
-      await supabase.from('compass_sessions').delete().eq('event_id', eventId);
+      await supabase
+        .from('compass_sessions')
+        .delete()
+        .eq('event_id', eventId);
 
       // Independent tables in parallel
       await Promise.all([
@@ -105,23 +187,38 @@ async function handler(req: NextRequest) {
         supabase.from('blocks').delete().eq('event_id', eventId),
         supabase.from('banned_devices').delete().eq('event_id', eventId),
         supabase.from('activity_log').delete().eq('event_id', eventId),
-        supabase.from('event_analytics_snapshots').delete().eq('event_id', eventId),
+        // NOTE: event_analytics_snapshots is NEVER deleted — kept permanently
       ]);
 
       // Messages → conversations (FK order)
       await supabase.from('messages').delete().eq('event_id', eventId);
       await supabase.from('conversations').delete().eq('event_id', eventId);
 
-      // Photos → participants → event (FK order)
-      await supabase.from('participant_photos').delete().eq('event_id', eventId);
+      // Photos → participants (FK order)
+      await supabase
+        .from('participant_photos')
+        .delete()
+        .eq('event_id', eventId);
       await supabase.from('participants').delete().eq('event_id', eventId);
-      await supabase.from('events').delete().eq('id', eventId);
+
+      // ── Step 4: Mark event as archived (preserve the row forever) ──
+      await supabase
+        .from('events')
+        .update({
+          status: 'archived',
+          is_active: false,
+          archived_at: new Date().toISOString(),
+        })
+        .eq('id', eventId);
+
+      archivedCount++;
+      console.log(`[CLEANUP] Archived event "${event.name}" (${eventId})`);
     }
 
     return NextResponse.json({
       message: 'Cleanup complete',
-      deletedEvents: eventIds.length,
-      deletedFiles: allPaths.length + bgPaths.length,
+      archivedEvents: archivedCount,
+      deletedFiles: totalDeletedFiles,
     });
   } catch (err) {
     console.error('[CLEANUP] error:', err);

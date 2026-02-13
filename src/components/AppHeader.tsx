@@ -11,9 +11,9 @@ export default function AppHeader() {
 
   return (
     <header className="app-header">
-      <h1>{session.eventName || 'Wedding Singles'}</h1>
+      <h1>{session.eventName || 'Eventa'}</h1>
       <button
-        onClick={() => router.push(`/e/${session.eventSlug}/profile`)}
+        onClick={() => router.push(`/dating/${session.eventSlug}/profile`)}
         style={{
           background: 'none',
           border: 'none',

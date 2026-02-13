@@ -49,9 +49,14 @@ export async function POST(
 
     try {
       const analyticsUrl = new URL(`/api/admin/events/${eventId}/analytics`, req.url);
-      // Forward admin cookie for auth
+      // Forward admin cookie + cron auth (so cron-initiated archives get full analytics)
+      const fwdHeaders: Record<string, string> = {};
+      const cookie = req.headers.get('cookie');
+      const auth = req.headers.get('authorization');
+      if (cookie) fwdHeaders['cookie'] = cookie;
+      if (auth) fwdHeaders['authorization'] = auth;
       const analyticsRes = await fetch(analyticsUrl.toString(), {
-        headers: { cookie: req.headers.get('cookie') || '' },
+        headers: fwdHeaders,
       });
 
       if (analyticsRes.ok) {

@@ -52,11 +52,11 @@ export default function AdminPage() {
 
   /* ─── QR helpers ─── */
   const generateQR = async (event: Event) => {
-    const url = `${window.location.origin}/e/${event.slug}?k=${event.join_code}`;
+    const url = `${window.location.origin}/dating/${event.slug}?k=${event.join_code}`;
     try {
       const dataUrl = await QRCode.toDataURL(url, {
         width: 400, margin: 2,
-        color: { dark: '#6366f1', light: '#0b0d14' },
+        color: { dark: '#000000', light: '#00000000' },
         errorCorrectionLevel: 'H',
       });
       setQrDataUrl(dataUrl);
@@ -75,7 +75,7 @@ export default function AdminPage() {
   };
 
   const copyJoinUrl = (event: Event) => {
-    const url = `${window.location.origin}/e/${event.slug}?k=${event.join_code}`;
+    const url = `${window.location.origin}/dating/${event.slug}?k=${event.join_code}`;
     navigator.clipboard.writeText(url);
     alert('הקישור הועתק! 📋');
   };

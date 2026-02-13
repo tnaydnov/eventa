@@ -52,7 +52,7 @@ export default function MatchPopup() {
     clearPendingMatch();
 
     if (conv) {
-      router.push(`/e/${session.eventSlug}/chat/${conv.id}`);
+      router.push(`/dating/${session.eventSlug}/chat/${conv.id}`);
     }
     setNavigating(false);
   }, [session, pendingMatch, navigating, clearPendingMatch, router]);

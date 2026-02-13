@@ -39,6 +39,12 @@ export async function handleClose(
     return jsonError('Failed to close compass session', 400);
   }
 
+  // Delete location data — no reason to keep GPS coordinates after session ends
+  await supabase
+    .from('compass_locations')
+    .delete()
+    .eq('compass_session_id', sessionId);
+
   // Determine the other participant
   const otherId =
     cs.participant_a_id === session.sub ? cs.participant_b_id : cs.participant_a_id;

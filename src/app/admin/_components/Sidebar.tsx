@@ -41,7 +41,7 @@ export default function Sidebar({
         {/* Brand */}
         <div className="admin-sidebar__brand">
           <div>
-            <div className="admin-sidebar__brand-text">💒 Weddate</div>
+            <div className="admin-sidebar__brand-text">🎉 Eventa</div>
             <div className="admin-sidebar__brand-sub">ניהול אירועים</div>
           </div>
         </div>
