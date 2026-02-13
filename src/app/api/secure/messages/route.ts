@@ -90,6 +90,14 @@ export async function POST(req: NextRequest) {
 
     const cleanText = type === 'text' ? sanitizeWithLimit(text || '', MAX_MESSAGE_LENGTH) : null;
 
+    // Update last_message_at BEFORE inserting the message so that when the
+    // realtime INSERT event fires, the conversation is already visible
+    // (last_message_at != NULL) in the other user's chat list query.
+    await supabase
+      .from('conversations')
+      .update({ last_message_at: new Date().toISOString() })
+      .eq('id', conversationId);
+
     const { data, error } = await supabase
       .from('messages')
       .insert({
@@ -108,27 +116,20 @@ export async function POST(req: NextRequest) {
       return jsonError('Failed to send message', 400);
     }
 
-    // Activity log (fire-and-forget)
+    // Activity log + notification (fire-and-forget / parallel)
     supabase.from('activity_log').insert({
       event_id: session.eid,
       participant_id: session.sub,
       action: 'message',
     }).then();
 
-    // Update conversation last_message_at + notify recipient (parallel)
-    await Promise.all([
-      supabase
-        .from('conversations')
-        .update({ last_message_at: new Date().toISOString() })
-        .eq('id', conversationId),
-      supabase.from('notifications').insert({
-        event_id: session.eid,
-        to_participant_id: recipientId,
-        type: 'new_message',
-        payload: { from_participant_id: session.sub, conversation_id: conversationId },
-        is_read: false,
-      }),
-    ]);
+    supabase.from('notifications').insert({
+      event_id: session.eid,
+      to_participant_id: recipientId,
+      type: 'new_message',
+      payload: { from_participant_id: session.sub, conversation_id: conversationId },
+      is_read: false,
+    }).then();
 
     return NextResponse.json(data);
   } catch (err) {
