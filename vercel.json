@@ -5,6 +5,14 @@
       "maxDuration": 15
     }
   },
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "www.eventa.productions" }],
+      "destination": "https://eventa.productions/$1",
+      "permanent": true
+    }
+  ],
   "crons": [
     {
       "path": "/api/admin/auto-archive",
@@ -25,7 +33,7 @@
         },
         {
           "key": "Service-Worker-Allowed",
-          "value": "/dating"
+          "value": "/"
         }
       ]
     }
