@@ -126,7 +126,7 @@ export default function ChatRoomPage({
 
       const [msgs, other] = await Promise.all([
         getMessages(conversationId),
-        getParticipant(otherId),
+        getParticipant(otherId!),
       ]);
 
       setMessages(msgs);
