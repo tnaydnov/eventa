@@ -29,10 +29,24 @@ function generateLocalId(): string {
 function isInAppBrowser(): boolean {
   if (typeof navigator === 'undefined') return false;
   const ua = navigator.userAgent || '';
-  // Common in-app browser signatures
-  return /FBAN|FBAV|Instagram|Snapchat|Line\/|Twitter|MicroMessenger|QQBrowser|BytedanceWebview|musical_ly|TikTok/i.test(ua)
-    || (/iPhone|iPad/.test(ua) && !/Safari/i.test(ua))       // iOS WebView (no Safari token)
-    || (/Android/.test(ua) && /wv\)/.test(ua));               // Android WebView
+
+  // Social-media & messaging in-app browsers
+  if (/FBAN|FBAV|Instagram|Snapchat|Line\/|Twitter|MicroMessenger|QQBrowser|BytedanceWebview|musical_ly|TikTok/i.test(ua)) return true;
+
+  // iOS WebView — real Safari always includes "Safari/" in UA
+  if (/iPhone|iPad|iPod/.test(ua) && !/Safari\//i.test(ua)) return true;
+
+  // Android WebView — the "; wv)" token is the official flag
+  if (/Android/.test(ua) && /;\s*wv[);]/i.test(ua)) return true;
+
+  // Samsung Internet's in-app mode / Samsung Browser custom tabs
+  if (/SamsungBrowser\/.*CrossApp/i.test(ua)) return true;
+
+  // Generic "standalone" detection — not maximally reliable but catches
+  // many QR-scanner apps that open Chrome Custom Tabs without full browser UI
+  if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>).__gCrWeb) return true; // iOS WKWebView injected object
+
+  return false;
 }
 
 export default function JoinPage({
