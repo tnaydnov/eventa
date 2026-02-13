@@ -111,6 +111,11 @@ export default function EventPage({
   useEffect(() => {
     const joinCode = searchParams.get('k');
     if (joinCode) {
+      // If user already has a valid session for this event, just strip ?k and stay
+      if (session && session.eventSlug === eventSlug) {
+        router.replace(`/dating/${eventSlug}`);
+        return;
+      }
       router.replace(`/dating/${eventSlug}/join?k=${joinCode}`);
       return;
     }

@@ -42,7 +42,7 @@ export default function JoinPage({
 
   // Check for existing session
   useEffect(() => {
-    const stored = localStorage.getItem('wedding_session');
+    const stored = localStorage.getItem('eventa_session');
     if (stored) {
       try {
         const session = JSON.parse(stored);

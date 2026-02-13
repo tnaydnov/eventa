@@ -121,7 +121,7 @@ export default function ProfileEditPage({
 
   const handleAccountDeleted = () => {
     if (!session) return;
-    localStorage.removeItem('wedding_session');
+    localStorage.removeItem('eventa_session');
     localStorage.removeItem(`profile_setup_${session.participantId}`);
     clearSession();
     toast('החשבון נמחק');
