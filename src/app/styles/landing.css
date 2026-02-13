@@ -388,6 +388,48 @@
   margin-bottom: 20px;
 }
 
+/* ── Demo Phone Wrapper — glow + hint ── */
+.demo-phone-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.demo-try-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 8px 20px;
+  border-radius: 24px;
+  background: rgba(212, 165, 154, 0.08);
+  border: 1px solid rgba(212, 165, 154, 0.15);
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  animation: hintPulse 2.5s ease-in-out infinite;
+}
+
+.demo-try-hand {
+  font-size: 20px;
+  animation: tapBounce 1.8s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes hintPulse {
+  0%, 100% { opacity: 0.65; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-2px); }
+}
+
+@keyframes tapBounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  30% { transform: translateY(-8px) rotate(-8deg); }
+  60% { transform: translateY(0) rotate(0deg); }
+}
+
 /* ── Phone Frame ── */
 .phone-frame {
   width: 300px;
@@ -398,11 +440,28 @@
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.04),
     0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 100px rgba(212, 165, 154, 0.08);
+    0 0 30px rgba(212, 165, 154, 0.12);
   overflow: hidden;
   position: relative;
   flex-shrink: 0;
   transform: translateZ(0);
+  animation: phoneGlow 4s ease-in-out infinite;
+}
+
+@keyframes phoneGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.04),
+      0 20px 60px rgba(0, 0, 0, 0.5),
+      0 0 30px rgba(212, 165, 154, 0.12);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(212, 165, 154, 0.15),
+      0 20px 60px rgba(0, 0, 0, 0.5),
+      0 0 60px rgba(212, 165, 154, 0.25),
+      0 0 120px rgba(212, 165, 154, 0.08);
+  }
 }
 
 .phone-frame__notch {
@@ -436,6 +495,11 @@
 /* ── The grid scrollable area inside phone ── */
 .phone-frame__screen .profile-grid {
   flex: 1;
+}
+
+/* ── Override content-visibility inside phone (prevents lazy-skip in nested containers) ── */
+.phone-frame__screen .grid-card {
+  content-visibility: visible;
 }
 
 /* ── Demo grid card image fix — fill the card ── */

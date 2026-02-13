@@ -248,7 +248,7 @@ export default function DemoPhone() {
       <div className="profile-grid">
         {USERS.map(u => (
           <div key={u.seed} className="grid-card" onClick={() => openUser(u)}>
-            <img src={u.photo} alt={u.name} loading="lazy" draggable={false} />
+            <img src={u.photo} alt={u.name} draggable={false} />
             <div className="card-overlay"><div className="name">{u.name}</div></div>
           </div>
         ))}
@@ -382,7 +382,7 @@ export default function DemoPhone() {
             <div className="profile-grid" style={{ padding: '12px' }}>
               {matchList.map(u => (
                 <div key={u.seed} className="grid-card" onClick={() => openUser(u)} style={{ position: 'relative' }}>
-                  <img src={u.photo} alt={u.name} loading="lazy" draggable={false}/>
+                  <img src={u.photo} alt={u.name} draggable={false}/>
                   <div className="card-overlay"><div className="name">{u.name}</div></div>
                   <div className="demo-match-label">💞 Match</div>
                 </div>
@@ -396,7 +396,7 @@ export default function DemoPhone() {
             <div className="profile-grid" style={{ padding: '12px' }}>
               {receivedLikeUsers.map(u => (
                 <div key={u.seed} className="grid-card" onClick={() => openUser(u)}>
-                  <img src={u.photo} alt={u.name} loading="lazy" draggable={false}/>
+                  <img src={u.photo} alt={u.name} draggable={false}/>
                   <div className="card-overlay"><div className="name">{u.name}</div></div>
                 </div>
               ))}
@@ -409,7 +409,7 @@ export default function DemoPhone() {
             <div className="profile-grid" style={{ padding: '12px' }}>
               {sentLikeUsers.map(u => (
                 <div key={u.seed} className="grid-card" onClick={() => openUser(u)}>
-                  <img src={u.photo} alt={u.name} loading="lazy" draggable={false}/>
+                  <img src={u.photo} alt={u.name} draggable={false}/>
                   <div className="card-overlay"><div className="name">{u.name}</div></div>
                 </div>
               ))}

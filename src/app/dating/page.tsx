@@ -183,7 +183,13 @@ export default function LandingPage() {
               הפיצ׳ר הייחודי שלנו — מצפן שמכוון שני אנשים שעשו מאצ׳ אחד לכיוון השני בזמן אמת, בלי לחשוף את המיקום המדויק.
             </p>
           </div>
-          <DemoPhone />
+          <div className="demo-phone-wrapper">
+            <DemoPhone />
+            <div className="demo-try-hint">
+              <span className="demo-try-hand">👆</span>
+              <span>לחצו וגלו — זה אינטראקטיבי!</span>
+            </div>
+          </div>
         </div>
       </section>
 

@@ -67,7 +67,7 @@ const nextConfig = {
               scriptSrc,
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
-              `img-src 'self' data: blob: ${supabaseImg} https://images.unsplash.com`,
+              `img-src 'self' data: blob: ${supabaseImg} https://images.unsplash.com https://*.unsplash.com`,
               `media-src 'self' blob: ${supabaseImg}`,
               `connect-src 'self' ${supabaseConnect}`,
               "frame-ancestors 'none'",
