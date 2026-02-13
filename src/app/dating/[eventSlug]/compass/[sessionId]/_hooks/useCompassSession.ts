@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSessionStore, useCompassStore, useToastStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
@@ -8,7 +8,15 @@ import { updateCompassLocation, closeCompass, getParticipant } from '@/lib/api';
 import { useRealtimeHub } from '@/hooks/useRealtimeHub';
 import { useAppResume } from '@/hooks/useAppResume';
 import { calcBearing, calcDistance, normalizeDelta } from '@/lib/compass-math';
-import { GEO_MAX_AGE_MS, GEO_TIMEOUT_MS, GEO_LOW_ACCURACY_THRESHOLD, GEO_THROTTLE_DISTANCE_M, GEO_THROTTLE_INTERVAL_MS } from '@/lib/constants';
+import {
+  GEO_MAX_AGE_MS,
+  GEO_TIMEOUT_MS,
+  GEO_LOW_ACCURACY_THRESHOLD,
+  GEO_THROTTLE_DISTANCE_M,
+  GEO_THROTTLE_INTERVAL_MS,
+  HEADING_SMOOTH_FACTOR,
+  GPS_HEADING_SPEED_THRESHOLD,
+} from '@/lib/constants';
 
 interface CompassSessionResult {
   myLocation: { lat: number; lng: number; accuracy: number } | null;
@@ -34,6 +42,24 @@ export function useCompassSession(sessionId: string, eventSlug: string): Compass
 
   const watchIdRef = useRef<number | null>(null);
   const lastSentRef = useRef<{ lat: number; lng: number; time: number } | null>(null);
+  const smoothedHeadingRef = useRef<number | null>(null);
+  const gpsHeadingRef = useRef<{ heading: number; time: number } | null>(null);
+  const orientationCleanupRef = useRef<(() => void) | null>(null);
+
+  /**
+   * Smooth heading using shortest-angle interpolation (low-pass filter).
+   * Prevents jitter while staying responsive.
+   */
+  const smoothHeading = useCallback((rawHeading: number) => {
+    const prev = smoothedHeadingRef.current;
+    if (prev === null) {
+      smoothedHeadingRef.current = rawHeading;
+    } else {
+      const delta = normalizeDelta(rawHeading - prev);
+      smoothedHeadingRef.current = (prev + delta * HEADING_SMOOTH_FACTOR + 360) % 360;
+    }
+    setMyHeading(smoothedHeadingRef.current);
+  }, [setMyHeading]);
 
   /** Only send GPS update if moved > threshold OR enough time elapsed. */
   const shouldSendUpdate = (lat: number, lng: number): boolean => {
@@ -92,6 +118,20 @@ export function useCompassSession(sessionId: string, eventSlug: string): Compass
           accuracy: pos.coords.accuracy,
         };
         setMyLocation(loc);
+
+        // Use GPS heading when user is moving (much more accurate than magnetometer)
+        const speed = pos.coords.speed;
+        const gpsHeading = pos.coords.heading;
+        if (
+          speed !== null &&
+          speed > GPS_HEADING_SPEED_THRESHOLD &&
+          gpsHeading !== null &&
+          !isNaN(gpsHeading)
+        ) {
+          gpsHeadingRef.current = { heading: gpsHeading, time: Date.now() };
+          smoothHeading(gpsHeading);
+        }
+
         // Throttle: only send to server if moved enough or enough time passed
         if (shouldSendUpdate(loc.lat, loc.lng)) {
           lastSentRef.current = { lat: loc.lat, lng: loc.lng, time: Date.now() };
@@ -123,42 +163,128 @@ export function useCompassSession(sessionId: string, eventSlug: string): Compass
     };
   }, [session, sessionId, closed]);
 
-  // Device orientation (iOS uses webkitCompassHeading — no TS types available)
+  // Device orientation — multi-strategy approach for accurate heading:
+  // 1. AbsoluteOrientationSensor (Chrome Android — fused gyro+accel+mag, best accuracy)
+  // 2. webkitCompassHeading (iOS Safari — true north, very accurate)
+  // 3. deviceorientationabsolute (Android Chrome fallback — true north)
+  // 4. deviceorientation (last resort — magnetic, unreliable)
+  // GPS heading overrides all when user is walking (see geolocation watch above).
   useEffect(() => {
     if (closed) return;
 
-    const handleOrientation = (e: DeviceOrientationEvent) => {
-      const heading = (e as any).webkitCompassHeading ?? (e.alpha ? 360 - e.alpha : 0);
-      setMyHeading(heading);
+    let cleanup: (() => void) | null = null;
+
+    const useGpsRecent = () => {
+      const g = gpsHeadingRef.current;
+      return g && Date.now() - g.time < 3000;
     };
 
-    const requestPermission = async () => {
-      if (
-        typeof (DeviceOrientationEvent as any).requestPermission === 'function'
-      ) {
-        try {
-          const result = await (DeviceOrientationEvent as any).requestPermission();
-          if (result === 'granted') {
-            window.addEventListener('deviceorientation', handleOrientation, true);
-          } else {
-            toast('⚠️ יש לאשר גישה לחיישן תנועה כדי שהמצפן יציג כיוון');
-          }
-        } catch {
-          toast('⚠️ יש לאשר גישה לחיישן תנועה כדי שהמצפן יציג כיוון');
-        }
-      } else {
-        window.addEventListener('deviceorientation', handleOrientation, true);
+    const handleOrientationEvent = (e: DeviceOrientationEvent) => {
+      // If GPS heading is fresh (user walking), skip compass — GPS is more accurate
+      if (useGpsRecent()) return;
+
+      // iOS: webkitCompassHeading is true north, top quality
+      const webkit = (e as any).webkitCompassHeading;
+      if (typeof webkit === 'number' && webkit >= 0) {
+        smoothHeading(webkit);
+        return;
+      }
+
+      // Android fallback: alpha from absolute event
+      if (typeof e.alpha === 'number') {
+        smoothHeading((360 - e.alpha) % 360);
       }
     };
 
-    requestPermission();
+    const startOrientation = async () => {
+      // Strategy 1: AbsoluteOrientationSensor (Chrome 67+ on Android)
+      // Uses sensor fusion (gyro + accel + mag) — like Google Maps
+      if ('AbsoluteOrientationSensor' in window) {
+        try {
+          const sensor = new (window as any).AbsoluteOrientationSensor({ frequency: 30, referenceFrame: 'device' });
+          sensor.addEventListener('reading', () => {
+            if (useGpsRecent()) return;
+            const q = sensor.quaternion as [number, number, number, number];
+            if (!q) return;
+            // Convert quaternion to compass heading (yaw angle, true north)
+            const [x, y, z, w] = q;
+            const heading = Math.atan2(2 * (x * y + w * z), w * w + x * x - y * y - z * z);
+            smoothHeading(((heading * 180) / Math.PI + 360) % 360);
+          });
+          sensor.addEventListener('error', () => {
+            // Sensor failed — fall through to deviceorientation
+            sensor.stop();
+            fallbackToDeviceOrientation();
+          });
+          sensor.start();
+          cleanup = () => sensor.stop();
+          orientationCleanupRef.current = cleanup;
+          return;
+        } catch {
+          // Not available — try next strategy
+        }
+      }
+
+      // Strategy 2 & 3: deviceorientationabsolute (Android true north) or deviceorientation
+      await fallbackToDeviceOrientation();
+    };
+
+    const fallbackToDeviceOrientation = async () => {
+      // iOS: Request permission (required since iOS 13)
+      if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+        try {
+          const result = await (DeviceOrientationEvent as any).requestPermission();
+          if (result !== 'granted') {
+            toast('⚠️ יש לאשר גישה לחיישן תנועה כדי שהמצפן יציג כיוון');
+            return;
+          }
+        } catch {
+          toast('⚠️ יש לאשר גישה לחיישן תנועה כדי שהמצפן יציג כיוון');
+          return;
+        }
+      }
+
+      // Prefer deviceorientationabsolute (Android true-north) over plain deviceorientation
+      let usedAbsolute = false;
+      const absHandler = (e: DeviceOrientationEvent) => {
+        usedAbsolute = true;
+        handleOrientationEvent(e);
+      };
+
+      const supportsAbsolute = 'ondeviceorientationabsolute' in window;
+      if (supportsAbsolute) {
+        window.addEventListener('deviceorientationabsolute' as any, absHandler, true);
+        // Give it 1 second to fire; if it doesn't, fall back to regular
+        const fallbackTimer = setTimeout(() => {
+          if (!usedAbsolute) {
+            window.removeEventListener('deviceorientationabsolute' as any, absHandler, true);
+            window.addEventListener('deviceorientation', handleOrientationEvent, true);
+            orientationCleanupRef.current = () => window.removeEventListener('deviceorientation', handleOrientationEvent, true);
+          }
+        }, 1000);
+
+        orientationCleanupRef.current = () => {
+          clearTimeout(fallbackTimer);
+          window.removeEventListener('deviceorientationabsolute' as any, absHandler, true);
+          window.removeEventListener('deviceorientation', handleOrientationEvent, true);
+        };
+      } else {
+        window.addEventListener('deviceorientation', handleOrientationEvent, true);
+        orientationCleanupRef.current = () => window.removeEventListener('deviceorientation', handleOrientationEvent, true);
+      }
+    };
+
+    startOrientation();
 
     return () => {
-      window.removeEventListener('deviceorientation', handleOrientation, true);
+      if (orientationCleanupRef.current) {
+        orientationCleanupRef.current();
+        orientationCleanupRef.current = null;
+      }
     };
-  }, [closed, setMyHeading, toast]);
+  }, [closed, smoothHeading, toast]);
 
-  // Subscribe to session status changes via Realtime (event-scoped, secure)
+  // Subscribe to session status + other user's location via Realtime
   useRealtimeHub({
     channelKey: `compass:${sessionId}`,
     postgres: [
@@ -177,33 +303,38 @@ export function useCompassSession(sessionId: string, eventSlug: string): Compass
           }
         },
       },
+      {
+        binding: {
+          event: '*',
+          schema: 'public',
+          table: 'compass_locations',
+          filter: `compass_session_id=eq.${sessionId}`,
+        },
+        handler: (payload) => {
+          const loc = payload.new as { participant_id: string; lat: number; lng: number; accuracy: number } | null;
+          if (loc && session && loc.participant_id !== session.participantId) {
+            setOtherLocation({ lat: Number(loc.lat), lng: Number(loc.lng), accuracy: Number(loc.accuracy) });
+          }
+        },
+      },
     ],
     enabled: !!session && !closed,
   });
 
-  // Poll other user's location every 1s (compass_locations not exposed via Realtime for security)
+  // Initial fetch of other user's location (Realtime only catches changes)
   useEffect(() => {
     if (!session || closed) return;
-
-    const fetchOtherLocation = () => {
-      supabase
-        .from('compass_locations')
-        .select('lat, lng, accuracy, participant_id')
-        .eq('compass_session_id', sessionId)
-        .neq('participant_id', session.participantId)
-        .single()
-        .then(({ data }) => {
-          if (data) {
-            setOtherLocation({ lat: data.lat, lng: data.lng, accuracy: data.accuracy });
-          }
-        });
-    };
-
-    // Initial fetch
-    fetchOtherLocation();
-    // Poll every 1 second
-    const intervalId = setInterval(fetchOtherLocation, 1000);
-    return () => clearInterval(intervalId);
+    supabase
+      .from('compass_locations')
+      .select('lat, lng, accuracy, participant_id')
+      .eq('compass_session_id', sessionId)
+      .neq('participant_id', session.participantId)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setOtherLocation({ lat: Number(data.lat), lng: Number(data.lng), accuracy: Number(data.accuracy) });
+        }
+      });
   }, [session, sessionId, closed, setOtherLocation]);
 
   // Auto-disconnect on page leave / tab switch (with grace period)
@@ -289,6 +420,20 @@ export function useCompassSession(sessionId: string, eventSlug: string): Compass
           accuracy: pos.coords.accuracy,
         };
         setMyLocation(loc);
+
+        // GPS heading when moving
+        const speed = pos.coords.speed;
+        const gpsHeading = pos.coords.heading;
+        if (
+          speed !== null &&
+          speed > GPS_HEADING_SPEED_THRESHOLD &&
+          gpsHeading !== null &&
+          !isNaN(gpsHeading)
+        ) {
+          gpsHeadingRef.current = { heading: gpsHeading, time: Date.now() };
+          smoothHeading(gpsHeading);
+        }
+
         if (shouldSendUpdate(loc.lat, loc.lng)) {
           lastSentRef.current = { lat: loc.lat, lng: loc.lng, time: Date.now() };
           updateCompassLocation(sessionId, loc.lat, loc.lng, loc.accuracy, null);
