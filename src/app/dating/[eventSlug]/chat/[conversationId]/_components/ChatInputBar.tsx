@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { CameraIcon } from '@/components/Icons';
 import { formatDuration } from '../_hooks/useVoiceRecording';
 import type { VoiceRecordingState, VoiceRecordingHandlers } from '../_hooks/useVoiceRecording';
 
@@ -102,20 +103,20 @@ export default function ChatInputBar({
       <button
         onClick={() => fileInputRef.current?.click()}
         style={{
-          background: 'var(--card-bg)',
-          border: '1px solid var(--card-border)',
+          background: 'var(--primary)',
+          border: 'none',
           borderRadius: '50%',
           width: '40px',
           height: '40px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'var(--text-muted)',
+          color: '#1a1a1a',
           cursor: 'pointer',
           flexShrink: 0,
         }}
       >
-        📷
+        <CameraIcon size={20} color="#1a1a1a" />
       </button>
       <input
         ref={fileInputRef}

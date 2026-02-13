@@ -330,11 +330,11 @@ export default function ChatRoomPage({
           otherUser={otherUser}
           onBack={() => router.back()}
           onUserClick={() => otherUser && router.push(`/dating/${eventSlug}/user/${otherUser.id}`)}
-          onMenuToggle={() => {
-            if (!showMenu && otherUser) {
-              compass.refreshEligibility(otherUser.id);
-            }
-            setShowMenu(!showMenu);
+          onMenuToggle={() => setShowMenu(!showMenu)}
+          compassEligible={compass.compassEligible}
+          compassWaiting={compass.compassWaiting}
+          onCompassClick={async () => {
+            await compass.handleCompassRequest();
           }}
         />
 
@@ -353,31 +353,6 @@ export default function ChatRoomPage({
               minWidth: '180px',
             }}
           >
-            <button
-              onClick={async () => {
-                await compass.handleCompassRequest();
-                setShowMenu(false);
-              }}
-              disabled={compass.compassWaiting || compass.compassEligible === false}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                background: 'none',
-                border: 'none',
-                borderBottom: '1px solid var(--card-border)',
-                color: (compass.compassWaiting || compass.compassEligible === false) ? 'var(--text-muted)' : 'var(--foreground)',
-                cursor: (compass.compassWaiting || compass.compassEligible === false) ? 'not-allowed' : 'pointer',
-                textAlign: 'start',
-                fontSize: '14px',
-                opacity: (compass.compassWaiting || compass.compassEligible === false) ? 0.5 : 1,
-              }}
-            >
-              🧭 {compass.compassWaiting
-                ? 'ממתינים לאישור...'
-                : compass.compassEligible === false
-                  ? 'מצפן נפתח אחרי לייק הדדי או שיחה'
-                  : 'בוא נמצא אחד את השני'}
-            </button>
             <button
               onClick={() => {
                 setShowMenu(false);

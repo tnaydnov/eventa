@@ -139,15 +139,15 @@
 /* ─── Voice recorder (WhatsApp-style) ──── */
 
 .voice-mic-btn {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background: var(--primary);
+  border: none;
   border-radius: 50%;
   width: 44px;
   height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff !important;
+  color: #1a1a1a !important;
   cursor: pointer;
   flex-shrink: 0;
   transition: all 0.15s ease;
