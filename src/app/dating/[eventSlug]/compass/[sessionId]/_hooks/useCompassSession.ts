@@ -158,29 +158,10 @@ export function useCompassSession(sessionId: string, eventSlug: string): Compass
     };
   }, [closed, setMyHeading, toast]);
 
-  // Subscribe to other user's location and session status via RealtimeHub
+  // Subscribe to session status changes via Realtime (event-scoped, secure)
   useRealtimeHub({
     channelKey: `compass:${sessionId}`,
     postgres: [
-      {
-        binding: {
-          event: '*',
-          schema: 'public',
-          table: 'compass_locations',
-          filter: `compass_session_id=eq.${sessionId}`,
-        },
-        handler: (payload) => {
-          const loc = payload.new as {
-            participant_id: string;
-            lat: number;
-            lng: number;
-            accuracy: number;
-          };
-          if (loc.participant_id !== session?.participantId) {
-            setOtherLocation({ lat: loc.lat, lng: loc.lng, accuracy: loc.accuracy });
-          }
-        },
-      },
       {
         binding: {
           event: 'UPDATE',
@@ -200,20 +181,29 @@ export function useCompassSession(sessionId: string, eventSlug: string): Compass
     enabled: !!session && !closed,
   });
 
-  // Load initial other location
+  // Poll other user's location every 1s (compass_locations not exposed via Realtime for security)
   useEffect(() => {
     if (!session || closed) return;
-    supabase
-      .from('compass_locations')
-      .select('lat, lng, accuracy, participant_id')
-      .eq('compass_session_id', sessionId)
-      .neq('participant_id', session.participantId)
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          setOtherLocation({ lat: data.lat, lng: data.lng, accuracy: data.accuracy });
-        }
-      });
+
+    const fetchOtherLocation = () => {
+      supabase
+        .from('compass_locations')
+        .select('lat, lng, accuracy, participant_id')
+        .eq('compass_session_id', sessionId)
+        .neq('participant_id', session.participantId)
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setOtherLocation({ lat: data.lat, lng: data.lng, accuracy: data.accuracy });
+          }
+        });
+    };
+
+    // Initial fetch
+    fetchOtherLocation();
+    // Poll every 1 second
+    const intervalId = setInterval(fetchOtherLocation, 1000);
+    return () => clearInterval(intervalId);
   }, [session, sessionId, closed, setOtherLocation]);
 
   // Auto-disconnect on page leave / tab switch (with grace period)
