@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 /**
  * Shared wrapper for legal pages (privacy, terms, community, etc.).
@@ -30,11 +31,14 @@ export default function LegalPageLayout({
         borderBottom: '1px solid rgba(212, 165, 154, 0.15)',
         background: 'linear-gradient(180deg, rgba(212, 165, 154, 0.08) 0%, transparent 100%)',
       }}>
-        <Link href="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontSize: '28px', marginBottom: '8px', display: 'block' }}>🎉</span>
-          <span style={{ color: 'var(--primary, #d4a59a)', fontSize: '13px', fontWeight: 500, letterSpacing: '0.5px' }}>
-            Eventa
-          </span>
+        <Link href="/" style={{ textDecoration: 'none', display: 'inline-block' }}>
+          <Image
+            src="/icons/Eventa_Logo.png"
+            alt="Eventa"
+            width={100}
+            height={34}
+            style={{ objectFit: 'contain' }}
+          />
         </Link>
         <h1 style={{
           fontSize: '28px',

@@ -918,6 +918,8 @@
   font-weight: 700;
   color: var(--primary);
   margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
 }
 
 .landing-footer__links {
