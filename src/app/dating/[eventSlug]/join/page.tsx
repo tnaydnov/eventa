@@ -25,6 +25,16 @@ function generateLocalId(): string {
   return id;
 }
 
+/** Detect in-app browsers / QR scanner WebViews that don't persist cookies */
+function isInAppBrowser(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  // Common in-app browser signatures
+  return /FBAN|FBAV|Instagram|Snapchat|Line\/|Twitter|MicroMessenger|QQBrowser|BytedanceWebview|musical_ly|TikTok/i.test(ua)
+    || (/iPhone|iPad/.test(ua) && !/Safari/i.test(ua))       // iOS WebView (no Safari token)
+    || (/Android/.test(ua) && /wv\)/.test(ua));               // Android WebView
+}
+
 export default function JoinPage({
   params,
 }: {
@@ -39,6 +49,12 @@ export default function JoinPage({
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [inAppBrowser, setInAppBrowser] = useState(false);
+
+  // Detect in-app browser on mount
+  useEffect(() => {
+    setInAppBrowser(isInAppBrowser());
+  }, []);
 
   // Check for existing session
   useEffect(() => {
@@ -127,6 +143,64 @@ export default function JoinPage({
         }}
       >
         <img src="/icons/Eventa_Logo.png" alt="Eventa" width={140} height={140} style={{ objectFit: 'contain' }} />
+
+        {inAppBrowser && (
+          <div
+            style={{
+              background: 'rgba(255, 180, 50, 0.12)',
+              border: '1px solid rgba(255, 180, 50, 0.3)',
+              borderRadius: '12px',
+              padding: '14px 18px',
+              maxWidth: '320px',
+              width: '100%',
+              fontSize: '14px',
+              lineHeight: 1.6,
+              color: '#ffb432',
+            }}
+          >
+            <strong>⚠️ שימו לב</strong>
+            <br />
+            אתם גולשים מתוך אפליקציה חיצונית. כדי שהחיבור שלכם יישמר,
+            פתחו את הקישור ב-
+            <strong>Safari</strong> או <strong>Chrome</strong>.
+            <button
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(window.location.href);
+                  const btn = document.getElementById('copy-link-btn');
+                  if (btn) btn.textContent = '✅ הקישור הועתק!';
+                } catch {
+                  // Fallback: select a temporary input
+                  const input = document.createElement('input');
+                  input.value = window.location.href;
+                  document.body.appendChild(input);
+                  input.select();
+                  document.execCommand('copy');
+                  document.body.removeChild(input);
+                  const btn = document.getElementById('copy-link-btn');
+                  if (btn) btn.textContent = '✅ הקישור הועתק!';
+                }
+              }}
+              id="copy-link-btn"
+              style={{
+                display: 'block',
+                margin: '10px auto 0',
+                padding: '8px 20px',
+                background: 'rgba(255, 180, 50, 0.2)',
+                border: '1px solid rgba(255, 180, 50, 0.4)',
+                borderRadius: '8px',
+                color: '#ffb432',
+                fontWeight: 600,
+                fontSize: '13px',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              📋 העתק קישור
+            </button>
+          </div>
+        )}
+
         <h1 style={{ fontSize: '28px', color: 'var(--primary)', margin: 0 }}>
           ברוכים הבאים!
         </h1>
