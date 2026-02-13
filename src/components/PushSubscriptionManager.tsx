@@ -4,7 +4,11 @@ import { useEffect, useState, useCallback } from 'react';
 import { useSessionStore } from '@/lib/store';
 import { AnimatePresence, motion } from 'framer-motion';
 
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+/**
+ * VAPID public key — safe to embed (it's public by design).
+ * The matching private key lives in VAPID_PRIVATE_KEY env var on the server.
+ */
+const VAPID_PUBLIC_KEY = 'BNHJ6Q0ceRl2mUC1Z_6ZPcxtoM2GPUODWx4ddhlKGGrSdExt6iOBeMwebK7oBdl5Hn71YjrnigmajeZYOMwfy7k';
 
 /* ── Storage key to avoid re-prompting ── */
 const PUSH_DISMISSED_KEY = 'eventa_push_dismissed';
@@ -26,8 +30,6 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
  * Returns true on success.
  */
 async function subscribeToPush(): Promise<boolean> {
-  if (!VAPID_PUBLIC_KEY) return false;
-
   const registration = await navigator.serviceWorker.ready;
 
   let subscription = await registration.pushManager.getSubscription();
@@ -69,25 +71,47 @@ export default function PushSubscriptionManager() {
 
   /* ── Silent re-registration for already-granted users ── */
   useEffect(() => {
-    if (!session) return;
-    if (!VAPID_PUBLIC_KEY) return;
+    if (!session) {
+      console.log('[Push] no session yet');
+      return;
+    }
     if (typeof window === 'undefined') return;
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+    const hasSW = 'serviceWorker' in navigator;
+    const hasPush = 'PushManager' in window;
+    const hasNotif = 'Notification' in window;
+    console.log('[Push] support:', { hasSW, hasPush, hasNotif, permission: hasNotif ? Notification.permission : 'N/A' });
+
+    if (!hasSW || !hasPush || !hasNotif) return;
 
     if (Notification.permission === 'granted') {
       // Already granted — silently refresh the subscription on server
+      console.log('[Push] already granted, re-registering...');
       subscribeToPush()
-        .then(() => localStorage.setItem(PUSH_REGISTERED_KEY, '1'))
-        .catch(() => {});
+        .then(() => {
+          console.log('[Push] re-registered OK');
+          localStorage.setItem(PUSH_REGISTERED_KEY, '1');
+        })
+        .catch((err) => console.warn('[Push] re-register failed:', err));
       return;
     }
 
     // Permission is 'default' — decide whether to show the banner
-    if (Notification.permission === 'denied') return;
-    if (localStorage.getItem(PUSH_DISMISSED_KEY)) return;
+    if (Notification.permission === 'denied') {
+      console.log('[Push] permission denied, skipping');
+      return;
+    }
+    if (localStorage.getItem(PUSH_DISMISSED_KEY)) {
+      console.log('[Push] banner previously dismissed');
+      return;
+    }
 
     // Show the banner after a short delay
-    const timer = setTimeout(() => setShowBanner(true), 2500);
+    console.log('[Push] will show banner in 2.5s');
+    const timer = setTimeout(() => {
+      console.log('[Push] showing banner now');
+      setShowBanner(true);
+    }, 2500);
     return () => clearTimeout(timer);
   }, [session]);
 
