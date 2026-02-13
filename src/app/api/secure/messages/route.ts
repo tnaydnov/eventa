@@ -6,6 +6,7 @@ import { RATE_LIMITS } from '@/lib/rate-limit';
 import { sendMessageSchema, messageTypeValues } from '@/lib/validations';
 import { MAX_MESSAGE_LENGTH } from '@/lib/constants';
 import { secureGuard, jsonError, isSafePath } from '@/lib/route-helpers';
+import { sendPushToParticipant } from '@/lib/web-push';
 
 /** Allowed message types for validation. */
 const ALLOWED_TYPES = new Set<string>(messageTypeValues);
@@ -116,7 +117,7 @@ export async function POST(req: NextRequest) {
       return jsonError('Failed to send message', 400);
     }
 
-    // Activity log + notification (fire-and-forget / parallel)
+    // Activity log + notification + push (fire-and-forget / parallel)
     supabase.from('activity_log').insert({
       event_id: session.eid,
       participant_id: session.sub,
@@ -130,6 +131,22 @@ export async function POST(req: NextRequest) {
       payload: { from_participant_id: session.sub, conversation_id: conversationId },
       is_read: false,
     }).then();
+
+    // Web Push (fire-and-forget)
+    Promise.all([
+      supabase.from('participants').select('display_name').eq('id', session.sub).single(),
+      supabase.from('events').select('slug').eq('id', session.eid).single(),
+    ]).then(([{ data: sender }, { data: event }]) => {
+        const name = sender?.display_name || 'מישהו';
+        const slug = event?.slug || '';
+        const preview = type === 'text' ? (cleanText || '').slice(0, 40) : '📷 תמונה';
+        sendPushToParticipant(recipientId, {
+          title: `💬 ${name}`,
+          body: preview,
+          url: slug ? `/dating/${slug}/chats` : '/dating',
+          tag: `msg-${conversationId}`,
+        });
+      }).catch(() => {});
 
     return NextResponse.json(data);
   } catch (err) {

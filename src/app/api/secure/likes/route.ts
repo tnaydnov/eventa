@@ -3,6 +3,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { isValidUUID } from '@/lib/session';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { secureGuard, jsonError } from '@/lib/route-helpers';
+import { sendPushToParticipant } from '@/lib/web-push';
 
 /**
  * POST /api/secure/likes — Send a like.
@@ -103,6 +104,21 @@ export async function POST(req: NextRequest) {
         is_read: false,
       }),
     ]).catch(() => {}); // fire-and-forget
+
+    // Web Push (fire-and-forget)
+    Promise.all([
+      supabase.from('participants').select('display_name').eq('id', session.sub).single(),
+      supabase.from('events').select('slug').eq('id', session.eid).single(),
+    ]).then(([{ data: sender }, { data: event }]) => {
+        const name = sender?.display_name || 'מישהו';
+        const slug = event?.slug || '';
+        sendPushToParticipant(toId, {
+          title: isMatch ? '🎉 יש לכם התאמה!' : '💖 לייק חדש!',
+          body: isMatch ? `${name} גם שלח/ה לכם לייק — יש התאמה!` : `${name} שלח/ה לכם לייק`,
+          url: slug ? `/dating/${slug}` : '/dating',
+          tag: isMatch ? `match-${session.sub}` : `like-${session.sub}`,
+        });
+      }).catch(() => {});
 
     return NextResponse.json({ ...data, match: isMatch });
   } catch (err) {

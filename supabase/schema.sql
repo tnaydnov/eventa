@@ -228,6 +228,20 @@ CREATE TABLE IF NOT EXISTS event_analytics_snapshots (
   UNIQUE(event_id)
 );
 
+-- Push Subscriptions (Web Push API)
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  participant_id UUID NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
+  event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  endpoint TEXT NOT NULL,
+  keys_p256dh TEXT NOT NULL,
+  keys_auth TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (participant_id, endpoint)
+);
+
+CREATE INDEX IF NOT EXISTS idx_push_subs_participant ON push_subscriptions(participant_id);
+
 -- ============================================
 -- ROW LEVEL SECURITY (RLS)
 -- ============================================
@@ -246,6 +260,7 @@ ALTER TABLE compass_locations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE banned_devices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE event_analytics_snapshots ENABLE ROW LEVEL SECURITY;
+ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- STRATEGY:
 --   SELECT: allowed for anon (data is scoped by client queries)
@@ -281,6 +296,9 @@ CREATE POLICY "compass_sessions_select" ON compass_sessions FOR SELECT USING (tr
 
 -- Compass Locations: read-only for anon
 CREATE POLICY "compass_locations_select" ON compass_locations FOR SELECT USING (true);
+
+-- Push Subscriptions: no anon access (service_role only)
+-- No SELECT policy = denied for anon
 
 -- Banned Devices: no anon access (service_role only)
 -- No SELECT policy = denied for anon
