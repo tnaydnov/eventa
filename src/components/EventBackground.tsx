@@ -147,12 +147,6 @@ export default function EventBackground() {
           -webkit-backdrop-filter: none !important;
         }
 
-        /* Voice mic */
-        .voice-mic-btn {
-          background: rgba(30, 30, 30, 0.95) !important;
-          border-color: rgba(255, 255, 255, 0.12) !important;
-        }
-
         /* Photo upload */
         .photo-upload-slot {
           border-color: rgba(255, 255, 255, 0.22) !important;

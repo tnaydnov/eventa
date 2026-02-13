@@ -36,7 +36,7 @@ export function validateEnv() {
 export const genderValues = ['male', 'female', 'other'] as const;
 export const attractedToValues = ['men', 'women', 'all'] as const;
 export const lookingForValues = ['serious', 'casual', 'friends', 'figuring_out'] as const;
-export const messageTypeValues = ['text', 'image', 'audio'] as const;
+export const messageTypeValues = ['text', 'image'] as const;
 export const eventTypeValues = ['wedding', 'party', 'brit', 'bar_mitzvah', 'corporate', 'meetup', 'other'] as const;
 export const eventStatusValues = ['draft', 'active', 'paused', 'ended', 'archived'] as const;
 

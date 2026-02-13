@@ -75,8 +75,8 @@ export async function POST(req: NextRequest) {
       return jsonError('Text message cannot be empty', 400);
     }
 
-    // Validate mediaPath ownership when type is image/audio
-    if ((type === 'image' || type === 'audio') && mediaPath) {
+    // Validate mediaPath ownership when type is image
+    if (type === 'image' && mediaPath) {
       if (!isSafePath(mediaPath)) {
         return jsonError('Invalid media path', 400);
       }

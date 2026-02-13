@@ -132,7 +132,6 @@ export default function AnalyticsDashboard({ analytics: a }: Props) {
   const msgTypeData = [
     { name: 'טקסט', value: a.textMessages, color: C.blue },
     { name: 'תמונה', value: a.imageMessages, color: C.green },
-    { name: 'אודיו', value: a.audioMessages, color: C.orange },
   ].filter(d => d.value > 0);
 
   /* Engagement radar (normalized 0–100) */

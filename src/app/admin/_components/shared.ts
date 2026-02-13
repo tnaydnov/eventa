@@ -40,7 +40,6 @@ export interface EventAnalytics {
   totalMessages: number;
   textMessages: number;
   imageMessages: number;
-  audioMessages: number;
   avgMessagesPerConversation: number;
   activeConversations: number;        // conversations with 2+ messages
   oneMessageConversations: number;    // conversations with only 1 message

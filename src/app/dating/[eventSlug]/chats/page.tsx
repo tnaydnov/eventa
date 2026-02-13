@@ -117,7 +117,7 @@ export default function ChatsPage({
             loadChats();
             return;
           }
-          const preview = msg.type === 'text' ? (msg.text || '') : msg.type === 'image' ? '📷 תמונה' : msg.type === 'system' ? (msg.text || '') : '🎤 הודעה קולית';
+          const preview = msg.type === 'text' ? (msg.text || '') : msg.type === 'image' ? '📷 תמונה' : (msg.text || '');
           const isFromOther = msg.sender_participant_id !== session?.participantId;
           updateConversationPreview(msg.conversation_id, preview, msg.created_at, isFromOther);
         },

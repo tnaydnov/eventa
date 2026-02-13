@@ -97,14 +97,6 @@ function MessageBubbleInner({
                 loading="lazy"
               />
             )}
-            {msg.type === 'audio' && msg.media_path && (
-              <audio
-                controls
-                src={getPhotoUrl(msg.media_path)}
-                style={{ maxWidth: '220px' }}
-                preload="metadata"
-              />
-            )}
           </>
         )}
       </div>

@@ -92,7 +92,7 @@ export async function getConversations(
     if (!lastMsgMap.has(m.conversation_id)) {
       lastMsgMap.set(
         m.conversation_id,
-        m.type === 'text' ? m.text || '' : m.type === 'image' ? '📷 תמונה' : m.type === 'system' ? m.text || '' : '🎤 הודעה קולית'
+        m.type === 'text' ? m.text || '' : m.type === 'image' ? '📷 תמונה' : m.text || ''
       );
     }
   });
@@ -150,11 +150,11 @@ export async function getMessagesBefore(
   return (data || []).reverse();
 }
 
-/** Send a text / image / audio message. */
+/** Send a text / image message. */
 export async function sendMessage(
   conversationId: string,
   text: string,
-  type: 'text' | 'image' | 'audio' = 'text',
+  type: 'text' | 'image' = 'text',
   mediaPath?: string
 ): Promise<Message | null> {
   try {
@@ -206,35 +206,6 @@ export async function uploadChatImage(
     const { error } = await supabase.storage
       .from('photos')
       .uploadToSignedUrl(path, token, compressed);
-    if (error) return null;
-    return path;
-  } catch {
-    return null;
-  }
-}
-
-/** Upload a voice message blob, return storage path. */
-export async function uploadVoiceMessage(
-  eventId: string,
-  conversationId: string,
-  blob: Blob
-): Promise<string | null> {
-  // Determine file extension based on MIME type
-  const ext = blob.type.includes('mp4') ? 'm4a' : 'webm';
-  const path = `chat/${eventId}/${conversationId}/${Date.now()}.${ext}`;
-
-  try {
-    const urlRes = await fetch('/api/secure/upload-url', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path }),
-    });
-    if (!urlRes.ok) return null;
-    const { token } = await urlRes.json();
-
-    const { error } = await supabase.storage
-      .from('photos')
-      .uploadToSignedUrl(path, token, blob);
     if (error) return null;
     return path;
   } catch {

@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
       participants: number; men: number; women: number;
       likes: number; matches: number; conversations: number; messages: number; blocks: number;
       likePairs: number; matchRate: number;
-      textMsgs: number; imageMsgs: number; audioMsgs: number;
+      textMsgs: number; imageMsgs: number;
       photosCount: number; participantsWithPhoto: number;
       likesSeen: number; likesUnseen: number;
       blocksAfterConvo: number; blocksAfterLike: number; blocksNoInteraction: number;
@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
       participants: 0, men: 0, women: 0,
       likes: 0, matches: 0, conversations: 0, messages: 0, blocks: 0,
       likePairs: 0, matchRate: 0,
-      textMsgs: 0, imageMsgs: 0, audioMsgs: 0,
+      textMsgs: 0, imageMsgs: 0,
       photosCount: 0, participantsWithPhoto: 0,
       likesSeen: 0, likesUnseen: 0,
       blocksAfterConvo: 0, blocksAfterLike: 0, blocksNoInteraction: 0,
@@ -181,7 +181,6 @@ export async function GET(req: NextRequest) {
       d.messages++;
       msgSenderSet.add(m.sender_participant_id);
       if (m.type === 'image') d.imageMsgs++;
-      else if (m.type === 'audio') d.audioMsgs++;
       else d.textMsgs++;
 
       if (!msgCountByConvo.has(m.conversation_id)) msgCountByConvo.set(m.conversation_id, new Set());
@@ -242,7 +241,7 @@ export async function GET(req: NextRequest) {
     let gPhotos = 0, gCompass = compassTotal;
     let gLikesSeen = 0, gLikesTotal = 0;
     let gBlocksConvo = 0, gBlocksLike = 0, gBlocksNone = 0;
-    let gText = 0, gImage = 0, gAudio = 0;
+    let gText = 0, gImage = 0;
     let mRateSum = 0, mRateN = 0;
 
     const gFunnel = { joined: 0, setupProfile: 0, sentFirstLike: 0, gotMatch: 0, sentFirstMessage: 0, activeChatter: 0 };
@@ -253,7 +252,7 @@ export async function GET(req: NextRequest) {
       gMessages += d.messages; gBlocks += d.blocks; gPhotos += d.photosCount;
       gLikesSeen += d.likesSeen; gLikesTotal += d.likes;
       gBlocksConvo += d.blocksAfterConvo; gBlocksLike += d.blocksAfterLike; gBlocksNone += d.blocksNoInteraction;
-      gText += d.textMsgs; gImage += d.imageMsgs; gAudio += d.audioMsgs;
+      gText += d.textMsgs; gImage += d.imageMsgs;
       if (d.likePairs > 0) { mRateSum += d.matchRate; mRateN++; }
     }
 
@@ -283,7 +282,6 @@ export async function GET(req: NextRequest) {
         gBlocksNone += snap.blocksWithNoInteraction || 0;
         gText += snap.textMessages || 0;
         gImage += snap.imageMessages || 0;
-        gAudio += snap.audioMessages || 0;
         if (snap.matchRate > 0) { mRateSum += snap.matchRate; mRateN++; }
 
         if (snap.funnel) {
@@ -461,7 +459,6 @@ export async function GET(req: NextRequest) {
     const messageTypes = [
       { type: 'טקסט', count: gText },
       { type: 'תמונה', count: gImage },
-      { type: 'אודיו', count: gAudio },
     ];
 
     const blockReasons = [

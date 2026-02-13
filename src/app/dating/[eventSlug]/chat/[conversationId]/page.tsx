@@ -25,7 +25,6 @@ import ChatHeader from './_components/ChatHeader';
 import MessageBubble from './_components/MessageBubble';
 import ChatInputBar from './_components/ChatInputBar';
 import BlockConfirmDialog from './_components/BlockConfirmDialog';
-import { useVoiceRecording } from './_hooks/useVoiceRecording';
 import { useCompassWait } from './_hooks/useCompassWait';
 
 export default function ChatRoomPage({
@@ -54,20 +53,6 @@ export default function ChatRoomPage({
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // ─── Voice recording hook ─────────────────────────────────────
-  const voiceRecording = useVoiceRecording({
-    session,
-    conversationId,
-    toast,
-    onMessageSent: (msg) => {
-      setMessages((prev) => {
-        if (prev.some((m) => m.id === msg.id)) return prev;
-        return [...prev, msg];
-      });
-    },
-    setSending,
-  });
 
   // ─── Compass wait hook ────────────────────────────────────────
   const compass = useCompassWait({ session, otherUser, eventSlug, toast });
@@ -466,7 +451,6 @@ export default function ChatRoomPage({
           onSend={handleSend}
           onImageUpload={handleImageUpload}
           fileInputRef={fileInputRef}
-          {...voiceRecording}
         />
       </div>
 

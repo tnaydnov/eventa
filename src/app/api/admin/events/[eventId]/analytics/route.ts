@@ -239,10 +239,9 @@ export async function GET(
     const totalMessages = messages.length;
 
     // Message type breakdown
-    let textMessages = 0, imageMessages = 0, audioMessages = 0;
+    let textMessages = 0, imageMessages = 0;
     for (const m of messages) {
       if (m.type === 'image') imageMessages++;
-      else if (m.type === 'audio') audioMessages++;
       else textMessages++;
     }
 
@@ -637,7 +636,6 @@ export async function GET(
       totalMessages,
       textMessages,
       imageMessages,
-      audioMessages,
       avgMessagesPerConversation,
       activeConversations,
       oneMessageConversations,

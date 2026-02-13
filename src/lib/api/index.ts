@@ -26,7 +26,6 @@ export {
   sendMessage,
   deleteMessage,
   uploadChatImage,
-  uploadVoiceMessage,
   markConversationRead,
   getUnreadConversations,
 } from './conversations';

@@ -7,7 +7,7 @@ export type AttractedTo = 'men' | 'women' | 'all';
 export type LookingFor = 'serious' | 'casual' | 'friends' | 'figuring_out';
 export type EventType = 'wedding' | 'party' | 'brit' | 'bar_mitzvah' | 'corporate' | 'meetup' | 'other';
 export type EventStatus = 'draft' | 'active' | 'paused' | 'ended' | 'archived';
-export type MessageType = 'text' | 'image' | 'audio' | 'system';
+export type MessageType = 'text' | 'image' | 'system';
 export type CompassStatus = 'pending' | 'active' | 'closed';
 export type NotificationType = 'like_received' | 'compass_request' | 'compass_accepted' | 'compass_declined' | 'compass_cancelled' | 'new_message';
 

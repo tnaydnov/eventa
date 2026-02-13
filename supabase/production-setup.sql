@@ -16,7 +16,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ════════════════════════════════════════════
 DO $$ BEGIN CREATE TYPE gender AS ENUM ('male', 'female', 'other'); EXCEPTION WHEN duplicate_object THEN null; END $$;
 DO $$ BEGIN CREATE TYPE attracted_to AS ENUM ('men', 'women', 'all'); EXCEPTION WHEN duplicate_object THEN null; END $$;
-DO $$ BEGIN CREATE TYPE message_type AS ENUM ('text', 'image', 'audio', 'system'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+DO $$ BEGIN CREATE TYPE message_type AS ENUM ('text', 'image', 'system'); EXCEPTION WHEN duplicate_object THEN null; END $$;
 DO $$ BEGIN CREATE TYPE compass_status AS ENUM ('pending', 'active', 'closed'); EXCEPTION WHEN duplicate_object THEN null; END $$;
 DO $$ BEGIN CREATE TYPE notification_type AS ENUM ('like_received', 'compass_request', 'compass_accepted', 'compass_declined', 'compass_cancelled', 'new_message'); EXCEPTION WHEN duplicate_object THEN null; END $$;
 

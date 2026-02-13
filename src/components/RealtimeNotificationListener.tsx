@@ -176,7 +176,7 @@ export default function RealtimeNotificationListener() {
     if (!pathnameRef.current.includes(`/chat/${conversationId}`)) {
       useNotificationStore.getState().addGridHighlight({ participantId: senderId, type: 'message', timestamp: Date.now() });
       useNotificationStore.getState().addUnreadConvo(conversationId);
-      const preview = type === 'text' ? (text || '').slice(0, 40) : type === 'image' ? '📷 תמונה' : '🎤 הודעה קולית';
+      const preview = type === 'text' ? (text || '').slice(0, 40) : '📷 תמונה';
       toast(`💬 ${name}: ${preview}`);
     }
   };

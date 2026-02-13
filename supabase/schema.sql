@@ -20,7 +20,7 @@ EXCEPTION WHEN duplicate_object THEN null;
 END $$;
 
 DO $$ BEGIN
-  CREATE TYPE message_type AS ENUM ('text', 'image', 'audio', 'system');
+  CREATE TYPE message_type AS ENUM ('text', 'image', 'system');
 EXCEPTION WHEN duplicate_object THEN null;
 END $$;
 
