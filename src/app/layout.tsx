@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   description: 'Eventa מוסיפה שכבות חברתיות חכמות לאירועים — היכרויות, נטוורקינג, ומעורבות קהל.',
   manifest: '/manifest.json',
   icons: {
+    icon: [
+      { url: '/icons/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icons/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+    ],
     apple: '/apple-touch-icon.png',
   },
   appleWebApp: {
@@ -32,11 +36,13 @@ export const metadata: Metadata = {
     siteName: 'Eventa',
     title: 'Eventa — Turn Any Event Into an Experience',
     description: 'Eventa מוסיפה שכבות חברתיות חכמות לאירועים — היכרויות, נטוורקינג, ומעורבות קהל.',
+    images: [{ url: '/og-image.png', width: 1536, height: 1024, alt: 'Eventa' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Eventa — Turn Any Event Into an Experience',
     description: 'Eventa מוסיפה שכבות חברתיות חכמות לאירועים.',
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,

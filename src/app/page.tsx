@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -42,13 +43,14 @@ export default function HomePage() {
           margin: '0 auto',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '22px', fontWeight: 700 }}>
-          <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
-            <circle cx="20" cy="20" r="18" stroke="#d4a59a" strokeWidth="2.5" opacity="0.4" />
-            <path d="M20 8l-2 5-5 2 5 2 2 5 2-5 5-2-5-2-2-5z" fill="#d4a59a" />
-          </svg>
-          <span style={{ color: '#fff' }}>Eventa</span>
-        </div>
+        <Image
+          src="/icons/Eventa_Logo.png"
+          alt="Eventa"
+          width={120}
+          height={40}
+          style={{ objectFit: 'contain' }}
+          priority
+        />
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
           <Link
             href="/dating"
@@ -199,7 +201,17 @@ export default function HomePage() {
           <Link href="/terms" style={{ color: '#777', textDecoration: 'none' }}>תנאי שימוש</Link>
           <Link href="/about" style={{ color: '#777', textDecoration: 'none' }}>אודות</Link>
         </div>
-        <p style={{ margin: 0 }}>© {new Date().getFullYear()} Eventa. כל הזכויות שמורות.</p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', margin: 0 }}>
+          <span>© {new Date().getFullYear()}</span>
+          <Image
+            src="/icons/Eventa_Logo.png"
+            alt="Eventa"
+            width={80}
+            height={27}
+            style={{ objectFit: 'contain' }}
+          />
+          <span>כל הזכויות שמורות.</span>
+        </div>
       </footer>
     </div>
   );

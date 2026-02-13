@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import type { Event } from '@/lib/database.types';
 import { EVENT_TYPE_ICONS, EVENT_STATUS_LABELS } from '@/lib/constants';
 
@@ -39,21 +40,38 @@ export default function EventRow({
 }: EventRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
 
   const typeIcon = EVENT_TYPE_ICONS[event.event_type] || '📌';
   const statusLabel = EVENT_STATUS_LABELS[event.status] || event.status;
   const isArchived = event.status === 'archived';
 
+  const updatePosition = useCallback(() => {
+    if (!btnRef.current) return;
+    const rect = btnRef.current.getBoundingClientRect();
+    setMenuPos({ top: rect.bottom + 4, left: rect.left });
+  }, []);
+
   useEffect(() => {
     if (!menuOpen) return;
+    updatePosition();
     const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      if (
+        menuRef.current && !menuRef.current.contains(e.target as Node) &&
+        btnRef.current && !btnRef.current.contains(e.target as Node)
+      ) {
         setMenuOpen(false);
       }
     };
+    const onScroll = () => setMenuOpen(false);
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [menuOpen]);
+    window.addEventListener('scroll', onScroll, true);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      window.removeEventListener('scroll', onScroll, true);
+    };
+  }, [menuOpen, updatePosition]);
 
   const act = (fn: () => void) => {
     setMenuOpen(false);
@@ -78,10 +96,10 @@ export default function EventRow({
         {shortDate(event.starts_at)} — {shortDate(event.ends_at)}
       </td>
       <td className="et-td et-td--actions" onClick={e => e.stopPropagation()}>
-        <div className="et-actions-wrap" ref={menuRef}>
-          <button className="et-menu-btn" onClick={() => setMenuOpen(!menuOpen)}>⋮</button>
-          {menuOpen && (
-            <div className="et-dropdown">
+        <div className="et-actions-wrap">
+          <button className="et-menu-btn" ref={btnRef} onClick={() => setMenuOpen(!menuOpen)}>⋮</button>
+          {menuOpen && menuPos && createPortal(
+            <div className="et-dropdown" ref={menuRef} style={{ position: 'fixed', top: menuPos.top, left: menuPos.left }}>
               <button className="et-dropdown__item" onClick={() => act(() => onViewDetails(event))}>
                 📊 פרטים ואנליטיקס
               </button>
@@ -120,7 +138,8 @@ export default function EventRow({
               <button className="et-dropdown__item et-dropdown__item--danger" onClick={() => act(() => onDelete(event.id))}>
                 🗑 מחק
               </button>
-            </div>
+            </div>,
+            document.body
           )}
         </div>
       </td>

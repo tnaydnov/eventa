@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 
 const DemoPhone = dynamic(() => import('./_components/DemoPhone'), { ssr: false });
 const OrderForm = dynamic(() => import('./_components/OrderForm'), { ssr: false });
@@ -73,11 +74,14 @@ export default function LandingPage() {
       {/* ═══ Nav ═══ */}
       <nav className="landing-nav">
         <div className="landing-nav__logo">
-          <svg width="26" height="26" viewBox="0 0 40 40" fill="none">
-            <circle cx="20" cy="20" r="18" stroke="currentColor" strokeWidth="2.5" opacity="0.3"/>
-            <path d="M20 8l-2 5-5 2 5 2 2 5 2-5 5-2-5-2-2-5z" fill="currentColor"/>
-          </svg>
-          Eventa
+          <Image
+            src="/icons/Eventa_Logo.png"
+            alt="Eventa"
+            width={110}
+            height={37}
+            style={{ objectFit: 'contain' }}
+            priority
+          />
         </div>
         <div className="landing-nav__links">
           <button className="landing-nav__link" onClick={() => scrollTo('features')}>מה זה?</button>
@@ -221,7 +225,15 @@ export default function LandingPage() {
 
       {/* ═══ Footer ═══ */}
       <footer className="landing-footer">
-        <div className="landing-footer__brand">Eventa</div>
+        <div className="landing-footer__brand">
+          <Image
+            src="/icons/Eventa_Logo.png"
+            alt="Eventa"
+            width={90}
+            height={30}
+            style={{ objectFit: 'contain' }}
+          />
+        </div>
         <div className="landing-footer__links">
           <a href="/privacy">מדיניות פרטיות</a>
           <a href="/terms">תנאי שימוש</a>
