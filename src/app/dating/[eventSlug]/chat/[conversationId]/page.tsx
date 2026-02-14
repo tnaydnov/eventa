@@ -47,6 +47,7 @@ export default function ChatRoomPage({
   const [otherUser, setOtherUser] = useState<(Participant & { photos: ParticipantPhoto[] }) | null>(cachedOther);
   const [showMenu, setShowMenu] = useState(false);
   const [sending, setSending] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [deleteMenuMsgId, setDeleteMenuMsgId] = useState<string | null>(null);
   const [showBlockConfirm, setShowBlockConfirm] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
@@ -256,6 +257,7 @@ export default function ChatRoomPage({
     }
 
     setSending(true);
+    setUploadingImage(true);
     const path = await uploadChatImage(session.eventId, conversationId, file);
     if (path) {
       const msg = await sendMessage(conversationId, '', 'image', path);
@@ -269,6 +271,7 @@ export default function ChatRoomPage({
       toast('שגיאה בהעלאת התמונה — נסו שוב');
     }
     setSending(false);
+    setUploadingImage(false);
     e.target.value = '';
   };
 
@@ -452,6 +455,14 @@ export default function ChatRoomPage({
           ))}
           <div ref={messagesEndRef} />
         </div>
+
+        {/* Image uploading indicator */}
+        {uploadingImage && (
+          <div className="chat-upload-indicator">
+            <div className="photo-upload-spinner photo-upload-spinner--sm" />
+            <span>מעלה תמונה...</span>
+          </div>
+        )}
 
         {/* Input bar */}
         <ChatInputBar

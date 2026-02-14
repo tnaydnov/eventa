@@ -26,6 +26,8 @@ export default function ProfilePhotoGrid({
 }: ProfilePhotoGridProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [cropImage, setCropImage] = useState<{ src: string; file: File } | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   /* ─── Drag & Drop state ─── */
   const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -59,12 +61,14 @@ export default function ProfilePhotoGrid({
 
   const handleCropDone = async (croppedFile: File) => {
     setCropImage(null);
+    setUploading(true);
     const photo = await uploadPhoto(eventId, participantId, croppedFile, photos.length);
     if (photo) {
       onPhotosChange([...photos, photo]);
     } else {
       toast('שגיאה בהעלאת התמונה — נסו שוב');
     }
+    setUploading(false);
   };
 
   const handleCropCancel = () => {
@@ -73,12 +77,14 @@ export default function ProfilePhotoGrid({
   };
 
   const handleDeletePhoto = async (photo: ParticipantPhoto) => {
+    setDeletingId(photo.id);
     const success = await deletePhoto(photo.id, photo.storage_path);
     if (success) {
       onPhotosChange(photos.filter((p) => p.id !== photo.id));
     } else {
       toast('שגיאה במחיקת התמונה — נסו שוב');
     }
+    setDeletingId(null);
   };
 
   /* ─── Desktop drag handlers ─── */
@@ -185,7 +191,7 @@ export default function ProfilePhotoGrid({
           {photos.map((photo, idx) => (
             <div
               key={photo.id}
-              className={`profile-edit-photo-item${idx === 0 ? ' main' : ''}${dragIdx === idx ? ' dragging' : ''}${overIdx === idx && dragIdx !== idx ? ' drag-over' : ''}`}
+              className={`profile-edit-photo-item${idx === 0 ? ' main' : ''}${dragIdx === idx ? ' dragging' : ''}${overIdx === idx && dragIdx !== idx ? ' drag-over' : ''}${deletingId === photo.id ? ' photo-loading' : ''}`}
               draggable
               onDragStart={() => handleDragStart(idx)}
               onDragOver={(e) => handleDragOver(e, idx)}
@@ -195,17 +201,29 @@ export default function ProfilePhotoGrid({
               onTouchEnd={() => handleTouchEnd()}
             >
               <img src={getPhotoUrl(photo.storage_path)} alt="" draggable={false} />
-              <button type="button" className="profile-edit-photo-remove" onClick={() => handleDeletePhoto(photo)}>✕</button>
+              {deletingId === photo.id && (
+                <div className="photo-upload-overlay">
+                  <div className="photo-upload-spinner" />
+                </div>
+              )}
+              <button type="button" className="profile-edit-photo-remove" onClick={() => handleDeletePhoto(photo)} disabled={deletingId === photo.id}>✕</button>
               {idx === 0 && <span className="profile-edit-photo-badge">ראשית</span>}
               <span className="profile-edit-photo-order">{idx + 1}</span>
             </div>
           ))}
           {photos.length < 10 && (
-            <div className="profile-edit-photo-item add" onClick={() => fileInputRef.current?.click()}>
-              <div className="profile-edit-photo-add-inner">
-                <span>+</span>
-                <span>הוספה</span>
-              </div>
+            <div className={`profile-edit-photo-item add${uploading ? ' photo-loading' : ''}`} onClick={() => !uploading && fileInputRef.current?.click()}>
+              {uploading ? (
+                <div className="photo-upload-overlay photo-upload-overlay--add">
+                  <div className="photo-upload-spinner" />
+                  <span className="photo-upload-text">מעלה...</span>
+                </div>
+              ) : (
+                <div className="profile-edit-photo-add-inner">
+                  <span>+</span>
+                  <span>הוספה</span>
+                </div>
+              )}
             </div>
           )}
         </div>

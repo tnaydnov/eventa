@@ -310,6 +310,53 @@
   font-weight: 400;
 }
 
+/* ── Photo upload loading overlay ── */
+.photo-upload-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  z-index: 5;
+  border-radius: 12px;
+}
+
+.photo-upload-overlay--add {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.photo-upload-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: photo-spin 0.8s linear infinite;
+}
+
+.photo-upload-spinner--sm {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
+}
+
+.photo-upload-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.profile-edit-photo-item.photo-loading {
+  pointer-events: none;
+}
+
+@keyframes photo-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ── Save button ── */
 .profile-edit-save {
   width: 100%;
