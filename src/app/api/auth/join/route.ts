@@ -71,24 +71,24 @@ export async function POST(req: NextRequest) {
     const banChecks: Promise<boolean>[] = [];
     if (fingerprint) {
       banChecks.push(
-        supabase
+        Promise.resolve(supabase
           .from('banned_devices')
           .select('id')
           .eq('event_id', event.id)
           .eq('device_fingerprint', fingerprint)
           .maybeSingle()
-          .then(({ data }) => !!data)
+          .then(({ data }) => !!data))
       );
     }
     if (hwFingerprint) {
       banChecks.push(
-        supabase
+        Promise.resolve(supabase
           .from('banned_devices')
           .select('id')
           .eq('event_id', event.id)
           .eq('device_fingerprint', hwFingerprint)
           .maybeSingle()
-          .then(({ data }) => !!data)
+          .then(({ data }) => !!data))
       );
     }
     if (banChecks.length > 0) {
