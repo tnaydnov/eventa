@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { uploadPhoto, deletePhoto, reorderPhotos, getPhotoUrl } from '@/lib/api';
 import { validateImageFile } from '@/lib/validations';
 import { MAX_PHOTOS } from '@/lib/constants';
@@ -29,14 +29,12 @@ export default function ProfilePhotoGrid({
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  /* ─── Drag & Drop state ─── */
+  /* ─── Tap-to-swap state (mobile-friendly) ─── */
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+
+  /* ─── Desktop drag state ─── */
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [overIdx, setOverIdx] = useState<number | null>(null);
-  const [ghostPos, setGhostPos] = useState<{ x: number; y: number } | null>(null);
-  const [ghostSrc, setGhostSrc] = useState<string | null>(null);
-  const photoGridRef = useRef<HTMLDivElement | null>(null);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isDragging = useRef(false);
 
   /* ─── Photo handlers ─── */
   const handleAddPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,6 +76,7 @@ export default function ProfilePhotoGrid({
   };
 
   const handleDeletePhoto = async (photo: ParticipantPhoto) => {
+    setSelectedIdx(null);
     setDeletingId(photo.id);
     const success = await deletePhoto(photo.id, photo.storage_path);
     if (success) {
@@ -88,12 +87,12 @@ export default function ProfilePhotoGrid({
     setDeletingId(null);
   };
 
-  /* ─── Reorder logic (shared by desktop + mobile) ─── */
-  const commitReorder = useCallback(async (fromIdx: number, toIdx: number) => {
+  /* ─── Reorder logic ─── */
+  const commitSwap = useCallback(async (fromIdx: number, toIdx: number) => {
     if (fromIdx === toIdx) return;
     const updated = [...photos];
-    const [moved] = updated.splice(fromIdx, 1);
-    updated.splice(toIdx, 0, moved);
+    // Swap the two photos
+    [updated[fromIdx], updated[toIdx]] = [updated[toIdx], updated[fromIdx]];
     const reordered = updated.map((p, i) => ({ ...p, order_index: i }));
     onPhotosChange(reordered);
     const order = reordered.map((p) => ({ id: p.id, order_index: p.order_index }));
@@ -101,26 +100,31 @@ export default function ProfilePhotoGrid({
     if (!ok) toast('שגיאה בשינוי סדר התמונות');
   }, [photos, onPhotosChange, toast]);
 
-  const resetDrag = useCallback(() => {
-    setDragIdx(null);
-    setOverIdx(null);
-    setGhostPos(null);
-    setGhostSrc(null);
-    isDragging.current = false;
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
+  /* ─── Tap-to-swap handler ─── */
+  const handlePhotoTap = useCallback((idx: number) => {
+    if (photos.length < 2) return; // Nothing to swap
+
+    if (selectedIdx === null) {
+      // First tap — select this photo
+      setSelectedIdx(idx);
+      try { navigator.vibrate?.(15); } catch {}
+    } else if (selectedIdx === idx) {
+      // Tapped same photo — deselect
+      setSelectedIdx(null);
+    } else {
+      // Second tap on a different photo — swap!
+      const from = selectedIdx;
+      setSelectedIdx(null);
+      try { navigator.vibrate?.(30); } catch {}
+      commitSwap(from, idx);
     }
-  }, []);
+  }, [selectedIdx, photos.length, commitSwap]);
 
   /* ─── Desktop drag handlers ─── */
   const handleDragStart = (e: React.DragEvent, idx: number) => {
+    setSelectedIdx(null); // Clear any tap selection
     setDragIdx(idx);
     e.dataTransfer.effectAllowed = 'move';
-    // Use a transparent drag image — we show our own ghost
-    const blank = document.createElement('canvas');
-    blank.width = 1; blank.height = 1;
-    e.dataTransfer.setDragImage(blank, 0, 0);
   };
 
   const handleDragOver = (e: React.DragEvent, idx: number) => {
@@ -132,92 +136,16 @@ export default function ProfilePhotoGrid({
 
   const handleDrop = async (idx: number) => {
     if (dragIdx !== null && dragIdx !== idx) {
-      await commitReorder(dragIdx, idx);
+      await commitSwap(dragIdx, idx);
     }
-    resetDrag();
+    setDragIdx(null);
+    setOverIdx(null);
   };
 
-  const handleDragEnd = () => resetDrag();
-
-  /* ─── Touch-based drag for mobile ─── */
-  const findDropTarget = useCallback((touchX: number, touchY: number): number | null => {
-    const items = photoGridRef.current?.querySelectorAll('.profile-edit-photo-item:not(.add)');
-    if (!items) return null;
-    for (let i = 0; i < items.length; i++) {
-      const rect = items[i].getBoundingClientRect();
-      if (touchX >= rect.left && touchX <= rect.right && touchY >= rect.top && touchY <= rect.bottom) {
-        return i;
-      }
-    }
-    return null;
-  }, []);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent, idx: number) => {
-    const touch = e.touches[0];
-    // Start a long-press timer
-    longPressTimer.current = setTimeout(() => {
-      isDragging.current = true;
-      setDragIdx(idx);
-      setGhostSrc(getPhotoUrl(photos[idx].storage_path));
-      setGhostPos({ x: touch.clientX, y: touch.clientY });
-      try { navigator.vibrate?.(40); } catch {}
-    }, 250);
-  }, [photos]);
-
-  useEffect(() => {
-    const grid = photoGridRef.current;
-    if (!grid) return;
-
-    const onTouchMove = (e: TouchEvent) => {
-      if (!isDragging.current) {
-        // Cancel long press if finger moved
-        if (longPressTimer.current) {
-          clearTimeout(longPressTimer.current);
-          longPressTimer.current = null;
-        }
-        return;
-      }
-      e.preventDefault();
-      const touch = e.touches[0];
-      setGhostPos({ x: touch.clientX, y: touch.clientY });
-      const target = findDropTarget(touch.clientX, touch.clientY);
-      setOverIdx(target);
-    };
-
-    const onTouchEnd = async () => {
-      if (longPressTimer.current) {
-        clearTimeout(longPressTimer.current);
-        longPressTimer.current = null;
-      }
-      if (isDragging.current) {
-        const from = dragIdx;
-        const to = overIdx;
-        resetDrag();
-        if (from !== null && to !== null && from !== to) {
-          await commitReorder(from, to);
-        }
-      }
-    };
-
-    grid.addEventListener('touchmove', onTouchMove, { passive: false });
-    grid.addEventListener('touchend', onTouchEnd);
-    grid.addEventListener('touchcancel', () => resetDrag());
-
-    return () => {
-      grid.removeEventListener('touchmove', onTouchMove);
-      grid.removeEventListener('touchend', onTouchEnd);
-      grid.removeEventListener('touchcancel', () => resetDrag());
-    };
-  }, [photos.length, dragIdx, overIdx, findDropTarget, commitReorder, resetDrag]);
-
-  /* ─── Compute preview order for visual feedback ─── */
-  const displayPhotos = (() => {
-    if (dragIdx === null || overIdx === null || dragIdx === overIdx) return photos;
-    const arr = [...photos];
-    const [moved] = arr.splice(dragIdx, 1);
-    arr.splice(overIdx, 0, moved);
-    return arr;
-  })();
+  const handleDragEnd = () => {
+    setDragIdx(null);
+    setOverIdx(null);
+  };
 
   return (
     <>
@@ -227,38 +155,62 @@ export default function ProfilePhotoGrid({
           <span>תמונות</span>
           <span className="profile-edit-photo-count">{photos.length}/10</span>
         </div>
-        <div className={`profile-edit-photo-grid${dragIdx !== null ? ' grid-reordering' : ''}`} ref={photoGridRef}>
-          {displayPhotos.map((photo, idx) => {
-            const isBeingDragged = dragIdx !== null && photo.id === photos[dragIdx]?.id;
-            return (
-              <div
-                key={photo.id}
-                className={[
-                  'profile-edit-photo-item',
-                  idx === 0 ? 'main' : '',
-                  isBeingDragged ? 'dragging' : '',
-                  overIdx === idx && !isBeingDragged ? 'drag-over' : '',
-                  deletingId === photo.id ? 'photo-loading' : '',
-                ].filter(Boolean).join(' ')}
-                draggable
-                onDragStart={(e) => handleDragStart(e, idx)}
-                onDragOver={(e) => handleDragOver(e, idx)}
-                onDrop={() => handleDrop(idx)}
-                onDragEnd={handleDragEnd}
-                onTouchStart={(e) => handleTouchStart(e, idx)}
-              >
-                <img src={getPhotoUrl(photo.storage_path)} alt="" draggable={false} />
-                {deletingId === photo.id && (
-                  <div className="photo-upload-overlay">
-                    <div className="photo-upload-spinner" />
-                  </div>
-                )}
-                <button type="button" className="profile-edit-photo-remove" onClick={() => handleDeletePhoto(photo)} disabled={deletingId === photo.id}>✕</button>
-                {idx === 0 && <span className="profile-edit-photo-badge">ראשית</span>}
-                <span className="profile-edit-photo-order">{idx + 1}</span>
-              </div>
-            );
-          })}
+
+        {/* Selection hint banner */}
+        {selectedIdx !== null && (
+          <div className="photo-swap-hint">
+            <span>📸</span>
+            <span>לחצו על תמונה אחרת כדי להחליף מיקום</span>
+            <button type="button" onClick={() => setSelectedIdx(null)}>✕</button>
+          </div>
+        )}
+
+        <div className="profile-edit-photo-grid" ref={undefined}>
+          {photos.map((photo, idx) => (
+            <div
+              key={photo.id}
+              className={[
+                'profile-edit-photo-item',
+                idx === 0 ? 'main' : '',
+                selectedIdx === idx ? 'selected' : '',
+                selectedIdx !== null && selectedIdx !== idx ? 'swap-target' : '',
+                dragIdx === idx ? 'dragging' : '',
+                overIdx === idx && dragIdx !== idx ? 'drag-over' : '',
+                deletingId === photo.id ? 'photo-loading' : '',
+              ].filter(Boolean).join(' ')}
+              draggable
+              onDragStart={(e) => handleDragStart(e, idx)}
+              onDragOver={(e) => handleDragOver(e, idx)}
+              onDrop={() => handleDrop(idx)}
+              onDragEnd={handleDragEnd}
+              onClick={() => handlePhotoTap(idx)}
+            >
+              <img src={getPhotoUrl(photo.storage_path)} alt="" draggable={false} />
+              {deletingId === photo.id && (
+                <div className="photo-upload-overlay">
+                  <div className="photo-upload-spinner" />
+                </div>
+              )}
+              {selectedIdx === idx && (
+                <div className="photo-selected-overlay">
+                  <span className="photo-selected-check">✓</span>
+                </div>
+              )}
+              {selectedIdx !== null && selectedIdx !== idx && (
+                <div className="photo-swap-target-overlay">
+                  <span>⇄</span>
+                </div>
+              )}
+              <button
+                type="button"
+                className="profile-edit-photo-remove"
+                onClick={(e) => { e.stopPropagation(); handleDeletePhoto(photo); }}
+                disabled={deletingId === photo.id}
+              >✕</button>
+              {idx === 0 && <span className="profile-edit-photo-badge">ראשית</span>}
+              <span className="profile-edit-photo-order">{idx + 1}</span>
+            </div>
+          ))}
           {photos.length < 10 && (
             <div className={`profile-edit-photo-item add${uploading ? ' photo-loading' : ''}`} onClick={() => !uploading && fileInputRef.current?.click()}>
               {uploading ? (
@@ -275,24 +227,11 @@ export default function ProfilePhotoGrid({
             </div>
           )}
         </div>
-        {photos.length > 1 && (
-          <p className="profile-edit-hint">לחצו והחזיקו כדי לגרור ולשנות סדר</p>
+        {photos.length > 1 && !selectedIdx && (
+          <p className="profile-edit-hint">לחצו על תמונה כדי לשנות סדר</p>
         )}
         <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAddPhoto} />
       </div>
-
-      {/* Floating drag ghost (follows finger on mobile) */}
-      {ghostPos && ghostSrc && (
-        <div
-          className="photo-drag-ghost"
-          style={{
-            left: ghostPos.x,
-            top: ghostPos.y,
-          }}
-        >
-          <img src={ghostSrc} alt="" />
-        </div>
-      )}
 
       {/* Image Cropper Modal */}
       {cropImage && (
