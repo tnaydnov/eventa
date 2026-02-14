@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { uploadPhoto, deletePhoto, reorderPhotos, getPhotoUrl } from '@/lib/api';
 import { validateImageFile } from '@/lib/validations';
 import { MAX_PHOTOS } from '@/lib/constants';
@@ -32,10 +32,11 @@ export default function ProfilePhotoGrid({
   /* ─── Drag & Drop state ─── */
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [overIdx, setOverIdx] = useState<number | null>(null);
-  const dragNodeRef = useRef<HTMLDivElement | null>(null);
-  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
-  const isDragging = useRef(false);
+  const [ghostPos, setGhostPos] = useState<{ x: number; y: number } | null>(null);
+  const [ghostSrc, setGhostSrc] = useState<string | null>(null);
   const photoGridRef = useRef<HTMLDivElement | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isDragging = useRef(false);
 
   /* ─── Photo handlers ─── */
   const handleAddPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,97 +88,136 @@ export default function ProfilePhotoGrid({
     setDeletingId(null);
   };
 
+  /* ─── Reorder logic (shared by desktop + mobile) ─── */
+  const commitReorder = useCallback(async (fromIdx: number, toIdx: number) => {
+    if (fromIdx === toIdx) return;
+    const updated = [...photos];
+    const [moved] = updated.splice(fromIdx, 1);
+    updated.splice(toIdx, 0, moved);
+    const reordered = updated.map((p, i) => ({ ...p, order_index: i }));
+    onPhotosChange(reordered);
+    const order = reordered.map((p) => ({ id: p.id, order_index: p.order_index }));
+    const ok = await reorderPhotos(order);
+    if (!ok) toast('שגיאה בשינוי סדר התמונות');
+  }, [photos, onPhotosChange, toast]);
+
+  const resetDrag = useCallback(() => {
+    setDragIdx(null);
+    setOverIdx(null);
+    setGhostPos(null);
+    setGhostSrc(null);
+    isDragging.current = false;
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
   /* ─── Desktop drag handlers ─── */
-  const handleDragStart = (idx: number) => setDragIdx(idx);
+  const handleDragStart = (e: React.DragEvent, idx: number) => {
+    setDragIdx(idx);
+    e.dataTransfer.effectAllowed = 'move';
+    // Use a transparent drag image — we show our own ghost
+    const blank = document.createElement('canvas');
+    blank.width = 1; blank.height = 1;
+    e.dataTransfer.setDragImage(blank, 0, 0);
+  };
 
   const handleDragOver = (e: React.DragEvent, idx: number) => {
     e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
     if (dragIdx === null || dragIdx === idx) return;
     setOverIdx(idx);
   };
 
   const handleDrop = async (idx: number) => {
-    if (dragIdx === null || dragIdx === idx) {
-      setDragIdx(null);
-      setOverIdx(null);
-      return;
+    if (dragIdx !== null && dragIdx !== idx) {
+      await commitReorder(dragIdx, idx);
     }
-    const updated = [...photos];
-    const [moved] = updated.splice(dragIdx, 1);
-    updated.splice(idx, 0, moved);
-    const reordered = updated.map((p, i) => ({ ...p, order_index: i }));
-    onPhotosChange(reordered);
-    setDragIdx(null);
-    setOverIdx(null);
-    const order = reordered.map((p) => ({ id: p.id, order_index: p.order_index }));
-    const ok = await reorderPhotos(order);
-    if (!ok) toast('שגיאה בשינוי סדר התמונות');
+    resetDrag();
   };
 
-  const handleDragEnd = () => {
-    setDragIdx(null);
-    setOverIdx(null);
-  };
+  const handleDragEnd = () => resetDrag();
 
   /* ─── Touch-based drag for mobile ─── */
-  const handleTouchStart = (e: React.TouchEvent, idx: number) => {
+  const findDropTarget = useCallback((touchX: number, touchY: number): number | null => {
+    const items = photoGridRef.current?.querySelectorAll('.profile-edit-photo-item:not(.add)');
+    if (!items) return null;
+    for (let i = 0; i < items.length; i++) {
+      const rect = items[i].getBoundingClientRect();
+      if (touchX >= rect.left && touchX <= rect.right && touchY >= rect.top && touchY <= rect.bottom) {
+        return i;
+      }
+    }
+    return null;
+  }, []);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent, idx: number) => {
     const touch = e.touches[0];
-    touchStartPos.current = { x: touch.clientX, y: touch.clientY };
-    isDragging.current = false;
-    const timer = setTimeout(() => {
+    // Start a long-press timer
+    longPressTimer.current = setTimeout(() => {
       isDragging.current = true;
       setDragIdx(idx);
-      try { navigator.vibrate?.(30); } catch {}
-    }, 300);
-    const node = e.currentTarget as HTMLDivElement;
-    dragNodeRef.current = node;
-    node.dataset.dragTimer = String(timer);
-  };
-
-  const handleTouchMoveRef = useRef((e: TouchEvent) => {
-    if (!isDragging.current) {
-      if (dragNodeRef.current?.dataset.dragTimer) {
-        clearTimeout(Number(dragNodeRef.current.dataset.dragTimer));
-      }
-      return;
-    }
-    e.preventDefault();
-    const touch = e.touches[0];
-    const elements = document.querySelectorAll('.profile-edit-photo-item:not(.add)');
-    elements.forEach((el, i) => {
-      const rect = el.getBoundingClientRect();
-      if (
-        touch.clientX >= rect.left &&
-        touch.clientX <= rect.right &&
-        touch.clientY >= rect.top &&
-        touch.clientY <= rect.bottom
-      ) {
-        setOverIdx(i);
-      }
-    });
-  });
+      setGhostSrc(getPhotoUrl(photos[idx].storage_path));
+      setGhostPos({ x: touch.clientX, y: touch.clientY });
+      try { navigator.vibrate?.(40); } catch {}
+    }, 250);
+  }, [photos]);
 
   useEffect(() => {
     const grid = photoGridRef.current;
     if (!grid) return;
-    const handler = handleTouchMoveRef.current;
-    grid.addEventListener('touchmove', handler, { passive: false });
-    return () => grid.removeEventListener('touchmove', handler);
-  }, [photos.length]);
 
-  const handleTouchEnd = async () => {
-    if (dragNodeRef.current?.dataset.dragTimer) {
-      clearTimeout(Number(dragNodeRef.current.dataset.dragTimer));
-    }
-    if (isDragging.current && dragIdx !== null && overIdx !== null && dragIdx !== overIdx) {
-      await handleDrop(overIdx);
-    } else {
-      setDragIdx(null);
-      setOverIdx(null);
-    }
-    isDragging.current = false;
-    touchStartPos.current = null;
-  };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!isDragging.current) {
+        // Cancel long press if finger moved
+        if (longPressTimer.current) {
+          clearTimeout(longPressTimer.current);
+          longPressTimer.current = null;
+        }
+        return;
+      }
+      e.preventDefault();
+      const touch = e.touches[0];
+      setGhostPos({ x: touch.clientX, y: touch.clientY });
+      const target = findDropTarget(touch.clientX, touch.clientY);
+      setOverIdx(target);
+    };
+
+    const onTouchEnd = async () => {
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current);
+        longPressTimer.current = null;
+      }
+      if (isDragging.current) {
+        const from = dragIdx;
+        const to = overIdx;
+        resetDrag();
+        if (from !== null && to !== null && from !== to) {
+          await commitReorder(from, to);
+        }
+      }
+    };
+
+    grid.addEventListener('touchmove', onTouchMove, { passive: false });
+    grid.addEventListener('touchend', onTouchEnd);
+    grid.addEventListener('touchcancel', () => resetDrag());
+
+    return () => {
+      grid.removeEventListener('touchmove', onTouchMove);
+      grid.removeEventListener('touchend', onTouchEnd);
+      grid.removeEventListener('touchcancel', () => resetDrag());
+    };
+  }, [photos.length, dragIdx, overIdx, findDropTarget, commitReorder, resetDrag]);
+
+  /* ─── Compute preview order for visual feedback ─── */
+  const displayPhotos = (() => {
+    if (dragIdx === null || overIdx === null || dragIdx === overIdx) return photos;
+    const arr = [...photos];
+    const [moved] = arr.splice(dragIdx, 1);
+    arr.splice(overIdx, 0, moved);
+    return arr;
+  })();
 
   return (
     <>
@@ -187,30 +227,38 @@ export default function ProfilePhotoGrid({
           <span>תמונות</span>
           <span className="profile-edit-photo-count">{photos.length}/10</span>
         </div>
-        <div className="profile-edit-photo-grid" ref={photoGridRef}>
-          {photos.map((photo, idx) => (
-            <div
-              key={photo.id}
-              className={`profile-edit-photo-item${idx === 0 ? ' main' : ''}${dragIdx === idx ? ' dragging' : ''}${overIdx === idx && dragIdx !== idx ? ' drag-over' : ''}${deletingId === photo.id ? ' photo-loading' : ''}`}
-              draggable
-              onDragStart={() => handleDragStart(idx)}
-              onDragOver={(e) => handleDragOver(e, idx)}
-              onDrop={() => handleDrop(idx)}
-              onDragEnd={handleDragEnd}
-              onTouchStart={(e) => handleTouchStart(e, idx)}
-              onTouchEnd={() => handleTouchEnd()}
-            >
-              <img src={getPhotoUrl(photo.storage_path)} alt="" draggable={false} />
-              {deletingId === photo.id && (
-                <div className="photo-upload-overlay">
-                  <div className="photo-upload-spinner" />
-                </div>
-              )}
-              <button type="button" className="profile-edit-photo-remove" onClick={() => handleDeletePhoto(photo)} disabled={deletingId === photo.id}>✕</button>
-              {idx === 0 && <span className="profile-edit-photo-badge">ראשית</span>}
-              <span className="profile-edit-photo-order">{idx + 1}</span>
-            </div>
-          ))}
+        <div className={`profile-edit-photo-grid${dragIdx !== null ? ' grid-reordering' : ''}`} ref={photoGridRef}>
+          {displayPhotos.map((photo, idx) => {
+            const isBeingDragged = dragIdx !== null && photo.id === photos[dragIdx]?.id;
+            return (
+              <div
+                key={photo.id}
+                className={[
+                  'profile-edit-photo-item',
+                  idx === 0 ? 'main' : '',
+                  isBeingDragged ? 'dragging' : '',
+                  overIdx === idx && !isBeingDragged ? 'drag-over' : '',
+                  deletingId === photo.id ? 'photo-loading' : '',
+                ].filter(Boolean).join(' ')}
+                draggable
+                onDragStart={(e) => handleDragStart(e, idx)}
+                onDragOver={(e) => handleDragOver(e, idx)}
+                onDrop={() => handleDrop(idx)}
+                onDragEnd={handleDragEnd}
+                onTouchStart={(e) => handleTouchStart(e, idx)}
+              >
+                <img src={getPhotoUrl(photo.storage_path)} alt="" draggable={false} />
+                {deletingId === photo.id && (
+                  <div className="photo-upload-overlay">
+                    <div className="photo-upload-spinner" />
+                  </div>
+                )}
+                <button type="button" className="profile-edit-photo-remove" onClick={() => handleDeletePhoto(photo)} disabled={deletingId === photo.id}>✕</button>
+                {idx === 0 && <span className="profile-edit-photo-badge">ראשית</span>}
+                <span className="profile-edit-photo-order">{idx + 1}</span>
+              </div>
+            );
+          })}
           {photos.length < 10 && (
             <div className={`profile-edit-photo-item add${uploading ? ' photo-loading' : ''}`} onClick={() => !uploading && fileInputRef.current?.click()}>
               {uploading ? (
@@ -232,6 +280,19 @@ export default function ProfilePhotoGrid({
         )}
         <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAddPhoto} />
       </div>
+
+      {/* Floating drag ghost (follows finger on mobile) */}
+      {ghostPos && ghostSrc && (
+        <div
+          className="photo-drag-ghost"
+          style={{
+            left: ghostPos.x,
+            top: ghostPos.y,
+          }}
+        >
+          <img src={ghostSrc} alt="" />
+        </div>
+      )}
 
       {/* Image Cropper Modal */}
       {cropImage && (
