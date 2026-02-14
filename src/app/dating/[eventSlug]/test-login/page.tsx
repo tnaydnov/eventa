@@ -57,7 +57,7 @@ function TestLoginContent({ eventSlug }: { eventSlug: string }) {
       // Fetch all participants
       const { data: parts } = await supabase
         .from('participants')
-        .select('id, event_id, device_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at')
+        .select('id, event_id, device_fingerprint, hardware_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at')
         .eq('event_id', ev.id)
         .order('display_name');
 

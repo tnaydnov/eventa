@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
     if (fingerprint) {
       const { data: existing } = await supabase
         .from('participants')
-        .select('id, event_id, device_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at')
+        .select('id, event_id, device_fingerprint, hardware_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at')
         .eq('event_id', event.id)
         .eq('device_fingerprint', fingerprint)
         .single();
@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
     if (!participantId && hwFingerprint) {
       const { data: existing } = await supabase
         .from('participants')
-        .select('id, event_id, device_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at')
+        .select('id, event_id, device_fingerprint, hardware_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at')
         .eq('event_id', event.id)
         .eq('hardware_fingerprint', hwFingerprint)
         .maybeSingle();

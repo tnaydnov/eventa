@@ -52,7 +52,7 @@ export function invalidateBlockedCache() {
  * Batches .in() calls to avoid exceeding PostgREST URL length limits (~50 UUIDs per batch).
  */
 /** Explicit columns for participant queries (avoids SELECT *). */
-export const PARTICIPANT_COLUMNS = 'id, event_id, device_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at' as const;
+export const PARTICIPANT_COLUMNS = 'id, event_id, device_fingerprint, hardware_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at' as const;
 export const PHOTO_COLUMNS = 'id, event_id, participant_id, storage_path, order_index, created_at' as const;
 export const CONVERSATION_COLUMNS = 'id, event_id, a_participant_id, b_participant_id, created_at, last_message_at, a_last_read_at, b_last_read_at' as const;
 export const MESSAGE_COLUMNS = 'id, event_id, conversation_id, sender_participant_id, type, text, media_path, is_deleted, created_at' as const;
