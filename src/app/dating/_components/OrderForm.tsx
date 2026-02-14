@@ -15,19 +15,14 @@ const EVENT_TYPES = [
 type FormData = {
   eventType: string;
   eventDate: string;
-  eventEndDate: string;
-  eventName: string;
-  guestCount: string;
   contactName: string;
   contactPhone: string;
   contactEmail: string;
-  notes: string;
 };
 
 export default function OrderForm() {
   const [form, setForm] = useState<FormData>({
-    eventType: '', eventDate: '', eventEndDate: '', eventName: '',
-    guestCount: '', contactName: '', contactPhone: '', contactEmail: '', notes: '',
+    eventType: '', eventDate: '', contactName: '', contactPhone: '', contactEmail: '',
   });
   const [submitted, setSubmitted] = useState(false);
 
@@ -59,64 +54,14 @@ export default function OrderForm() {
       </div>
 
       <div className="order-form__group">
-        <label className="order-form__label">שם האירוע *</label>
+        <label className="order-form__label">תאריך האירוע *</label>
         <input
           className="order-form__input"
-          type="text"
-          placeholder='לדוגמה: "החתונה של דנה ואיתי"'
-          value={form.eventName}
-          onChange={e => update('eventName', e.target.value)}
+          type="date"
+          value={form.eventDate}
+          onChange={e => update('eventDate', e.target.value)}
           required
         />
-      </div>
-
-      <div className="order-form__row">
-        <div className="order-form__group">
-          <label className="order-form__label">תאריך התחלה *</label>
-          <input
-            className="order-form__input"
-            type="date"
-            value={form.eventDate}
-            onChange={e => update('eventDate', e.target.value)}
-            required
-          />
-        </div>
-        <div className="order-form__group">
-          <label className="order-form__label">תאריך סיום</label>
-          <input
-            className="order-form__input"
-            type="date"
-            value={form.eventEndDate}
-            onChange={e => update('eventEndDate', e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="order-form__group">
-        <label className="order-form__label">מספר אורחים משוער</label>
-        <input
-          className="order-form__input"
-          type="number"
-          placeholder="200"
-          min="10"
-          max="10000"
-          value={form.guestCount}
-          onChange={e => update('guestCount', e.target.value)}
-        />
-      </div>
-
-      {/* Background image upload (decorative) */}
-      <div className="order-form__group">
-        <label className="order-form__label">תמונת רקע לאירוע</label>
-        <label className="order-form__upload">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="3" y="3" width="18" height="18" rx="3"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <path d="M21 15l-5-5L5 21"/>
-          </svg>
-          <span>גרירה או לחיצה להעלאת תמונה</span>
-          <input type="file" accept="image/*" style={{ display: 'none' }} />
-        </label>
       </div>
 
       {/* Separator */}
@@ -159,17 +104,6 @@ export default function OrderForm() {
             dir="ltr"
           />
         </div>
-      </div>
-
-      <div className="order-form__group">
-        <label className="order-form__label">הערות נוספות</label>
-        <textarea
-          className="order-form__textarea"
-          placeholder="ספרו לנו עוד על האירוע שלכם..."
-          value={form.notes}
-          onChange={e => update('notes', e.target.value)}
-          rows={3}
-        />
       </div>
 
       <button
