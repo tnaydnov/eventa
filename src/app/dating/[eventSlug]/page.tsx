@@ -190,8 +190,8 @@ export default function EventPage({
       },
       {
         binding: { event: 'UPDATE', schema: 'public', table: 'participants', filter: `event_id=eq.${session?.eventId}` },
-        handler: (payload) => {
-          const updated = payload.new as { id: string; is_banned: boolean };
+        handler: async (payload) => {
+          const updated = payload.new as { id: string; is_banned: boolean; display_name: string; gender: string; attracted_to: string; age: number | null };
           if (updated.is_banned) {
             // If THIS user was banned, kick them immediately
             if (updated.id === session?.participantId) {
@@ -201,8 +201,43 @@ export default function EventPage({
               return;
             }
             removeParticipant(updated.id);
-          } else {
+            return;
+          }
+
+          // Check if participant is already in the grid store
+          const existsInGrid = useGridStore.getState().participants.some((p) => p.id === updated.id);
+
+          if (existsInGrid) {
+            // Just update the existing entry
             updateParticipant(updated.id, payload.new as any);
+          } else {
+            // Participant completed their profile — check if they should be added
+            if (!session || updated.id === session.participantId) return;
+            if (!updated.display_name?.trim() || updated.age == null) return;
+
+            // Cross-attraction check
+            const me = participant;
+            if (me) {
+              const iAmAttracted = me.attracted_to === 'all' ||
+                (updated.gender === 'male' && me.attracted_to === 'men') ||
+                (updated.gender === 'female' && me.attracted_to === 'women');
+              const theyAttracted = updated.attracted_to === 'all' ||
+                (me.gender === 'male' && updated.attracted_to === 'men') ||
+                (me.gender === 'female' && updated.attracted_to === 'women');
+              if (!iAmAttracted || !theyAttracted) return;
+            }
+
+            // Fetch their photos
+            const { data: photos } = await supabase
+              .from('participant_photos')
+              .select('id, participant_id, storage_path, order_index')
+              .eq('participant_id', updated.id)
+              .order('order_index');
+
+            // Only add if they have at least one photo
+            if (photos && photos.length > 0) {
+              addParticipant({ ...payload.new, photos } as any);
+            }
           }
         },
       },
