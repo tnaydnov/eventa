@@ -4,7 +4,7 @@ import { use, useEffect, useState, useCallback, useRef, memo } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSessionStore, useGridStore, useNotificationStore, useSwipeStore } from '@/lib/store';
-import { getGridParticipants, getPhotoUrl, markLikeSeen } from '@/lib/api';
+import { getGridParticipants, getPhotoUrl, markLikeSeen, getParticipant } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import { useRealtimeHub } from '@/hooks/useRealtimeHub';
 import { useAppResume } from '@/hooks/useAppResume';
@@ -91,6 +91,7 @@ export default function EventPage({
   const router = useRouter();
   const session = useSessionStore((s) => s.session);
   const participant = useSessionStore((s) => s.participant);
+  const setParticipant = useSessionStore((s) => s.setParticipant);
   const { participants, filter, setParticipants, setFilter, removeParticipant, addParticipant, updateParticipant } = useGridStore();
   const gridHighlights = useNotificationStore((s) => s.gridHighlights);
   const removeGridHighlightByType = useNotificationStore((s) => s.removeGridHighlightByType);
@@ -126,6 +127,26 @@ export default function EventPage({
       router.replace('/dating');
     }
   }, [eventSlug, searchParams, router, session]);
+
+  // Profile completeness guard — redirect to setup if profile is incomplete
+  useEffect(() => {
+    if (!session) return;
+    const hasProfile = localStorage.getItem(`profile_setup_${session.participantId}`);
+    if (hasProfile) return; // already completed setup
+
+    // Verify against DB in case localStorage was cleared
+    getParticipant(session.participantId).then((p) => {
+      if (!p) return;
+      if (p.display_name.trim() && p.age != null) {
+        // Profile is actually complete — restore the flag
+        localStorage.setItem(`profile_setup_${session.participantId}`, 'true');
+        setParticipant(p as any);
+      } else {
+        // Profile is incomplete — redirect to setup
+        router.replace(`/dating/${eventSlug}/setup`);
+      }
+    });
+  }, [session, eventSlug, router, setParticipant]);
 
   // Load grid (skip if recently fetched — Realtime keeps data fresh)
   useEffect(() => {
@@ -172,6 +193,13 @@ export default function EventPage({
         handler: (payload) => {
           const updated = payload.new as { id: string; is_banned: boolean };
           if (updated.is_banned) {
+            // If THIS user was banned, kick them immediately
+            if (updated.id === session?.participantId) {
+              useSessionStore.getState().clearSession();
+              localStorage.removeItem('wedding_local_id');
+              window.location.href = `/dating/${eventSlug}/banned`;
+              return;
+            }
             removeParticipant(updated.id);
           } else {
             updateParticipant(updated.id, payload.new as any);

@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS participants (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
   device_fingerprint TEXT,
+  hardware_fingerprint TEXT,
   display_name TEXT NOT NULL DEFAULT '',
   gender gender NOT NULL DEFAULT 'male',
   attracted_to attracted_to NOT NULL DEFAULT 'all',
@@ -74,6 +75,7 @@ CREATE TABLE IF NOT EXISTS participants (
 
 CREATE INDEX IF NOT EXISTS idx_participants_event ON participants(event_id);
 CREATE INDEX IF NOT EXISTS idx_participants_fingerprint ON participants(event_id, device_fingerprint);
+CREATE INDEX IF NOT EXISTS idx_participants_hw_fingerprint ON participants(event_id, hardware_fingerprint) WHERE hardware_fingerprint IS NOT NULL;
 
 -- Participant Photos
 CREATE TABLE IF NOT EXISTS participant_photos (

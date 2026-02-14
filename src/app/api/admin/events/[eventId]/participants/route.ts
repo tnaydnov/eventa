@@ -3,6 +3,7 @@ import { adminAuditLog } from '@/lib/admin-auth';
 import { isValidUUID } from '@/lib/session';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
+import { evictBanCache } from '@/lib/route-helpers';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
 
 /**
@@ -28,7 +29,13 @@ export async function GET(
       .eq('event_id', eventId)
       .order('created_at', { ascending: false });
 
-    return NextResponse.json({ participants: data || [] });
+    // Add profile_complete flag so admin can distinguish completed vs incomplete signups
+    const enriched = (data || []).map((p: any) => ({
+      ...p,
+      profile_complete: !!(p.display_name && p.display_name.trim() && p.age != null),
+    }));
+
+    return NextResponse.json({ participants: enriched });
   } catch (err) {
     console.error('[ADMIN_PARTICIPANTS_GET] error:', err);
     return jsonError('Failed to load participants', 500);
@@ -72,29 +79,45 @@ export async function PATCH(
 
     if (error) return jsonError('Failed to update participant', 400);
 
+    // Immediately evict the ban cache so subsequent API calls are blocked
+    if (is_banned) {
+      evictBanCache(participantId);
+    }
+
     adminAuditLog(is_banned ? 'PARTICIPANT_BAN' : 'PARTICIPANT_UNBAN', { eventId, participantId }, req);
 
-    // Sync banned_devices table (single lookup instead of duplicate blocks)
+    // Sync banned_devices table — ban BOTH fingerprints for stronger enforcement
     const { data: participant } = await supabase
       .from('participants')
-      .select('device_fingerprint')
+      .select('device_fingerprint, hardware_fingerprint')
       .eq('id', participantId)
       .single();
 
-    if (participant?.device_fingerprint) {
+    if (participant) {
+      const fingerprints = [
+        participant.device_fingerprint,
+        participant.hardware_fingerprint,
+      ].filter(Boolean) as string[];
+
       if (is_banned) {
-        await supabase
-          .from('banned_devices')
-          .upsert(
-            { event_id: eventId, device_fingerprint: participant.device_fingerprint },
-            { onConflict: 'event_id,device_fingerprint', ignoreDuplicates: true }
-          );
+        // Insert ban entries for all known fingerprints
+        for (const fp of fingerprints) {
+          await supabase
+            .from('banned_devices')
+            .upsert(
+              { event_id: eventId, device_fingerprint: fp },
+              { onConflict: 'event_id,device_fingerprint', ignoreDuplicates: true }
+            );
+        }
       } else {
-        await supabase
-          .from('banned_devices')
-          .delete()
-          .eq('event_id', eventId)
-          .eq('device_fingerprint', participant.device_fingerprint);
+        // Remove ban entries for all known fingerprints
+        for (const fp of fingerprints) {
+          await supabase
+            .from('banned_devices')
+            .delete()
+            .eq('event_id', eventId)
+            .eq('device_fingerprint', fp);
+        }
       }
     }
 

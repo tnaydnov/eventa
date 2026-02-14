@@ -33,6 +33,7 @@ export interface Participant {
   id: string;
   event_id: string;
   device_fingerprint: string | null;
+  hardware_fingerprint: string | null;
   display_name: string;
   gender: Gender;
   attracted_to: AttractedTo;

@@ -9,11 +9,15 @@ import { useSessionStore } from '@/lib/store';
  *
  * Also sends an immediate heartbeat on mount and when returning from background.
  * This feeds the activity_log table for usage timeline analytics.
+ *
+ * If the server responds with 403 (banned), immediately clears the session
+ * and redirects the user to the banned screen.
  */
 const HEARTBEAT_INTERVAL_MS = 60_000;
 
 export default function HeartbeatPinger() {
   const participantId = useSessionStore((s) => s.session?.participantId);
+  const eventSlug = useSessionStore((s) => s.session?.eventSlug);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -28,7 +32,20 @@ export default function HeartbeatPinger() {
         method: 'POST',
         credentials: 'include',
         signal: controller.signal,
-      }).catch(() => { /* ignore failures silently */ });
+      })
+        .then((res) => {
+          if (res.status === 403) {
+            // User has been banned — clear session and redirect
+            useSessionStore.getState().clearSession();
+            localStorage.removeItem('wedding_local_id');
+            if (eventSlug) {
+              window.location.href = `/dating/${eventSlug}/banned`;
+            } else {
+              window.location.href = '/dating';
+            }
+          }
+        })
+        .catch(() => { /* ignore network failures silently */ });
     };
 
     // Send immediately on mount
@@ -50,7 +67,7 @@ export default function HeartbeatPinger() {
       if (intervalRef.current) clearInterval(intervalRef.current);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [participantId]);
+  }, [participantId, eventSlug]);
 
   return null; // Renders nothing
 }

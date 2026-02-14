@@ -39,6 +39,11 @@ async function isBanned(participantId: string): Promise<boolean> {
   return banned;
 }
 
+/** Immediately mark a participant as banned in the cache (called from admin routes). */
+export function evictBanCache(participantId: string): void {
+  _banCache.set(participantId, { banned: true, ts: Date.now() });
+}
+
 /**
  * Secure-route guard: CSRF → session → rate-limit → ban check (cached).
  */

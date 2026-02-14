@@ -48,6 +48,12 @@ export default function SessionProvider({
             setRestored(true);
             return;
           }
+        } else if (res.status === 403) {
+          // User is banned — clear everything and redirect
+          useSessionStore.getState().clearSession();
+          localStorage.removeItem('wedding_local_id');
+          window.location.href = `/dating/${eventSlug}/banned`;
+          return;
         }
       } catch {
         // Cookie verification failed, try localStorage fallback
@@ -97,8 +103,14 @@ export default function SessionProvider({
             });
           }
         }
+      } else if (res.status === 403) {
+        // User was banned while in background — kick them
+        useSessionStore.getState().clearSession();
+        localStorage.removeItem('wedding_local_id');
+        window.location.href = `/dating/${eventSlug}/banned`;
+        return;
       }
-      // If verify fails, the existing localStorage session still works
+      // If verify fails for other reasons, the existing localStorage session still works
       // (JWT cookies are complementary to localStorage sessions)
     } catch {
       // Network error — keep existing session

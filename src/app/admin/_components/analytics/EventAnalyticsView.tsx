@@ -92,7 +92,7 @@ export default function EventAnalyticsView({
     <div className="ea-root admin-animate-in">
       {/* ─── Header ─── */}
       <div className="admin-topbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="ea-header-flex">
           <button className="admin-btn admin-btn--ghost" onClick={onBack}>← חזרה</button>
           <div>
             <h2 className="admin-topbar__title">{typeIcon} {event.name}</h2>

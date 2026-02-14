@@ -46,6 +46,12 @@ export async function POST(req: NextRequest) {
         ? body.fingerprint.slice(0, 64)
         : null;
 
+    // Hardware fingerprint (canvas/WebGL/screen-based) — survives incognito
+    const hwFingerprint: string | null =
+      typeof body.hardwareFingerprint === 'string' && body.hardwareFingerprint.length > 0
+        ? body.hardwareFingerprint.slice(0, 128)
+        : null;
+
     const supabase = getServiceClient();
 
     // Find active event by slug + join code
@@ -61,16 +67,33 @@ export async function POST(req: NextRequest) {
       return jsonError('Invalid event or join code', 404);
     }
 
-    // Check if this device fingerprint is banned for this event
+    // Check if this device is banned — check BOTH fingerprint types
+    const banChecks: Promise<boolean>[] = [];
     if (fingerprint) {
-      const { data: banned } = await supabase
-        .from('banned_devices')
-        .select('id')
-        .eq('event_id', event.id)
-        .eq('device_fingerprint', fingerprint)
-        .maybeSingle();
-
-      if (banned) {
+      banChecks.push(
+        supabase
+          .from('banned_devices')
+          .select('id')
+          .eq('event_id', event.id)
+          .eq('device_fingerprint', fingerprint)
+          .maybeSingle()
+          .then(({ data }) => !!data)
+      );
+    }
+    if (hwFingerprint) {
+      banChecks.push(
+        supabase
+          .from('banned_devices')
+          .select('id')
+          .eq('event_id', event.id)
+          .eq('device_fingerprint', hwFingerprint)
+          .maybeSingle()
+          .then(({ data }) => !!data)
+      );
+    }
+    if (banChecks.length > 0) {
+      const results = await Promise.all(banChecks);
+      if (results.some((banned) => banned)) {
         return jsonError('Device is banned from this event', 403);
       }
     }
@@ -78,7 +101,7 @@ export async function POST(req: NextRequest) {
     let participantId: string | null = null;
     let participant: Record<string, unknown> | null = null;
 
-    // Reconnect existing participant by fingerprint
+    // Reconnect existing participant by fingerprint (try localStorage UUID first, then hardware)
     if (fingerprint) {
       const { data: existing } = await supabase
         .from('participants')
@@ -88,12 +111,47 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (existing) {
-        // Reject banned participants even if device ban table was missed
         if (existing.is_banned) {
           return jsonError('Device is banned from this event', 403);
         }
         participantId = existing.id;
         participant = existing;
+
+        // Update hardware fingerprint if not already set
+        if (hwFingerprint) {
+          supabase
+            .from('participants')
+            .update({ hardware_fingerprint: hwFingerprint })
+            .eq('id', existing.id)
+            .then();
+        }
+      }
+    }
+
+    // Try reconnect by hardware fingerprint (for incognito re-visits)
+    if (!participantId && hwFingerprint) {
+      const { data: existing } = await supabase
+        .from('participants')
+        .select('id, event_id, device_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at')
+        .eq('event_id', event.id)
+        .eq('hardware_fingerprint', hwFingerprint)
+        .maybeSingle();
+
+      if (existing) {
+        if (existing.is_banned) {
+          return jsonError('Device is banned from this event', 403);
+        }
+        participantId = existing.id;
+        participant = existing;
+
+        // Update localStorage fingerprint to current one
+        if (fingerprint) {
+          supabase
+            .from('participants')
+            .update({ device_fingerprint: fingerprint })
+            .eq('id', existing.id)
+            .then();
+        }
       }
     }
 
@@ -104,6 +162,7 @@ export async function POST(req: NextRequest) {
         .insert({
           event_id: event.id,
           device_fingerprint: fingerprint,
+          hardware_fingerprint: hwFingerprint,
           display_name: '',
           gender: 'male',
           attracted_to: 'all',

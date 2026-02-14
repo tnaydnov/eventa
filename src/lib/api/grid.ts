@@ -49,9 +49,9 @@ export async function getGridParticipants(
 
   if (!participants) return [];
 
-  // Filter out blocked + incomplete profiles
+  // Filter out blocked + incomplete profiles (must have name AND age)
   let filtered = participants.filter((p) => !blockedIds.has(p.id));
-  filtered = filtered.filter((p) => p.display_name.trim().length > 0);
+  filtered = filtered.filter((p) => p.display_name.trim().length > 0 && p.age != null);
 
   // Apply cross-attraction matching
   if (myProfile) {

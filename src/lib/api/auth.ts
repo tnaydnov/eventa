@@ -4,7 +4,8 @@ import type { Participant } from '../database.types';
 export async function joinEvent(
   eventSlug: string,
   joinCode: string,
-  clientLocalId?: string
+  clientLocalId?: string,
+  hardwareFingerprint?: string
 ): Promise<{
   eventId: string;
   eventName: string;
@@ -16,7 +17,12 @@ export async function joinEvent(
     const res = await fetch('/api/auth/join', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eventSlug, joinCode, fingerprint: clientLocalId }),
+      body: JSON.stringify({
+        eventSlug,
+        joinCode,
+        fingerprint: clientLocalId,
+        hardwareFingerprint,
+      }),
     });
     if (!res.ok) {
       // Surface specific error for banned devices

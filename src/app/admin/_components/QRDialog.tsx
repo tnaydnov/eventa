@@ -22,8 +22,8 @@ export default function QRDialog({ event, dataUrl, onClose, onDownload, onCopyUr
         </p>
 
         {dataUrl && (
-          <div style={{ background: 'var(--admin-bg)', padding: '20px', borderRadius: '12px', display: 'inline-block', marginBottom: '16px' }}>
-            <img src={dataUrl} alt="QR Code" style={{ width: '300px', height: '300px' }} />
+          <div style={{ background: 'var(--admin-bg)', padding: '20px', borderRadius: '12px', display: 'inline-block', marginBottom: '16px', maxWidth: '100%' }}>
+            <img src={dataUrl} alt="QR Code" className="qr-dialog__img" />
           </div>
         )}
 

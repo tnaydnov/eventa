@@ -4,26 +4,9 @@ import { use, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSessionStore } from '@/lib/store';
 import { joinEvent } from '@/lib/api';
+import { getDeviceIdentifiers } from '@/lib/device-fingerprint';
 import { PageTransition } from '@/components/Animations';
 import MobileGuard from '@/components/MobileGuard';
-
-function generateLocalId(): string {
-  if (typeof window === 'undefined') return '';
-  let id = localStorage.getItem('wedding_local_id');
-  if (!id) {
-    // crypto.randomUUID requires HTTPS and modern browser — fallback for older devices
-    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-      id = crypto.randomUUID();
-    } else {
-      id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-        const r = (Math.random() * 16) | 0;
-        return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-      });
-    }
-    localStorage.setItem('wedding_local_id', id);
-  }
-  return id;
-}
 
 /** Detect in-app browsers / QR scanner WebViews that don't persist cookies */
 function isInAppBrowser(): boolean {
@@ -103,8 +86,8 @@ export default function JoinPage({
     setError('');
 
     try {
-      const localId = generateLocalId();
-      const result = await joinEvent(eventSlug, joinCode, localId);
+      const { localId, hardwareFingerprint } = await getDeviceIdentifiers();
+      const result = await joinEvent(eventSlug, joinCode, localId, hardwareFingerprint);
 
       if (!result) {
         setError('קוד כניסה לא תקין או שהאירוע לא פעיל');

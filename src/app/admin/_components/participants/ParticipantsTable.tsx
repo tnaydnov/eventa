@@ -135,9 +135,11 @@ export default function ParticipantsTable({ eventId, isArchived }: ParticipantsT
     return result;
   }, [participants, genderFilter, search, sortField, sortDir]);
 
-  /* ─── Counts ─── */
-  const totalMen = participants.filter(p => p.gender === 'male').length;
-  const totalWomen = participants.filter(p => p.gender === 'female').length;
+  /* ─── Counts (only count profile-complete participants) ─── */
+  const complete = participants.filter((p: any) => p.profile_complete !== false);
+  const incomplete = participants.filter((p: any) => p.profile_complete === false);
+  const totalMen = complete.filter(p => p.gender === 'male').length;
+  const totalWomen = complete.filter(p => p.gender === 'female').length;
   const totalBanned = participants.filter(p => p.is_banned).length;
 
   /* ─── Column header helper ─── */
@@ -172,7 +174,7 @@ export default function ParticipantsTable({ eventId, isArchived }: ParticipantsT
               className={`pt-gender-tab ${genderFilter === 'all' ? 'pt-gender-tab--active' : ''}`}
               onClick={() => setGenderFilter('all')}
             >
-              הכל ({participants.length})
+              הכל ({complete.length})
             </button>
             <button
               className={`pt-gender-tab ${genderFilter === 'male' ? 'pt-gender-tab--active' : ''}`}
@@ -189,6 +191,9 @@ export default function ParticipantsTable({ eventId, isArchived }: ParticipantsT
           </div>
         </div>
         <div className="pt-toolbar__left">
+          {incomplete.length > 0 && (
+            <span className="pt-banned-count" style={{ color: '#ff9800' }}>⚠️ {incomplete.length} לא השלימו פרופיל</span>
+          )}
           {totalBanned > 0 && (
             <span className="pt-banned-count">🚫 {totalBanned} חסומים</span>
           )}
@@ -240,8 +245,11 @@ export default function ParticipantsTable({ eventId, isArchived }: ParticipantsT
                 <tbody>
                   {filtered.map(p => (
                     <tr key={p.id} className={`pt-row ${p.is_banned ? 'pt-row--banned' : ''}`}>
-                      <td className="pt-td pt-td--name">
+                      <td className="pt-td pt-td--name" style={(p as any).profile_complete === false ? { opacity: 0.5 } : undefined}>
                         {p.display_name || '(ללא שם)'}
+                        {(p as any).profile_complete === false && (
+                          <span style={{ fontSize: '11px', color: '#ff9800', marginRight: '6px' }}>⚠️ לא השלים</span>
+                        )}
                       </td>
                       <td className="pt-td">
                         {genderLabel(p.gender)}
