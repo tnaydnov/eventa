@@ -118,6 +118,34 @@
   margin-top: 4px;
 }
 
+/* ── Photo required error state ── */
+.photo-section-error .profile-edit-photo-grid {
+  border: 1.5px dashed var(--danger);
+  border-radius: 14px;
+  padding: 6px;
+  animation: photo-error-shake 0.4s ease-in-out;
+}
+
+.photo-section-error .profile-edit-photo-item.add {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.04);
+}
+
+.photo-required-error {
+  text-align: center;
+  font-size: 13px !important;
+  margin-top: 8px !important;
+  font-weight: 500;
+}
+
+@keyframes photo-error-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
 .profile-edit-hint {
   font-size: 12px;
   color: var(--text-muted);

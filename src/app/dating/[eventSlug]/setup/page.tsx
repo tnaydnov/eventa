@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -51,17 +51,22 @@ export default function ProfileSetupPage({
   const lookingFor = watch('looking_for');
 
   const [uploadedPhotos, setUploadedPhotos] = useState<ParticipantPhoto[]>([]);
+  const [photoError, setPhotoError] = useState(false);
+  const photoSectionRef = useRef<HTMLDivElement>(null);
 
   const handlePhotosChange = (photos: ParticipantPhoto[]) => {
     setUploadedPhotos(photos);
     setStorePhotos(photos);
+    if (photos.length > 0) setPhotoError(false);
   };
 
   const onSubmit = async (data: ProfileSetupData) => {
     if (!session) return;
 
     if (uploadedPhotos.length === 0) {
-      toast('נא להעלות לפחות תמונה אחת');
+      setPhotoError(true);
+      toast('חובה להעלות לפחות תמונה אחת 📸');
+      photoSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
@@ -116,13 +121,18 @@ export default function ProfileSetupPage({
 
           <form onSubmit={handleSubmit(onSubmit)} className="profile-edit-form">
             {/* ─── Photos Section ─── */}
-            <ProfilePhotoGrid
-              eventId={session.eventId}
-              participantId={session.participantId}
-              photos={uploadedPhotos}
-              onPhotosChange={handlePhotosChange}
-              toast={toast}
-            />
+            <div ref={photoSectionRef} className={photoError ? 'photo-section-error' : ''}>
+              <ProfilePhotoGrid
+                eventId={session.eventId}
+                participantId={session.participantId}
+                photos={uploadedPhotos}
+                onPhotosChange={handlePhotosChange}
+                toast={toast}
+              />
+              {photoError && (
+                <p className="profile-edit-error photo-required-error">חובה להעלות לפחות תמונה אחת</p>
+              )}
+            </div>
 
             {/* ─── Basic Info ─── */}
             <div className="profile-edit-section">
