@@ -39,7 +39,7 @@ export async function getGridParticipants(
       .single(),
     supabase
       .from('participants')
-      .select('id, event_id, device_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at, participant_photos(id, event_id, participant_id, storage_path, order_index, created_at)')
+      .select('id, event_id, device_fingerprint, hardware_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at, participant_photos(id, event_id, participant_id, storage_path, order_index, created_at)')
       .eq('event_id', eventId)
       .eq('is_banned', false)
       .neq('id', myId)
