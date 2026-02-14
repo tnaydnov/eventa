@@ -585,6 +585,8 @@
 .admin-input--ltr {
   direction: ltr;
   text-align: left;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .admin-label {
@@ -789,6 +791,8 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .admin-grid-3 {
@@ -962,6 +966,8 @@
 /* Form fields */
 .ced-field {
   margin-bottom: 16px;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .ced-field-error {
@@ -978,6 +984,9 @@
   gap: 6px;
   margin-top: 6px;
   font-size: 12px;
+  overflow: hidden;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .ced-slug-preview__label {
@@ -993,6 +1002,11 @@
   color: var(--admin-accent);
   font-family: 'Courier New', monospace;
   font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  min-width: 0;
 }
 
 /* Textarea */
@@ -2165,6 +2179,8 @@
     max-height: 92vh;
     max-width: 100%;
     border-radius: var(--admin-radius) var(--admin-radius) 0 0;
+    overflow-x: hidden;
+    word-break: break-word;
   }
 
   .admin-dialog--lg {
