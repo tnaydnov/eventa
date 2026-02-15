@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useMatchStore, useSessionStore, useGridStore } from '@/lib/store';
+import { useMatchStore, useSessionStore } from '@/lib/store';
 import { getOrCreateConversation, getPhotoUrl } from '@/lib/api';
 
 /**
@@ -26,23 +26,11 @@ export default function MatchPopup() {
   const clearPendingMatch = useMatchStore((s) => s.clearPendingMatch);
   const [navigating, setNavigating] = useState(false);
 
-  // Derive my photo from session store → grid participants (or fallback)
-  const [myPhotoUrl, setMyPhotoUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!session || !pendingMatch) return;
-
-    // Try to get my photo from the participants already loaded in grid
-    const me = useGridStore
-      .getState()
-      .participants.find((p: { id: string }) => p.id === session.participantId);
-
-    if (me?.photos?.[0]) {
-      setMyPhotoUrl(getPhotoUrl(me.photos[0].storage_path));
-    } else {
-      setMyPhotoUrl(null);
-    }
-  }, [session, pendingMatch]);
+  // Derive my photo from session store photos (user's own uploaded photos)
+  const myPhotos = useSessionStore((s) => s.photos);
+  const myPhotoUrl = myPhotos?.[0]?.storage_path
+    ? getPhotoUrl(myPhotos[0].storage_path)
+    : null;
 
   const handleSendMessage = useCallback(async () => {
     if (!session || !pendingMatch || navigating) return;
