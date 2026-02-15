@@ -3,6 +3,7 @@ import { adminAuditLog } from '@/lib/admin-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
+import { evictEventStatusCache } from '@/lib/route-helpers';
 
 /**
  * DELETE /api/admin/events/[eventId]/delete
@@ -73,19 +74,7 @@ export async function DELETE(
     }
     await supabase.from('conversations').delete().eq('event_id', eventId);
 
-    // 4. Delete independent tables in parallel (+ compass which has its own sub-query)
-    const compassCleanup = (async () => {
-      const { data: cSess } = await supabase
-        .from('compass_sessions')
-        .select('id')
-        .eq('event_id', eventId);
-      const csIds = (cSess || []).map((c: { id: string }) => c.id);
-      if (csIds.length > 0) {
-        await supabase.from('compass_locations').delete().in('compass_session_id', csIds);
-      }
-      await supabase.from('compass_sessions').delete().eq('event_id', eventId);
-    })();
-
+    // 4. Delete independent tables in parallel
     await Promise.all([
       supabase.from('likes').delete().eq('event_id', eventId),
       supabase.from('blocks').delete().eq('event_id', eventId),
@@ -93,7 +82,6 @@ export async function DELETE(
       supabase.from('notifications').delete().eq('event_id', eventId),
       supabase.from('activity_log').delete().eq('event_id', eventId),
       supabase.from('event_analytics_snapshots').delete().eq('event_id', eventId),
-      compassCleanup,
     ]);
 
     // 5. Delete participants + the event itself (order: FK children first)
@@ -106,6 +94,7 @@ export async function DELETE(
 
     await supabase.from('events').delete().eq('id', eventId);
 
+    evictEventStatusCache(eventId);
     adminAuditLog('EVENT_DELETE', { eventId }, req);
     return NextResponse.json({ success: true });
   } catch (err) {

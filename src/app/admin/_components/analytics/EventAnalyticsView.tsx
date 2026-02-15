@@ -170,7 +170,6 @@ export default function EventAnalyticsView({
                 <StatCard icon="💘" label="התאמות" value={analytics.totalMatches} color="green" />
                 <StatCard icon="💬" label="שיחות" value={analytics.totalConversations} color="blue" />
                 <StatCard icon="✉️" label="הודעות" value={analytics.totalMessages} color="purple" />
-                <StatCard icon="🧭" label="מצפן" value={analytics.compassSessionsActivated} color="orange" />
               </div>
             </div>
           )}

@@ -1,7 +1,7 @@
 'use client';
 
 import { getPhotoUrl } from '@/lib/api';
-import { UserIcon, CompassIcon } from '@/components/Icons';
+import { UserIcon } from '@/components/Icons';
 import type { Participant, ParticipantPhoto } from '@/lib/database.types';
 
 interface ChatHeaderProps {
@@ -9,12 +9,9 @@ interface ChatHeaderProps {
   onBack: () => void;
   onUserClick: () => void;
   onMenuToggle: () => void;
-  compassEligible: boolean | null;
-  compassWaiting: boolean;
-  onCompassClick: () => void;
 }
 
-export default function ChatHeader({ otherUser, onBack, onUserClick, onMenuToggle, compassEligible, compassWaiting, onCompassClick }: ChatHeaderProps) {
+export default function ChatHeader({ otherUser, onBack, onUserClick, onMenuToggle }: ChatHeaderProps) {
   return (
     <div
       style={{
@@ -69,29 +66,6 @@ export default function ChatHeader({ otherUser, onBack, onUserClick, onMenuToggl
           )}
           <span style={{ fontWeight: 600 }}>{otherUser.display_name}</span>
         </div>
-      )}
-
-      {compassEligible !== false && (
-        <button
-          onClick={onCompassClick}
-          disabled={compassWaiting}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: compassWaiting ? 'var(--text-muted)' : 'var(--primary)',
-            cursor: compassWaiting ? 'not-allowed' : 'pointer',
-            padding: '6px',
-            minWidth: '40px',
-            minHeight: '40px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: compassWaiting ? 0.5 : 1,
-          }}
-          aria-label="מצפן מפגש"
-        >
-          <CompassIcon size={22} />
-        </button>
       )}
 
       <button

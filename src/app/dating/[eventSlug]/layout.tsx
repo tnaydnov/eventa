@@ -3,7 +3,6 @@
 import { use, type ReactNode } from 'react';
 import dynamic from 'next/dynamic';
 import SessionProvider from '@/components/SessionProvider';
-import CompassRequestListener from '@/components/CompassRequestListener';
 import RealtimeNotificationListener from '@/components/RealtimeNotificationListener';
 import PushSubscriptionManager from '@/components/PushSubscriptionManager';
 import NetworkStatus from '@/components/NetworkStatus';
@@ -26,7 +25,6 @@ export default function EventLayout({
       <NetworkStatus />
       <HeartbeatPinger />
       {children}
-      <CompassRequestListener />
       <RealtimeNotificationListener />
       <PushSubscriptionManager />
       <MatchPopup />

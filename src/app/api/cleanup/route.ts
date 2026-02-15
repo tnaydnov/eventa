@@ -92,14 +92,13 @@ async function handler(req: NextRequest) {
 
         // Fallback: compute basic counts directly
         if (!snapshot) {
-          const [pCount, lCount, cCount, mCount, bCount, csCount, phCount] =
+          const [pCount, lCount, cCount, mCount, bCount, phCount] =
             await Promise.all([
               supabase.from('participants').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
               supabase.from('likes').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
               supabase.from('conversations').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
               supabase.from('messages').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
               supabase.from('blocks').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
-              supabase.from('compass_sessions').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
               supabase.from('participant_photos').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
             ]);
           snapshot = {
@@ -108,7 +107,6 @@ async function handler(req: NextRequest) {
             totalConversations: cCount.count || 0,
             totalMessages: mCount.count || 0,
             totalBlocks: bCount.count || 0,
-            compassRequestsSent: csCount.count || 0,
             totalPhotosUploaded: phCount.count || 0,
             _partial: true, // flag: this is a basic fallback, not full analytics
           };
@@ -163,23 +161,6 @@ async function handler(req: NextRequest) {
       totalDeletedFiles += allPaths.length + bgPaths.length;
 
       // ── Step 3: Cascade-delete user data (FK order) ──
-      // Compass: locations → sessions
-      const { data: compassSessions } = await supabase
-        .from('compass_sessions')
-        .select('id')
-        .eq('event_id', eventId);
-      const csIds = (compassSessions || []).map((cs) => cs.id);
-      if (csIds.length > 0) {
-        await supabase
-          .from('compass_locations')
-          .delete()
-          .in('compass_session_id', csIds);
-      }
-      await supabase
-        .from('compass_sessions')
-        .delete()
-        .eq('event_id', eventId);
-
       // Independent tables in parallel
       await Promise.all([
         supabase.from('notifications').delete().eq('event_id', eventId),

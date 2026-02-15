@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
     const [
       eventsRes, participantsRes, photosRes, likesRes,
-      conversationsRes, messagesRes, blocksRes, compassRes, snapshotsRes,
+      conversationsRes, messagesRes, blocksRes, snapshotsRes,
     ] = await Promise.all([
       supabase.from('events').select('id, name, event_type, status, created_at, archived_at').limit(ANALYTICS_LIMIT),
       supabase.from('participants').select('id, event_id, gender, attracted_to, age, display_name, created_at').limit(ANALYTICS_LIMIT),
@@ -32,7 +32,6 @@ export async function GET(req: NextRequest) {
       supabase.from('conversations').select('id, event_id, created_at').limit(ANALYTICS_LIMIT),
       supabase.from('messages').select('id, event_id, conversation_id, sender_participant_id, type, created_at').eq('is_deleted', false).limit(ANALYTICS_LIMIT),
       supabase.from('blocks').select('id, event_id, blocker_id, blocked_id, had_like, had_conversation, had_match, created_at').limit(ANALYTICS_LIMIT),
-      supabase.from('compass_sessions').select('id, event_id, activated_at, closed_at').limit(ANALYTICS_LIMIT),
       supabase.from('event_analytics_snapshots').select('event_id, snapshot').limit(ANALYTICS_LIMIT),
     ]);
 
@@ -43,7 +42,6 @@ export async function GET(req: NextRequest) {
     const conversations = conversationsRes.data || [];
     const messages     = messagesRes.data || [];
     const blocks       = blocksRes.data || [];
-    const compassSessions = compassRes.data || [];
     const snapshots    = snapshotsRes.data || [];
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -207,16 +205,6 @@ export async function GET(req: NextRequest) {
       else d.blocksNoInteraction++;
     }
 
-    /* ── Compass ── */
-    const compassTotal = compassSessions.length;
-    let compassDurTotal = 0, compassDurN = 0;
-    for (const s of compassSessions) {
-      if (s.activated_at && s.closed_at) {
-        const dur = new Date(s.closed_at).getTime() - new Date(s.activated_at).getTime();
-        if (dur > 0) { compassDurTotal += dur; compassDurN++; }
-      }
-    }
-
     /* ═══ Archived event snapshot data ═══ */
     const archivedRows: EventComparisonRow[] = [];
     for (const e of events) {
@@ -238,7 +226,7 @@ export async function GET(req: NextRequest) {
     /* ═══ Grand totals (live + archived) ═══ */
     let gP = 0, gMen = 0, gWomen = 0;
     let gLikes = 0, gMatches = 0, gConvos = 0, gMessages = 0, gBlocks = 0;
-    let gPhotos = 0, gCompass = compassTotal;
+    let gPhotos = 0;
     let gLikesSeen = 0, gLikesTotal = 0;
     let gBlocksConvo = 0, gBlocksLike = 0, gBlocksNone = 0;
     let gText = 0, gImage = 0;
@@ -274,7 +262,6 @@ export async function GET(req: NextRequest) {
         gMen += snap.totalMen || 0;
         gWomen += snap.totalWomen || 0;
         gPhotos += snap.totalPhotosUploaded || 0;
-        gCompass += snap.compassRequestsSent || 0;
         gLikesSeen += snap.likesSeenCount || 0;
         gLikesTotal += snap.totalLikes || 0;
         gBlocksConvo += snap.blocksAfterConversation || 0;
@@ -408,7 +395,6 @@ export async function GET(req: NextRequest) {
 
     const avgTimeToFirstLikeMinutes    = tLikeN > 0 ? Math.round(tLikeSum / tLikeN) : 0;
     const avgTimeToFirstMessageMinutes = tMsgN  > 0 ? Math.round(tMsgSum / tMsgN) : 0;
-    const avgCompassDurationSeconds    = compassDurN > 0 ? Math.round(compassDurTotal / compassDurN / 1000) : 0;
 
     /* ═══ Cross-event averages ═══ */
     const n = totalEvents || 1;
@@ -477,7 +463,7 @@ export async function GET(req: NextRequest) {
       avgWomenPct: gP > 0 ? Math.round((gWomen / gP) * 100) : 0,
       totalLikes: gLikes, totalMatches: gMatches, totalConversations: gConvos,
       totalMessages: gMessages, totalBlocks: gBlocks,
-      totalCompassSessions: gCompass, totalPhotos: gPhotos,
+      totalPhotos: gPhotos,
       overallMatchRate, overallGhostRate, overallResponseRate,
       overallLikeSeenRate, overallBlockRate, overallPhotoRate, photoImpactDelta,
       avgLikesPerEvent:         Math.round((gLikes / n) * 10) / 10,
@@ -487,7 +473,7 @@ export async function GET(req: NextRequest) {
       avgBlocksPerEvent:        Math.round((gBlocks / n) * 10) / 10,
       avgMatchRatePerEvent:     overallMatchRate,
       avgTimeToFirstLikeMinutes, avgTimeToFirstMessageMinutes,
-      avgResponseTimeMinutes, avgCompassDurationSeconds,
+      avgResponseTimeMinutes,
       funnel: gFunnel,
       topEventsByParticipants, topEventsByLikes, topEventsByMessages,
       topEventsByMatchRate, topEventsByEngagement,

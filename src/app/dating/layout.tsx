@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Eventa Dating — הפכו כל אירוע לחוויית היכרויות',
     description:
-      'שכבת היכרויות חכמה לכל אירוע. סריקת QR, מאצ׳ים, צ׳אט ומצפן מפגש — הכל בדפדפן.',
+      'שכבת היכרויות חכמה לכל אירוע. סריקת QR, מאצ׳ים וצ׳אט — הכל בדפדפן.',
     url: 'https://eventa.productions/dating',
     images: [{ url: '/og-image.png', width: 1536, height: 1024, alt: 'Eventa Dating' }],
   },

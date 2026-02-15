@@ -36,6 +36,41 @@ export async function GET(req: NextRequest) {
     return response;
   }
 
+  // Check event status — kick users from paused/archived/deleted events
+  const { data: event } = await supabase
+    .from('events')
+    .select('status, is_active')
+    .eq('id', session.eid)
+    .single();
+
+  if (!event) {
+    // Event was deleted from DB
+    const response = NextResponse.json(
+      { error: 'event_inactive', reason: 'deleted' },
+      { status: 410 }
+    );
+    response.headers.set('Set-Cookie', clearSessionCookieHeader());
+    return response;
+  }
+
+  if (event.status === 'paused') {
+    const response = NextResponse.json(
+      { error: 'event_inactive', reason: 'paused' },
+      { status: 410 }
+    );
+    response.headers.set('Set-Cookie', clearSessionCookieHeader());
+    return response;
+  }
+
+  if (event.status === 'archived') {
+    const response = NextResponse.json(
+      { error: 'event_inactive', reason: 'archived' },
+      { status: 410 }
+    );
+    response.headers.set('Set-Cookie', clearSessionCookieHeader());
+    return response;
+  }
+
   return NextResponse.json({
     participantId: session.sub,
     eventId: session.eid,

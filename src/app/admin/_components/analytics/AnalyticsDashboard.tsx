@@ -69,8 +69,6 @@ export default function AnalyticsDashboard({ analytics: a }: Props) {
     ? Math.max(...a.usageTimeline.map(u => u.totalOnline)) : 0;
   const photoRate = a.totalParticipants > 0
     ? Math.round((a.participantsWithPhotos / a.totalParticipants) * 100) : 0;
-  const compassConvRate = a.compassRequestsSent > 0
-    ? Math.round((a.compassSessionsActivated / a.compassRequestsSent) * 100) : 0;
   const menPct = a.totalParticipants > 0
     ? Math.round((a.totalMen / a.totalParticipants) * 100) : 0;
   const womenPct = a.totalParticipants > 0
@@ -139,7 +137,6 @@ export default function AnalyticsDashboard({ analytics: a }: Props) {
     { metric: 'לייקים', value: a.totalParticipants > 0 ? Math.min(Math.round(a.totalLikes / a.totalParticipants * 25), 100) : 0 },
     { metric: 'התאמות', value: a.matchRate },
     { metric: 'שיחות', value: a.totalParticipants > 0 ? Math.min(Math.round(a.totalConversations / a.totalParticipants * 50), 100) : 0 },
-    { metric: 'מצפן', value: compassConvRate },
     { metric: 'תמונות', value: photoRate },
     { metric: 'הודעות', value: a.totalConversations > 0 ? Math.min(Math.round(a.avgMessagesPerConversation * 10), 100) : 0 },
   ];
@@ -268,7 +265,6 @@ export default function AnalyticsDashboard({ analytics: a }: Props) {
               <StatRow label="שיעור התאמה (מתוך זוגות)" value={`${a.matchRate}%`} bar={a.matchRate} barColor={C.green} />
               <StatRow label="ממוצע הודעות לשיחה" value={String(a.avgMessagesPerConversation)} />
               <StatRow label="שיעור העלאת תמונות" value={`${photoRate}%`} bar={photoRate} barColor={C.green} />
-              <StatRow label="שיעור המרת מצפן" value={`${compassConvRate}%`} bar={compassConvRate} barColor={C.cyan} />
               <StatRow label="שיא מחוברים בו-זמנית" value={String(peakUsers)} />
               <StatRow label="לייקים שנצפו" value={`${likeSeenPct}%`} bar={likeSeenPct} barColor={C.orange} />
             </div>
@@ -417,7 +413,6 @@ export default function AnalyticsDashboard({ analytics: a }: Props) {
           <KPI value={`${a.avgTimeToFirstLikeMinutes}ד׳`} label="זמן ללייק ראשון" sub="מהצטרפות" accent="pink" />
           <KPI value={`${a.avgTimeToFirstMessageMinutes}ד׳`} label="זמן להודעה ראשונה" sub="מהתאמה" accent="blue" />
           <KPI value={`${a.avgResponseTimeMinutes}ד׳`} label="זמן תגובה ממוצע" sub="בין הודעות" accent="green" />
-          <KPI value={formatDur(a.avgCompassDurationSeconds)} label="זמן מצפן ממוצע" accent="cyan" />
           <KPI value={String(peakUsers)} label="שיא מחוברים" accent="orange" />
         </div>
       </Section>
@@ -445,18 +440,8 @@ export default function AnalyticsDashboard({ analytics: a }: Props) {
         </Section>
       )}
 
-      {/* ════════════ Secondary: Compass · Photos · Blocks ════════════ */}
+      {/* ════════════ Secondary: Photos · Blocks ════════════ */}
       <div className="ad-grid-3">
-        <div className="ad-chart-card">
-          <h4 className="ad-chart-card__title">🧭 מצפן</h4>
-          <div className="ad-stat-list">
-            <StatRow label="בקשות שנשלחו" value={fmt(a.compassRequestsSent)} />
-            <StatRow label="סשנים פעילים" value={fmt(a.compassSessionsActivated)} valueColor={C.green} />
-            <StatRow label="שיעור המרה" value={`${compassConvRate}%`} bar={compassConvRate} barColor={C.cyan} />
-            <StatRow label="זמן ממוצע" value={formatDur(a.avgCompassDurationSeconds)} />
-          </div>
-        </div>
-
         <div className="ad-chart-card">
           <h4 className="ad-chart-card__title">📸 תמונות</h4>
           <div className="ad-stat-list">

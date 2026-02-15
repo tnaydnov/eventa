@@ -33,9 +33,4 @@ export { blockParticipant } from './blocks';
 export {
   getMatches,
 } from './matches';
-export {
-  closeCompass,
-  checkCompassEligible,
-  updateCompassLocation,
-} from './compass';
 export { deleteAccount } from './account';

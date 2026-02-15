@@ -45,8 +45,6 @@ DROP POLICY IF EXISTS "messages_select" ON messages;
 DROP POLICY IF EXISTS "likes_select" ON likes;
 DROP POLICY IF EXISTS "blocks_select" ON blocks;
 DROP POLICY IF EXISTS "notifications_select" ON notifications;
-DROP POLICY IF EXISTS "compass_sessions_select" ON compass_sessions;
-DROP POLICY IF EXISTS "compass_locations_select" ON compass_locations;
 
 -- ── New event-scoped policies ───────────────────────────────────
 -- PostgREST: enforce event_id = header value
@@ -93,17 +91,6 @@ CREATE POLICY "notifications_select" ON notifications FOR SELECT
     NOT public.is_postgrest_context()
     OR event_id = public.get_request_event_id()
   );
-
-CREATE POLICY "compass_sessions_select" ON compass_sessions FOR SELECT
-  USING (
-    NOT public.is_postgrest_context()
-    OR event_id = public.get_request_event_id()
-  );
-
--- compass_locations doesn't have event_id — keep permissive
--- (only accessible via compass_session_id which is already scoped)
-CREATE POLICY "compass_locations_select" ON compass_locations FOR SELECT
-  USING (true);
 
 -- events: keep open (lookup by slug before event_id is known)
 -- No change needed — original "events_select" USING(true) stays.

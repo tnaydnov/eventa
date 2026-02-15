@@ -77,22 +77,7 @@ export default function PrivacyPage() {
           (למשל עדכון &quot;נראה לאחרונה&quot;, ככל שמופעל בשירות).
         </p>
 
-        <h3 style={subHeadingStyle}>ד. מידע מיקום (אופציונלי)</h3>
-        <p style={textStyle}>
-          נתוני מיקום (אופציונלי): קואורדינטות GPS (קו רוחב/אורך/דיוק, ולעיתים heading)
-          נאספות רק במהלך שימוש פעיל בתכונת &quot;מצפן מפגש&quot; ובהסכמה מפורשת.
-          אנו שואפים למחוק נתוני מיקום בסמוך לסיום סשן המצפן (למשל לאחר סימון
-          הסשן כ&quot;נסגר&quot;), ובכל מקרה נתוני מיקום אינם נשמרים מעבר לנדרש להפעלת
-          התכונה, והם נמחקים במסגרת מחיקת נתוני האירוע (בדרך כלל בתוך עד 7 ימים מסיום האירוע).
-        </p>
-
-        <h3 style={subHeadingStyle}>ה. נתוני חיישנים (אופציונלי)</h3>
-        <p style={textStyle}>
-          כיוון / תנועה (Device Orientation / Motion) לצורך תצוגת כיוון המצפן.
-          ככלל, נתונים אלה משמשים להצגה במכשיר; אם בעתיד ייאספו / יישלחו לשרת, המדיניות תעודכן בהתאם.
-        </p>
-
-        <h3 style={subHeadingStyle}>ו. מזהים טכניים</h3>
+        <h3 style={subHeadingStyle}>ד. מזהים טכניים</h3>
         <ul style={listStyle}>
           <li style={liStyle}>מזהה טכני / UUID הנשמר בדפדפן (למשל לצורך חיבור מחדש, מניעת שימוש כפול / עקיפת חסימות).</li>
           <li style={liStyle}>פרטי אירוע / משתתף מתוך סשן (eventId, participantId וכו&apos;).</li>
@@ -134,7 +119,7 @@ export default function PrivacyPage() {
         <h2 style={headingStyle}>4. מטרות העיבוד</h2>
         <p style={textStyle}>אנו משתמשים במידע לצורך:</p>
         <ul style={listStyle}>
-          <li style={liStyle}>הפעלת השירות (פרופילים, לייקים, צ&apos;אט, מצפן)</li>
+          <li style={liStyle}>הפעלת השירות (פרופילים, לייקים, צ&apos;אט)</li>
           <li style={liStyle}>אבטחה ומניעת שימוש לרעה (חסימות, בדיקות גישה, מניעת עקיפה, מניעת ספאם)</li>
           <li style={liStyle}>תפעול ותחזוקה (איתור תקלות ושיפור יציבות)</li>
         </ul>
@@ -149,7 +134,7 @@ export default function PrivacyPage() {
         <p style={textStyle}>הבסיס לעיבוד הוא:</p>
         <ul style={listStyle}>
           <li style={liStyle}>הסכמתך בעת שימוש בשירות</li>
-          <li style={liStyle}>הסכמה נפרדת לתכונות הדורשות הרשאות (מיקום / מיקרופון וכו&apos;)</li>
+          <li style={liStyle}>הסכמה נפרדת לתכונות הדורשות הרשאות (מיקרופון וכו&apos;)</li>
           <li style={liStyle}>אינטרס לגיטימי של המפעיל לאבטחת השירות, מניעת הונאה, ואכיפת תנאי השימוש</li>
         </ul>
       </div>
@@ -188,7 +173,7 @@ export default function PrivacyPage() {
         <p style={textStyle}>השירות נועד להיות זמני:</p>
         <ul style={listStyle}>
           <li style={liStyle}>
-            מידע אישי הקשור לאירוע (פרופילים, הודעות, תמונות, לייקים, חסימות, נתוני מצפן)
+            מידע אישי הקשור לאירוע (פרופילים, הודעות, תמונות, לייקים, חסימות)
             נמחק בדרך כלל <strong>בתוך עד 7 ימים</strong> מסיום האירוע.
           </li>
           <li style={liStyle}>
@@ -203,19 +188,7 @@ export default function PrivacyPage() {
 
       {/* 9 */}
       <div style={sectionStyle}>
-        <h2 style={headingStyle}>9. נתוני מיקום — הבהרות חשובות</h2>
-        <p style={textStyle}>
-          נתוני מיקום נאספים רק כאשר תכונת &quot;מצפן מפגש&quot; מופעלת ובהסכמה מפורשת.
-          אין מעקב מיקום ברקע כאשר התכונה אינה פעילה. נתוני המיקום נועדו לתפעול
-          התכונה בלבד, ואנו שואפים למחוק אותם בסמוך לסיום סשן המצפן; עם זאת ייתכן
-          עיכוב קצר במחיקה מסיבות טכניות (למשל תקלות, גיבויים או תהליכי סנכרון).
-          דיוק המיקום אינו מובטח.
-        </p>
-      </div>
-
-      {/* 10 */}
-      <div style={sectionStyle}>
-        <h2 style={headingStyle}>10. זכויות המשתמש/ת</h2>
+        <h2 style={headingStyle}>9. זכויות המשתמש/ת</h2>
         <p style={textStyle}>בכפוף לדינים החלים, באפשרותך:</p>
         <ul style={listStyle}>
           <li style={liStyle}>לעדכן פרטים בפרופיל</li>
@@ -227,36 +200,36 @@ export default function PrivacyPage() {
         </p>
       </div>
 
-      {/* 11 */}
+      {/* 10 */}
       <div style={sectionStyle}>
-        <h2 style={headingStyle}>11. קטינים</h2>
+        <h2 style={headingStyle}>10. קטינים</h2>
         <p style={textStyle}>
           השירות מיועד לבני 18+ בלבד. איננו אוספים ביודעין מידע מקטינים.
           אם יימצא חשד סביר לקטינות — ננקוט צעדים להסרה / חסימה / מחיקה.
         </p>
       </div>
 
-      {/* 12 */}
+      {/* 11 */}
       <div style={sectionStyle}>
-        <h2 style={headingStyle}>12. העברת מידע מחוץ לישראל</h2>
+        <h2 style={headingStyle}>11. העברת מידע מחוץ לישראל</h2>
         <p style={textStyle}>
           ספקי התשתית עשויים לאחסן / לעבד מידע מחוץ לישראל.
           אנו נוקטים צעדים סבירים לוודא שהעברת מידע נעשית תחת אמצעי אבטחה מקובלים.
         </p>
       </div>
 
-      {/* 13 */}
+      {/* 12 */}
       <div style={sectionStyle}>
-        <h2 style={headingStyle}>13. שינויים במדיניות</h2>
+        <h2 style={headingStyle}>12. שינויים במדיניות</h2>
         <p style={textStyle}>
           מדיניות זו עשויה להתעדכן מעת לעת. השינויים יפורסמו בשירות.
           המשך שימוש לאחר פרסום שינוי מהווה הסכמה למדיניות המעודכנת.
         </p>
       </div>
 
-      {/* 14 */}
+      {/* 13 */}
       <div style={{ ...sectionStyle, marginBottom: 0 }}>
-        <h2 style={headingStyle}>14. יצירת קשר</h2>
+        <h2 style={headingStyle}>13. יצירת קשר</h2>
         <p style={textStyle}>
           לפניות פרטיות, שאלות או בקשות — השתמש/י באמצעי הקשר המופיעים בשירות.
         </p>

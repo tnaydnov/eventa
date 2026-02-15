@@ -33,13 +33,24 @@ export default function HeartbeatPinger() {
         credentials: 'include',
         signal: controller.signal,
       })
-        .then((res) => {
+        .then(async (res) => {
           if (res.status === 403) {
             // User has been banned — clear session and redirect
             useSessionStore.getState().clearSession();
             localStorage.removeItem('wedding_local_id');
             if (eventSlug) {
               window.location.href = `/dating/${eventSlug}/banned`;
+            } else {
+              window.location.href = '/dating';
+            }
+          } else if (res.status === 410) {
+            // Event is inactive (paused/archived/deleted) — kick user
+            const body = await res.json().catch(() => ({}));
+            const reason = body.reason || 'deleted';
+            useSessionStore.getState().clearSession();
+            localStorage.removeItem('wedding_local_id');
+            if (eventSlug) {
+              window.location.href = `/dating/${eventSlug}/unavailable?reason=${reason}`;
             } else {
               window.location.href = '/dating';
             }

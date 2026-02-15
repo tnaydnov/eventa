@@ -8,8 +8,7 @@ export type LookingFor = 'serious' | 'casual' | 'friends' | 'figuring_out';
 export type EventType = 'wedding' | 'party' | 'brit' | 'bar_mitzvah' | 'corporate' | 'meetup' | 'other';
 export type EventStatus = 'draft' | 'active' | 'paused' | 'ended' | 'archived';
 export type MessageType = 'text' | 'image' | 'system';
-export type CompassStatus = 'pending' | 'active' | 'closed';
-export type NotificationType = 'like_received' | 'compass_request' | 'compass_accepted' | 'compass_declined' | 'compass_cancelled' | 'new_message';
+export type NotificationType = 'like_received' | 'new_message';
 
 /* ---------- Row types ---------- */
 
@@ -108,29 +107,6 @@ export interface Notification {
   is_read: boolean;
 }
 
-export interface CompassSession {
-  id: string;
-  event_id: string;
-  participant_a_id: string;
-  participant_b_id: string;
-  status: CompassStatus;
-  requested_by: string;
-  created_at: string;
-  activated_at: string | null;
-  closed_at: string | null;
-}
-
-export interface CompassLocation {
-  id: string;
-  compass_session_id: string;
-  participant_id: string;
-  lat: number;
-  lng: number;
-  accuracy: number;
-  heading: number | null;
-  updated_at: string;
-}
-
 export interface BannedDevice {
   id: string;
   event_id: string;
@@ -166,8 +142,6 @@ export interface Database {
       likes: { Row: Like; Insert: Omit<Like, 'id' | 'created_at'>; Update: Partial<Like>; Relationships: [] };
       blocks: { Row: Block; Insert: Omit<Block, 'id' | 'created_at'>; Update: Partial<Block>; Relationships: [] };
       notifications: { Row: Notification; Insert: Omit<Notification, 'id' | 'created_at'>; Update: Partial<Notification>; Relationships: [] };
-      compass_sessions: { Row: CompassSession; Insert: Omit<CompassSession, 'id' | 'created_at'>; Update: Partial<CompassSession>; Relationships: [] };
-      compass_locations: { Row: CompassLocation; Insert: Omit<CompassLocation, 'id'>; Update: Partial<CompassLocation>; Relationships: [] };
       banned_devices: { Row: BannedDevice; Insert: Omit<BannedDevice, 'id' | 'banned_at'>; Update: Partial<BannedDevice>; Relationships: [] };
       activity_log: { Row: ActivityLog; Insert: Omit<ActivityLog, 'id' | 'created_at'>; Update: Partial<ActivityLog>; Relationships: [] };
       event_analytics_snapshots: { Row: EventAnalyticsSnapshot; Insert: Omit<EventAnalyticsSnapshot, 'id' | 'created_at'>; Update: Partial<EventAnalyticsSnapshot>; Relationships: [] };
@@ -178,7 +152,6 @@ export interface Database {
       gender: Gender;
       attracted_to: AttractedTo;
       message_type: MessageType;
-      compass_status: CompassStatus;
       notification_type: NotificationType;
     };
   };

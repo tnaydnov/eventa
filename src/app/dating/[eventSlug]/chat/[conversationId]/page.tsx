@@ -25,7 +25,6 @@ import ChatHeader from './_components/ChatHeader';
 import MessageBubble from './_components/MessageBubble';
 import ChatInputBar from './_components/ChatInputBar';
 import BlockConfirmDialog from './_components/BlockConfirmDialog';
-import { useCompassWait } from './_hooks/useCompassWait';
 
 export default function ChatRoomPage({
   params,
@@ -59,8 +58,6 @@ export default function ChatRoomPage({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ─── Compass wait hook ────────────────────────────────────────
-  const compass = useCompassWait({ session, otherUser, eventSlug, toast });
 
   // ─── Load older messages (keyset pagination) ──────────────────
   const loadOlderMessages = async () => {
@@ -139,7 +136,6 @@ export default function ChatRoomPage({
       if (resolvedOther) {
         useNotificationStore.getState().removeGridHighlightByType(resolvedOther.id, 'message');
         useNotificationStore.getState().removeUnreadConvo(conversationId);
-        compass.refreshEligibility(resolvedOther.id);
       }
     }
     load();
@@ -334,11 +330,6 @@ export default function ChatRoomPage({
           onBack={() => router.back()}
           onUserClick={() => otherUser && router.push(`/dating/${eventSlug}/user/${otherUser.id}`)}
           onMenuToggle={() => setShowMenu(!showMenu)}
-          compassEligible={compass.compassEligible}
-          compassWaiting={compass.compassWaiting}
-          onCompassClick={async () => {
-            await compass.handleCompassRequest();
-          }}
         />
 
         {/* Menu dropdown */}
@@ -373,43 +364,6 @@ export default function ChatRoomPage({
               }}
             >
               🚫 חסום משתמש
-            </button>
-          </div>
-        )}
-
-        {/* Compass waiting banner */}
-        {compass.compassWaiting && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            padding: '10px 16px',
-            background: 'linear-gradient(135deg, rgba(233,30,99,0.1) 0%, rgba(156,39,176,0.1) 100%)',
-            borderBottom: '1px solid var(--card-border)',
-            fontSize: '14px',
-            color: 'var(--primary)',
-            fontWeight: 600,
-            animation: 'pulse-badge 2s infinite',
-          }}>
-            <span style={{ fontSize: '18px' }}>🧭</span>
-            <span style={{ flex: 1 }}>
-              ממתינים לאישור מצפן מ{otherUser?.display_name || 'הצד השני'}...
-            </span>
-            <button
-              onClick={() => compass.cancelCompassWait()}
-              style={{
-                background: 'none',
-                border: '1px solid var(--primary)',
-                borderRadius: '8px',
-                padding: '4px 12px',
-                color: 'var(--primary)',
-                fontSize: '13px',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              ✕ ביטול
             </button>
           </div>
         )}

@@ -277,7 +277,6 @@ function AnalyticsContent({ d }: { d: GlobalAnalytics }) {
           <KPI value={formatDur(d.avgTimeToFirstLikeMinutes)} label="זמן ללייק ראשון" sub="מהצטרפות" accent="pink" />
           <KPI value={formatDur(d.avgTimeToFirstMessageMinutes)} label="זמן להודעה ראשונה" sub="מהתאמה" accent="blue" />
           <KPI value={`${d.avgResponseTimeMinutes}ד׳`} label="זמן תגובה ממוצע" sub="בין הודעות" accent="green" />
-          <KPI value={`${d.avgCompassDurationSeconds}ש׳`} label="זמן מצפן ממוצע" accent="cyan" />
         </div>
       </Section>
 
@@ -447,10 +446,8 @@ function AnalyticsContent({ d }: { d: GlobalAnalytics }) {
         </div>
 
         <div className="ad-chart-card">
-          <h4 className="ad-chart-card__title">🧭 מצפן & תמונות</h4>
+          <h4 className="ad-chart-card__title">📸 תמונות</h4>
           <div className="ad-stat-list">
-            <StatRow label="סשנים" value={fmt(d.totalCompassSessions)} />
-            <StatRow label="זמן ממוצע" value={`${d.avgCompassDurationSeconds}ש׳`} />
             <StatRow label="תמונות" value={fmt(d.totalPhotos)} />
             <StatRow label="שיעור תמונות" value={`${d.overallPhotoRate}%`} bar={d.overallPhotoRate} barColor={C.green} />
             {d.photoImpactDelta > 0 && <StatRow label="השפעת תמונה" value={`+${d.photoImpactDelta} לייקים`} valueColor={C.green} />}

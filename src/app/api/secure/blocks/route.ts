@@ -8,7 +8,7 @@ import { secureGuard, jsonError } from '@/lib/route-helpers';
  * POST /api/secure/blocks — Block a participant.
  *
  * Cascade: inserts block row, removes bidirectional likes,
- * deletes conversation + messages, closes compass sessions,
+ * deletes conversation + messages,
  * and clears notifications between the pair.
  */
 export async function POST(req: NextRequest) {
@@ -123,16 +123,6 @@ export async function POST(req: NextRequest) {
         await supabase.storage.from('photos').remove(mediaPaths);
       }
     }
-
-    // Close compass sessions between the pair
-    await supabase
-      .from('compass_sessions')
-      .update({ status: 'closed', closed_at: new Date().toISOString() })
-      .eq('event_id', eventId)
-      .or(
-        `and(participant_a_id.eq.${blockerId},participant_b_id.eq.${blockedId}),and(participant_a_id.eq.${blockedId},participant_b_id.eq.${blockerId})`
-      )
-      .neq('status', 'closed');
 
     return NextResponse.json({ success: true });
   } catch (err) {

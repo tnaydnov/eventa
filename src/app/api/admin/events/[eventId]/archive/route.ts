@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
+import { evictEventStatusCache } from '@/lib/route-helpers';
 import { adminAuditLog } from '@/lib/admin-auth';
 
 /**
@@ -63,13 +64,12 @@ export async function POST(
         snapshot = await analyticsRes.json();
       } else {
         // Fallback to basic counts if full analytics fails
-        const [pCount, lCount, cCount, mCount, bCount, csCount] = await Promise.all([
+        const [pCount, lCount, cCount, mCount, bCount] = await Promise.all([
           supabase.from('participants').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
           supabase.from('likes').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
           supabase.from('conversations').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
           supabase.from('messages').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
           supabase.from('blocks').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
-          supabase.from('compass_sessions').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
         ]);
         snapshot = {
           totalParticipants: pCount.count || 0,
@@ -77,7 +77,6 @@ export async function POST(
           totalConversations: cCount.count || 0,
           totalMessages: mCount.count || 0,
           totalBlocks: bCount.count || 0,
-          compassSessionsActivated: csCount.count || 0,
         };
       }
     } catch {
@@ -115,11 +114,6 @@ export async function POST(
     // ── Step 3: Purge user data (cascade-safe order) ──
     // Delete in dependency order: leaf tables first
     await supabase.from('notifications').delete().eq('event_id', eventId);
-    await supabase.from('compass_locations').delete().in(
-      'compass_session_id',
-      (await supabase.from('compass_sessions').select('id').eq('event_id', eventId)).data?.map((s: { id: string }) => s.id) || []
-    );
-    await supabase.from('compass_sessions').delete().eq('event_id', eventId);
     await supabase.from('activity_log').delete().eq('event_id', eventId);
     await supabase.from('messages').delete().eq('event_id', eventId);
     await supabase.from('conversations').delete().eq('event_id', eventId);
@@ -156,6 +150,7 @@ export async function POST(
       return jsonError('Failed to archive event', 500);
     }
 
+    evictEventStatusCache(eventId);
     adminAuditLog('EVENT_ARCHIVE', { eventId, eventName: event.name, snapshot }, req);
 
     return NextResponse.json({ success: true, snapshot });

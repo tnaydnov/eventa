@@ -58,11 +58,6 @@ export interface EventAnalytics {
   avgTimeToFirstLikeMinutes: number;  // avg time from join to first like
   avgTimeToFirstMessageMinutes: number; // avg time from match to first message
 
-  // === Compass ===
-  compassRequestsSent: number;
-  compassSessionsActivated: number;
-  avgCompassDurationSeconds: number;
-
   // === Blocks ===
   totalBlocks: number;
   blocksByMen: number;
@@ -143,7 +138,6 @@ export interface GlobalAnalytics {
   totalConversations: number;
   totalMessages: number;
   totalBlocks: number;
-  totalCompassSessions: number;
   totalPhotos: number;
 
   // ═══ Global rates (aggregated) ═══
@@ -167,7 +161,6 @@ export interface GlobalAnalytics {
   avgTimeToFirstLikeMinutes: number;
   avgTimeToFirstMessageMinutes: number;
   avgResponseTimeMinutes: number;
-  avgCompassDurationSeconds: number;
 
   // ═══ Funnel (aggregated across all events) ═══
   funnel: {

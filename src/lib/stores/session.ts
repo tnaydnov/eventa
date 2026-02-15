@@ -47,8 +47,6 @@ export const useSessionStore = create<SessionState>((set) => ({
       useLikesStore.setState({ receivedLikes: [], sentLikes: [] }));
     import('./blocks').then(({ useBlocksStore }) =>
       useBlocksStore.setState({ blocks: [], blockedIds: new Set() }));
-    import('./compass').then(({ useCompassStore }) =>
-      useCompassStore.setState({ activeSession: null, otherLocation: null, myHeading: 0 }));
     import('./matches').then(({ useMatchStore }) =>
       useMatchStore.setState({ pendingMatch: null, matches: [], matchesLoaded: false }));
     import('./notifications').then(({ useNotificationStore }) =>

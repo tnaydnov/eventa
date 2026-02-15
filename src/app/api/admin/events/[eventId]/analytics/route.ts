@@ -53,7 +53,6 @@ export async function GET(
       likesRes,
       conversationsRes,
       messagesRes,
-      compassRes,
       blocksRes,
       activityRes,
     ] = await Promise.all([
@@ -90,12 +89,6 @@ export async function GET(
         .limit(LIMIT),
 
       supabase
-        .from('compass_sessions')
-        .select('id, status, requested_by, created_at, activated_at, closed_at')
-        .eq('event_id', eventId)
-        .limit(LIMIT),
-
-      supabase
         .from('blocks')
         .select('id, blocker_id, blocked_id, had_like, had_conversation, had_match, created_at')
         .eq('event_id', eventId)
@@ -114,7 +107,6 @@ export async function GET(
     const likes = likesRes.data || [];
     const conversations = conversationsRes.data || [];
     const messages = messagesRes.data || [];
-    const compassSessions = compassRes.data || [];
     const blocks = blocksRes.data || [];
     const activityRows = activityRes.data || [];
 
@@ -327,25 +319,6 @@ export async function GET(
     }
     const avgTimeToFirstMessageMinutes = firstMsgTimingCount > 0
       ? Math.round(totalTimeToFirstMsg / firstMsgTimingCount / 60000) : 0;
-
-    // ── Compass ──
-    const compassRequestsSent = compassSessions.length;
-    const compassSessionsActivated = compassSessions.filter(s => s.activated_at).length;
-
-    let totalDuration = 0;
-    let durationCount = 0;
-    for (const s of compassSessions) {
-      if (s.activated_at && s.closed_at) {
-        const dur = new Date(s.closed_at).getTime() - new Date(s.activated_at).getTime();
-        if (dur > 0) {
-          totalDuration += dur;
-          durationCount++;
-        }
-      }
-    }
-    const avgCompassDurationSeconds = durationCount > 0
-      ? Math.round(totalDuration / durationCount / 1000)
-      : 0;
 
     // ── Blocks ──
     const totalBlocks = blocks.length;
@@ -642,9 +615,6 @@ export async function GET(
       funnel,
       avgTimeToFirstLikeMinutes,
       avgTimeToFirstMessageMinutes,
-      compassRequestsSent,
-      compassSessionsActivated,
-      avgCompassDurationSeconds,
       totalBlocks,
       blocksByMen,
       blocksByWomen,

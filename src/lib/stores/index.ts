@@ -7,7 +7,6 @@ export { useGridStore, type GridParticipant } from './grid';
 export { useChatsStore, type ConversationWithDetails } from './chats';
 export { useLikesStore } from './likes';
 export { useBlocksStore } from './blocks';
-export { useCompassStore } from './compass';
 export { useToastStore } from './toast';
 export { useNotificationStore, type GridHighlight } from './notifications';
 export { useSwipeStore } from './swipe';

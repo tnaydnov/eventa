@@ -3,6 +3,7 @@ import { RATE_LIMITS } from '@/lib/rate-limit';
 import { RETENTION_DAYS } from '@/lib/constants';
 import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, jsonError } from '../_helpers';
+import { evictEventStatusCache } from '@/lib/route-helpers';
 import { adminAuditLog } from '@/lib/admin-auth';
 
 /**
@@ -37,6 +38,7 @@ async function handler(req: NextRequest) {
           .from('events')
           .update({ status: 'ended', is_active: false })
           .eq('id', ev.id);
+        evictEventStatusCache(ev.id);
         endedCount++;
       }
     }

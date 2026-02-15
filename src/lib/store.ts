@@ -11,7 +11,6 @@ export {
   type ConversationWithDetails,
   useLikesStore,
   useBlocksStore,
-  useCompassStore,
   useToastStore,
   useNotificationStore,
   type GridHighlight,

@@ -25,12 +25,7 @@ EXCEPTION WHEN duplicate_object THEN null;
 END $$;
 
 DO $$ BEGIN
-  CREATE TYPE compass_status AS ENUM ('pending', 'active', 'closed');
-EXCEPTION WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-  CREATE TYPE notification_type AS ENUM ('like_received', 'compass_request', 'compass_accepted', 'compass_declined', 'compass_cancelled', 'new_message');
+  CREATE TYPE notification_type AS ENUM ('like_received', 'new_message');
 EXCEPTION WHEN duplicate_object THEN null;
 END $$;
 
@@ -167,35 +162,6 @@ CREATE TABLE IF NOT EXISTS notifications (
 CREATE INDEX IF NOT EXISTS idx_notifications_to ON notifications(to_participant_id, is_read);
 CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at);
 
--- Compass Sessions
-CREATE TABLE IF NOT EXISTS compass_sessions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-  participant_a_id UUID NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
-  participant_b_id UUID NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
-  status compass_status NOT NULL DEFAULT 'pending',
-  requested_by UUID NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  activated_at TIMESTAMPTZ,
-  closed_at TIMESTAMPTZ
-);
-
-CREATE INDEX IF NOT EXISTS idx_compass_event ON compass_sessions(event_id);
-
--- Compass Locations
-CREATE TABLE IF NOT EXISTS compass_locations (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  compass_session_id UUID NOT NULL REFERENCES compass_sessions(id) ON DELETE CASCADE,
-  participant_id UUID NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
-  lat NUMERIC NOT NULL,
-  lng NUMERIC NOT NULL,
-  accuracy NUMERIC NOT NULL DEFAULT 0,
-  heading NUMERIC,
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE (compass_session_id, participant_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_compass_locations_participant ON compass_locations(participant_id);
 CREATE INDEX IF NOT EXISTS idx_events_slug ON events(slug);
 
 -- Banned Devices
@@ -257,8 +223,6 @@ ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE blocks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE compass_sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE compass_locations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE banned_devices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE event_analytics_snapshots ENABLE ROW LEVEL SECURITY;
@@ -293,12 +257,6 @@ CREATE POLICY "blocks_select" ON blocks FOR SELECT USING (true);
 -- Notifications: read-only for anon
 CREATE POLICY "notifications_select" ON notifications FOR SELECT USING (true);
 
--- Compass Sessions: read-only for anon
-CREATE POLICY "compass_sessions_select" ON compass_sessions FOR SELECT USING (true);
-
--- Compass Locations: read-only for anon
-CREATE POLICY "compass_locations_select" ON compass_locations FOR SELECT USING (true);
-
 -- Push Subscriptions: no anon access (service_role only)
 -- No SELECT policy = denied for anon
 
@@ -321,14 +279,12 @@ CREATE POLICY "compass_locations_select" ON compass_locations FOR SELECT USING (
 -- ============================================
 -- Enable realtime for key tables
 -- Run in Supabase Dashboard → Database → Replication:
--- Enable messages, likes, blocks, conversations, compass_locations, compass_sessions, notifications
+-- Enable messages, likes, blocks, conversations, notifications
 
 ALTER PUBLICATION supabase_realtime ADD TABLE messages;
 ALTER PUBLICATION supabase_realtime ADD TABLE likes;
 ALTER PUBLICATION supabase_realtime ADD TABLE blocks;
 ALTER PUBLICATION supabase_realtime ADD TABLE conversations;
-ALTER PUBLICATION supabase_realtime ADD TABLE compass_locations;
-ALTER PUBLICATION supabase_realtime ADD TABLE compass_sessions;
 ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
 ALTER PUBLICATION supabase_realtime ADD TABLE participants;
 ALTER PUBLICATION supabase_realtime ADD TABLE events;

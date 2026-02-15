@@ -54,6 +54,14 @@ export default function SessionProvider({
           localStorage.removeItem('wedding_local_id');
           window.location.href = `/dating/${eventSlug}/banned`;
           return;
+        } else if (res.status === 410) {
+          // Event is inactive (paused/archived/deleted)
+          const body = await res.json().catch(() => ({}));
+          const reason = body.reason || 'deleted';
+          useSessionStore.getState().clearSession();
+          localStorage.removeItem('wedding_local_id');
+          window.location.href = `/dating/${eventSlug}/unavailable?reason=${reason}`;
+          return;
         }
       } catch {
         // Cookie verification failed, try localStorage fallback
@@ -109,6 +117,14 @@ export default function SessionProvider({
         localStorage.removeItem('wedding_local_id');
         window.location.href = `/dating/${eventSlug}/banned`;
         return;
+      } else if (res.status === 410) {
+        // Event became inactive while in background — kick them
+        const body = await res.json().catch(() => ({}));
+        const reason = body.reason || 'deleted';
+        useSessionStore.getState().clearSession();
+        localStorage.removeItem('wedding_local_id');
+        window.location.href = `/dating/${eventSlug}/unavailable?reason=${reason}`;
+        return;
       }
       // If verify fails for other reasons, the existing localStorage session still works
       // (JWT cookies are complementary to localStorage sessions)
@@ -157,9 +173,26 @@ export default function SessionProvider({
           filter: `id=eq.${session?.eventId}`,
         },
         handler: (payload) => {
-          const updated = payload.new as { name?: string; background_image?: string | null };
+          const updated = payload.new as {
+            name?: string;
+            background_image?: string | null;
+            status?: string;
+            is_active?: boolean;
+          };
           const current = useSessionStore.getState().session;
           if (!current) return;
+
+          // If event became paused/archived — kick user immediately
+          if (
+            updated.status === 'paused' ||
+            updated.status === 'archived'
+          ) {
+            const reason = updated.status;
+            useSessionStore.getState().clearSession();
+            localStorage.removeItem('wedding_local_id');
+            window.location.href = `/dating/${eventSlug}/unavailable?reason=${reason}`;
+            return;
+          }
 
           const needsUpdate =
             (updated.name && updated.name !== current.eventName) ||

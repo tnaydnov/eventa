@@ -8,7 +8,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 
 type User = { name: string; age: number; city: string; bio: string; gender: string; seed: string; photo: string; lookingFor: string };
 type Msg = { id: number; text: string; type: 'text' | 'system'; sent: boolean; time: string };
-type Screen = 'grid' | 'swipe' | 'user' | 'chats' | 'chat' | 'likes' | 'profile' | 'compass';
+type Screen = 'grid' | 'swipe' | 'user' | 'chats' | 'chat' | 'likes' | 'profile';
 type LikesTab = 'matches' | 'received' | 'sent';
 
 const USERS: User[] = [
@@ -66,7 +66,6 @@ const I = {
   back: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l7-7-7-7"/></svg>,
   close: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>,
   send: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>,
-  compass: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88" fill="currentColor" opacity="0.3"/></svg>,
   block: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>,
   dots: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>,
   camera: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>,
@@ -91,9 +90,6 @@ export default function DemoPhone() {
   const [matchPopup, setMatchPopup] = useState<User | null>(null);
   const [convos, setConvos] = useState<Record<string, Msg[]>>(() => JSON.parse(JSON.stringify(INITIAL_CONVOS)));
   const [chatInput, setChatInput] = useState('');
-  const [compassTarget, setCompassTarget] = useState<User | null>(null);
-  const [compassDist, setCompassDist] = useState('>10 מ׳');
-
   const [myName, setMyName] = useState('');
   const [myAge, setMyAge] = useState('');
   const [myCity, setMyCity] = useState('');
@@ -108,16 +104,6 @@ export default function DemoPhone() {
   const [exitDir, setExitDir] = useState<'left' | 'right' | null>(null);
   const startXRef = useRef(0);
   const msgsRef = useRef<HTMLDivElement>(null);
-
-  // Compass countdown
-  useEffect(() => {
-    if (screen !== 'compass') return;
-    setCompassDist('>10 מ׳');
-    const steps = ['>8 מ׳', '>5 מ׳', '>3 מ׳', '>1 מ׳'];
-    let i = 0;
-    const iv = setInterval(() => { if (i < steps.length) { setCompassDist(steps[i]); i++; } else clearInterval(iv); }, 2000);
-    return () => clearInterval(iv);
-  }, [screen]);
 
   useEffect(() => { if (msgsRef.current) msgsRef.current.scrollTop = msgsRef.current.scrollHeight; }, [convos, chatUser]);
 
@@ -348,7 +334,6 @@ export default function DemoPhone() {
         <img className="demo-chat-hdr-av" src={chatUser.photo} alt="" />
         <span className="demo-chat-hdr-name">{chatUser.name}</span>
         <div style={{ flex: 1 }} />
-        <button className="demo-ibtn" onClick={() => { setCompassTarget(chatUser); setScreen('compass'); }}>{I.compass}</button>
         <button className="demo-ibtn">{I.dots}</button>
       </div>
       <div className="chat-messages demo-msgs" ref={msgsRef}>
@@ -457,23 +442,6 @@ export default function DemoPhone() {
     </div>
   );
 
-  // ── Compass ──
-  const renderCompass = () => (
-    <div className="demo-compass">
-      <div className="demo-detail-hdr">
-        <span style={{ fontWeight: 600, fontSize: 17 }}>🧭 מצפן מפגש</span>
-        <button className="demo-ibtn" onClick={() => setScreen('chat')}>{I.back}</button>
-      </div>
-      <div className="demo-compass-body">
-        <div className="demo-compass-sub">מנווטים אל {compassTarget?.name}</div>
-        <div className="demo-compass-arrow"><svg viewBox="0 0 60 80" width="80" height="100"><path d="M30 0 L52 65 L30 50 L8 65 Z" fill="var(--primary)" /></svg></div>
-        <div className="demo-compass-dist">{compassDist}</div>
-        <div className="demo-compass-warn">⚠ ייתכן חוסר דיוק בתוך מבנים — נסו להתקרב לאזור פתוח</div>
-        <button className="demo-compass-stop" onClick={() => setScreen('chat')}>עצור שיתוף</button>
-      </div>
-    </div>
-  );
-
   // ── Match Popup ──
   const renderMatch = () => matchPopup && (
     <div className="demo-match-ov" onClick={() => setMatchPopup(null)}>
@@ -504,7 +472,6 @@ export default function DemoPhone() {
           {screen === 'chat' && renderChat()}
           {screen === 'likes' && renderLikes()}
           {screen === 'profile' && renderProfile()}
-          {screen === 'compass' && renderCompass()}
         </div>
         {showTabBar && renderTabBar()}
         {renderMatch()}

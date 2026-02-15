@@ -3,32 +3,6 @@
  * Keep values here instead of duplicating across client / server files.
  */
 
-// ─── Compass ────────────────────────────────────────────
-
-/** Compass request timeout: 5 minutes (ms). */
-export const COMPASS_TIMEOUT_MS = 5 * 60 * 1000;
-
-/** Geolocation watch: max cached position age (ms). */
-export const GEO_MAX_AGE_MS = 1000;
-
-/** Geolocation watch: timeout before error (ms). */
-export const GEO_TIMEOUT_MS = 10_000;
-
-/** Accuracy threshold (meters) above which a low-accuracy warning is shown. */
-export const GEO_LOW_ACCURACY_THRESHOLD = 30;
-
-/** Minimum distance (meters) before sending a GPS update to the server. */
-export const GEO_THROTTLE_DISTANCE_M = 1;
-
-/** Minimum interval (ms) between GPS updates sent to the server. */
-export const GEO_THROTTLE_INTERVAL_MS = 1000;
-
-/** Heading low-pass filter factor (0 = ignore new, 1 = no smoothing). */
-export const HEADING_SMOOTH_FACTOR = 0.2;
-
-/** Speed threshold (m/s) above which GPS heading is used instead of compass. */
-export const GPS_HEADING_SPEED_THRESHOLD = 0.5;
-
 // ─── Photos ─────────────────────────────────────────────
 
 /** Maximum number of photos a participant may upload. */

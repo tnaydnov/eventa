@@ -17,8 +17,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 DO $$ BEGIN CREATE TYPE gender AS ENUM ('male', 'female', 'other'); EXCEPTION WHEN duplicate_object THEN null; END $$;
 DO $$ BEGIN CREATE TYPE attracted_to AS ENUM ('men', 'women', 'all'); EXCEPTION WHEN duplicate_object THEN null; END $$;
 DO $$ BEGIN CREATE TYPE message_type AS ENUM ('text', 'image', 'system'); EXCEPTION WHEN duplicate_object THEN null; END $$;
-DO $$ BEGIN CREATE TYPE compass_status AS ENUM ('pending', 'active', 'closed'); EXCEPTION WHEN duplicate_object THEN null; END $$;
-DO $$ BEGIN CREATE TYPE notification_type AS ENUM ('like_received', 'compass_request', 'compass_accepted', 'compass_declined', 'compass_cancelled', 'new_message'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+DO $$ BEGIN CREATE TYPE notification_type AS ENUM ('like_received', 'new_message'); EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 
 -- ════════════════════════════════════════════
@@ -130,32 +129,6 @@ CREATE TABLE IF NOT EXISTS notifications (
   is_read BOOLEAN NOT NULL DEFAULT false
 );
 
--- Compass Sessions
-CREATE TABLE IF NOT EXISTS compass_sessions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-  participant_a_id UUID NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
-  participant_b_id UUID NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
-  status compass_status NOT NULL DEFAULT 'pending',
-  requested_by UUID NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  activated_at TIMESTAMPTZ,
-  closed_at TIMESTAMPTZ
-);
-
--- Compass Locations
-CREATE TABLE IF NOT EXISTS compass_locations (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  compass_session_id UUID NOT NULL REFERENCES compass_sessions(id) ON DELETE CASCADE,
-  participant_id UUID NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
-  lat NUMERIC NOT NULL,
-  lng NUMERIC NOT NULL,
-  accuracy NUMERIC NOT NULL DEFAULT 0,
-  heading NUMERIC,
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE (compass_session_id, participant_id)
-);
-
 -- Banned Devices
 CREATE TABLE IF NOT EXISTS banned_devices (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -221,8 +194,6 @@ CREATE INDEX IF NOT EXISTS idx_blocks_blocker ON blocks(blocker_id);
 CREATE INDEX IF NOT EXISTS idx_blocks_blocked ON blocks(blocked_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_to ON notifications(to_participant_id, is_read);
 CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at);
-CREATE INDEX IF NOT EXISTS idx_compass_event ON compass_sessions(event_id);
-CREATE INDEX IF NOT EXISTS idx_compass_locations_participant ON compass_locations(participant_id);
 CREATE INDEX IF NOT EXISTS idx_events_slug ON events(slug);
 CREATE INDEX IF NOT EXISTS idx_banned_devices_event ON banned_devices(event_id, device_fingerprint);
 CREATE INDEX IF NOT EXISTS idx_activity_log_event_time ON activity_log(event_id, created_at);
@@ -234,8 +205,6 @@ CREATE INDEX IF NOT EXISTS idx_participants_event_active ON participants(event_i
 CREATE INDEX IF NOT EXISTS idx_messages_conversation_desc ON messages(conversation_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_blocks_event_blocker ON blocks(event_id, blocker_id);
 CREATE INDEX IF NOT EXISTS idx_blocks_event_blocked ON blocks(event_id, blocked_id);
-CREATE INDEX IF NOT EXISTS idx_compass_sessions_a ON compass_sessions(participant_a_id, status);
-CREATE INDEX IF NOT EXISTS idx_compass_sessions_b ON compass_sessions(participant_b_id, status);
 CREATE INDEX IF NOT EXISTS idx_notifications_participant_unread ON notifications(to_participant_id, created_at DESC) WHERE is_read = false;
 
 
@@ -252,8 +221,6 @@ ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE blocks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE compass_sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE compass_locations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE banned_devices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE event_analytics_snapshots ENABLE ROW LEVEL SECURITY;
@@ -302,20 +269,6 @@ CREATE POLICY "blocks_select" ON blocks FOR SELECT
 CREATE POLICY "notifications_select" ON notifications FOR SELECT
   USING (NOT public.is_postgrest_context() OR event_id = public.get_request_event_id());
 
-CREATE POLICY "compass_sessions_select" ON compass_sessions FOR SELECT
-  USING (NOT public.is_postgrest_context() OR event_id = public.get_request_event_id());
-
--- compass_locations: strict event scoping via compass_sessions join
--- No Realtime bypass needed — client polls via REST instead
-CREATE POLICY "compass_locations_select" ON compass_locations FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM compass_sessions cs
-      WHERE cs.id = compass_locations.compass_session_id
-        AND cs.event_id = public.get_request_event_id()
-    )
-  );
-
 -- banned_devices, activity_log, event_analytics_snapshots: NO select policy = denied for anon (service_role only)
 
 
@@ -327,8 +280,6 @@ ALTER TABLE messages REPLICA IDENTITY FULL;
 ALTER TABLE likes REPLICA IDENTITY FULL;
 ALTER TABLE blocks REPLICA IDENTITY FULL;
 ALTER TABLE conversations REPLICA IDENTITY FULL;
--- compass_locations: no REPLICA IDENTITY needed (not in Realtime)
-ALTER TABLE compass_sessions REPLICA IDENTITY FULL;
 ALTER TABLE notifications REPLICA IDENTITY FULL;
 ALTER TABLE participants REPLICA IDENTITY FULL;
 ALTER TABLE events REPLICA IDENTITY FULL;
@@ -342,9 +293,6 @@ ALTER PUBLICATION supabase_realtime ADD TABLE messages;
 ALTER PUBLICATION supabase_realtime ADD TABLE likes;
 ALTER PUBLICATION supabase_realtime ADD TABLE blocks;
 ALTER PUBLICATION supabase_realtime ADD TABLE conversations;
--- compass_locations intentionally NOT in Realtime (security: no event-scoped bypass)
--- Client polls via REST instead (1s interval)
-ALTER PUBLICATION supabase_realtime ADD TABLE compass_sessions;
 ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
 ALTER PUBLICATION supabase_realtime ADD TABLE participants;
 ALTER PUBLICATION supabase_realtime ADD TABLE events;

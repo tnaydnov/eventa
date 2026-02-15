@@ -44,7 +44,7 @@ export default function TermsPage() {
       <div style={sectionStyle}>
         <h2 style={headingStyle}>1. קבלת התנאים</h2>
         <p style={textStyle}>
-          כניסה לשירות, יצירת פרופיל, העלאת תוכן, שליחת הודעות, שימוש בלייקים או שימוש במצפן —
+          כניסה לשירות, יצירת פרופיל, העלאת תוכן, שליחת הודעות, שימוש בלייקים —
           כולם מהווים הסכמה לתנאים אלה ולמדיניות הפרטיות.
         </p>
         <p style={boldText}>אם אינך מסכים/ה לתנאים — אין להשתמש בשירות.</p>
@@ -82,7 +82,6 @@ export default function TermsPage() {
           <li style={liStyle}>צפייה בפרופילים של משתתפים אחרים באותו אירוע</li>
           <li style={liStyle}>שליחת לייקים</li>
           <li style={liStyle}>פתיחת שיחות צ&apos;אט (טקסט, תמונות והודעות קוליות — לפי מה שמופעל בשירות)</li>
-          <li style={liStyle}>&quot;מצפן מפגש&quot;: תכונה אופציונלית למציאת מיקום משוער של משתתף אחר בהסכמה הדדית ומפורשת</li>
         </ul>
         <p style={boldText}>
           השירות הוא זמני מטבעו ומיועד לשימוש במהלך האירוע ובתקופה מוגבלת לאחריו.
@@ -96,8 +95,6 @@ export default function TermsPage() {
         <ul style={listStyle}>
           <li style={liStyle}><strong>גלריה / מצלמה</strong> — לצורך העלאת תמונות לפרופיל ולצ&apos;אט.</li>
           <li style={liStyle}><strong>מיקרופון</strong> — לצורך הקלטת הודעות קוליות בצ&apos;אט (אופציונלי).</li>
-          <li style={liStyle}><strong>מיקום (GPS)</strong> — לתכונת &quot;מצפן מפגש&quot; בלבד, בהסכמה נפרדת ובכל שימוש מחדש.</li>
-          <li style={liStyle}><strong>חיישני תנועה / כיוון</strong> — לצורך תצוגת כיוון במצפן (כאשר נתמך במכשיר ובדפדפן).</li>
         </ul>
         <p style={textStyle}>
           ההרשאות הן מרצון וניתן לבטלן בכל עת בהגדרות המכשיר. סירוב לתת הרשאה ימנע שימוש בתכונה הספציפית בלבד.
@@ -178,48 +175,25 @@ export default function TermsPage() {
 
       {/* 11 */}
       <div style={sectionStyle}>
-        <h2 style={headingStyle}>11. &quot;מצפן מפגש&quot; — בטיחות, דיוק, ואחריות</h2>
-        <ul style={listStyle}>
-          <li style={liStyle}>המצפן הוא תכונה אופציונלית הפועלת <strong>רק בהסכמה הדדית ומפורשת</strong> של שני הצדדים.</li>
-          <li style={liStyle}>דיוק מיקום תלוי ב-GPS, קליטה, חומרה, דפדפן ותנאי סביבה — <strong>אין התחייבות לדיוק</strong>.</li>
-          <li style={liStyle}>
-            <strong>אזהרת בטיחות:</strong> אין להשתמש במצפן בזמן נהיגה, ריצה, הליכה לא בטוחה,
-            או בסביבת צפיפות. יש להישאר ערניים לסביבה.
-          </li>
-          <li style={liStyle}>
-            השימוש במצפן הוא על אחריות המשתמש/ת. המפעיל אינו אחראי לנזק, פציעה,
-            או אירוע שנגרמו עקב שימוש במצפן או הסתמכות על מידע המיקום.
-          </li>
-          <li style={liStyle}>
-            לשם הבהירות: נתוני מיקום נאספים רק בעת שימוש בתכונת &quot;מצפן מפגש&quot;
-            ובהסכמה הדדית. המפעיל שואף למחוק נתוני מיקום בסמוך לסיום סשן המצפן,
-            אך ייתכן עיכוב קצר במחיקה מסיבות טכניות. אין איסוף מיקום ברקע כאשר
-            התכונה אינה פעילה.
-          </li>
-        </ul>
-      </div>
-
-      {/* 12 */}
-      <div style={sectionStyle}>
-        <h2 style={headingStyle}>12. זמינות השירות</h2>
+        <h2 style={headingStyle}>11. זמינות השירות</h2>
         <p style={textStyle}>
           המפעיל עושה מאמץ לספק שירות תקין, אך השירות מסופק <strong>&quot;כמות שהוא&quot; (AS IS)</strong> וללא
           התחייבות לזמינות רציפה, תמיכה בזמן אמת, או חוויית שימוש ללא תקלות — במיוחד בעומסים.
         </p>
       </div>
 
-      {/* 13 */}
+      {/* 12 */}
       <div style={sectionStyle}>
-        <h2 style={headingStyle}>13. קניין רוחני</h2>
+        <h2 style={headingStyle}>12. קניין רוחני</h2>
         <p style={textStyle}>
           כל הזכויות בשירות, בקוד, בעיצוב, בשם Eventa ובתכנים שיצר המפעיל — שמורות למפעיל השירות.
           אין להעתיק, לשכפל, להפיץ או לבצע שימוש מסחרי בשירות או בחלקיו ללא אישור מראש ובכתב.
         </p>
       </div>
 
-      {/* 14 */}
+      {/* 13 */}
       <div style={sectionStyle}>
-        <h2 style={headingStyle}>14. הגבלת אחריות</h2>
+        <h2 style={headingStyle}>13. הגבלת אחריות</h2>
         <p style={textStyle}>למעט חובה שאינה ניתנת להתניה לפי דין:</p>
         <ul style={listStyle}>
           <li style={liStyle}>המפעיל לא יישא באחריות לנזקים ישירים / עקיפים / תוצאתיים הנובעים משימוש בשירות.</li>
@@ -229,18 +203,18 @@ export default function TermsPage() {
         </ul>
       </div>
 
-      {/* 15 */}
+      {/* 14 */}
       <div style={sectionStyle}>
-        <h2 style={headingStyle}>15. שיפוי</h2>
+        <h2 style={headingStyle}>14. שיפוי</h2>
         <p style={textStyle}>
           המשתמש/ת מתחייב/ת לשפות את מפעיל השירות בגין כל תביעה / נזק / הוצאה
           (כולל שכ&quot;ט עו&quot;ד) הנובעים מהפרת תנאים אלה, מהעלאת תוכן מפר, או משימוש בלתי חוקי בשירות.
         </p>
       </div>
 
-      {/* 16 */}
+      {/* 15 */}
       <div style={sectionStyle}>
-        <h2 style={headingStyle}>16. מחיקה, שמירה זמנית וגיבויים</h2>
+        <h2 style={headingStyle}>15. מחיקה, שמירה זמנית וגיבויים</h2>
         <ul style={listStyle}>
           <li style={liStyle}>ניתן למחוק חשבון דרך האפליקציה (ככל שתכונה זו זמינה). המחיקה תסיר את המידע מן השירות הפעיל.</li>
           <li style={liStyle}>מידע הקשור לאירוע נמחק באופן אוטומטי בדרך כלל <strong>בתוך עד 7 ימים</strong> מסיום האירוע.</li>
@@ -252,27 +226,27 @@ export default function TermsPage() {
         </ul>
       </div>
 
-      {/* 17 */}
+      {/* 16 */}
       <div style={sectionStyle}>
-        <h2 style={headingStyle}>17. שינויים בתנאים</h2>
+        <h2 style={headingStyle}>16. שינויים בתנאים</h2>
         <p style={textStyle}>
           המפעיל רשאי לעדכן תנאים אלה מעת לעת. שינוי ייכנס לתוקף עם פרסומו בשירות.
           המשך שימוש לאחר שינוי מהווה הסכמה לתנאים המעודכנים.
         </p>
       </div>
 
-      {/* 18 */}
+      {/* 17 */}
       <div style={sectionStyle}>
-        <h2 style={headingStyle}>18. דין וסמכות שיפוט</h2>
+        <h2 style={headingStyle}>17. דין וסמכות שיפוט</h2>
         <p style={textStyle}>
           על תנאים אלה יחולו דיני מדינת ישראל.
           סמכות השיפוט הבלעדית תהיה לבתי המשפט המוסמכים במחוז תל אביב–יפו.
         </p>
       </div>
 
-      {/* 19 */}
+      {/* 18 */}
       <div style={{ ...sectionStyle, marginBottom: 0 }}>
-        <h2 style={headingStyle}>19. יצירת קשר</h2>
+        <h2 style={headingStyle}>18. יצירת קשר</h2>
         <p style={textStyle}>
           לשאלות בנוגע לתנאים או לשירות, ניתן לפנות למפעיל השירות באמצעי הקשר המופיעים בשירות.
         </p>

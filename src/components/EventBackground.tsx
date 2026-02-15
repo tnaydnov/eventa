@@ -175,13 +175,6 @@ export default function EventBackground() {
           background: transparent !important;
         }
 
-        /* Compass */
-        .compass-container {
-          background: rgba(18, 18, 18, 0.88) !important;
-          border-radius: 20px !important;
-          margin: 16px !important;
-        }
-
         /* Chat header (in conversation view) */
         .chat-header {
           background: rgba(8, 8, 8, 0.97) !important;

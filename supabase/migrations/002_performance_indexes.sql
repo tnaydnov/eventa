@@ -25,13 +25,6 @@ CREATE INDEX IF NOT EXISTS idx_blocks_event_blocker
 CREATE INDEX IF NOT EXISTS idx_blocks_event_blocked
   ON blocks(event_id, blocked_id);
 
--- Compass: session lookups by participant
--- Speeds up: compass request queries WHERE participant_a_id = X OR participant_b_id = X
-CREATE INDEX IF NOT EXISTS idx_compass_sessions_a
-  ON compass_sessions(participant_a_id, status);
-CREATE INDEX IF NOT EXISTS idx_compass_sessions_b
-  ON compass_sessions(participant_b_id, status);
-
 -- Notifications: unread per participant (for badge counts)
 CREATE INDEX IF NOT EXISTS idx_notifications_participant_unread
   ON notifications(to_participant_id, created_at DESC) WHERE is_read = false;

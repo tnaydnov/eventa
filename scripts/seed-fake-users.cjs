@@ -165,13 +165,6 @@ async function main() {
   }
 
   // Delete DB rows (FK cascade order)
-  const { data: compassSessions } = await supabase
-    .from('compass_sessions').select('id').eq('event_id', event.id);
-  const csIds = (compassSessions || []).map(s => s.id);
-  if (csIds.length) {
-    await supabase.from('compass_locations').delete().in('compass_session_id', csIds);
-  }
-  await supabase.from('compass_sessions').delete().eq('event_id', event.id);
   await supabase.from('notifications').delete().eq('event_id', event.id);
   await supabase.from('likes').delete().eq('event_id', event.id);
   await supabase.from('blocks').delete().eq('event_id', event.id);

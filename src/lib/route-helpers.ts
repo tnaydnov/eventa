@@ -44,6 +44,40 @@ export function evictBanCache(participantId: string): void {
   _banCache.set(participantId, { banned: true, ts: Date.now() });
 }
 
+/* ── Event-status cache ──────────────────────────────────────
+ * Cache the event status so we don't query it on every API call.
+ * Active events: 5-min TTL.  Inactive events: 30-s TTL (changes propagate quickly).
+ */
+const _eventStatusCache = new Map<string, { status: string; ts: number }>();
+const EVENT_CACHE_TTL_ACTIVE = 5 * 60 * 1000;   // 5 min for active/ended
+const EVENT_CACHE_TTL_INACTIVE = 30_000;          // 30 s for paused/archived/draft
+
+async function getEventStatus(eventId: string): Promise<string | null> {
+  const cached = _eventStatusCache.get(eventId);
+  if (cached) {
+    const isActive = cached.status === 'active' || cached.status === 'ended';
+    const ttl = isActive ? EVENT_CACHE_TTL_ACTIVE : EVENT_CACHE_TTL_INACTIVE;
+    if (Date.now() - cached.ts < ttl) return cached.status;
+  }
+  const sb = getServiceClient();
+  const { data } = await sb
+    .from('events')
+    .select('status')
+    .eq('id', eventId)
+    .single();
+  if (!data) {
+    _eventStatusCache.delete(eventId);
+    return null; // event deleted
+  }
+  _eventStatusCache.set(eventId, { status: data.status, ts: Date.now() });
+  return data.status;
+}
+
+/** Force-evict event status from cache (called from admin routes when status changes). */
+export function evictEventStatusCache(eventId: string): void {
+  _eventStatusCache.delete(eventId);
+}
+
 /**
  * Secure-route guard: CSRF → session → rate-limit → ban check (cached).
  */
@@ -62,6 +96,28 @@ export async function secureGuard(
   if (!rl.allowed) return jsonError('Too many requests', 429);
 
   if (await isBanned(session.sub)) return jsonError('Account banned', 403);
+
+  // Check event status — block API usage for paused/archived/deleted events
+  const eventStatus = await getEventStatus(session.eid);
+  if (!eventStatus) {
+    // Event was deleted from DB
+    return NextResponse.json(
+      { error: 'event_inactive', reason: 'deleted' },
+      { status: 410 }
+    );
+  }
+  if (eventStatus === 'paused') {
+    return NextResponse.json(
+      { error: 'event_inactive', reason: 'paused' },
+      { status: 410 }
+    );
+  }
+  if (eventStatus === 'archived') {
+    return NextResponse.json(
+      { error: 'event_inactive', reason: 'archived' },
+      { status: 410 }
+    );
+  }
 
   return session;
 }

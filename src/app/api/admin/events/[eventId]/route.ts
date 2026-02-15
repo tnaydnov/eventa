@@ -4,6 +4,7 @@ import { adminAuditLog } from '@/lib/admin-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../_helpers';
+import { evictEventStatusCache } from '@/lib/route-helpers';
 
 /**
  * PATCH /api/admin/events/[eventId]
@@ -42,6 +43,11 @@ export async function PATCH(
     if (error) {
       console.error('[ADMIN_EVENT_PATCH] DB error:', error.message);
       return jsonError('Failed to update event', 500);
+    }
+
+    // Evict event status cache if status or is_active changed
+    if ('status' in parsed.data || 'is_active' in parsed.data) {
+      evictEventStatusCache(eventId);
     }
 
     adminAuditLog('EVENT_UPDATE', { eventId, changes: Object.keys(parsed.data) }, req);
