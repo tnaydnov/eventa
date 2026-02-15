@@ -70,6 +70,7 @@ const nextConfig = {
               `img-src 'self' data: blob: ${supabaseImg} https://images.unsplash.com https://*.unsplash.com`,
               `media-src 'self' blob: ${supabaseImg}`,
               `connect-src 'self' ${supabaseConnect}`,
+              "worker-src 'self' blob:",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
