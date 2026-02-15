@@ -58,10 +58,17 @@ export default function SessionProvider({
           // Event is inactive (paused/archived/deleted)
           const body = await res.json().catch(() => ({}));
           const reason = body.reason || 'deleted';
+          // Only redirect to unavailable if the cookie belonged to THIS event.
+          // Otherwise the cookie was for a different (now-inactive) event —
+          // just clear it and fall through so the page can handle QR join etc.
+          if (body.eventSlug === eventSlug) {
+            useSessionStore.getState().clearSession();
+            localStorage.removeItem('wedding_local_id');
+            window.location.href = `/dating/${eventSlug}/unavailable?reason=${reason}`;
+            return;
+          }
+          // Stale cookie for another event — clear local state and continue
           useSessionStore.getState().clearSession();
-          localStorage.removeItem('wedding_local_id');
-          window.location.href = `/dating/${eventSlug}/unavailable?reason=${reason}`;
-          return;
         }
       } catch {
         // Cookie verification failed, try localStorage fallback
@@ -118,13 +125,16 @@ export default function SessionProvider({
         window.location.href = `/dating/${eventSlug}/banned`;
         return;
       } else if (res.status === 410) {
-        // Event became inactive while in background — kick them
+        // Event became inactive while in background
         const body = await res.json().catch(() => ({}));
         const reason = body.reason || 'deleted';
-        useSessionStore.getState().clearSession();
-        localStorage.removeItem('wedding_local_id');
-        window.location.href = `/dating/${eventSlug}/unavailable?reason=${reason}`;
-        return;
+        // Only redirect if the cookie belonged to this event
+        if (body.eventSlug === eventSlug) {
+          useSessionStore.getState().clearSession();
+          localStorage.removeItem('wedding_local_id');
+          window.location.href = `/dating/${eventSlug}/unavailable?reason=${reason}`;
+          return;
+        }
       }
       // If verify fails for other reasons, the existing localStorage session still works
       // (JWT cookies are complementary to localStorage sessions)

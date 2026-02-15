@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
   if (!event) {
     // Event was deleted from DB
     const response = NextResponse.json(
-      { error: 'event_inactive', reason: 'deleted' },
+      { error: 'event_inactive', reason: 'deleted', eventSlug: session.esl },
       { status: 410 }
     );
     response.headers.set('Set-Cookie', clearSessionCookieHeader());
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
 
   if (event.status === 'paused') {
     const response = NextResponse.json(
-      { error: 'event_inactive', reason: 'paused' },
+      { error: 'event_inactive', reason: 'paused', eventSlug: session.esl },
       { status: 410 }
     );
     response.headers.set('Set-Cookie', clearSessionCookieHeader());
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
 
   if (event.status === 'archived') {
     const response = NextResponse.json(
-      { error: 'event_inactive', reason: 'archived' },
+      { error: 'event_inactive', reason: 'archived', eventSlug: session.esl },
       { status: 410 }
     );
     response.headers.set('Set-Cookie', clearSessionCookieHeader());
