@@ -45,13 +45,13 @@ export default function CommunityPage() {
         </ul>
       </div>
 
-      {/* דיווח ואכיפה */}
+      {/* חסימה ואכיפה */}
       <div style={{ ...sectionStyle, marginBottom: 0 }}>
-        <h2 style={headingStyle}>📢 דיווח ואכיפה</h2>
+        <h2 style={headingStyle}>🛡️ חסימה ואכיפה</h2>
         <ul style={listStyle}>
-          <li style={liStyle}>ניתן לדווח מתוך השירות (ככל שמופעל) או לפנות למפעיל.</li>
+          <li style={liStyle}>ניתן לחסום משתמשים מתוך השירות. לפניות נוספות ניתן ליצור קשר עם המפעיל.</li>
           <li style={liStyle}>המפעיל רשאי להסיר תוכן, להגביל תכונות, לחסום או להרחיק משתמשים לפי שיקול דעתו.</li>
-          <li style={liStyle}>השירות אינו מתחייב לטיפול בזמן אמת, אך ישתדל לטפל בדיווחים בהקדם האפשרי.</li>
+          <li style={liStyle}>השירות אינו מתחייב לטיפול בזמן אמת, אך ישתדל לטפל בפניות בהקדם האפשרי.</li>
         </ul>
       </div>
 
