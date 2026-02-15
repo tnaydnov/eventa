@@ -39,6 +39,8 @@ export function adminGuard(
   if (!rl.allowed) return jsonError('Too many requests', 429);
   // Accept either admin cookie auth or cron secret auth
   if (!verifyAdminFromRequest(req) && !hasCronAuth(req)) {
+    const hasCookie = !!req.cookies.get('ws_admin')?.value;
+    console.warn(`[ADMIN_GUARD] 401 on ${rateLimitKey} | cookie present: ${hasCookie} | ip: ${ip}`);
     return jsonError('Unauthorized', 401);
   }
   return null;

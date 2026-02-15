@@ -16,11 +16,21 @@ export function useAdminData() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [participants, setParticipants] = useState<AdminParticipant[]>([]);
 
+  /** Wrapper around adminFetch that resets auth state on 401 */
+  const authedFetch: typeof adminFetch = useCallback(async (url, init) => {
+    const res = await adminFetch(url, init);
+    if (res.status === 401) {
+      setAuthed(false);
+      setEvents([]);
+    }
+    return res;
+  }, []);
+
   /* ─── load events ─── */
   const loadEvents = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await adminFetch('/api/admin/events');
+      const res = await authedFetch('/api/admin/events');
       if (res.ok) {
         const data = await res.json();
         setEvents(data.events || []);
@@ -28,18 +38,18 @@ export function useAdminData() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [authedFetch]);
 
   // On mount: check if already authenticated via httpOnly cookie
   useEffect(() => {
-    adminFetch('/api/admin/events').then(async (res) => {
+    authedFetch('/api/admin/events').then(async (res) => {
       if (res.ok) {
         const data = await res.json();
         setEvents(data.events || []);
         setAuthed(true);
       }
     }).catch(() => {});
-  }, []);
+  }, [authedFetch]);
 
   /* ─── login ─── */
   const login = async (password: string): Promise<{ ok: boolean; error?: string }> => {
@@ -79,7 +89,7 @@ export function useAdminData() {
     starts_at?: string;
     ends_at?: string;
   }): Promise<{ ok: boolean; error?: string }> => {
-    const res = await adminFetch('/api/admin/events', {
+    const res = await authedFetch('/api/admin/events', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -93,7 +103,7 @@ export function useAdminData() {
 
   /* ─── toggle active ─── */
   const toggleEvent = async (id: string, isActive: boolean) => {
-    const res = await adminFetch(`/api/admin/events/${id}`, {
+    const res = await authedFetch(`/api/admin/events/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ is_active: !isActive }),
     });
@@ -103,7 +113,7 @@ export function useAdminData() {
 
   /* ─── rotate join code ─── */
   const rotateJoinCode = async (id: string) => {
-    const res = await adminFetch(`/api/admin/events/${id}/rotate`, { method: 'POST' });
+    const res = await authedFetch(`/api/admin/events/${id}/rotate`, { method: 'POST' });
     if (res.ok) {
       loadEvents();
       alert('✅ קוד חדש נוצר');
@@ -115,7 +125,7 @@ export function useAdminData() {
   /* ─── delete event ─── */
   const deleteEvent = async (id: string) => {
     if (!confirm('למחוק את האירוע? לא ניתן לשחזר.')) return;
-    const res = await adminFetch(`/api/admin/events/${id}/delete`, { method: 'DELETE' });
+    const res = await authedFetch(`/api/admin/events/${id}/delete`, { method: 'DELETE' });
     if (res.ok) {
       loadEvents();
     } else {
@@ -125,7 +135,7 @@ export function useAdminData() {
 
   /* ─── stats ─── */
   const loadStats = async (eventId: string) => {
-    const res = await adminFetch(`/api/admin/events/${eventId}/stats`);
+    const res = await authedFetch(`/api/admin/events/${eventId}/stats`);
     if (res.ok) {
       const data = await res.json();
       setStats(prev => ({ ...prev, [eventId]: data }));
@@ -137,7 +147,7 @@ export function useAdminData() {
   /* ─── participants ─── */
   const loadParticipants = async (event: Event) => {
     setSelectedEvent(event);
-    const res = await adminFetch(`/api/admin/events/${event.id}/participants`);
+    const res = await authedFetch(`/api/admin/events/${event.id}/participants`);
     if (res.ok) {
       const data = await res.json();
       setParticipants(data.participants || []);
@@ -148,7 +158,7 @@ export function useAdminData() {
 
   const banParticipant = async (pid: string, isBanned: boolean) => {
     if (!selectedEvent) return;
-    const res = await adminFetch(`/api/admin/events/${selectedEvent.id}/participants`, {
+    const res = await authedFetch(`/api/admin/events/${selectedEvent.id}/participants`, {
       method: 'PATCH',
       body: JSON.stringify({ participantId: pid, is_banned: !isBanned }),
     });
@@ -162,7 +172,7 @@ export function useAdminData() {
   const uploadBackground = async (eventId: string, file: File): Promise<{ ok: boolean; error?: string }> => {
     const form = new FormData();
     form.append('file', file);
-    const res = await adminFetch(`/api/admin/events/${eventId}/background`, {
+    const res = await authedFetch(`/api/admin/events/${eventId}/background`, {
       method: 'POST',
       body: form,
     });
@@ -176,7 +186,7 @@ export function useAdminData() {
 
   const removeBackground = async (eventId: string) => {
     if (!confirm('להסיר את תמונת הרקע?')) return;
-    const res = await adminFetch(`/api/admin/events/${eventId}/background`, { method: 'DELETE' });
+    const res = await authedFetch(`/api/admin/events/${eventId}/background`, { method: 'DELETE' });
     if (res.ok) {
       loadEvents();
       alert('✅ רקע הוסר');
@@ -188,7 +198,7 @@ export function useAdminData() {
   /* ─── update event status ─── */
   const updateStatus = async (id: string, status: string) => {
     const isActive = status === 'active';
-    const res = await adminFetch(`/api/admin/events/${id}`, {
+    const res = await authedFetch(`/api/admin/events/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ status, is_active: isActive }),
     });
@@ -199,7 +209,7 @@ export function useAdminData() {
   /* ─── archive event ─── */
   const archiveEvent = async (id: string) => {
     if (!confirm('לארכב את האירוע? כל נתוני המשתתפים יימחקו לצמיתות.')) return;
-    const res = await adminFetch(`/api/admin/events/${id}/archive`, { method: 'POST' });
+    const res = await authedFetch(`/api/admin/events/${id}/archive`, { method: 'POST' });
     if (res.ok) {
       loadEvents();
       alert('✅ האירוע הועבר לארכיון');

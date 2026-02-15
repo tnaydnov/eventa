@@ -73,8 +73,16 @@ export function clearAdminCookieHeader(): string {
   return `${ADMIN_COOKIE}=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0`;
 }
 
-/** Extract admin token from request cookies */
+/** Extract admin token from request cookies.
+ *  Prefers the NextRequest .cookies API when available, falls back to manual header parsing. */
 export function getAdminTokenFromRequest(req: Request): string | null {
+  // NextRequest (App Router) exposes a typed cookies helper
+  const nxReq = req as Request & { cookies?: { get(name: string): { value: string } | undefined } };
+  if (nxReq.cookies) {
+    const val = nxReq.cookies.get(ADMIN_COOKIE)?.value;
+    if (val) return val;
+  }
+  // Fallback: parse raw header
   const cookieHeader = req.headers.get('cookie');
   if (!cookieHeader) return null;
   const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${ADMIN_COOKIE}=([^;]*)`));

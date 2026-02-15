@@ -2,7 +2,7 @@
 
 import { defaultCache } from '@serwist/next/worker';
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist';
-import { Serwist } from 'serwist';
+import { NetworkOnly, Serwist } from 'serwist';
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -14,12 +14,27 @@ declare const self: WorkerGlobalScope & typeof globalThis;
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
+/**
+ * Prepend a NetworkOnly rule for admin and auth API routes so
+ * they are never served from the service-worker cache.
+ * The generic "/api/" NetworkFirst entry in defaultCache would
+ * otherwise cache GET responses, masking expired sessions.
+ */
+const runtimeCaching = [
+  {
+    matcher: ({ sameOrigin, url }: { sameOrigin: boolean; url: URL }) =>
+      sameOrigin && (url.pathname.startsWith('/api/admin') || url.pathname.startsWith('/api/auth')),
+    handler: new NetworkOnly(),
+  },
+  ...defaultCache,
+];
+
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: defaultCache,
+  runtimeCaching,
 });
 
 serwist.addEventListeners();
