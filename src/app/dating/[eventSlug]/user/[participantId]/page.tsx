@@ -303,7 +303,7 @@ export default function UserProfilePage({
               fontSize: '13px',
               fontWeight: 500,
             }}>
-              🎯 {LOOKING_FOR_LABELS[user.looking_for]}
+              {LOOKING_FOR_LABELS[user.looking_for]}
             </div>
           )}
           {user.bio && (
