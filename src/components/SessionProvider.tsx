@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, type ReactNode } from 'react';
 import { useSessionStore } from '@/lib/store';
 import { supabase, setEventContext } from '@/lib/supabase';
+import { getMyPhotos } from '@/lib/api';
 import { useAppResume } from '@/hooks/useAppResume';
 import { useRealtimeHub } from '@/hooks/useRealtimeHub';
 
@@ -144,6 +145,16 @@ export default function SessionProvider({
       verifyingRef.current = false;
     }
   }, restored);
+
+  // Load the user's own photos into the store so MatchPopup etc. can display them
+  useEffect(() => {
+    if (!session?.participantId) return;
+    // Only fetch if photos aren't already loaded
+    if (useSessionStore.getState().photos.length > 0) return;
+    getMyPhotos(session.participantId).then((photos) => {
+      useSessionStore.getState().setPhotos(photos);
+    });
+  }, [session?.participantId]);
 
   // Refresh event name & background from DB
   useEffect(() => {
