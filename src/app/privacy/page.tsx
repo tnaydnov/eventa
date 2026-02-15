@@ -68,7 +68,7 @@ export default function PrivacyPage() {
 
         <h3 style={subHeadingStyle}>ב. מידע תקשורת ותוכן</h3>
         <p style={textStyle}>
-          הודעות טקסט, תמונות בצ&apos;אט, הודעות קוליות, התראות הקשורות ללייקים / הודעות.
+          הודעות טקסט, תמונות בצ&apos;אט, התראות הקשורות ללייקים / הודעות.
         </p>
 
         <h3 style={subHeadingStyle}>ג. מידע התנהגות ותפעול</h3>
@@ -134,7 +134,7 @@ export default function PrivacyPage() {
         <p style={textStyle}>הבסיס לעיבוד הוא:</p>
         <ul style={listStyle}>
           <li style={liStyle}>הסכמתך בעת שימוש בשירות</li>
-          <li style={liStyle}>הסכמה נפרדת לתכונות הדורשות הרשאות (מיקרופון וכו&apos;)</li>
+          <li style={liStyle}>הסכמה נפרדת לתכונות הדורשות הרשאות (כגון מצלמה / גלריה)</li>
           <li style={liStyle}>אינטרס לגיטימי של המפעיל לאבטחת השירות, מניעת הונאה, ואכיפת תנאי השימוש</li>
         </ul>
       </div>
