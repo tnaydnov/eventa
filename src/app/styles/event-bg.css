@@ -1,0 +1,173 @@
+/* ═══════════════════════════════════════════
+   Event Background Overrides
+   Active when <div data-event-bg /> is present
+   — gives all UI surfaces solid dark backgrounds
+   for readability over custom event images.
+   ═══════════════════════════════════════════ */
+
+/* ── CSS variable overrides ── */
+:root:has([data-event-bg]) {
+  --card-bg: rgba(30, 30, 30, 0.95) !important;
+  --card-border: rgba(255, 255, 255, 0.15) !important;
+  --surface: rgba(28, 28, 28, 0.92) !important;
+  --surface-light: rgba(45, 45, 45, 0.92) !important;
+  --glass-bg: rgba(30, 30, 30, 0.95) !important;
+  --glass-border: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* All rules below are scoped via :has([data-event-bg]) */
+
+/* Page backgrounds — semi-transparent to hint at event image */
+:root:has([data-event-bg]) .profile-edit-page {
+  background: rgba(10, 10, 10, 0.92) !important;
+}
+
+/* Tab bar — nearly opaque */
+:root:has([data-event-bg]) .tab-bar {
+  background: rgba(8, 8, 8, 0.97) !important;
+  border-top-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Header — nearly opaque */
+:root:has([data-event-bg]) .app-header {
+  background: rgba(8, 8, 8, 0.97) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Cards — visible dark surface */
+:root:has([data-event-bg]) .card {
+  background: rgba(30, 30, 30, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Grid cards — boost overlay */
+:root:has([data-event-bg]) .grid-card {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+:root:has([data-event-bg]) .grid-card .card-overlay {
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.88)) !important;
+}
+
+/* Chat received bubbles */
+:root:has([data-event-bg]) .message-bubble.received {
+  background: rgba(35, 35, 35, 0.95) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Chat input bar */
+:root:has([data-event-bg]) .message-input-bar {
+  background: rgba(8, 8, 8, 0.97) !important;
+  border-top-color: rgba(255, 255, 255, 0.12) !important;
+}
+:root:has([data-event-bg]) .message-input-bar input {
+  background: rgba(38, 38, 38, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Filter chips */
+:root:has([data-event-bg]) .filter-chip {
+  background: rgba(30, 30, 30, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+:root:has([data-event-bg]) .filter-chip.active {
+  background: var(--primary) !important;
+}
+
+/* Form inputs */
+:root:has([data-event-bg]) .input {
+  background: rgba(38, 38, 38, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Select / pills */
+:root:has([data-event-bg]) .select-option,
+:root:has([data-event-bg]) .profile-edit-pill {
+  background: rgba(35, 35, 35, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+:root:has([data-event-bg]) .select-option.selected,
+:root:has([data-event-bg]) .profile-edit-pill.active {
+  background: rgba(212, 165, 154, 0.15) !important;
+  border-color: var(--primary) !important;
+}
+
+/* Profile edit header */
+:root:has([data-event-bg]) .profile-edit-header {
+  background: rgba(8, 8, 8, 0.97) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Profile edit sections — LIGHTER than page bg for contrast */
+:root:has([data-event-bg]) .profile-edit-section {
+  background: rgba(30, 30, 30, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Profile action buttons */
+:root:has([data-event-bg]) .profile-action-btn {
+  background: rgba(30, 30, 30, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+:root:has([data-event-bg]) .profile-action-btn.liked {
+  background: rgba(212, 165, 154, 0.2) !important;
+}
+
+/* Modal */
+:root:has([data-event-bg]) .modal-content {
+  background: rgba(18, 18, 18, 0.98) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Toast */
+:root:has([data-event-bg]) .toast {
+  background: rgba(18, 18, 18, 0.98) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Button secondary */
+:root:has([data-event-bg]) .btn-secondary {
+  background: rgba(35, 35, 35, 0.95) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Photo upload */
+:root:has([data-event-bg]) .photo-upload-slot {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+:root:has([data-event-bg]) .profile-edit-photo-item {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+:root:has([data-event-bg]) .profile-edit-photo-item.add {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  background: rgba(30, 30, 30, 0.6) !important;
+}
+
+/* Avatar placeholder */
+:root:has([data-event-bg]) .avatar-placeholder {
+  background: linear-gradient(135deg, rgba(212, 165, 154, 0.25) 0%, rgba(201, 165, 128, 0.18) 100%) !important;
+}
+
+/* Chat list */
+:root:has([data-event-bg]) .chat-list-item {
+  background: rgba(20, 20, 20, 0.45) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Likes empty state */
+:root:has([data-event-bg]) .likes-section {
+  background: transparent !important;
+}
+
+/* Chat header (in conversation view) */
+:root:has([data-event-bg]) .chat-header {
+  background: rgba(8, 8, 8, 0.97) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+}

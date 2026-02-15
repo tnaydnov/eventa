@@ -71,47 +71,29 @@ export default function PushSubscriptionManager() {
 
   /* ── Silent re-registration for already-granted users ── */
   useEffect(() => {
-    if (!session) {
-      console.log('[Push] no session yet');
-      return;
-    }
+    if (!session) return;
     if (typeof window === 'undefined') return;
 
     const hasSW = 'serviceWorker' in navigator;
     const hasPush = 'PushManager' in window;
     const hasNotif = 'Notification' in window;
-    console.log('[Push] support:', { hasSW, hasPush, hasNotif, permission: hasNotif ? Notification.permission : 'N/A' });
 
     if (!hasSW || !hasPush || !hasNotif) return;
 
     if (Notification.permission === 'granted') {
       // Already granted — silently refresh the subscription on server
-      console.log('[Push] already granted, re-registering...');
       subscribeToPush()
-        .then(() => {
-          console.log('[Push] re-registered OK');
-          localStorage.setItem(PUSH_REGISTERED_KEY, '1');
-        })
-        .catch((err) => console.warn('[Push] re-register failed:', err));
+        .then(() => localStorage.setItem(PUSH_REGISTERED_KEY, '1'))
+        .catch(() => {});
       return;
     }
 
     // Permission is 'default' — decide whether to show the banner
-    if (Notification.permission === 'denied') {
-      console.log('[Push] permission denied, skipping');
-      return;
-    }
-    if (localStorage.getItem(PUSH_DISMISSED_KEY)) {
-      console.log('[Push] banner previously dismissed');
-      return;
-    }
+    if (Notification.permission === 'denied') return;
+    if (localStorage.getItem(PUSH_DISMISSED_KEY)) return;
 
     // Show the banner after a short delay
-    console.log('[Push] will show banner in 2.5s');
-    const timer = setTimeout(() => {
-      console.log('[Push] showing banner now');
-      setShowBanner(true);
-    }, 2500);
+    const timer = setTimeout(() => setShowBanner(true), 2500);
     return () => clearTimeout(timer);
   }, [session]);
 
@@ -124,8 +106,8 @@ export default function PushSubscriptionManager() {
         await subscribeToPush();
         localStorage.setItem(PUSH_REGISTERED_KEY, '1');
       }
-    } catch (err) {
-      console.warn('[Push] subscription failed:', err);
+    } catch {
+      // permission denied or subscription failed – silently ignore
     } finally {
       setShowBanner(false);
       setBusy(false);

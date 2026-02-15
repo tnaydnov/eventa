@@ -1,5 +1,6 @@
 import { supabase } from '../supabase';
 import type { GridParticipant } from '../store';
+import type { ParticipantPhoto } from '../database.types';
 import { getBlockedIds } from './helpers';
 
 /**
@@ -58,9 +59,8 @@ export async function getGridParticipants(
     filtered = filtered.filter((p) => matchesCrossAttraction(myProfile, p));
   }
 
-  return filtered.map((p) => ({
-    ...p,
-    photos: (p as any).participant_photos || [],
-    participant_photos: undefined,
-  })) as GridParticipant[];
+  return filtered.map((p) => {
+    const { participant_photos, ...rest } = p as typeof p & { participant_photos: ParticipantPhoto[] };
+    return { ...rest, photos: participant_photos || [] };
+  }) as GridParticipant[];
 }

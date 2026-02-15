@@ -2,7 +2,7 @@
 
 /**
  * Skeleton placeholder components for perceived-instant loading.
- * Uses CSS shimmer animation — no JS dependencies.
+ * Uses CSS shimmer animation defined in base.css — no JS dependencies.
  */
 
 const shimmerStyle: React.CSSProperties = {
@@ -19,7 +19,6 @@ export function GridSkeleton({ count = 6 }: { count?: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} style={{ ...shimmerStyle, aspectRatio: '3/4', borderRadius: '16px' }} />
       ))}
-      <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
     </div>
   );
 }
@@ -37,7 +36,6 @@ export function ChatsSkeleton({ count = 5 }: { count?: number }) {
           </div>
         </div>
       ))}
-      <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
     </div>
   );
 }
@@ -49,7 +47,6 @@ export function LikesSkeleton({ count = 4 }: { count?: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} style={{ ...shimmerStyle, aspectRatio: '3/4', borderRadius: '16px' }} />
       ))}
-      <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
     </div>
   );
 }
