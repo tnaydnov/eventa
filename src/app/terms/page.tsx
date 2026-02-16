@@ -253,7 +253,7 @@ export default function TermsPage() {
           לשאלות בנוגע לתנאים או לשירות, ניתן לפנות למפעיל השירות באמצעי הקשר המופיעים בשירות.
         </p>
         <p style={textStyle}>
-          דוא&quot;ל: <span style={linkColor}>tnaydnov@gmail.com</span>
+          דוא&quot;ל: <span style={linkColor}>contact@eventa.productions</span>
         </p>
       </div>
 

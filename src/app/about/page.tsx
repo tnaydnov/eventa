@@ -33,7 +33,7 @@ export default function AboutPage() {
       </p>
 
       <p style={textStyle}>
-        ליצירת קשר — השתמשו באמצעי הקשר המופיעים בשירות, או שלחו מייל ל-<span style={linkColor}>tnaydnov@gmail.com</span>.
+        ליצירת קשר — השתמשו באמצעי הקשר המופיעים בשירות, או שלחו מייל ל-<span style={linkColor}>contact@eventa.productions</span>.
       </p>
 
     </LegalPageLayout>

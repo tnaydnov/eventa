@@ -52,7 +52,7 @@ export default function PrivacyPage() {
           לשאלות או בקשות בנושא פרטיות ניתן לפנות באמצעי הקשר המוצגים בשירות.
         </p>
         <p style={textStyle}>
-          דוא&quot;ל: <span style={linkColor}>tnaydnov@gmail.com</span>
+          דוא&quot;ל: <span style={linkColor}>contact@eventa.productions</span>
         </p>
       </div>
 
@@ -235,7 +235,7 @@ export default function PrivacyPage() {
           לפניות פרטיות, שאלות או בקשות — השתמש/י באמצעי הקשר המופיעים בשירות.
         </p>
         <p style={textStyle}>
-          דוא&quot;ל: <span style={linkColor}>tnaydnov@gmail.com</span>
+          דוא&quot;ל: <span style={linkColor}>contact@eventa.productions</span>
         </p>
       </div>
 

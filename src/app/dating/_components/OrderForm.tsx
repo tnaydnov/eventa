@@ -25,16 +25,36 @@ export default function OrderForm() {
     eventType: '', eventDate: '', contactName: '', contactPhone: '', contactEmail: '',
   });
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
 
   const update = useCallback((field: keyof FormData, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
   }, []);
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
-  }, []);
+    setSending(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+
+      if (!res.ok) throw new Error('Failed');
+
+      setSubmitted(true);
+      setForm({ eventType: '', eventDate: '', contactName: '', contactPhone: '', contactEmail: '' });
+      setTimeout(() => setSubmitted(false), 5000);
+    } catch {
+      setError('שגיאה בשליחה. נסו שוב או פנו אלינו ישירות.');
+    } finally {
+      setSending(false);
+    }
+  }, [form]);
 
   return (
     <form className="order-form" onSubmit={handleSubmit} dir="rtl">
@@ -109,11 +129,17 @@ export default function OrderForm() {
       <button
         className="order-form__submit"
         type="submit"
-        disabled={submitted}
+        disabled={submitted || sending}
         style={submitted ? { background: '#22c55e', boxShadow: 'none' } : undefined}
       >
-        {submitted ? '✓ הבקשה נשלחה בהצלחה!' : 'שלחו בקשה ✨'}
+        {submitted ? '✓ הבקשה נשלחה בהצלחה!' : sending ? 'שולח...' : 'שלחו בקשה ✨'}
       </button>
+
+      {error && (
+        <p style={{ color: '#ef4444', fontSize: '14px', textAlign: 'center', marginTop: '12px' }}>
+          {error}
+        </p>
+      )}
     </form>
   );
 }
