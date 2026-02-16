@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://eventa.productions';
+  const baseUrl = 'https://www.eventa.productions';
   const lastModified = new Date('2026-02-16');
 
   return [

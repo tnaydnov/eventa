@@ -4,7 +4,7 @@ import LegalPageLayout from '@/components/LegalPageLayout';
 export const metadata: Metadata = {
   title: 'טיפים לבטיחות | Eventa',
   description: 'טיפים לבטיחות השימוש ב-Eventa — כיצד ליהנות מהיכרויות באירועים בצורה בטוחה.',
-  alternates: { canonical: 'https://eventa.productions/safety' },
+  alternates: { canonical: 'https://www.eventa.productions/safety' },
 };
 
 /* Shared styles */

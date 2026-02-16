@@ -4,7 +4,7 @@ import LegalPageLayout from '@/components/LegalPageLayout';
 export const metadata: Metadata = {
   title: 'שאלות נפוצות | Eventa',
   description: 'שאלות נפוצות על Eventa — איך נכנסים, מי רואה את הפרופיל, כמה זמן נשמר המידע ועוד.',
-  alternates: { canonical: 'https://eventa.productions/faq' },
+  alternates: { canonical: 'https://www.eventa.productions/faq' },
 };
 
 /* Shared styles */

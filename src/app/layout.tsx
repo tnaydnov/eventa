@@ -17,7 +17,7 @@ const greatVibes = Great_Vibes({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://eventa.productions'),
+  metadataBase: new URL('https://www.eventa.productions'),
   title: {
     default: 'Eventa — Turn Any Event Into an Experience',
     template: '%s | Eventa',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'he_IL',
-    url: 'https://eventa.productions',
+    url: 'https://www.eventa.productions',
     siteName: 'Eventa',
     title: 'Eventa — Turn Any Event Into an Experience',
     description: 'Eventa מוסיפה שכבות חברתיות חכמות לאירועים — היכרויות, נטוורקינג, ומעורבות קהל.',
@@ -83,8 +83,8 @@ export default function RootLayout({
               '@context': 'https://schema.org',
               '@type': 'Organization',
               name: 'Eventa',
-              url: 'https://eventa.productions',
-              logo: 'https://eventa.productions/icons/icon-512x512.png',
+              url: 'https://www.eventa.productions',
+              logo: 'https://www.eventa.productions/icons/icon-512x512.png',
               description: 'Eventa adds smart social layers to events — dating, networking, and audience engagement.',
               sameAs: [],
             }),

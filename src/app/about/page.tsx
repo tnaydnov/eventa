@@ -4,7 +4,7 @@ import LegalPageLayout from '@/components/LegalPageLayout';
 export const metadata: Metadata = {
   title: 'אודות | Eventa',
   description: 'אודות Eventa — שירות עצמאי להיכרויות באירועים.',
-  alternates: { canonical: 'https://eventa.productions/about' },
+  alternates: { canonical: 'https://www.eventa.productions/about' },
 };
 
 const textStyle: React.CSSProperties = { color: '#ccc', fontSize: '15px', lineHeight: 1.8, margin: '0 0 16px' };
