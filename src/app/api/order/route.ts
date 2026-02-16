@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT) || 587,
+  secure: Number(process.env.SMTP_PORT) === 465,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
   wedding: 'חתונה',
@@ -28,8 +36,8 @@ export async function POST(request: Request) {
 
     const eventLabel = EVENT_TYPE_LABELS[eventType] || eventType;
 
-    await resend.emails.send({
-      from: 'Eventa Orders <orders@eventa.productions>',
+    await transporter.sendMail({
+      from: `"Eventa" <${process.env.SMTP_USER}>`,
       to: 'contact@eventa.productions',
       subject: `🎉 הזמנה חדשה — ${eventLabel} | ${contactName}`,
       html: `
