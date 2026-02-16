@@ -1,11 +1,18 @@
 import type { Metadata, Viewport } from 'next';
-import { Rubik } from 'next/font/google';
+import { Rubik, Great_Vibes } from 'next/font/google';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import './globals.css';
 
 const rubik = Rubik({
   subsets: ['hebrew', 'latin'],
   variable: '--font-rubik',
+  display: 'swap',
+});
+
+const greatVibes = Great_Vibes({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-script',
   display: 'swap',
 });
 
@@ -66,7 +73,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="he" dir="rtl" className={rubik.variable}>
+    <html lang="he" dir="rtl" className={`${rubik.variable} ${greatVibes.variable}`}>
       <body className={rubik.className}>
         <ErrorBoundary>
           {children}
