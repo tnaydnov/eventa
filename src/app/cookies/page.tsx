@@ -4,6 +4,7 @@ import LegalPageLayout from '@/components/LegalPageLayout';
 export const metadata: Metadata = {
   title: 'מדיניות עוגיות | Eventa',
   description: 'מדיניות העוגיות של Eventa — אילו עוגיות אנו משתמשים ולמה.',
+  alternates: { canonical: 'https://eventa.productions/cookies' },
 };
 
 /* Shared styles */

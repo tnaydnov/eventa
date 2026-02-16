@@ -4,6 +4,7 @@ import LegalPageLayout from '@/components/LegalPageLayout';
 export const metadata: Metadata = {
   title: 'תנאי שימוש | Eventa',
   description: 'תנאי השימוש של Eventa — כללים, התחייבויות ומדיניות השירות.',
+  alternates: { canonical: 'https://eventa.productions/terms' },
 };
 
 /* Shared styles */

@@ -4,6 +4,7 @@ export const metadata: Metadata = {
   title: 'Eventa Dating — הפכו כל אירוע לחוויית היכרויות',
   description:
     'Eventa Dating מוסיפה שכבת היכרויות חכמה לכל אירוע — חתונות, מסיבות, אירועי חברה ועוד. סריקת QR, פרופיל תוך דקה, לייקים, מאצ׳ים וצ׳אט.',
+  alternates: { canonical: 'https://eventa.productions/dating' },
   openGraph: {
     title: 'Eventa Dating — הפכו כל אירוע לחוויית היכרויות',
     description:

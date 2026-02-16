@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: 'Eventa — Turn Any Event Into an Experience',
   description:
     'Eventa adds smart social layers to events — dating, networking, and engagement tools that make your events unforgettable.',
+  alternates: { canonical: 'https://eventa.productions' },
 };
 
 const PRODUCTS = [

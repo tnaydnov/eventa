@@ -4,6 +4,7 @@ import LegalPageLayout from '@/components/LegalPageLayout';
 export const metadata: Metadata = {
   title: 'שאלות נפוצות | Eventa',
   description: 'שאלות נפוצות על Eventa — איך נכנסים, מי רואה את הפרופיל, כמה זמן נשמר המידע ועוד.',
+  alternates: { canonical: 'https://eventa.productions/faq' },
 };
 
 /* Shared styles */
@@ -50,8 +51,25 @@ const faqs = [
 ];
 
 export default function FaqPage() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.a,
+      },
+    })),
+  };
+
   return (
     <LegalPageLayout title="שאלות נפוצות">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
 
       {faqs.map((faq, i) => (
         <div key={i} style={qaStyle}>

@@ -4,6 +4,7 @@ import LegalPageLayout from '@/components/LegalPageLayout';
 export const metadata: Metadata = {
   title: 'כללי קהילה | Eventa',
   description: 'כללי הקהילה של Eventa — התנהגות מכבדת, תוכן אסור, ומדיניות אכיפה.',
+  alternates: { canonical: 'https://eventa.productions/community' },
 };
 
 /* Shared styles */

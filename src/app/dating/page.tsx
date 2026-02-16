@@ -4,8 +4,8 @@ import { useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 
-const DemoPhone = dynamic(() => import('./_components/DemoPhone'), { ssr: false });
-const OrderForm = dynamic(() => import('./_components/OrderForm'), { ssr: false });
+const DemoPhone = dynamic(() => import('./_components/DemoPhone'), { ssr: true });
+const OrderForm = dynamic(() => import('./_components/OrderForm'), { ssr: true });
 
 /* ── Smooth scroll helper ── */
 function scrollTo(id: string) {

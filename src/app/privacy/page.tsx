@@ -4,6 +4,7 @@ import LegalPageLayout from '@/components/LegalPageLayout';
 export const metadata: Metadata = {
   title: 'מדיניות פרטיות | Eventa',
   description: 'מדיניות הפרטיות של Eventa — כיצד אנו אוספים, משתמשים ומגנים על המידע שלכם.',
+  alternates: { canonical: 'https://eventa.productions/privacy' },
 };
 
 /* Shared styles */

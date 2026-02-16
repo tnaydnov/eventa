@@ -75,6 +75,20 @@ export default function RootLayout({
   return (
     <html lang="he" dir="rtl" className={`${rubik.variable} ${greatVibes.variable}`}>
       <body className={rubik.className}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'Eventa',
+              url: 'https://eventa.productions',
+              logo: 'https://eventa.productions/icons/icon-512x512.png',
+              description: 'Eventa adds smart social layers to events — dating, networking, and audience engagement.',
+              sameAs: [],
+            }),
+          }}
+        />
         <ErrorBoundary>
           {children}
         </ErrorBoundary>
