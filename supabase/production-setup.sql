@@ -346,6 +346,49 @@ CREATE POLICY "notifications_select" ON notifications FOR SELECT
 
 -- banned_devices, activity_log, event_analytics_snapshots: NO select policy = denied for anon (service_role only)
 
+-- Service-role write policies (INSERT/UPDATE/DELETE)
+-- All writes go through server-side API routes using the service client.
+-- These policies ensure the service_role can write to all tables.
+CREATE POLICY "service_role_insert_participants" ON participants FOR INSERT TO service_role WITH CHECK (true);
+CREATE POLICY "service_role_update_participants" ON participants FOR UPDATE TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "service_role_delete_participants" ON participants FOR DELETE TO service_role USING (true);
+
+CREATE POLICY "service_role_insert_photos" ON participant_photos FOR INSERT TO service_role WITH CHECK (true);
+CREATE POLICY "service_role_update_photos" ON participant_photos FOR UPDATE TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "service_role_delete_photos" ON participant_photos FOR DELETE TO service_role USING (true);
+
+CREATE POLICY "service_role_insert_conversations" ON conversations FOR INSERT TO service_role WITH CHECK (true);
+CREATE POLICY "service_role_update_conversations" ON conversations FOR UPDATE TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "service_role_delete_conversations" ON conversations FOR DELETE TO service_role USING (true);
+
+CREATE POLICY "service_role_insert_messages" ON messages FOR INSERT TO service_role WITH CHECK (true);
+CREATE POLICY "service_role_update_messages" ON messages FOR UPDATE TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "service_role_delete_messages" ON messages FOR DELETE TO service_role USING (true);
+
+CREATE POLICY "service_role_insert_likes" ON likes FOR INSERT TO service_role WITH CHECK (true);
+CREATE POLICY "service_role_update_likes" ON likes FOR UPDATE TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "service_role_delete_likes" ON likes FOR DELETE TO service_role USING (true);
+
+CREATE POLICY "service_role_insert_blocks" ON blocks FOR INSERT TO service_role WITH CHECK (true);
+CREATE POLICY "service_role_delete_blocks" ON blocks FOR DELETE TO service_role USING (true);
+
+CREATE POLICY "service_role_insert_notifications" ON notifications FOR INSERT TO service_role WITH CHECK (true);
+CREATE POLICY "service_role_delete_notifications" ON notifications FOR DELETE TO service_role USING (true);
+
+CREATE POLICY "service_role_insert_activity_log" ON activity_log FOR INSERT TO service_role WITH CHECK (true);
+CREATE POLICY "service_role_delete_activity_log" ON activity_log FOR DELETE TO service_role USING (true);
+
+CREATE POLICY "service_role_insert_events" ON events FOR INSERT TO service_role WITH CHECK (true);
+CREATE POLICY "service_role_update_events" ON events FOR UPDATE TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "service_role_delete_events" ON events FOR DELETE TO service_role USING (true);
+
+CREATE POLICY "service_role_all_banned_devices" ON banned_devices FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "service_role_all_analytics" ON event_analytics_snapshots FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "service_role_all_push_subs" ON push_subscriptions FOR ALL TO service_role USING (true) WITH CHECK (true);
+
+-- Notify PostgREST to reload schema (pick up new grants + policies)
+NOTIFY pgrst, 'reload schema';
+
 
 -- ════════════════════════════════════════════
 -- 7. REPLICA IDENTITY (for Realtime)
