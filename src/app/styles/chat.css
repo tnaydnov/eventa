@@ -7,7 +7,7 @@
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   cursor: pointer;
   transition: background 0.2s ease;
   content-visibility: auto;
@@ -87,7 +87,7 @@
 
 .message-bubble.received {
   align-self: flex-start;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.11);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   color: var(--foreground);
@@ -113,7 +113,7 @@
 .message-input-bar input {
   flex: 1;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.10);
   border: 1px solid var(--glass-border);
   border-radius: 20px;
   color: var(--foreground);
@@ -146,7 +146,7 @@
   justify-content: center;
   gap: 10px;
   padding: 10px 16px;
-  background: rgba(212, 165, 154, 0.08);
+  background: rgba(212, 165, 154, 0.12);
   border-top: 1px solid var(--glass-border);
   font-size: 14px;
   color: var(--primary);
