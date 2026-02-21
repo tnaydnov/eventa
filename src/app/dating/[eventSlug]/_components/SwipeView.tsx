@@ -104,7 +104,7 @@ export default function SwipeView({ participants, eventSlug }: SwipeViewProps) {
 
   const handleReset = useCallback(() => {
     resetPool();
-    toast('הרשימה אופסה — כולם חזרו (חוץ מאלו שכבר לייקת)');
+    toast('הרשימה אופסה — כולם חזרו (חוץ מאלו שכבר עשית להם לייק!)');
   }, [resetPool, toast]);
 
   /* ── Empty state ───────────────────────────────────────────── */

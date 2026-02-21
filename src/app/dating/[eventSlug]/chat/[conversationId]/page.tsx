@@ -254,6 +254,11 @@ export default function ChatRoomPage({
 
     setSending(true);
     setUploadingImage(true);
+
+    // Yield to the event loop so React can paint the upload spinner
+    // before compression blocks the main thread.
+    await new Promise<void>((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+
     const path = await uploadChatImage(session.eventId, conversationId, file);
     if (path) {
       const msg = await sendMessage(conversationId, '', 'image', path);
