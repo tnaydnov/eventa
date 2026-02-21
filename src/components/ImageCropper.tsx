@@ -52,19 +52,29 @@ async function getCroppedImg(
     pixelCrop.height
   );
 
+  // Try WebP first (best compression), fall back to JPEG for older browsers
   return new Promise<File>((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
-        if (!blob) {
-          reject(new Error('Canvas toBlob failed'));
+        if (blob && blob.type === 'image/webp') {
+          // WebP supported — use it
+          const outName = fileName.replace(/\.[^.]+$/, '.webp');
+          resolve(new File([blob], outName, { type: 'image/webp' }));
           return;
         }
-        // Use the actual blob type — browser may fall back to PNG
-        // if WebP canvas encoding isn't supported.
-        const actualType = blob.type || 'image/webp';
-        const ext = actualType === 'image/webp' ? '.webp' : actualType === 'image/png' ? '.png' : '.jpg';
-        const outName = fileName.replace(/\.[^.]+$/, ext);
-        resolve(new File([blob], outName, { type: actualType }));
+        // WebP not supported or empty blob — fall back to JPEG
+        canvas.toBlob(
+          (jpegBlob) => {
+            if (!jpegBlob) {
+              reject(new Error('Canvas toBlob failed'));
+              return;
+            }
+            const outName = fileName.replace(/\.[^.]+$/, '.jpg');
+            resolve(new File([jpegBlob], outName, { type: 'image/jpeg' }));
+          },
+          'image/jpeg',
+          0.92
+        );
       },
       'image/webp',
       0.92

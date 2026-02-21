@@ -2,8 +2,8 @@ import imageCompression from 'browser-image-compression';
 
 /**
  * Compress an image file before upload.
- * - Profile photos: max 1600px, max 800KB
- * - Chat images: max 1600px, max 800KB
+ * - Profile photos: max 2048px, max 2MB  (high quality for dating profiles)
+ * - Chat images:   max 1600px, max 1.5MB
  *
  * All images pass through canvas-based compression which naturally
  * strips EXIF metadata (GPS, camera info, etc.) from the output.
@@ -17,13 +17,13 @@ export interface CompressionOptions {
 }
 
 const PROFILE_PHOTO_OPTIONS: CompressionOptions = {
-  maxSizePx: 1600,
-  maxSizeMB: 0.8,
+  maxSizePx: 2048,
+  maxSizeMB: 2,
 };
 
 const CHAT_IMAGE_OPTIONS: CompressionOptions = {
   maxSizePx: 1600,
-  maxSizeMB: 0.8,
+  maxSizeMB: 1.5,
 };
 
 /** Maximum input file size (20 MB) — reject before processing. */
@@ -68,25 +68,28 @@ export async function compressImage(
       throw new Error(`Image too large — maximum ${MAX_INPUT_DIMENSION}×${MAX_INPUT_DIMENSION} pixels`);
     }
   } catch (dimErr) {
-    // If dimension check itself fails, the file is probably corrupt — reject
     if (dimErr instanceof Error && dimErr.message.startsWith('Image too large')) throw dimErr;
-    throw new Error('Unable to read image — file may be corrupt');
+    // Dimension check failed but file might still be valid — log and continue
+    console.warn('[compressImage] Dimension check failed, proceeding anyway:', dimErr);
   }
 
   try {
     // Always compress through canvas to strip EXIF metadata,
     // even for small files that are already below the size limit.
+    // Do NOT force fileType — let the library use the input format
+    // so it works on every browser (Safari < 16.4 doesn't support WebP canvas).
     const compressed = await imageCompression(file, {
       maxSizeMB: options.maxSizeMB,
       maxWidthOrHeight: options.maxSizePx,
       useWebWorker: true,
-      fileType: 'image/webp',
-      initialQuality: 0.9,
+      initialQuality: 0.92,
     });
 
-    // Return as File with proper name (change extension to .webp)
-    const newName = file.name.replace(/\.[^.]+$/, '.webp');
-    return new File([compressed], newName, { type: 'image/webp' });
+    // Preserve the actual output type and name
+    const outType = compressed.type || file.type;
+    const outExt = outType === 'image/png' ? '.png' : outType === 'image/webp' ? '.webp' : '.jpg';
+    const newName = file.name.replace(/\.[^.]+$/, outExt);
+    return new File([compressed], newName, { type: outType });
   } catch (error) {
     // Don't return the original — it still contains EXIF metadata (GPS, camera info).
     // Throwing forces the caller to handle the failure explicitly.
@@ -96,12 +99,12 @@ export async function compressImage(
   }
 }
 
-/** Compress for profile photos (smaller, lower quality) */
+/** Compress for profile photos (high quality, larger limit) */
 export function compressProfilePhoto(file: File): Promise<File> {
   return compressImage(file, PROFILE_PHOTO_OPTIONS);
 }
 
-/** Compress for chat images (larger, higher quality) */
+/** Compress for chat images */
 export function compressChatImage(file: File): Promise<File> {
   return compressImage(file, CHAT_IMAGE_OPTIONS);
 }
