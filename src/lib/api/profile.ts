@@ -13,9 +13,14 @@ export async function updateProfile(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      console.error('[updateProfile] failed:', res.status, errText);
+      return null;
+    }
     return res.json();
-  } catch {
+  } catch (err) {
+    console.error('[updateProfile] error:', err);
     return null;
   }
 }

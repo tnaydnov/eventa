@@ -61,7 +61,11 @@ export default function ProfileSetupPage({
   };
 
   const onSubmit = async (data: ProfileSetupData) => {
-    if (!session) return;
+    if (!session) {
+      console.error('[setup] session is null at submit time');
+      toast('אין סשן פעיל — רפרשו את העמוד');
+      return;
+    }
 
     if (uploadedPhotos.length === 0) {
       setPhotoError(true);
@@ -71,7 +75,7 @@ export default function ProfileSetupPage({
     }
 
     try {
-      const p = await updateProfile(session.participantId, {
+      const profileData = {
         display_name: data.display_name.trim(),
         gender: data.gender as Gender,
         attracted_to: data.attracted_to as AttractedTo,
@@ -79,7 +83,9 @@ export default function ProfileSetupPage({
         age: data.age,
         city: data.city?.trim() || null,
         looking_for: data.looking_for ?? null,
-      });
+      };
+      console.log('[setup] saving profile...', profileData);
+      const p = await updateProfile(session.participantId, profileData);
 
       if (!p) {
         toast('שגיאה בשמירת הפרופיל');

@@ -89,13 +89,13 @@ export function verifySessionToken(token: string): SessionPayload | null {
 
 /** Build the Set-Cookie header for a session token */
 export function sessionCookieHeader(token: string): string {
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure; Partitioned' : '';
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
   return `${COOKIE_NAME}=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE_S}${secure}`;
 }
 
 /** Build the Set-Cookie header to clear the session */
 export function clearSessionCookieHeader(): string {
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure; Partitioned' : '';
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
   return `${COOKIE_NAME}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${secure}`;
 }
 
