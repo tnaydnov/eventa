@@ -8,7 +8,14 @@
     "build": "next build --webpack && node scripts/fix-sw-paths.cjs",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "test:e2e": "npx playwright test",
+    "test:e2e:headed": "npx playwright test --headed",
+    "test:e2e:ui": "npx playwright test --ui"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -34,17 +41,25 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4.1.18",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/dompurify": "^3.0.5",
     "@types/node": "^25.2.2",
     "@types/nodemailer": "^7.0.10",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.13",
     "@types/react-dom": "^19.2.3",
+    "@vitest/coverage-v8": "^4.0.18",
     "eslint": "^10.0.0",
+    "jsdom": "^28.1.0",
+    "msw": "^2.12.10",
     "postcss": "^8.5.6",
     "sharp": "^0.33.5",
     "tailwindcss": "^4.1.18",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }
