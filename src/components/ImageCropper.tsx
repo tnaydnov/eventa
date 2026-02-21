@@ -28,7 +28,12 @@ async function getCroppedImg(
   fileName: string
 ): Promise<File> {
   const image = new Image();
-  image.crossOrigin = 'anonymous';
+  // Only set crossOrigin for remote URLs — blob: and data: URLs are always
+  // same-origin, and setting crossOrigin on them can break canvas.toBlob()
+  // on some Android Chrome versions.
+  if (!imageSrc.startsWith('blob:') && !imageSrc.startsWith('data:')) {
+    image.crossOrigin = 'anonymous';
+  }
   await new Promise<void>((resolve, reject) => {
     image.onload = () => resolve();
     image.onerror = reject;

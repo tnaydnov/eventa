@@ -11,6 +11,7 @@ import { logger } from '@/lib/logger';
  * Permanently deletes the authenticated participant and all their associated data.
  */
 export async function POST(req: NextRequest) {
+  logger.info('[ACCOUNT_DELETE] request received');
   const guard = await secureGuard(req, 'account-delete', RATE_LIMITS.strict);
   if (guard instanceof NextResponse) return guard;
   const session = guard;

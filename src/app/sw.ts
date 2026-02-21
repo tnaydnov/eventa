@@ -33,6 +33,7 @@ const runtimeCaching = [
         url.pathname.startsWith('/api/admin') ||
         url.pathname.startsWith('/api/auth') ||
         url.pathname.startsWith('/api/secure') ||
+        url.pathname.startsWith('/api/account') ||
         url.pathname.startsWith('/api/cleanup') ||
         url.pathname.startsWith('/api/health')
       ),

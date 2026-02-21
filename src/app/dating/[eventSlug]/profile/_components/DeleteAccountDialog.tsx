@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { AnimatedOverlay } from '@/components/Animations';
 import { TrashIcon } from '@/components/Icons';
 import { deleteAccount } from '@/lib/api';
+import { useToastStore } from '@/lib/store';
 import type { WeddingSession } from '@/lib/store';
 
 interface DeleteAccountDialogProps {
@@ -20,13 +21,15 @@ export default function DeleteAccountDialog({
   onDeleted,
 }: DeleteAccountDialogProps) {
   const [deleting, setDeleting] = useState(false);
+  const toast = useToastStore((s) => s.show);
 
   const handleDelete = async () => {
     setDeleting(true);
-    const success = await deleteAccount();
-    if (success) {
+    const result = await deleteAccount();
+    if (result.ok) {
       onDeleted();
     } else {
+      toast('שגיאה במחיקת החשבון — נסו שוב');
       setDeleting(false);
     }
   };
