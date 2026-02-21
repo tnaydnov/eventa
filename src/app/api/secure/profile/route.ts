@@ -56,20 +56,25 @@ export async function PATCH(req: NextRequest) {
       return jsonError('No valid fields to update', 400);
     }
 
+    logger.info('[PROFILE] update attempt', { sub: session.sub, eid: session.eid, fields: Object.keys(allowed).join(',') });
+
     const supabase = getServiceClient();
-    const { data: p, error } = await supabase
+    const { data: rows, error } = await supabase
       .from('participants')
       .update(allowed)
       .eq('id', session.sub)
       .eq('event_id', session.eid)
-      .select()
-      .single();
+      .select();
 
     if (error) {
-      logger.error('[PROFILE] update error:', error.message);
-      return jsonError('Failed to update profile', 400);
+      logger.error('[PROFILE] update error:', { message: error.message, code: error.code, details: error.details });
+      return jsonError(`Failed to update profile: ${error.message}`, 400);
     }
-    return NextResponse.json(p);
+    if (!rows || rows.length === 0) {
+      logger.error('[PROFILE] update matched 0 rows — sub=' + session.sub + ' eid=' + session.eid);
+      return jsonError('Participant not found', 404);
+    }
+    return NextResponse.json(rows[0]);
   } catch (err) {
     logger.error('[PROFILE] error:', err);
     return jsonError('Server error', 500);

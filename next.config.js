@@ -45,8 +45,8 @@ const nextConfig = {
       : 'https://*.supabase.co wss://*.supabase.co';
     // unsafe-eval only needed for Next.js dev mode
     const scriptSrc = isDev
-      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-      : "script-src 'self' 'unsafe-inline'";
+      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:"
+      : "script-src 'self' 'unsafe-inline' blob:";
 
     return [
       {
