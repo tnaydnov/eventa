@@ -56,17 +56,17 @@ async function getCroppedImg(
   return new Promise<File>((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
-        if (blob && blob.type === 'image/webp') {
+        if (blob && blob.size > 0 && blob.type === 'image/webp') {
           // WebP supported — use it
           const outName = fileName.replace(/\.[^.]+$/, '.webp');
           resolve(new File([blob], outName, { type: 'image/webp' }));
           return;
         }
-        // WebP not supported or empty blob — fall back to JPEG
+        // WebP not supported, empty blob, or empty type — fall back to JPEG
         canvas.toBlob(
           (jpegBlob) => {
-            if (!jpegBlob) {
-              reject(new Error('Canvas toBlob failed'));
+            if (!jpegBlob || jpegBlob.size === 0) {
+              reject(new Error('Canvas toBlob failed for both WebP and JPEG'));
               return;
             }
             const outName = fileName.replace(/\.[^.]+$/, '.jpg');

@@ -171,20 +171,41 @@ const ALLOWED_IMAGE_TYPES = new Set([
   'image/gif',
   'image/webp',
   'image/avif',
+  'image/heic',
+  'image/heif',
 ]);
+
+/** Map file extensions to MIME types (fallback when browser reports empty type). */
+const EXT_TO_MIME: Record<string, string> = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+  gif: 'image/gif', webp: 'image/webp', avif: 'image/avif',
+  heic: 'image/heic', heif: 'image/heif',
+};
+
+/**
+ * Infer the effective MIME type of a file.
+ * Some Android browsers/WebViews leave file.type empty for camera captures.
+ * Falls back to extension-based detection.
+ */
+export function getEffectiveImageType(file: File): string {
+  if (file.type && file.type !== 'application/octet-stream') return file.type;
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+  return EXT_TO_MIME[ext] || '';
+}
 
 /**
  * Validate a File before uploading as an image.
  * Returns an error message string if invalid, or null if OK.
  */
 export function validateImageFile(file: File): string | null {
-  if (!file.type.startsWith('image/')) return 'ניתן להעלות תמונות בלבד';
+  const effectiveType = getEffectiveImageType(file);
+  if (!effectiveType.startsWith('image/')) return 'ניתן להעלות תמונות בלבד';
   // Block SVG uploads (XSS vector)
-  if (file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg')) {
+  if (effectiveType === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg')) {
     return 'קבצי SVG אינם נתמכים';
   }
   // Allowlist check
-  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+  if (!ALLOWED_IMAGE_TYPES.has(effectiveType)) {
     return 'פורמט לא נתמך — נא להעלות JPEG, PNG, GIF, WebP או AVIF';
   }
   if (file.size > MAX_IMAGE_SIZE_BYTES) return 'הקובץ גדול מדי — עד 20MB';
@@ -209,10 +230,12 @@ export function validateImageMagicBytes(
     ],
     'image/webp': [[0x52, 0x49, 0x46, 0x46]], // RIFF container
     'image/avif': [], // ftyp box varies; skip magic check
+    'image/heic': [], // ftyp box varies (ftypheic, ftypmif1); skip magic check
+    'image/heif': [], // ftyp box varies; skip magic check
   };
 
   const expected = signatures[claimedType];
-  if (!expected || expected.length === 0) return true; // unknown or AVIF — allow
+  if (!expected || expected.length === 0) return true; // unknown or container formats — allow
 
   return expected.some((sig) =>
     sig.every((byte, i) => bytes[i] === byte)

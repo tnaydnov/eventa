@@ -63,6 +63,10 @@ export default function ProfilePhotoGrid({
     if (cropImage) URL.revokeObjectURL(cropImage.src);
     setCropImage(null);
     setUploading(true);
+
+    // Yield so React paints the upload spinner before compression blocks the main thread
+    await new Promise<void>((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+
     const photo = await uploadPhoto(eventId, participantId, croppedFile, photos.length);
     if (photo) {
       onPhotosChange([...photos, photo]);

@@ -2,7 +2,7 @@ import { supabase } from '../supabase';
 import type { Conversation, Message } from '../database.types';
 import type { ConversationWithDetails } from '../store';
 import { compressChatImage } from '../image-compression';
-import { validateImageMagicBytes } from '../validations';
+import { validateImageMagicBytes, getEffectiveImageType } from '../validations';
 import { getBlockedIds, buildParticipantPhotoMaps, CONVERSATION_COLUMNS, MESSAGE_COLUMNS } from './helpers';
 
 /** Get or create a conversation with another participant. */
@@ -200,10 +200,11 @@ export async function uploadChatImage(
   file: File
 ): Promise<string | null> {
   // Magic byte validation
+  const effectiveType = getEffectiveImageType(file);
   try {
     const headerBytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
-    if (!validateImageMagicBytes(headerBytes, file.type)) {
-      console.warn('[uploadChatImage] Magic byte mismatch', { type: file.type });
+    if (!validateImageMagicBytes(headerBytes, effectiveType)) {
+      console.warn('[uploadChatImage] Magic byte mismatch', { type: file.type, effectiveType });
       return null;
     }
   } catch {

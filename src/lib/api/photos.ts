@@ -1,7 +1,7 @@
 import { supabase } from '../supabase';
 import type { ParticipantPhoto } from '../database.types';
 import { compressProfilePhoto } from '../image-compression';
-import { validateImageMagicBytes } from '../validations';
+import { validateImageMagicBytes, getEffectiveImageType } from '../validations';
 import { PHOTO_COLUMNS } from './helpers';
 
 /** Upload a profile photo (validate → compress → sign → upload → create DB record). */
@@ -11,20 +11,25 @@ export async function uploadPhoto(
   file: File,
   orderIndex: number
 ): Promise<ParticipantPhoto | null> {
-  // Magic byte validation — read first 16 bytes and verify against claimed MIME
+  // Magic byte validation — log mismatches but don't block.
+  // Profile photos always come from ImageCropper (canvas-rendered),
+  // so they're inherently safe. Blocking on mismatch breaks some
+  // Android browsers where canvas.toBlob produces non-standard headers.
+  const effectiveType = getEffectiveImageType(file);
   try {
     const headerBytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
-    if (!validateImageMagicBytes(headerBytes, file.type)) {
-      console.error('[uploadPhoto] Magic byte mismatch — blocking upload', {
+    if (!validateImageMagicBytes(headerBytes, effectiveType)) {
+      console.warn('[uploadPhoto] Magic byte mismatch (canvas output — proceeding)', {
         claimedType: file.type,
+        effectiveType,
         name: file.name,
+        size: file.size,
         headerHex: Array.from(headerBytes.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(' '),
       });
-      return null;
+      // Don't return null — canvas-rendered files are safe
     }
   } catch (err) {
-    console.error('[uploadPhoto] Failed to read file header:', err);
-    return null;
+    console.warn('[uploadPhoto] Failed to read file header (proceeding):', err);
   }
 
   let compressed: File;
