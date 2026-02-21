@@ -86,45 +86,59 @@ export default function RealtimeNotificationListener() {
     if (store._initialized) return;
 
     (async () => {
-      const [unseenLikeSenders, unreadConvos] = await Promise.all([
-        getUnseenLikes(session.eventId, session.participantId),
-        getUnreadConversations(session.eventId, session.participantId),
-      ]);
+      try {
+        const [unseenLikeSenders, unreadConvos] = await Promise.all([
+          getUnseenLikes(session.eventId, session.participantId),
+          getUnreadConversations(session.eventId, session.participantId),
+        ]);
 
-      // Populate grid highlights for unseen likes
-      for (const senderId of unseenLikeSenders) {
-        useNotificationStore.getState().addGridHighlight({
-          participantId: senderId,
-          type: 'like',
-          timestamp: Date.now(),
-        });
+        // Populate grid highlights for unseen likes
+        for (const senderId of unseenLikeSenders) {
+          useNotificationStore.getState().addGridHighlight({
+            participantId: senderId,
+            type: 'like',
+            timestamp: Date.now(),
+          });
+        }
+        useNotificationStore.getState().setUnreadLikes(unseenLikeSenders.length);
+
+        // Populate grid highlights for unread messages + track unread convos
+        const convoIds: string[] = [];
+        for (const uc of unreadConvos) {
+          useNotificationStore.getState().addGridHighlight({
+            participantId: uc.otherParticipantId,
+            type: 'message',
+            timestamp: Date.now(),
+          });
+          convoIds.push(uc.conversationId);
+        }
+        useNotificationStore.getState().initializeUnreadConvos(convoIds);
+        useNotificationStore.getState().setInitialized(true);
+
+        // Pre-seed conversation ID cache for realtime filtering
+        refreshMyConvoIds();
+      } catch (err) {
+        console.error('[RealtimeNotificationListener] init error:', err);
+        // Mark initialized anyway to prevent infinite retries
+        useNotificationStore.getState().setInitialized(true);
       }
-      useNotificationStore.getState().setUnreadLikes(unseenLikeSenders.length);
-
-      // Populate grid highlights for unread messages + track unread convos
-      const convoIds: string[] = [];
-      for (const uc of unreadConvos) {
-        useNotificationStore.getState().addGridHighlight({
-          participantId: uc.otherParticipantId,
-          type: 'message',
-          timestamp: Date.now(),
-        });
-        convoIds.push(uc.conversationId);
-      }
-      useNotificationStore.getState().initializeUnreadConvos(convoIds);
-      useNotificationStore.getState().setInitialized(true);
-
-      // Pre-seed conversation ID cache for realtime filtering
-      refreshMyConvoIds();
     })();
   }, [session]);
 
   // Stable name cache with TTL (5 min) — prevents stale names + unbounded growth
   const nameCache = useRef(new Map<string, { name: string; ts: number }>());
+  const NAME_CACHE_TTL = 5 * 60 * 1000;
+  const NAME_CACHE_MAX = 200;
   const getName = async (id: string): Promise<string> => {
     const cached = nameCache.current.get(id);
     const now = Date.now();
-    if (cached && now - cached.ts < 5 * 60 * 1000) return cached.name;
+    if (cached && now - cached.ts < NAME_CACHE_TTL) return cached.name;
+    // Prune expired entries if cache exceeds max size
+    if (nameCache.current.size >= NAME_CACHE_MAX) {
+      for (const [key, entry] of nameCache.current.entries()) {
+        if (now - entry.ts >= NAME_CACHE_TTL) nameCache.current.delete(key);
+      }
+    }
     const { data } = await supabase.from('participants').select('display_name').eq('id', id).single();
     const name = data?.display_name || 'מישהו';
     nameCache.current.set(id, { name, ts: now });
@@ -205,7 +219,10 @@ export default function RealtimeNotificationListener() {
       {
         binding: { event: 'DELETE', schema: 'public', table: 'likes', filter: `event_id=eq.${session?.eventId}` },
         handler: (payload) => {
-          const old = payload.old as Like;
+          const old = payload.old as Partial<Like>;
+          // Supabase DELETE payloads only include columns in REPLICA IDENTITY.
+          // Guard against missing fields to prevent runtime errors.
+          if (!old.to_participant_id || !old.from_participant_id) return;
           if (old.to_participant_id !== sessionRef.current?.participantId) return;
           handleLikeRemoved(old.from_participant_id);
         },
@@ -231,57 +248,62 @@ export default function RealtimeNotificationListener() {
     if (!s) return;
     const now = new Date().toISOString();
 
-    // Prune old dedup entries to prevent unbounded memory growth
-    pruneSeenIds();
+    try {
+      // Prune old dedup entries to prevent unbounded memory growth
+      pruneSeenIds();
 
-    // Fire independent queries in parallel
-    const [{ data: newLikes }, freshConvoIds] = await Promise.all([
-      supabase
-        .from('likes').select('id, from_participant_id')
-        .eq('event_id', s.eventId).eq('to_participant_id', s.participantId)
-        .gt('created_at', lastPollTsRef.current).order('created_at', { ascending: true }),
-      refreshMyConvoIds(),
-    ]);
+      // Fire independent queries in parallel
+      const [{ data: newLikes }, freshConvoIds] = await Promise.all([
+        supabase
+          .from('likes').select('id, from_participant_id')
+          .eq('event_id', s.eventId).eq('to_participant_id', s.participantId)
+          .gt('created_at', lastPollTsRef.current).order('created_at', { ascending: true }),
+        refreshMyConvoIds(),
+      ]);
 
-    if (newLikes) for (const like of newLikes) handleLike(like.id, like.from_participant_id);
+      if (newLikes) for (const like of newLikes) handleLike(like.id, like.from_participant_id);
 
-    const myConvoIds = [...freshConvoIds];
+      const myConvoIds = [...freshConvoIds];
 
-    // Messages + reconciliation in parallel
-    const [msgResult, reconcileResult] = await Promise.all([
-      myConvoIds.length > 0
-        ? supabase
-            .from('messages').select('id, sender_participant_id, conversation_id, text, type')
-            .eq('event_id', s.eventId).neq('sender_participant_id', s.participantId)
-            .in('conversation_id', myConvoIds)
-            .gt('created_at', lastPollTsRef.current).order('created_at', { ascending: true })
-        : Promise.resolve({ data: null }),
-      // Reconcile: remove stale like highlights
-      (async () => {
-        const store = useNotificationStore.getState();
-        const likeHighlights = store.gridHighlights.filter((h) => h.type === 'like');
-        if (likeHighlights.length === 0) return;
-        const { data: currentLikes } = await supabase
-          .from('likes')
-          .select('from_participant_id')
-          .eq('event_id', s.eventId)
-          .eq('to_participant_id', s.participantId)
-          .is('seen_at', null);
-        const activeLikerIds = new Set((currentLikes || []).map((l) => l.from_participant_id));
-        for (const h of likeHighlights) {
-          if (!activeLikerIds.has(h.participantId)) {
-            useNotificationStore.getState().removeGridHighlightByType(h.participantId, 'like');
-            useNotificationStore.getState().decrementLikes();
+      // Messages + reconciliation in parallel
+      const [msgResult, reconcileResult] = await Promise.all([
+        myConvoIds.length > 0
+          ? supabase
+              .from('messages').select('id, sender_participant_id, conversation_id, text, type')
+              .eq('event_id', s.eventId).neq('sender_participant_id', s.participantId)
+              .in('conversation_id', myConvoIds)
+              .gt('created_at', lastPollTsRef.current).order('created_at', { ascending: true })
+          : Promise.resolve({ data: null }),
+        // Reconcile: remove stale like highlights
+        (async () => {
+          const store = useNotificationStore.getState();
+          const likeHighlights = store.gridHighlights.filter((h) => h.type === 'like');
+          if (likeHighlights.length === 0) return;
+          const { data: currentLikes } = await supabase
+            .from('likes')
+            .select('from_participant_id')
+            .eq('event_id', s.eventId)
+            .eq('to_participant_id', s.participantId)
+            .is('seen_at', null);
+          const activeLikerIds = new Set((currentLikes || []).map((l) => l.from_participant_id));
+          for (const h of likeHighlights) {
+            if (!activeLikerIds.has(h.participantId)) {
+              useNotificationStore.getState().removeGridHighlightByType(h.participantId, 'like');
+              useNotificationStore.getState().decrementLikes();
+            }
           }
-        }
-      })(),
-    ]);
+        })(),
+      ]);
 
-    if (msgResult?.data) {
-      for (const msg of msgResult.data) handleMessage(msg.id, msg.sender_participant_id, msg.conversation_id, msg.text, msg.type);
+      if (msgResult?.data) {
+        for (const msg of msgResult.data) handleMessage(msg.id, msg.sender_participant_id, msg.conversation_id, msg.text, msg.type);
+      }
+
+      lastPollTsRef.current = now;
+    } catch (err) {
+      console.error('[RealtimeNotificationListener] poll error:', err);
+      // Don't update lastPollTsRef so the next poll retries from the same timestamp
     }
-
-    lastPollTsRef.current = now;
   };
 
   useEffect(() => {

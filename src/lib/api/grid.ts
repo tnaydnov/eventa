@@ -31,7 +31,7 @@ export async function getGridParticipants(
   myId: string
 ): Promise<GridParticipant[]> {
   // Fire independent queries in parallel — join photos in the same query
-  const [blockedIds, { data: myProfile }, { data: participants }] = await Promise.all([
+  const [blockedIds, myProfileRes, participantsRes] = await Promise.all([
     getBlockedIds(eventId, myId),
     supabase
       .from('participants')
@@ -40,13 +40,27 @@ export async function getGridParticipants(
       .single(),
     supabase
       .from('participants')
-      .select('id, event_id, device_fingerprint, hardware_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at, participant_photos(id, event_id, participant_id, storage_path, order_index, created_at)')
+      .select('id, event_id, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at, participant_photos(id, event_id, participant_id, storage_path, order_index, created_at)')
       .eq('event_id', eventId)
       .eq('is_banned', false)
       .neq('id', myId)
       .order('order_index', { referencedTable: 'participant_photos' })
       .limit(200),
   ]);
+
+  // If myProfile query failed, return empty — don't show unfiltered grid
+  if (myProfileRes.error) {
+    console.error('[getGridParticipants] myProfile error:', myProfileRes.error.message);
+    return [];
+  }
+
+  if (participantsRes.error) {
+    console.error('[getGridParticipants] participants error:', participantsRes.error.message);
+    return [];
+  }
+
+  const myProfile = myProfileRes.data;
+  const participants = participantsRes.data;
 
   if (!participants) return [];
 

@@ -4,7 +4,9 @@ import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { MAX_BACKGROUND_SIZE_BYTES } from '@/lib/constants';
 import { jsonError } from '@/lib/route-helpers';
+import { validateImageMagicBytes } from '@/lib/validations';
 import { adminGuard, validateEventId } from '../../../_helpers';
+import { logger } from '@/lib/logger';
 
 /** Allowed MIME types → safe file extensions for background images. */
 const MIME_TO_EXT: Record<string, string> = {
@@ -49,13 +51,19 @@ export async function POST(
     const storagePath = `${eventId}/bg.${ext}`;
     const buffer = Buffer.from(await file.arrayBuffer());
 
+    // Validate magic bytes match claimed MIME type (prevents spoofed Content-Type)
+    if (!validateImageMagicBytes(new Uint8Array(buffer.buffer, buffer.byteOffset, Math.min(buffer.length, 16)), file.type)) {
+      return jsonError('File content does not match declared type', 400);
+    }
+
     // Remove old backgrounds with different extensions (prevents orphaned files
     // when switching e.g. from JPG to PNG)
     const staleExtensions = Object.values(MIME_TO_EXT).filter(e => e !== ext);
     if (staleExtensions.length > 0) {
-      await supabase.storage.from('backgrounds').remove(
+      const { error: staleErr } = await supabase.storage.from('backgrounds').remove(
         staleExtensions.map(e => `${eventId}/bg.${e}`)
       );
+      if (staleErr) logger.error('[BACKGROUND_UPLOAD] stale cleanup error:', staleErr.message);
     }
 
     // Upload (upsert) to storage
@@ -64,7 +72,7 @@ export async function POST(
       .upload(storagePath, buffer, { contentType: file.type, upsert: true });
 
     if (uploadError) {
-      console.error('[BACKGROUND_UPLOAD] Storage error:', uploadError.message);
+      logger.error('[BACKGROUND_UPLOAD] Storage error:', uploadError.message);
       return jsonError('Upload failed', 500);
     }
 
@@ -79,14 +87,14 @@ export async function POST(
       .eq('id', eventId);
 
     if (updateError) {
-      console.error('[BACKGROUND_UPLOAD] DB error:', updateError.message);
+      logger.error('[BACKGROUND_UPLOAD] DB error:', updateError.message);
       return jsonError('Failed to update event', 500);
     }
 
     adminAuditLog('BACKGROUND_UPLOAD', { eventId }, req);
     return NextResponse.json({ background_image: publicUrlWithCacheBust });
   } catch (err) {
-    console.error('[BACKGROUND_UPLOAD] error:', err);
+    logger.error('[BACKGROUND_UPLOAD] error:', err);
     return jsonError('Upload failed', 500);
   }
 }
@@ -110,9 +118,10 @@ export async function DELETE(
     const supabase = getServiceClient();
 
     // Remove all possible extensions from storage (best-effort)
-    await supabase.storage.from('backgrounds').remove(
+    const { error: removeErr } = await supabase.storage.from('backgrounds').remove(
       Object.values(MIME_TO_EXT).map(ext => `${eventId}/bg.${ext}`)
     );
+    if (removeErr) logger.error('[BACKGROUND_DELETE] storage remove error:', removeErr.message);
 
     // Clear the DB field
     const { error } = await supabase
@@ -121,14 +130,14 @@ export async function DELETE(
       .eq('id', eventId);
 
     if (error) {
-      console.error('[BACKGROUND_DELETE] DB error:', error.message);
+      logger.error('[BACKGROUND_DELETE] DB error:', error.message);
       return jsonError('Failed to remove background', 500);
     }
 
     adminAuditLog('BACKGROUND_REMOVE', { eventId }, req);
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error('[BACKGROUND_DELETE] error:', err);
+    logger.error('[BACKGROUND_DELETE] error:', err);
     return jsonError('Failed to remove background', 500);
   }
 }

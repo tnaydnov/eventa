@@ -4,6 +4,7 @@ import { RATE_LIMITS } from '@/lib/rate-limit';
 import { clearSessionCookieHeader } from '@/lib/session';
 import { STORAGE_BATCH_SIZE } from '@/lib/constants';
 import { secureGuard, jsonError } from '@/lib/route-helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/account/delete
@@ -21,21 +22,23 @@ export async function POST(req: NextRequest) {
     const supabase = getServiceClient();
 
     // Pre-check: verify participant exists before starting cascade
-    const { data: participant } = await supabase
+    const { data: participant, error: participantError } = await supabase
       .from('participants')
       .select('id')
       .eq('id', participantId)
+      .eq('event_id', eventId)
       .single();
 
-    if (!participant) {
+    if (participantError || !participant) {
       return jsonError('Participant not found', 404);
     }
 
-    // 1. Delete photos from storage
+    // 1. Delete photos from storage (scoped to event)
     const { data: photos } = await supabase
       .from('participant_photos')
       .select('storage_path')
-      .eq('participant_id', participantId);
+      .eq('participant_id', participantId)
+      .eq('event_id', eventId);
 
     if (photos && photos.length > 0) {
       await supabase.storage
@@ -43,11 +46,12 @@ export async function POST(req: NextRequest) {
         .remove(photos.map((p) => p.storage_path));
     }
 
-    // 2. Delete photo records
+    // 2. Delete photo records (scoped to event)
     await supabase
       .from('participant_photos')
       .delete()
-      .eq('participant_id', participantId);
+      .eq('participant_id', participantId)
+      .eq('event_id', eventId);
 
     // 3. Delete messages (from conversations involving this user)
     const { data: convos } = await supabase
@@ -74,17 +78,20 @@ export async function POST(req: NextRequest) {
           try {
             await supabase.storage.from('photos').remove(mediaPaths.slice(i, i + STORAGE_BATCH_SIZE));
           } catch (batchErr) {
-            console.error('[ACCOUNT_DELETE] media batch error:', batchErr);
+            logger.error('[ACCOUNT_DELETE] media batch error:', batchErr);
           }
         }
       }
 
-      await supabase.from('messages').delete().in('conversation_id', convoIds);
-      await supabase.from('conversations').delete().in('id', convoIds);
+      const { error: msgsDelErr } = await supabase.from('messages').delete().in('conversation_id', convoIds);
+      if (msgsDelErr) logger.error('[ACCOUNT_DELETE] messages delete error:', msgsDelErr.message);
+
+      const { error: convosDelErr } = await supabase.from('conversations').delete().in('id', convoIds);
+      if (convosDelErr) logger.error('[ACCOUNT_DELETE] conversations delete error:', convosDelErr.message);
     }
 
     // 4-6. Delete likes, blocks, notifications, activity_log in parallel
-    await Promise.all([
+    const [likesRes, blocksRes, notifsRes, activityRes] = await Promise.all([
       supabase.from('likes').delete()
         .eq('event_id', eventId)
         .or(`from_participant_id.eq.${participantId},to_participant_id.eq.${participantId}`),
@@ -99,19 +106,29 @@ export async function POST(req: NextRequest) {
         .eq('participant_id', participantId),
     ]);
 
-    // 7. Finally, delete the participant record
-    await supabase
+    if (likesRes.error) logger.error('[ACCOUNT_DELETE] likes delete error:', likesRes.error.message);
+    if (blocksRes.error) logger.error('[ACCOUNT_DELETE] blocks delete error:', blocksRes.error.message);
+    if (notifsRes.error) logger.error('[ACCOUNT_DELETE] notifications delete error:', notifsRes.error.message);
+    if (activityRes.error) logger.error('[ACCOUNT_DELETE] activity_log delete error:', activityRes.error.message);
+
+    // 7. Finally, delete the participant record (critical — must succeed)
+    const { error: participantDelErr } = await supabase
       .from('participants')
       .delete()
       .eq('id', participantId);
 
-    console.log('[ACCOUNT_DELETE] success:', JSON.stringify({ participantId, eventId, ts: new Date().toISOString() }));
+    if (participantDelErr) {
+      logger.error('[ACCOUNT_DELETE] participant delete error:', participantDelErr.message);
+      return jsonError('Failed to delete account', 500);
+    }
+
+    logger.info('[ACCOUNT_DELETE] success:', JSON.stringify({ participantId, eventId, ts: new Date().toISOString() }));
 
     const response = NextResponse.json({ success: true });
     response.headers.set('Set-Cookie', clearSessionCookieHeader());
     return response;
   } catch (err) {
-    console.error('[ACCOUNT_DELETE] error:', err);
+    logger.error('[ACCOUNT_DELETE] error:', err);
     return jsonError('Server error', 500);
   }
 }

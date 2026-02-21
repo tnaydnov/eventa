@@ -27,6 +27,8 @@ export function validateEnv() {
     CRON_SECRET: process.env.CRON_SECRET,
   });
   if (!result.success) {
+    // Use console.error here intentionally — logger.ts may depend on env vars
+    // that haven't been validated yet, risking a circular failure.
     console.error('❌ Invalid environment variables:', result.error.flatten().fieldErrors);
   }
   return result;
@@ -110,6 +112,7 @@ export const updateEventSchema = z.object({
 
 /* ---- Message schema ---- */
 export const sendMessageSchema = z.object({
+  conversationId: z.string().uuid(),
   text: z.string().max(MAX_MESSAGE_LENGTH, 'הודעה ארוכה מדי').optional(),
   type: z.enum(messageTypeValues).default('text'),
   mediaPath: z.string().optional(),
@@ -121,8 +124,54 @@ export const joinEventSchema = z.object({
   joinCode: z.string().min(12).max(32),
 });
 
+/* ---- Push subscription schema ---- */
+export const pushSubscribeSchema = z.object({
+  subscription: z.object({
+    endpoint: z.string().url().max(2048),
+    keys: z.object({
+      p256dh: z.string().min(1).max(512),
+      auth: z.string().min(1).max(512),
+    }),
+  }),
+});
+
+export const pushUnsubscribeSchema = z.object({
+  endpoint: z.string().url().max(2048),
+});
+
+/* ---- Photo reorder schema ---- */
+export const photoReorderSchema = z.object({
+  order: z
+    .array(
+      z.object({
+        id: z.string().uuid(),
+        order_index: z.number().int().min(0),
+      })
+    )
+    .min(1)
+    .max(10),
+});
+
+/* ---- Likes seen schema ---- */
+export const likeSeenSchema = z.object({
+  fromParticipantId: z.string().uuid().optional(),
+  all: z.boolean().optional(),
+}).refine(
+  (d) => d.fromParticipantId || d.all,
+  { message: 'fromParticipantId or all=true required' }
+);
+
 /* ---- Client-side image file validation ---- */
 const MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024; // 20 MB
+
+/** MIME types we accept for image uploads. */
+const ALLOWED_IMAGE_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/avif',
+]);
 
 /**
  * Validate a File before uploading as an image.
@@ -130,6 +179,42 @@ const MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024; // 20 MB
  */
 export function validateImageFile(file: File): string | null {
   if (!file.type.startsWith('image/')) return 'ניתן להעלות תמונות בלבד';
+  // Block SVG uploads (XSS vector)
+  if (file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg')) {
+    return 'קבצי SVG אינם נתמכים';
+  }
+  // Allowlist check
+  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+    return 'פורמט לא נתמך — נא להעלות JPEG, PNG, GIF, WebP או AVIF';
+  }
   if (file.size > MAX_IMAGE_SIZE_BYTES) return 'הקובץ גדול מדי — עד 20MB';
   return null;
+}
+
+/**
+ * Validate image file magic bytes (binary signature).
+ * Call after reading the first bytes of the file.
+ * Returns true if the bytes match the claimed MIME type.
+ */
+export function validateImageMagicBytes(
+  bytes: Uint8Array,
+  claimedType: string
+): boolean {
+  const signatures: Record<string, number[][]> = {
+    'image/jpeg': [[0xff, 0xd8, 0xff]],
+    'image/png': [[0x89, 0x50, 0x4e, 0x47]],
+    'image/gif': [
+      [0x47, 0x49, 0x46, 0x38, 0x37, 0x61], // GIF87a
+      [0x47, 0x49, 0x46, 0x38, 0x39, 0x61], // GIF89a
+    ],
+    'image/webp': [[0x52, 0x49, 0x46, 0x46]], // RIFF container
+    'image/avif': [], // ftyp box varies; skip magic check
+  };
+
+  const expected = signatures[claimedType];
+  if (!expected || expected.length === 0) return true; // unknown or AVIF — allow
+
+  return expected.some((sig) =>
+    sig.every((byte, i) => bytes[i] === byte)
+  );
 }

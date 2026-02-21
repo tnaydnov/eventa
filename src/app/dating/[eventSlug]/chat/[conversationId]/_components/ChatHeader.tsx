@@ -2,10 +2,10 @@
 
 import { getPhotoUrl } from '@/lib/api';
 import { UserIcon } from '@/components/Icons';
-import type { Participant, ParticipantPhoto } from '@/lib/database.types';
+import type { PublicParticipant, ParticipantPhoto } from '@/lib/database.types';
 
 interface ChatHeaderProps {
-  otherUser: (Participant & { photos: ParticipantPhoto[] }) | null;
+  otherUser: (PublicParticipant & { photos: ParticipantPhoto[] }) | null;
   onBack: () => void;
   onUserClick: () => void;
   onMenuToggle: () => void;

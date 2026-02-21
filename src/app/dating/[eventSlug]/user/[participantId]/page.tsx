@@ -19,7 +19,7 @@ import MobileGuard from '@/components/MobileGuard';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import BlockConfirmDialog from '@/components/BlockConfirmDialog';
 import { LOOKING_FOR_LABELS } from '@/lib/constants';
-import type { Participant, ParticipantPhoto } from '@/lib/database.types';
+import type { PublicParticipant, ParticipantPhoto } from '@/lib/database.types';
 
 export default function UserProfilePage({
   params,
@@ -34,7 +34,7 @@ export default function UserProfilePage({
 
   // Seed from grid store for instant display (stale-while-revalidate)
   const cached = useGridStore((s) => s.participants.find((p) => p.id === participantId)) ?? null;
-  const [user, setUser] = useState<(Participant & { photos: ParticipantPhoto[] }) | null>(cached);
+  const [user, setUser] = useState<(PublicParticipant & { photos: ParticipantPhoto[] }) | null>(cached);
   const [liked, setLiked] = useState(false);
   const [photoIndex, setPhotoIndex] = useState(0);
   const [loading, setLoading] = useState(!cached);

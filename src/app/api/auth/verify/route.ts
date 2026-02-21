@@ -3,6 +3,7 @@ import { getSessionFromRequest, clearSessionCookieHeader, checkCsrf } from '@/li
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { jsonError } from '@/lib/route-helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/auth/verify
@@ -23,12 +24,18 @@ export async function GET(req: NextRequest) {
   }
 
   // Check if participant is banned — reject and clear cookie if so
+  // Fail-closed: if DB errors, treat as banned to prevent bypass
   const supabase = getServiceClient();
-  const { data: participant } = await supabase
+  const { data: participant, error: participantError } = await supabase
     .from('participants')
     .select('is_banned')
     .eq('id', session.sub)
     .single();
+
+  if (participantError) {
+    logger.error('[AUTH_VERIFY] participant lookup failed:', participantError);
+    return jsonError('Server error', 500);
+  }
 
   if (participant?.is_banned) {
     const response = NextResponse.json({ error: 'Account banned' }, { status: 403 });
@@ -37,11 +44,16 @@ export async function GET(req: NextRequest) {
   }
 
   // Check event status — kick users from paused/archived/deleted events
-  const { data: event } = await supabase
+  const { data: event, error: eventError } = await supabase
     .from('events')
     .select('status, is_active')
     .eq('id', session.eid)
     .single();
+
+  if (eventError) {
+    logger.error('[AUTH_VERIFY] event lookup failed:', eventError);
+    return jsonError('Server error', 500);
+  }
 
   if (!event) {
     // Event was deleted from DB

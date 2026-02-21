@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { secureGuard, jsonError, isSafePath } from '@/lib/route-helpers';
+import { logger } from '@/lib/logger';
 
 /** Allowed file extensions for uploads. */
 const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp3', 'ogg', 'wav', 'mp4', 'm4a', 'webm']);
@@ -50,6 +51,7 @@ export async function POST(req: NextRequest) {
       .createSignedUploadUrl(path);
 
     if (error) {
+      logger.error('[UPLOAD_URL] createSignedUploadUrl error:', error.message);
       return jsonError('Failed to create upload URL', 400);
     }
 
@@ -59,7 +61,7 @@ export async function POST(req: NextRequest) {
       path: data.path,
     });
   } catch (err) {
-    console.error('[UPLOAD_URL] error:', err);
+    logger.error('[UPLOAD_URL] error:', err);
     return jsonError('Server error', 500);
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { secureGuard, jsonError } from '@/lib/route-helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/secure/heartbeat
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
     const supabase = getServiceClient();
 
     // Fire the last_seen_at check and activity_log insert in parallel
-    const [{ data: current }] = await Promise.all([
+    const [participantRes, activityRes] = await Promise.all([
       supabase
         .from('participants')
         .select('last_seen_at')
@@ -31,22 +32,28 @@ export async function POST(req: NextRequest) {
       }),
     ]);
 
+    if (participantRes.error) logger.error('[HEARTBEAT] participant query error:', participantRes.error.message);
+    if (activityRes.error) logger.error('[HEARTBEAT] activity_log insert error:', activityRes.error.message);
+
+    const current = participantRes.data;
+
     const now = new Date().toISOString();
     const lastSeen = current?.last_seen_at ? new Date(current.last_seen_at).getTime() : 0;
     const stale = Date.now() - lastSeen > 2 * 60 * 1000; // 2 minutes
 
     if (stale) {
       // Fire-and-forget — don't wait for the UPDATE to respond
-      supabase
-        .from('participants')
-        .update({ last_seen_at: now })
-        .eq('id', session.sub)
-        .then();
+      Promise.resolve(
+        supabase
+          .from('participants')
+          .update({ last_seen_at: now })
+          .eq('id', session.sub)
+      ).catch((err) => logger.error('[HEARTBEAT] last_seen update error:', err));
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('[HEARTBEAT] error:', err);
+    logger.error('[HEARTBEAT] error:', err);
     return jsonError('Server error', 500);
   }
 }

@@ -1,16 +1,35 @@
 import { supabase } from '../supabase';
 import type { ParticipantPhoto } from '../database.types';
 import { compressProfilePhoto } from '../image-compression';
+import { validateImageMagicBytes } from '../validations';
 import { PHOTO_COLUMNS } from './helpers';
 
-/** Upload a profile photo (compress → sign → upload → create DB record). */
+/** Upload a profile photo (validate → compress → sign → upload → create DB record). */
 export async function uploadPhoto(
   eventId: string,
   participantId: string,
   file: File,
   orderIndex: number
 ): Promise<ParticipantPhoto | null> {
-  const compressed = await compressProfilePhoto(file);
+  // Magic byte validation — read first 16 bytes and verify against claimed MIME
+  try {
+    const headerBytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+    if (!validateImageMagicBytes(headerBytes, file.type)) {
+      console.warn('[uploadPhoto] Magic byte mismatch', { type: file.type, name: file.name });
+      return null;
+    }
+  } catch {
+    // ArrayBuffer read failed — reject
+    return null;
+  }
+
+  let compressed: File;
+  try {
+    compressed = await compressProfilePhoto(file);
+  } catch {
+    // Compression failed (e.g. canvas error on corrupt image) — reject upload
+    return null;
+  }
   const ext = compressed.name.split('.').pop() || 'webp';
   const path = `${eventId}/${participantId}/${Date.now()}_${orderIndex}.${ext}`;
 
@@ -89,10 +108,11 @@ export async function reorderPhotos(
 export async function getMyPhotos(
   participantId: string
 ): Promise<ParticipantPhoto[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('participant_photos')
     .select(PHOTO_COLUMNS)
     .eq('participant_id', participantId)
     .order('order_index');
+  if (error) console.error('[getMyPhotos] query error:', error.message);
   return data || [];
 }

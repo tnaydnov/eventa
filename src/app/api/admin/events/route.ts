@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { createEventSchema } from '@/lib/validations';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient, generateJoinCode } from '@/lib/supabase';
 import { adminGuard, jsonError } from '../_helpers';
+import { logger } from '@/lib/logger';
 
 /** Default event duration when no end date is provided (24 hours). */
 const DEFAULT_DURATION_MS = 86_400_000;
 
 /** Generate a 4-char random hex suffix for unique slugs. */
 function randomSuffix(): string {
-  return Math.random().toString(16).slice(2, 6);
+  return crypto.randomBytes(2).toString('hex');
 }
 
 /**
@@ -50,11 +52,13 @@ export async function GET(req: NextRequest) {
     }
 
     // Search by name or slug (case-insensitive)
-    // Escape PostgREST special chars (commas, parens, dots used in filter syntax)
+    // Strip all chars except alphanumeric, Hebrew, spaces, hyphens (prevents PostgREST filter injection)
     if (search && search.trim()) {
-      const escaped = search.trim().replace(/[,%().\\]/g, '');
-      const term = `%${escaped}%`;
-      query = query.or(`name.ilike.${term},slug.ilike.${term}`);
+      const escaped = search.trim().replace(/[^a-zA-Z0-9\u0590-\u05ff\s-]/g, '');
+      if (escaped) {
+        const term = `%${escaped}%`;
+        query = query.or(`name.ilike.${term},slug.ilike.${term}`);
+      }
     }
 
     // Sorting — whitelist fields to prevent injection
@@ -65,13 +69,13 @@ export async function GET(req: NextRequest) {
     const { data: events, error } = await query;
 
     if (error) {
-      console.error('[ADMIN_EVENTS_GET] DB error:', error.message);
+      logger.error('[ADMIN_EVENTS_GET] DB error:', error.message);
       return jsonError('Failed to load events', 500);
     }
 
     return NextResponse.json({ events });
   } catch (err) {
-    console.error('[ADMIN_EVENTS_GET] error:', err);
+    logger.error('[ADMIN_EVENTS_GET] error:', err);
     return jsonError('Failed to load events', 500);
   }
 }
@@ -115,11 +119,16 @@ export async function POST(req: NextRequest) {
 
     // Ensure slug uniqueness — if collision, append extra suffix
     let slug = parsed.data.slug;
-    const { data: existing } = await supabase
+    const { data: existing, error: slugErr } = await supabase
       .from('events')
       .select('id')
       .eq('slug', slug)
       .maybeSingle();
+
+    if (slugErr) {
+      logger.error('[ADMIN_EVENTS_POST] slug check error:', slugErr.message);
+      return jsonError('Failed to create event', 500);
+    }
 
     if (existing) {
       slug = `${slug}-${randomSuffix()}`;
@@ -142,14 +151,14 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error('[ADMIN_EVENTS_POST] DB error:', error.message);
+      logger.error('[ADMIN_EVENTS_POST] DB error:', error.message);
       return jsonError('Failed to create event', 500);
     }
 
     adminAuditLog('EVENT_CREATE', { eventId: data.id, slug, eventType: parsed.data.event_type }, req);
     return NextResponse.json({ event: data });
   } catch (err) {
-    console.error('[ADMIN_EVENTS_POST] error:', err);
+    logger.error('[ADMIN_EVENTS_POST] error:', err);
     return jsonError('Bad request', 400);
   }
 }

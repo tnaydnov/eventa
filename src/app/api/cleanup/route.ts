@@ -4,6 +4,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { RETENTION_DAYS, STORAGE_BATCH_SIZE } from '@/lib/constants';
 import { jsonError } from '@/lib/route-helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * GET|POST /api/cleanup
@@ -33,7 +34,7 @@ async function handler(req: NextRequest) {
   const authHeader = req.headers.get('authorization') || '';
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret) {
-    console.error('[CLEANUP] CRON_SECRET environment variable is not set');
+    logger.error('[CLEANUP] CRON_SECRET environment variable is not set');
     return jsonError('Server configuration error', 500);
   }
   const expected = `Bearer ${cronSecret}`;
@@ -43,19 +44,39 @@ async function handler(req: NextRequest) {
     return jsonError('Unauthorized', 401);
   }
 
+  // Dry-run mode: log what would be cleaned up without actually deleting
+  const dryRun = req.nextUrl.searchParams.get('dry_run') === 'true';
+
   try {
     const supabase = getServiceClient();
     const cutoff = new Date(Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
     // Find events past retention that are NOT yet archived
-    const { data: oldEvents } = await supabase
+    const { data: oldEvents, error: eventsError } = await supabase
       .from('events')
       .select('id, name')
       .lt('ends_at', cutoff)
       .neq('status', 'archived');
 
+    if (eventsError) {
+      logger.error('[CLEANUP] Failed to fetch events:', eventsError);
+      return jsonError('Database error', 500);
+    }
+
     if (!oldEvents || oldEvents.length === 0) {
-      return NextResponse.json({ message: 'Nothing to clean up', archived: 0 });
+      logger.info('[CLEANUP] No events to clean up', { dryRun });
+      return NextResponse.json({ message: 'Nothing to clean up', archived: 0, dryRun });
+    }
+
+    if (dryRun) {
+      const names = oldEvents.map((e) => e.name);
+      logger.info('[CLEANUP] DRY RUN — would archive', { count: oldEvents.length, events: names });
+      return NextResponse.json({
+        message: 'Dry run — no changes made',
+        dryRun: true,
+        wouldArchive: oldEvents.length,
+        events: names,
+      });
     }
 
     let archivedCount = 0;
@@ -119,7 +140,7 @@ async function handler(req: NextRequest) {
           .upsert({ event_id: eventId, snapshot }, { onConflict: 'event_id' });
 
         if (snapErr) {
-          console.error(`[CLEANUP] snapshot error for ${eventId}:`, snapErr.message);
+          logger.error(`[CLEANUP] snapshot error for ${eventId}:`, snapErr.message);
           // Continue anyway — don't block data purge for snapshot failure
         }
       }
@@ -162,7 +183,7 @@ async function handler(req: NextRequest) {
 
       // ── Step 3: Cascade-delete user data (FK order) ──
       // Independent tables in parallel
-      await Promise.all([
+      const [notifsRes, likesRes, blocksRes, bannedRes, activityRes] = await Promise.all([
         supabase.from('notifications').delete().eq('event_id', eventId),
         supabase.from('likes').delete().eq('event_id', eventId),
         supabase.from('blocks').delete().eq('event_id', eventId),
@@ -171,16 +192,28 @@ async function handler(req: NextRequest) {
         // NOTE: event_analytics_snapshots is NEVER deleted — kept permanently
       ]);
 
+      if (notifsRes.error) logger.error(`[CLEANUP] notifications delete error for ${eventId}:`, notifsRes.error.message);
+      if (likesRes.error) logger.error(`[CLEANUP] likes delete error for ${eventId}:`, likesRes.error.message);
+      if (blocksRes.error) logger.error(`[CLEANUP] blocks delete error for ${eventId}:`, blocksRes.error.message);
+      if (bannedRes.error) logger.error(`[CLEANUP] banned_devices delete error for ${eventId}:`, bannedRes.error.message);
+      if (activityRes.error) logger.error(`[CLEANUP] activity_log delete error for ${eventId}:`, activityRes.error.message);
+
       // Messages → conversations (FK order)
-      await supabase.from('messages').delete().eq('event_id', eventId);
-      await supabase.from('conversations').delete().eq('event_id', eventId);
+      const { error: msgsErr } = await supabase.from('messages').delete().eq('event_id', eventId);
+      if (msgsErr) logger.error(`[CLEANUP] messages delete error for ${eventId}:`, msgsErr.message);
+
+      const { error: convosErr } = await supabase.from('conversations').delete().eq('event_id', eventId);
+      if (convosErr) logger.error(`[CLEANUP] conversations delete error for ${eventId}:`, convosErr.message);
 
       // Photos → participants (FK order)
-      await supabase
+      const { error: photosErr } = await supabase
         .from('participant_photos')
         .delete()
         .eq('event_id', eventId);
-      await supabase.from('participants').delete().eq('event_id', eventId);
+      if (photosErr) logger.error(`[CLEANUP] photos delete error for ${eventId}:`, photosErr.message);
+
+      const { error: participantsErr } = await supabase.from('participants').delete().eq('event_id', eventId);
+      if (participantsErr) logger.error(`[CLEANUP] participants delete error for ${eventId}:`, participantsErr.message);
 
       // ── Step 4: Mark event as archived (preserve the row forever) ──
       await supabase
@@ -193,8 +226,13 @@ async function handler(req: NextRequest) {
         .eq('id', eventId);
 
       archivedCount++;
-      console.log(`[CLEANUP] Archived event "${event.name}" (${eventId})`);
+      logger.info(`[CLEANUP] Archived event "${event.name}" (${eventId})`);
     }
+
+    logger.info('[CLEANUP] complete', {
+      archivedEvents: archivedCount,
+      deletedFiles: totalDeletedFiles,
+    });
 
     return NextResponse.json({
       message: 'Cleanup complete',
@@ -202,7 +240,7 @@ async function handler(req: NextRequest) {
       deletedFiles: totalDeletedFiles,
     });
   } catch (err) {
-    console.error('[CLEANUP] error:', err);
+    logger.error('[CLEANUP] error:', err);
     return jsonError('Cleanup failed', 500);
   }
 }

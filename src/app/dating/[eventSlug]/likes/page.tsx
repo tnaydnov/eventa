@@ -14,7 +14,7 @@ import Toast from '@/components/Toast';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { LikesSkeleton } from '@/components/Skeletons';
 import { HeartIcon, HeartFilledIcon, UserIcon } from '@/components/Icons';
-import type { Participant, ParticipantPhoto } from '@/lib/database.types';
+import type { PublicParticipant, ParticipantPhoto } from '@/lib/database.types';
 
 /** Memoized participant card used for matches, received, and sent likes. */
 const ParticipantCard = memo(function ParticipantCard({
@@ -22,7 +22,7 @@ const ParticipantCard = memo(function ParticipantCard({
   onClick,
   badge,
 }: {
-  participant: Participant & { photos: ParticipantPhoto[] };
+  participant: PublicParticipant & { photos: ParticipantPhoto[] };
   onClick: () => void;
   badge?: React.ReactNode;
 }) {

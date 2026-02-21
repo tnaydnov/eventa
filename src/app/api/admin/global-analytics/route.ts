@@ -3,6 +3,7 @@ import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, jsonError } from '../_helpers';
 import type { GlobalAnalytics, EventComparisonRow, EventRankItem } from '@/app/admin/_components/shared';
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/admin/global-analytics
@@ -34,6 +35,23 @@ export async function GET(req: NextRequest) {
       supabase.from('blocks').select('id, event_id, blocker_id, blocked_id, had_like, had_conversation, had_match, created_at').limit(ANALYTICS_LIMIT),
       supabase.from('event_analytics_snapshots').select('event_id, snapshot').limit(ANALYTICS_LIMIT),
     ]);
+
+    // ── Check for query errors ──
+    const queryErrors = [
+      eventsRes.error && `events: ${eventsRes.error.message}`,
+      participantsRes.error && `participants: ${participantsRes.error.message}`,
+      photosRes.error && `photos: ${photosRes.error.message}`,
+      likesRes.error && `likes: ${likesRes.error.message}`,
+      conversationsRes.error && `conversations: ${conversationsRes.error.message}`,
+      messagesRes.error && `messages: ${messagesRes.error.message}`,
+      blocksRes.error && `blocks: ${blocksRes.error.message}`,
+      snapshotsRes.error && `snapshots: ${snapshotsRes.error.message}`,
+    ].filter(Boolean);
+
+    if (queryErrors.length > 0) {
+      logger.error('[ADMIN_GLOBAL_ANALYTICS] query errors:', queryErrors.join('; '));
+      return jsonError('Failed to load global analytics data', 500);
+    }
 
     const events       = eventsRes.data || [];
     const participants = participantsRes.data || [];
@@ -484,7 +502,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(analytics);
   } catch (err) {
-    console.error('[ADMIN_GLOBAL_ANALYTICS] error:', err);
+    logger.error('[ADMIN_GLOBAL_ANALYTICS] error:', err);
     return jsonError('Failed to load global analytics', 500);
   }
 }

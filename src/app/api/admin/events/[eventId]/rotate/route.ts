@@ -3,6 +3,7 @@ import { adminAuditLog } from '@/lib/admin-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient, generateJoinCode } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/admin/events/[eventId]/rotate
@@ -29,14 +30,14 @@ export async function POST(
       .single();
 
     if (error) {
-      console.error('[ADMIN_ROTATE] DB error:', error.message);
+      logger.error('[ADMIN_ROTATE] DB error:', error.message);
       return jsonError('Failed to rotate code', 500);
     }
 
     adminAuditLog('JOIN_CODE_ROTATE', { eventId }, req);
     return NextResponse.json({ event: data });
   } catch (err) {
-    console.error('[ADMIN_ROTATE] error:', err);
+    logger.error('[ADMIN_ROTATE] error:', err);
     return jsonError('Failed to rotate code', 500);
   }
 }

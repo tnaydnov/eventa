@@ -59,6 +59,8 @@ export default function ProfilePhotoGrid({
   };
 
   const handleCropDone = async (croppedFile: File) => {
+    // Revoke the object URL to prevent memory leak
+    if (cropImage) URL.revokeObjectURL(cropImage.src);
     setCropImage(null);
     setUploading(true);
     const photo = await uploadPhoto(eventId, participantId, croppedFile, photos.length);

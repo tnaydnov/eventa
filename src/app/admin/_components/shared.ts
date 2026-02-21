@@ -242,6 +242,7 @@ export interface AdminParticipant {
   age: number | null;
   is_banned: boolean;
   created_at: string;
+  profile_complete?: boolean;
 }
 
 /**

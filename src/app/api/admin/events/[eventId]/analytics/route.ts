@@ -3,6 +3,7 @@ import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
 import type { EventAnalytics } from '@/app/admin/_components/shared';
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/admin/events/[eventId]/analytics
@@ -24,18 +25,28 @@ export async function GET(
     const supabase = getServiceClient();
 
     // ── Check if event is archived → serve from snapshot ──
-    const { data: event } = await supabase
+    const { data: event, error: eventErr } = await supabase
       .from('events')
       .select('status')
       .eq('id', eventId)
       .single();
 
+    if (eventErr) {
+      logger.error('[ADMIN_ANALYTICS] event lookup error:', eventErr.message);
+      return jsonError('Failed to fetch event', 500);
+    }
+
     if (event?.status === 'archived') {
-      const { data: snap } = await supabase
+      const { data: snap, error: snapErr } = await supabase
         .from('event_analytics_snapshots')
         .select('snapshot')
         .eq('event_id', eventId)
         .single();
+
+      if (snapErr) {
+        logger.error('[ADMIN_ANALYTICS] snapshot lookup error:', snapErr.message);
+        return jsonError('Failed to fetch analytics snapshot', 500);
+      }
 
       if (snap?.snapshot) {
         return NextResponse.json(snap.snapshot);
@@ -101,6 +112,22 @@ export async function GET(
         .order('created_at', { ascending: true })
         .limit(LIMIT),
     ]);
+
+    // ── Check for query errors ──
+    const queryErrors = [
+      participantsRes.error && `participants: ${participantsRes.error.message}`,
+      photosRes.error && `photos: ${photosRes.error.message}`,
+      likesRes.error && `likes: ${likesRes.error.message}`,
+      conversationsRes.error && `conversations: ${conversationsRes.error.message}`,
+      messagesRes.error && `messages: ${messagesRes.error.message}`,
+      blocksRes.error && `blocks: ${blocksRes.error.message}`,
+      activityRes.error && `activity: ${activityRes.error.message}`,
+    ].filter(Boolean);
+
+    if (queryErrors.length > 0) {
+      logger.error('[ADMIN_ANALYTICS] query errors:', queryErrors.join('; '));
+      return jsonError('Failed to load analytics data', 500);
+    }
 
     const participants = participantsRes.data || [];
     const photos = photosRes.data || [];
@@ -639,7 +666,7 @@ export async function GET(
 
     return NextResponse.json(analytics);
   } catch (err) {
-    console.error('[ADMIN_ANALYTICS] error:', err);
+    logger.error('[ADMIN_ANALYTICS] error:', err);
     return jsonError('Failed to load analytics', 500);
   }
 }

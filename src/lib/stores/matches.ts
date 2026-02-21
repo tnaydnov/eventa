@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Participant, ParticipantPhoto } from '../database.types';
+import type { PublicParticipant, ParticipantPhoto } from '../database.types';
 
 /* ── Types ─────────────────────────────────────────────────────── */
 
@@ -13,7 +13,7 @@ export interface MatchedParticipant {
 /** A hydrated match row for the matches tab (participant + photos). */
 export interface MatchEntry {
   participantId: string;
-  participant: Participant & { photos: ParticipantPhoto[] };
+  participant: PublicParticipant & { photos: ParticipantPhoto[] };
   matchedAt: string; // ISO timestamp of the more-recent of the two likes
 }
 
@@ -36,6 +36,7 @@ interface MatchState {
   setMatches: (m: MatchEntry[]) => void;
   /** Remove a match by participant ID (when a like is removed). */
   removeMatch: (participantId: string) => void;
+  reset: () => void;
 }
 
 export const useMatchStore = create<MatchState>((set) => ({
@@ -52,4 +53,5 @@ export const useMatchStore = create<MatchState>((set) => ({
     set((s) => ({
       matches: s.matches.filter((m) => m.participantId !== participantId),
     })),
+  reset: () => set({ pendingMatch: null, matches: [], matchesLoaded: false }),
 }));

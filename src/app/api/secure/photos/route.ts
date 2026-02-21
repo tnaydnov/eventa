@@ -4,6 +4,8 @@ import { isValidUUID } from '@/lib/session';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { MAX_PHOTOS } from '@/lib/constants';
 import { secureGuard, jsonError, isSafePath } from '@/lib/route-helpers';
+import { logger } from '@/lib/logger';
+import { photoReorderSchema } from '@/lib/validations';
 
 /**
  * POST /api/secure/photos
@@ -57,12 +59,12 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error('[PHOTOS_POST] insert error:', error);
+      logger.error('[PHOTOS_POST] insert error:', error);
       return jsonError('Failed to save photo', 400);
     }
     return NextResponse.json(data);
   } catch (err) {
-    console.error('[PHOTOS_POST] error:', err);
+    logger.error('[PHOTOS_POST] error:', err);
     return jsonError('Server error', 500);
   }
 }
@@ -84,28 +86,42 @@ export async function DELETE(req: NextRequest) {
 
     const supabase = getServiceClient();
 
-    // Verify ownership
-    const { data: photo } = await supabase
+    // Verify ownership + event scoping
+    const { data: photo, error: photoError } = await supabase
       .from('participant_photos')
       .select('participant_id, storage_path')
       .eq('id', photoId)
+      .eq('event_id', session.eid)
       .single();
+
+    if (photoError) {
+      logger.error('[PHOTOS_DELETE] photo lookup failed:', photoError);
+      return jsonError('Server error', 500);
+    }
 
     if (!photo || photo.participant_id !== session.sub) {
       return jsonError('Forbidden', 403);
     }
 
     // Storage removal + DB delete in parallel
-    await Promise.all([
+    const [storageResult, dbResult] = await Promise.all([
       photo.storage_path
         ? supabase.storage.from('photos').remove([photo.storage_path])
-        : Promise.resolve(),
+        : Promise.resolve(null),
       supabase.from('participant_photos').delete().eq('id', photoId),
     ]);
 
+    if (storageResult && 'error' in storageResult && storageResult.error) {
+      logger.error('[PHOTOS_DELETE] storage remove error:', storageResult.error);
+    }
+    if (dbResult.error) {
+      logger.error('[PHOTOS_DELETE] DB delete error:', dbResult.error.message);
+      return jsonError('Failed to delete photo', 500);
+    }
+
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('[PHOTOS_DELETE] error:', err);
+    logger.error('[PHOTOS_DELETE] error:', err);
     return jsonError('Server error', 500);
   }
 }
@@ -121,27 +137,27 @@ export async function PATCH(req: NextRequest) {
   const session = guard;
 
   try {
-    const { order } = await req.json();
-    if (!Array.isArray(order) || order.length === 0 || order.length > MAX_PHOTOS) {
-      return jsonError('Invalid order array', 400);
+    const raw = await req.json();
+    const parsed = photoReorderSchema.safeParse(raw);
+    if (!parsed.success) {
+      return jsonError('Invalid order data', 400);
     }
-
-    // Validate all IDs are valid UUIDs and order_index values are valid
-    const ids = order.map((o: { id: string; order_index: number }) => o.id);
-    if (ids.some((id: string) => !isValidUUID(id))) {
-      return jsonError('Invalid photo id', 400);
-    }
-    if (order.some((o: { order_index: number }) => !Number.isInteger(o.order_index) || o.order_index < 0)) {
-      return jsonError('Invalid order_index', 400);
-    }
+    const { order } = parsed.data;
+    const ids = order.map((o) => o.id);
 
     const supabase = getServiceClient();
 
-    // Verify all photos belong to this participant
-    const { data: photos } = await supabase
+    // Verify all photos belong to this participant in this event
+    const { data: photos, error: photosError } = await supabase
       .from('participant_photos')
       .select('id, participant_id')
-      .in('id', ids);
+      .in('id', ids)
+      .eq('event_id', session.eid);
+
+    if (photosError) {
+      logger.error('[PHOTOS_REORDER] photos lookup failed:', photosError);
+      return jsonError('Server error', 500);
+    }
 
     if (!photos || photos.length !== ids.length) {
       return jsonError('Invalid photo ids', 400);
@@ -153,8 +169,8 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Update all order_index values in parallel
-    await Promise.all(
-      order.map((item: { id: string; order_index: number }) =>
+    const reorderResults = await Promise.all(
+      order.map((item) =>
         supabase
           .from('participant_photos')
           .update({ order_index: item.order_index })
@@ -162,9 +178,15 @@ export async function PATCH(req: NextRequest) {
       )
     );
 
+    const reorderErrors = reorderResults.filter((r) => r.error);
+    if (reorderErrors.length > 0) {
+      logger.error('[PHOTOS_REORDER] update errors:', reorderErrors.map((r) => r.error?.message).join('; '));
+      return jsonError('Failed to reorder some photos', 500);
+    }
+
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('[PHOTOS_REORDER] error:', err);
+    logger.error('[PHOTOS_REORDER] error:', err);
     return jsonError('Server error', 500);
   }
 }

@@ -3,6 +3,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { isValidUUID } from '@/lib/session';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { secureGuard, jsonError } from '@/lib/route-helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/secure/conversations — Get or create a conversation.
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
     const supabase = getServiceClient();
 
     // Block check + existing conversation — fire in parallel
-    const [{ count: blockCount }, { data: existing }] = await Promise.all([
+    const [blockResult, existingResult] = await Promise.all([
       supabase
         .from('blocks')
         .select('id', { count: 'exact', head: true })
@@ -47,11 +48,21 @@ export async function POST(req: NextRequest) {
         .maybeSingle(),
     ]);
 
-    if ((blockCount ?? 0) > 0) {
+    // Fail closed: if block check errors, refuse the action
+    if (blockResult.error) {
+      logger.error('[CONVERSATIONS] block check error:', blockResult.error.message);
+      return jsonError('Server error', 500);
+    }
+    if (existingResult.error) {
+      logger.error('[CONVERSATIONS] existing conv check error:', existingResult.error.message);
+      return jsonError('Server error', 500);
+    }
+
+    if ((blockResult.count ?? 0) > 0) {
       return jsonError('Cannot start conversation — user is blocked', 403);
     }
 
-    if (existing) return NextResponse.json(existing);
+    if (existingResult.data) return NextResponse.json(existingResult.data);
 
     // Create new conversation
     const { data, error } = await supabase
@@ -65,7 +76,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error('[CONVERSATIONS] insert error (possible race):', error.message);
+      logger.error('[CONVERSATIONS] insert error (possible race):', error.message);
       // Race condition: re-fetch
       const { data: refetch } = await supabase
         .from('conversations')
@@ -82,7 +93,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(data);
   } catch (err) {
-    console.error('[CONVERSATIONS] error:', err);
+    logger.error('[CONVERSATIONS] error:', err);
     return jsonError('Server error', 500);
   }
 }

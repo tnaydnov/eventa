@@ -7,4 +7,3 @@ Sitemap: https://www.eventa.productions/sitemap.xml
 # Block sensitive routes
 Disallow: /admin
 Disallow: /api/
-Disallow: /dating/*/test-login

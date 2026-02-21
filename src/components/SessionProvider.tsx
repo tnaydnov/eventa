@@ -151,34 +151,50 @@ export default function SessionProvider({
     if (!session?.participantId) return;
     // Only fetch if photos aren't already loaded
     if (useSessionStore.getState().photos.length > 0) return;
-    getMyPhotos(session.participantId).then((photos) => {
-      useSessionStore.getState().setPhotos(photos);
-    });
+    getMyPhotos(session.participantId)
+      .then((photos) => {
+        useSessionStore.getState().setPhotos(photos);
+      })
+      .catch((err) => {
+        console.error('[SessionProvider] Failed to load photos:', err);
+      });
   }, [session?.participantId]);
 
   // Refresh event name & background from DB
   useEffect(() => {
     if (!session?.eventId) return;
 
-    supabase
-      .from('events')
-      .select('name, background_image')
-      .eq('id', session.eventId)
-      .single()
-      .then(({ data }) => {
+    Promise.resolve(
+      supabase
+        .from('events')
+        .select('name, background_image')
+        .eq('id', session.eventId)
+        .single()
+    )
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('[SessionProvider] event-meta query error:', error.message);
+          return;
+        }
         if (data) {
+          // Read fresh session from store to avoid stale closure
+          const current = useSessionStore.getState().session;
+          if (!current) return;
           const needsUpdate =
-            (data.name && data.name !== session.eventName) ||
-            data.background_image !== session.backgroundImage;
+            (data.name && data.name !== current.eventName) ||
+            data.background_image !== current.backgroundImage;
           if (needsUpdate) {
             const updated = {
-              ...session,
-              eventName: data.name || session.eventName,
+              ...current,
+              eventName: data.name || current.eventName,
               backgroundImage: data.background_image ?? null,
             };
             useSessionStore.getState().setSession(updated);
           }
         }
+      })
+      .catch((err: unknown) => {
+        console.error('[SessionProvider] Failed to refresh event meta:', err);
       });
   }, [session?.eventId]); // eslint-disable-line react-hooks/exhaustive-deps
 

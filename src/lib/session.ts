@@ -3,16 +3,18 @@
  * Signs and verifies session tokens stored as httpOnly cookies.
  */
 import crypto from 'crypto';
+import { SESSION_MAX_AGE_S, JWT_ISSUER, JWT_AUDIENCE } from '@/lib/config';
 
 const COOKIE_NAME = 'ws_session';
-const MAX_AGE = 30 * 24 * 60 * 60; // 30 days
 
 export interface SessionPayload {
   typ: 'session'; // discriminator — prevents admin tokens from passing session verification
-  sub: string; // participantId
-  eid: string; // eventId
-  esl: string; // eventSlug
-  enm: string; // eventName
+  iss?: string;   // issuer
+  aud?: string;   // audience
+  sub: string;    // participantId
+  eid: string;    // eventId
+  esl: string;    // eventSlug
+  enm: string;    // eventName
   iat: number;
   exp: number;
 }
@@ -35,12 +37,14 @@ export function signSessionToken(data: {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
   const payload: SessionPayload = {
     typ: 'session',
+    iss: JWT_ISSUER,
+    aud: JWT_AUDIENCE,
     sub: data.participantId,
     eid: data.eventId,
     esl: data.eventSlug,
     enm: data.eventName,
     iat: now,
-    exp: now + MAX_AGE,
+    exp: now + SESSION_MAX_AGE_S,
   };
   const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
   const sig = crypto.createHmac('sha256', secret).update(`${header}.${body}`).digest('base64url');
@@ -73,6 +77,10 @@ export function verifySessionToken(token: string): SessionPayload | null {
     if (!payload.sub || !payload.eid || !payload.esl) return null;
     if (payload.exp < Math.floor(Date.now() / 1000)) return null;
 
+    // Soft-verify iss/aud — reject if present but wrong (accepts old tokens without them)
+    if (payload.iss && payload.iss !== JWT_ISSUER) return null;
+    if (payload.aud && payload.aud !== JWT_AUDIENCE) return null;
+
     return payload;
   } catch {
     return null;
@@ -81,13 +89,14 @@ export function verifySessionToken(token: string): SessionPayload | null {
 
 /** Build the Set-Cookie header for a session token */
 export function sessionCookieHeader(token: string): string {
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
-  return `${COOKIE_NAME}=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${MAX_AGE}${secure}`;
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure; Partitioned' : '';
+  return `${COOKIE_NAME}=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE_S}${secure}`;
 }
 
 /** Build the Set-Cookie header to clear the session */
 export function clearSessionCookieHeader(): string {
-  return `${COOKIE_NAME}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`;
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure; Partitioned' : '';
+  return `${COOKIE_NAME}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${secure}`;
 }
 
 /** Extract and verify session from a Request's cookies */

@@ -6,11 +6,13 @@ interface BlocksState {
   blocks: Block[];
   blockedIds: Set<string>;
   setBlocks: (b: Block[]) => void;
+  reset: () => void;
 }
 
+const INITIAL_BLOCKS_STATE = { blocks: [] as Block[], blockedIds: new Set<string>() };
+
 export const useBlocksStore = create<BlocksState>((set) => ({
-  blocks: [],
-  blockedIds: new Set(),
+  ...INITIAL_BLOCKS_STATE,
   setBlocks: (blocks) => {
     const ids = new Set<string>();
     blocks.forEach((b) => {
@@ -24,4 +26,5 @@ export const useBlocksStore = create<BlocksState>((set) => ({
     if (session) ids.delete(session.participantId);
     set({ blocks, blockedIds: ids });
   },
+  reset: () => set({ blocks: [], blockedIds: new Set() }),
 }));

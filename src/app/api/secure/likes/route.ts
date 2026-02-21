@@ -4,6 +4,7 @@ import { isValidUUID } from '@/lib/session';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { secureGuard, jsonError } from '@/lib/route-helpers';
 import { sendPushToParticipant } from '@/lib/web-push';
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/secure/likes — Send a like.
@@ -31,13 +32,19 @@ export async function POST(req: NextRequest) {
     const supabase = getServiceClient();
 
     // Block check — refuse like if either party blocked the other
-    const { count: blockCount } = await supabase
+    const { count: blockCount, error: blockError } = await supabase
       .from('blocks')
       .select('id', { count: 'exact', head: true })
       .eq('event_id', session.eid)
       .or(
         `and(blocker_id.eq.${session.sub},blocked_id.eq.${toId}),and(blocker_id.eq.${toId},blocked_id.eq.${session.sub})`
       );
+
+    // Fail closed: if block check errors, refuse the action
+    if (blockError) {
+      logger.error('[LIKES_POST] block check error:', blockError.message);
+      return jsonError('Server error', 500);
+    }
 
     if ((blockCount ?? 0) > 0) {
       return jsonError('Cannot like — user is blocked', 403);
@@ -103,7 +110,7 @@ export async function POST(req: NextRequest) {
         payload: { from_participant_id: session.sub, match: isMatch },
         is_read: false,
       }),
-    ]).catch(() => {}); // fire-and-forget
+    ]).catch((err) => logger.error('[LIKES_POST] fire-and-forget error:', err));
 
     // Web Push (fire-and-forget)
     Promise.all([
@@ -118,11 +125,11 @@ export async function POST(req: NextRequest) {
           url: slug ? `/dating/${slug}` : '/dating',
           tag: isMatch ? `match-${session.sub}` : `like-${session.sub}`,
         });
-      }).catch(() => {});
+      }).catch((err) => logger.error('[LIKES_POST] push notification error:', err));
 
     return NextResponse.json({ ...data, match: isMatch });
   } catch (err) {
-    console.error('[LIKES_POST] error:', err);
+    logger.error('[LIKES_POST] error:', err);
     return jsonError('Server error', 500);
   }
 }
@@ -141,7 +148,7 @@ export async function DELETE(req: NextRequest) {
     const supabase = getServiceClient();
 
     // Delete like + associated notification in parallel
-    await Promise.all([
+    const [likeDelRes, notifDelRes] = await Promise.all([
       supabase
         .from('likes')
         .delete()
@@ -157,9 +164,12 @@ export async function DELETE(req: NextRequest) {
         .eq('payload->>from_participant_id', session.sub),
     ]);
 
+    if (likeDelRes.error) logger.error('[LIKES_DELETE] like delete error:', likeDelRes.error.message);
+    if (notifDelRes.error) logger.error('[LIKES_DELETE] notif delete error:', notifDelRes.error.message);
+
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('[LIKES_DELETE] error:', err);
+    logger.error('[LIKES_DELETE] error:', err);
     return jsonError('Server error', 500);
   }
 }

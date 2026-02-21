@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import type { Participant, ParticipantPhoto } from '../database.types';
+import type { PublicParticipant, ParticipantPhoto } from '../database.types';
 
-export interface GridParticipant extends Participant {
+export interface GridParticipant extends PublicParticipant {
   photos: ParticipantPhoto[];
 }
 
@@ -12,7 +12,8 @@ interface GridState {
   setFilter: (f: 'men' | 'women' | 'all') => void;
   removeParticipant: (id: string) => void;
   addParticipant: (p: GridParticipant) => void;
-  updateParticipant: (id: string, data: Partial<Participant>) => void;
+  updateParticipant: (id: string, data: Partial<PublicParticipant>) => void;
+  reset: () => void;
 }
 
 export const useGridStore = create<GridState>((set) => ({
@@ -34,4 +35,5 @@ export const useGridStore = create<GridState>((set) => ({
         p.id === id ? { ...p, ...data } : p
       ),
     })),
+  reset: () => set({ participants: [], filter: 'all' }),
 }));

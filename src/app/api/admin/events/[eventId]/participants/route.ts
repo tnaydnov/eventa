@@ -5,6 +5,7 @@ import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { evictBanCache } from '@/lib/route-helpers';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/admin/events/[eventId]/participants
@@ -23,21 +24,26 @@ export async function GET(
 
   try {
     const supabase = getServiceClient();
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('participants')
       .select('id, display_name, gender, age, is_banned, created_at')
       .eq('event_id', eventId)
       .order('created_at', { ascending: false });
 
+    if (error) {
+      logger.error('[ADMIN_PARTICIPANTS_GET] query error:', error.message);
+      return jsonError('Failed to load participants', 500);
+    }
+
     // Add profile_complete flag so admin can distinguish completed vs incomplete signups
-    const enriched = (data || []).map((p: any) => ({
+    const enriched = (data || []).map((p: { display_name: string | null; age: number | null }) => ({
       ...p,
       profile_complete: !!(p.display_name && p.display_name.trim() && p.age != null),
     }));
 
     return NextResponse.json({ participants: enriched });
   } catch (err) {
-    console.error('[ADMIN_PARTICIPANTS_GET] error:', err);
+    logger.error('[ADMIN_PARTICIPANTS_GET] error:', err);
     return jsonError('Failed to load participants', 500);
   }
 }
@@ -102,28 +108,30 @@ export async function PATCH(
       if (is_banned) {
         // Insert ban entries for all known fingerprints
         for (const fp of fingerprints) {
-          await supabase
+          const { error: banErr } = await supabase
             .from('banned_devices')
             .upsert(
               { event_id: eventId, device_fingerprint: fp },
               { onConflict: 'event_id,device_fingerprint', ignoreDuplicates: true }
             );
+          if (banErr) logger.error('[ADMIN_PARTICIPANTS_PATCH] banned_devices upsert error:', banErr.message);
         }
       } else {
         // Remove ban entries for all known fingerprints
         for (const fp of fingerprints) {
-          await supabase
+          const { error: unbanErr } = await supabase
             .from('banned_devices')
             .delete()
             .eq('event_id', eventId)
             .eq('device_fingerprint', fp);
+          if (unbanErr) logger.error('[ADMIN_PARTICIPANTS_PATCH] banned_devices delete error:', unbanErr.message);
         }
       }
     }
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('[ADMIN_PARTICIPANTS_PATCH] error:', err);
+    logger.error('[ADMIN_PARTICIPANTS_PATCH] error:', err);
     return jsonError('Server error', 500);
   }
 }

@@ -5,6 +5,7 @@ import { RATE_LIMITS } from '@/lib/rate-limit';
 import { profileSetupSchema } from '@/lib/validations';
 import { MAX_NAME_LENGTH, MAX_BIO_LENGTH, MAX_CITY_LENGTH } from '@/lib/constants';
 import { secureGuard, jsonError } from '@/lib/route-helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * PATCH /api/secure/profile
@@ -65,11 +66,12 @@ export async function PATCH(req: NextRequest) {
       .single();
 
     if (error) {
+      logger.error('[PROFILE] update error:', error.message);
       return jsonError('Failed to update profile', 400);
     }
     return NextResponse.json(p);
   } catch (err) {
-    console.error('[PROFILE] error:', err);
+    logger.error('[PROFILE] error:', err);
     return jsonError('Server error', 500);
   }
 }

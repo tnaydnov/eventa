@@ -2,6 +2,7 @@ import { supabase } from '../supabase';
 import type { Conversation, Message } from '../database.types';
 import type { ConversationWithDetails } from '../store';
 import { compressChatImage } from '../image-compression';
+import { validateImageMagicBytes } from '../validations';
 import { getBlockedIds, buildParticipantPhotoMaps, CONVERSATION_COLUMNS, MESSAGE_COLUMNS } from './helpers';
 
 /** Get or create a conversation with another participant. */
@@ -28,7 +29,7 @@ export async function getConversations(
 ): Promise<ConversationWithDetails[]> {
   const blockedIds = await getBlockedIds(eventId, myId);
 
-  const { data: convos } = await supabase
+  const { data: convos, error: convosErr } = await supabase
     .from('conversations')
     .select(CONVERSATION_COLUMNS)
     .eq('event_id', eventId)
@@ -36,6 +37,10 @@ export async function getConversations(
     .not('last_message_at', 'is', null)
     .order('last_message_at', { ascending: false })
     .limit(50);
+
+  if (convosErr) {
+    console.error('[getConversations] query error:', convosErr.message);
+  }
 
   if (!convos) return [];
 
@@ -54,7 +59,7 @@ export async function getConversations(
   const convoIds = filtered.map((c) => c.id);
 
   // Fire all three independent queries in parallel
-  const [{ pMap, phMap }, { data: lastMsgs }, unreadResult] = await Promise.all([
+  const [{ pMap, phMap }, lastMsgsRes, unreadResult] = await Promise.all([
     buildParticipantPhotoMaps(otherIds),
     supabase
       .from('messages')
@@ -64,12 +69,13 @@ export async function getConversations(
       .limit(convoIds.length * 2 || 100),
     // Unread count — single query, partition client-side
     (async () => {
-      const { data: unreadRows } = await supabase
+      const { data: unreadRows, error: unreadErr } = await supabase
         .from('messages')
         .select('conversation_id, created_at')
         .in('conversation_id', convoIds)
         .neq('sender_participant_id', myId)
         .neq('type', 'system');
+      if (unreadErr) console.error('[getConversations] unread query error:', unreadErr.message);
       const lastReadMap = new Map<string, string | null>();
       for (const c of filtered) {
         const amA = c.a_participant_id === myId;
@@ -84,6 +90,9 @@ export async function getConversations(
       return countMap;
     })(),
   ]);
+
+  if (lastMsgsRes.error) console.error('[getConversations] lastMsgs query error:', lastMsgsRes.error.message);
+  const lastMsgs = lastMsgsRes.data;
 
   const lastMsgMap = new Map<string, string>();
   (lastMsgs || []).forEach((m) => {
@@ -119,12 +128,13 @@ export async function getMessages(
   conversationId: string,
   limit = 100
 ): Promise<Message[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('messages')
     .select(MESSAGE_COLUMNS)
     .eq('conversation_id', conversationId)
     .order('created_at', { ascending: false })
     .limit(limit);
+  if (error) console.error('[getMessages] query error:', error.message);
   // Reverse to show oldest first in UI
   return (data || []).reverse();
 }
@@ -138,13 +148,14 @@ export async function getMessagesBefore(
   beforeTimestamp: string,
   limit = 50
 ): Promise<Message[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('messages')
     .select(MESSAGE_COLUMNS)
     .eq('conversation_id', conversationId)
     .lt('created_at', beforeTimestamp)
     .order('created_at', { ascending: false })
     .limit(limit);
+  if (error) console.error('[getMessagesBefore] query error:', error.message);
   return (data || []).reverse();
 }
 
@@ -182,13 +193,30 @@ export async function deleteMessage(messageId: string): Promise<boolean> {
   }
 }
 
-/** Upload a chat image (compress → sign → upload, return storage path). */
+/** Upload a chat image (validate → compress → sign → upload, return storage path). */
 export async function uploadChatImage(
   eventId: string,
   conversationId: string,
   file: File
 ): Promise<string | null> {
-  const compressed = await compressChatImage(file);
+  // Magic byte validation
+  try {
+    const headerBytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+    if (!validateImageMagicBytes(headerBytes, file.type)) {
+      console.warn('[uploadChatImage] Magic byte mismatch', { type: file.type });
+      return null;
+    }
+  } catch {
+    return null;
+  }
+
+  let compressed: File;
+  try {
+    compressed = await compressChatImage(file);
+  } catch {
+    // Compression failed — reject upload
+    return null;
+  }
   const ext = compressed.name.split('.').pop() || 'webp';
   const path = `chat/${eventId}/${conversationId}/${Date.now()}.${ext}`;
 

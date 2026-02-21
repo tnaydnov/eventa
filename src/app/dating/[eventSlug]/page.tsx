@@ -140,7 +140,7 @@ export default function EventPage({
       if (p.display_name.trim() && p.age != null) {
         // Profile is actually complete — restore the flag
         localStorage.setItem(`profile_setup_${session.participantId}`, 'true');
-        setParticipant(p as any);
+        setParticipant(p);
       } else {
         // Profile is incomplete — redirect to setup
         router.replace(`/dating/${eventSlug}/setup`);
@@ -185,7 +185,7 @@ export default function EventPage({
             .select('id, participant_id, storage_path, order_index')
             .eq('participant_id', newP.id)
             .order('order_index');
-          addParticipant({ ...payload.new, photos: photos || [] } as any);
+          addParticipant({ ...payload.new, photos: photos || [] } as GridParticipant);
         },
       },
       {
@@ -209,7 +209,7 @@ export default function EventPage({
 
           if (existsInGrid) {
             // Just update the existing entry
-            updateParticipant(updated.id, payload.new as any);
+            updateParticipant(updated.id, payload.new as Partial<GridParticipant>);
           } else {
             // Participant completed their profile — check if they should be added
             if (!session || updated.id === session.participantId) return;
@@ -236,7 +236,7 @@ export default function EventPage({
 
             // Only add if they have at least one photo
             if (photos && photos.length > 0) {
-              addParticipant({ ...payload.new, photos } as any);
+              addParticipant({ ...payload.new, photos } as GridParticipant);
             }
           }
         },

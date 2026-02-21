@@ -32,6 +32,8 @@ interface SwipeState {
   setLikedIds: (ids: string[]) => void;
   /** Reset the pool — clears dismissed, keeps liked. */
   resetPool: () => void;
+  /** Full store reset (for session clear). */
+  reset: () => void;
 }
 
 export const useSwipeStore = create<SwipeState>((set) => ({
@@ -67,4 +69,10 @@ export const useSwipeStore = create<SwipeState>((set) => ({
     set({ likedIds: new Set(ids), likedIdsLoaded: true }),
 
   resetPool: () => set({ dismissedIds: new Set() }),
+  reset: () => set({
+    viewMode: 'grid',
+    dismissedIds: new Set(),
+    likedIds: new Set(),
+    likedIdsLoaded: false,
+  }),
 }));

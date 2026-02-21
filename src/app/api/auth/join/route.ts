@@ -4,6 +4,7 @@ import { signSessionToken, sessionCookieHeader, checkCsrf } from '@/lib/session'
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { joinEventSchema } from '@/lib/validations';
 import { jsonError } from '@/lib/route-helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/auth/join
@@ -40,22 +41,26 @@ export async function POST(req: NextRequest) {
     }
 
     const { eventSlug, joinCode } = parsed.data;
+
+    // Fingerprint format: hex string or UUID-like, max 64 chars
+    const FP_PATTERN = /^[a-f0-9-]+$/i;
+
     // Fingerprint is optional — sanitize to plain string or null
     const fingerprint: string | null =
       typeof body.fingerprint === 'string' && body.fingerprint.length > 0
-        ? body.fingerprint.slice(0, 64)
+        ? (FP_PATTERN.test(body.fingerprint.slice(0, 64)) ? body.fingerprint.slice(0, 64) : null)
         : null;
 
     // Hardware fingerprint (canvas/WebGL/screen-based) — survives incognito
     const hwFingerprint: string | null =
       typeof body.hardwareFingerprint === 'string' && body.hardwareFingerprint.length > 0
-        ? body.hardwareFingerprint.slice(0, 128)
+        ? (FP_PATTERN.test(body.hardwareFingerprint.slice(0, 128)) ? body.hardwareFingerprint.slice(0, 128) : null)
         : null;
 
     const supabase = getServiceClient();
 
     // Find active event by slug + join code
-    const { data: event } = await supabase
+    const { data: event, error: eventError } = await supabase
       .from('events')
       .select('id, slug, name, join_code, event_type, status, starts_at, ends_at, is_active, background_image')
       .eq('slug', eventSlug)
@@ -63,32 +68,50 @@ export async function POST(req: NextRequest) {
       .eq('is_active', true)
       .single();
 
+    if (eventError) {
+      logger.error('[AUTH_JOIN] event lookup failed:', eventError);
+      return jsonError('Server error', 500);
+    }
+
     if (!event) {
       return jsonError('Invalid event or join code', 404);
     }
 
     // Check if this device is banned — check BOTH fingerprint types
-    const banChecks: Promise<boolean>[] = [];
+    // SAFETY: fail-closed — if the ban check query errors, treat as banned
+    const banChecks: PromiseLike<boolean>[] = [];
     if (fingerprint) {
       banChecks.push(
-        Promise.resolve(supabase
+        supabase
           .from('banned_devices')
           .select('id')
           .eq('event_id', event.id)
           .eq('device_fingerprint', fingerprint)
           .maybeSingle()
-          .then(({ data }) => !!data))
+          .then(({ data, error }) => {
+            if (error) {
+              logger.error('[AUTH_JOIN] ban check error (device):', error.message);
+              return true; // fail-closed
+            }
+            return !!data;
+          })
       );
     }
     if (hwFingerprint) {
       banChecks.push(
-        Promise.resolve(supabase
+        supabase
           .from('banned_devices')
           .select('id')
           .eq('event_id', event.id)
           .eq('device_fingerprint', hwFingerprint)
           .maybeSingle()
-          .then(({ data }) => !!data))
+          .then(({ data, error }) => {
+            if (error) {
+              logger.error('[AUTH_JOIN] ban check error (hw):', error.message);
+              return true; // fail-closed
+            }
+            return !!data;
+          })
       );
     }
     if (banChecks.length > 0) {
@@ -119,11 +142,12 @@ export async function POST(req: NextRequest) {
 
         // Update hardware fingerprint if not already set
         if (hwFingerprint) {
-          supabase
-            .from('participants')
-            .update({ hardware_fingerprint: hwFingerprint })
-            .eq('id', existing.id)
-            .then();
+          Promise.resolve(
+            supabase
+              .from('participants')
+              .update({ hardware_fingerprint: hwFingerprint })
+              .eq('id', existing.id)
+          ).catch((err) => logger.error('[AUTH_JOIN] hw fingerprint update error:', err));
         }
       }
     }
@@ -146,11 +170,12 @@ export async function POST(req: NextRequest) {
 
         // Update localStorage fingerprint to current one
         if (fingerprint) {
-          supabase
-            .from('participants')
-            .update({ device_fingerprint: fingerprint })
-            .eq('id', existing.id)
-            .then();
+          Promise.resolve(
+            supabase
+              .from('participants')
+              .update({ device_fingerprint: fingerprint })
+              .eq('id', existing.id)
+          ).catch((err) => logger.error('[AUTH_JOIN] device fingerprint update error:', err));
         }
       }
     }
@@ -173,17 +198,17 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (error || !newP) {
-        console.error('[AUTH_JOIN] Failed to create participant:', error?.message);
+        logger.error('[AUTH_JOIN] Failed to create participant:', error?.message);
         return jsonError('Failed to create participant', 500);
       }
       participantId = newP.id;
 
       // Activity log for new join (fire-and-forget)
-      supabase.from('activity_log').insert({
+      Promise.resolve(supabase.from('activity_log').insert({
         event_id: event.id,
         participant_id: newP.id,
         action: 'join',
-      }).then();
+      })).catch((err) => logger.error('[AUTH_JOIN] activity_log error:', err));
     }
 
     // Guard: should never happen — either existing or newly created
@@ -204,13 +229,18 @@ export async function POST(req: NextRequest) {
       eventName: event.name,
       backgroundImage: event.background_image ?? null,
       participantId,
-      participant,
+      // Strip fingerprints before sending to client
+      participant: participant
+        ? (({ device_fingerprint, hardware_fingerprint, ...safe }) => safe)(
+            participant as Record<string, unknown> & { device_fingerprint?: unknown; hardware_fingerprint?: unknown }
+          )
+        : null,
     });
 
     response.headers.set('Set-Cookie', sessionCookieHeader(token));
     return response;
   } catch (err) {
-    console.error('[AUTH_JOIN] error:', err);
+    logger.error('[AUTH_JOIN] error:', err);
     return jsonError('Server error', 500);
   }
 }

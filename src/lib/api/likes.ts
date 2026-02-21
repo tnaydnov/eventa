@@ -38,7 +38,7 @@ export async function removeLike(toId: string): Promise<boolean> {
 
 /** Get likes received by the current user (with sender details). */
 export async function getReceivedLikes(eventId: string, myId: string) {
-  const [blockedIds, { data: likes }] = await Promise.all([
+  const [blockedIds, likesRes] = await Promise.all([
     getBlockedIds(eventId, myId),
     supabase
       .from('likes')
@@ -49,6 +49,8 @@ export async function getReceivedLikes(eventId: string, myId: string) {
       .limit(100),
   ]);
 
+  if (likesRes.error) console.error('[getReceivedLikes] query error:', likesRes.error.message);
+  const likes = likesRes.data;
   if (!likes) return [];
 
   const filtered = likes.filter((l) => !blockedIds.has(l.from_participant_id));
@@ -67,7 +69,7 @@ export async function getReceivedLikes(eventId: string, myId: string) {
 
 /** Get likes sent by the current user (with recipient details). */
 export async function getSentLikes(eventId: string, myId: string) {
-  const [blockedIds, { data: likes }] = await Promise.all([
+  const [blockedIds, likesRes] = await Promise.all([
     getBlockedIds(eventId, myId),
     supabase
       .from('likes')
@@ -78,6 +80,8 @@ export async function getSentLikes(eventId: string, myId: string) {
       .limit(100),
   ]);
 
+  if (likesRes.error) console.error('[getSentLikes] query error:', likesRes.error.message);
+  const likes = likesRes.data;
   if (!likes) return [];
 
   const filtered = likes.filter((l) => !blockedIds.has(l.to_participant_id));

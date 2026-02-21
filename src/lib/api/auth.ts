@@ -1,4 +1,4 @@
-import type { Participant } from '../database.types';
+import type { PublicParticipant } from '../database.types';
 
 /** Join an event using slug + code; returns session details or null. */
 export async function joinEvent(
@@ -11,7 +11,7 @@ export async function joinEvent(
   eventName: string;
   backgroundImage: string | null;
   participantId: string;
-  participant: Participant | null;
+  participant: PublicParticipant | null;
 } | null> {
   try {
     const res = await fetch('/api/auth/join', {

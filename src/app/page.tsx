@@ -200,6 +200,10 @@ export default function HomePage() {
         <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
           <Link href="/privacy" style={{ color: '#777', textDecoration: 'none' }}>מדיניות פרטיות</Link>
           <Link href="/terms" style={{ color: '#777', textDecoration: 'none' }}>תנאי שימוש</Link>
+          <Link href="/cookies" style={{ color: '#777', textDecoration: 'none' }}>מדיניות עוגיות</Link>
+          <Link href="/safety" style={{ color: '#777', textDecoration: 'none' }}>טיפים לבטיחות</Link>
+          <Link href="/community" style={{ color: '#777', textDecoration: 'none' }}>כללי קהילה</Link>
+          <Link href="/faq" style={{ color: '#777', textDecoration: 'none' }}>שאלות נפוצות</Link>
           <Link href="/about" style={{ color: '#777', textDecoration: 'none' }}>אודות</Link>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', margin: 0 }}>

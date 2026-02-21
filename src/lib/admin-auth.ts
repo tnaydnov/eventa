@@ -5,12 +5,15 @@
  * Works perfectly on serverless (Vercel) with zero cold-start issues.
  */
 import crypto from 'crypto';
+import { ADMIN_MAX_AGE_S, JWT_ISSUER, JWT_AUDIENCE } from '@/lib/config';
+import { logger } from '@/lib/logger';
 
 const ADMIN_COOKIE = 'ws_admin';
-const MAX_AGE = 24 * 60 * 60; // 24 hours
 
 interface AdminPayload {
   role: 'admin';
+  iss?: string;
+  aud?: string;
   iat: number;
   exp: number;
 }
@@ -26,7 +29,13 @@ export function signAdminToken(): string {
   const secret = getSecret();
   const now = Math.floor(Date.now() / 1000);
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
-  const payload: AdminPayload = { role: 'admin', iat: now, exp: now + MAX_AGE };
+  const payload: AdminPayload = {
+    role: 'admin',
+    iss: JWT_ISSUER,
+    aud: JWT_AUDIENCE,
+    iat: now,
+    exp: now + ADMIN_MAX_AGE_S,
+  };
   const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
   const sig = crypto.createHmac('sha256', secret).update(`${header}.${body}`).digest('base64url');
   return `${header}.${body}.${sig}`;
@@ -55,6 +64,10 @@ export function verifyAdminToken(token: string | null | undefined): boolean {
     if (payload.role !== 'admin') return false;
     if (payload.exp < Math.floor(Date.now() / 1000)) return false;
 
+    // Soft-verify iss/aud — reject if present but wrong
+    if (payload.iss && payload.iss !== JWT_ISSUER) return false;
+    if (payload.aud && payload.aud !== JWT_AUDIENCE) return false;
+
     return true;
   } catch {
     return false;
@@ -63,14 +76,15 @@ export function verifyAdminToken(token: string | null | undefined): boolean {
 
 /** Build Set-Cookie header for admin JWT */
 export function adminCookieHeader(token: string): string {
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure; Partitioned' : '';
   // SameSite=Strict — admin panel never needs cross-site cookie sending
-  return `${ADMIN_COOKIE}=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${MAX_AGE}${secure}`;
+  return `${ADMIN_COOKIE}=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${ADMIN_MAX_AGE_S}${secure}`;
 }
 
 /** Build Set-Cookie header to clear admin cookie */
 export function clearAdminCookieHeader(): string {
-  return `${ADMIN_COOKIE}=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0`;
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure; Partitioned' : '';
+  return `${ADMIN_COOKIE}=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0${secure}`;
 }
 
 /** Extract admin token from request cookies.
@@ -112,13 +126,5 @@ export function adminAuditLog(
   const ip = req?.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
     || req?.headers.get('x-real-ip')
     || 'unknown';
-  const entry = {
-    timestamp: new Date().toISOString(),
-    level: 'ADMIN_AUDIT',
-    action,
-    ip,
-    ...details,
-  };
-  // Structured JSON log — easy to parse by log aggregators
-  console.log(JSON.stringify(entry));
+  logger.info(`[ADMIN_AUDIT] ${action}`, { action, ip, ...details });
 }

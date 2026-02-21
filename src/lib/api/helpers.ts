@@ -1,5 +1,5 @@
 import { supabase } from '../supabase';
-import type { Participant, ParticipantPhoto } from '../database.types';
+import type { PublicParticipant, ParticipantPhoto } from '../database.types';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
@@ -25,11 +25,17 @@ export async function getBlockedIds(eventId: string, myId: string): Promise<Set<
   const cached = _blockedCache.get(key);
   if (cached && Date.now() - cached.ts < BLOCKED_TTL) return cached.ids;
 
-  const { data: blocks } = await supabase
+  const { data: blocks, error } = await supabase
     .from('blocks')
     .select('blocker_id, blocked_id')
     .eq('event_id', eventId)
     .or(`blocker_id.eq.${myId},blocked_id.eq.${myId}`);
+
+  if (error) {
+    // SAFETY: never return an empty set on failure — blocked users would become visible.
+    // Throw so callers (grid, likes, matches, conversations) surface the error.
+    throw new Error(`Failed to fetch blocked IDs: ${error.message}`);
+  }
 
   const ids = new Set<string>();
   (blocks || []).forEach((b) => {
@@ -51,8 +57,8 @@ export function invalidateBlockedCache() {
  * Returns { pMap, phMap } for joining participant data with photos.
  * Batches .in() calls to avoid exceeding PostgREST URL length limits (~50 UUIDs per batch).
  */
-/** Explicit columns for participant queries (avoids SELECT *). */
-export const PARTICIPANT_COLUMNS = 'id, event_id, device_fingerprint, hardware_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at' as const;
+/** Explicit columns for participant queries (avoids SELECT *). Excludes fingerprints — those are internal only. */
+export const PARTICIPANT_COLUMNS = 'id, event_id, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at' as const;
 export const PHOTO_COLUMNS = 'id, event_id, participant_id, storage_path, order_index, created_at' as const;
 export const CONVERSATION_COLUMNS = 'id, event_id, a_participant_id, b_participant_id, created_at, last_message_at, a_last_read_at, b_last_read_at' as const;
 export const MESSAGE_COLUMNS = 'id, event_id, conversation_id, sender_participant_id, type, text, media_path, is_deleted, created_at' as const;
@@ -60,10 +66,10 @@ export const LIKE_COLUMNS = 'id, event_id, from_participant_id, to_participant_i
 
 export async function buildParticipantPhotoMaps(ids: string[]) {
   const BATCH_SIZE = 50;
-  const allParticipants: Participant[] = [];
+  const allParticipants: PublicParticipant[] = [];
   const allPhotos: ParticipantPhoto[] = [];
 
-  if (ids.length === 0) return { pMap: new Map<string, Participant>(), phMap: new Map<string, ParticipantPhoto[]>() };
+  if (ids.length === 0) return { pMap: new Map<string, PublicParticipant>(), phMap: new Map<string, ParticipantPhoto[]>() };
 
   // Launch ALL batches in parallel instead of sequentially
   const batches: string[][] = [];
@@ -80,12 +86,18 @@ export async function buildParticipantPhotoMaps(ids: string[]) {
     )
   );
 
-  for (const [{ data: participants }, { data: photos }] of results) {
-    if (participants) allParticipants.push(...participants);
-    if (photos) allPhotos.push(...photos);
+  for (const [participantsRes, photosRes] of results) {
+    if (participantsRes.error) {
+      console.error('[buildParticipantPhotoMaps] participants query error:', participantsRes.error.message);
+    }
+    if (photosRes.error) {
+      console.error('[buildParticipantPhotoMaps] photos query error:', photosRes.error.message);
+    }
+    if (participantsRes.data) allParticipants.push(...participantsRes.data);
+    if (photosRes.data) allPhotos.push(...photosRes.data);
   }
 
-  const pMap = new Map<string, Participant>();
+  const pMap = new Map<string, PublicParticipant>();
   allParticipants.forEach((p) => pMap.set(p.id, p));
 
   const phMap = new Map<string, ParticipantPhoto[]>();

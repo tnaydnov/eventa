@@ -36,13 +36,19 @@ export default function MatchPopup() {
     if (!session || !pendingMatch || navigating) return;
     setNavigating(true);
 
-    const conv = await getOrCreateConversation(pendingMatch.id);
-    clearPendingMatch();
+    try {
+      const conv = await getOrCreateConversation(pendingMatch.id);
+      clearPendingMatch();
 
-    if (conv) {
-      router.push(`/dating/${session.eventSlug}/chat/${conv.id}`);
+      if (conv) {
+        router.push(`/dating/${session.eventSlug}/chat/${conv.id}`);
+      }
+    } catch (err) {
+      console.error('[MatchPopup] Failed to create conversation:', err);
+      clearPendingMatch();
+    } finally {
+      setNavigating(false);
     }
-    setNavigating(false);
   }, [session, pendingMatch, navigating, clearPendingMatch, router]);
 
   const handleDismiss = useCallback(() => {

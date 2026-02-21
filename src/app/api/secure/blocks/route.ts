@@ -3,6 +3,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { isValidUUID } from '@/lib/session';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { secureGuard, jsonError } from '@/lib/route-helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/secure/blocks — Block a participant.
@@ -43,6 +44,10 @@ export async function POST(req: NextRequest) {
         .maybeSingle(),
     ]);
 
+    if (likeFwdRes.error) logger.error('[BLOCKS] likeFwd context error:', likeFwdRes.error.message);
+    if (likeRevRes.error) logger.error('[BLOCKS] likeRev context error:', likeRevRes.error.message);
+    if (convoRes.error) logger.error('[BLOCKS] convo context error:', convoRes.error.message);
+
     const hadLike = !!(likeFwdRes.data || likeRevRes.data);
     const hadMatch = !!(likeFwdRes.data && likeRevRes.data);
     const hadConversation = !!convoRes.data;
@@ -68,14 +73,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Activity log (fire-and-forget)
-    supabase.from('activity_log').insert({
+    Promise.resolve(supabase.from('activity_log').insert({
       event_id: eventId,
       participant_id: blockerId,
       action: 'block',
-    }).then();
+    })).catch((err) => logger.error('[BLOCKS] activity_log error:', err));
 
     // Delete bidirectional likes + notifications (independent — parallelize)
-    await Promise.all([
+    const [likesDel1, likesDel2, notifDel1, notifDel2] = await Promise.all([
       supabase.from('likes').delete()
         .eq('event_id', eventId)
         .eq('from_participant_id', blockerId)
@@ -93,6 +98,11 @@ export async function POST(req: NextRequest) {
         .eq('to_participant_id', blockedId)
         .eq('payload->>from_participant_id', blockerId),
     ]);
+
+    if (likesDel1.error) logger.error('[BLOCKS] cascade likes del1:', likesDel1.error.message);
+    if (likesDel2.error) logger.error('[BLOCKS] cascade likes del2:', likesDel2.error.message);
+    if (notifDel1.error) logger.error('[BLOCKS] cascade notif del1:', notifDel1.error.message);
+    if (notifDel2.error) logger.error('[BLOCKS] cascade notif del2:', notifDel2.error.message);
 
     // Delete conversation + messages (FK order: messages → conversations)
     const { data: convos } = await supabase
@@ -112,8 +122,10 @@ export async function POST(req: NextRequest) {
         .in('conversation_id', convoIds)
         .not('media_path', 'is', null);
 
-      await supabase.from('messages').delete().in('conversation_id', convoIds);
-      await supabase.from('conversations').delete().in('id', convoIds);
+      const { error: msgDelErr } = await supabase.from('messages').delete().in('conversation_id', convoIds);
+      if (msgDelErr) logger.error('[BLOCKS] messages delete error:', msgDelErr.message);
+      const { error: convDelErr } = await supabase.from('conversations').delete().in('id', convoIds);
+      if (convDelErr) logger.error('[BLOCKS] conversations delete error:', convDelErr.message);
 
       // Clean orphaned media files from storage
       const mediaPaths = (mediaMessages || [])
@@ -126,7 +138,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('[BLOCKS] error:', err);
+    logger.error('[BLOCKS] error:', err);
     return jsonError('Server error', 500);
   }
 }

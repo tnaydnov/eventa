@@ -3,6 +3,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { isValidUUID } from '@/lib/session';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { secureGuard, jsonError } from '@/lib/route-helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/secure/conversations/read
@@ -43,13 +44,20 @@ export async function POST(req: NextRequest) {
         .select('id'),
     ]);
 
+    // Check for DB errors first — don't mask them as 403
+    if (aRes.error || bRes.error) {
+      if (aRes.error) logger.error('[conversations/read] a update error:', aRes.error.message);
+      if (bRes.error) logger.error('[conversations/read] b update error:', bRes.error.message);
+      return jsonError('Server error', 500);
+    }
+
     if ((aRes.data?.length ?? 0) === 0 && (bRes.data?.length ?? 0) === 0) {
       return jsonError('Not a participant in this conversation', 403);
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('[conversations/read] error:', err);
+    logger.error('[conversations/read] error:', err);
     return jsonError('Server error', 500);
   }
 }

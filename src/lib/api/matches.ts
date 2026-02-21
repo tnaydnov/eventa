@@ -14,7 +14,7 @@ export async function getMatches(
   myId: string,
 ): Promise<MatchEntry[]> {
   // Fire independent queries in parallel
-  const [blockedIds, { data: myLikes }] = await Promise.all([
+  const [blockedIds, myLikesRes] = await Promise.all([
     getBlockedIds(eventId, myId),
     supabase
       .from('likes')
@@ -23,18 +23,21 @@ export async function getMatches(
       .eq('from_participant_id', myId),
   ]);
 
+  if (myLikesRes.error) console.error('[getMatches] myLikes query error:', myLikesRes.error.message);
+  const myLikes = myLikesRes.data;
   if (!myLikes || myLikes.length === 0) return [];
 
   const myLikedIds = myLikes.map((l) => l.to_participant_id);
 
   // Of those I liked, find who liked me back
-  const { data: reciprocal } = await supabase
+  const { data: reciprocal, error: recipErr } = await supabase
     .from('likes')
     .select('from_participant_id, created_at')
     .eq('event_id', eventId)
     .eq('to_participant_id', myId)
     .in('from_participant_id', myLikedIds);
 
+  if (recipErr) console.error('[getMatches] reciprocal query error:', recipErr.message);
   if (!reciprocal || reciprocal.length === 0) return [];
 
   // Build a map: participantId → latest of the two like timestamps

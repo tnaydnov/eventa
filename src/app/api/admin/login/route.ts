@@ -4,14 +4,37 @@ import { adminLoginSchema } from '@/lib/validations';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { signAdminToken, adminCookieHeader, adminAuditLog } from '@/lib/admin-auth';
 import { jsonError } from '@/lib/route-helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * Brute-force lockout: after 10 failed attempts in 15 minutes,
  * lock out the IP for the remaining window.
+ *
+ * Safety cap: if map exceeds MAX_ENTRIES, purge all stale entries immediately.
+ * This prevents unbounded memory growth under distributed brute-force attacks.
  */
 const failedAttempts = new Map<string, { count: number; firstAttempt: number }>();
 const LOCKOUT_THRESHOLD = 10;
 const LOCKOUT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const MAX_ENTRIES = 10_000;
+let lastCleanup = Date.now();
+const CLEANUP_INTERVAL_MS = 600_000; // 10 minutes
+
+/** Purge stale entries from the failedAttempts map. */
+function purgeStaleEntries(): void {
+  const now = Date.now();
+  for (const [key, entry] of failedAttempts.entries()) {
+    if (now - entry.firstAttempt > LOCKOUT_WINDOW_MS) failedAttempts.delete(key);
+  }
+  lastCleanup = now;
+}
+
+/** Lazy cleanup: purge if enough time has passed or map is too large. */
+function maybeCleanup(): void {
+  if (failedAttempts.size > MAX_ENTRIES || Date.now() - lastCleanup > CLEANUP_INTERVAL_MS) {
+    purgeStaleEntries();
+  }
+}
 
 function isLockedOut(ip: string): boolean {
   const entry = failedAttempts.get(ip);
@@ -37,17 +60,10 @@ function clearFailedAttempts(ip: string): void {
   failedAttempts.delete(ip);
 }
 
-// Cleanup stale entries every 10 minutes
-if (typeof setInterval !== 'undefined') {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of failedAttempts.entries()) {
-      if (now - entry.firstAttempt > LOCKOUT_WINDOW_MS) failedAttempts.delete(key);
-    }
-  }, 600_000);
-}
-
 export async function POST(req: NextRequest) {
+  // Lazy cleanup of stale lockout entries (replaces module-scope setInterval)
+  maybeCleanup();
+
   // Rate limit: 5 attempts per minute
   const ip = getClientIp(req.headers);
   const rl = checkRateLimit(`admin-login:${ip}`, RATE_LIMITS.auth);
@@ -77,7 +93,7 @@ export async function POST(req: NextRequest) {
 
     const adminPassword = process.env.ADMIN_PASSWORD;
     if (!adminPassword) {
-      console.error('ADMIN_PASSWORD environment variable is not set');
+      logger.error('ADMIN_PASSWORD environment variable is not set');
       return jsonError('Server configuration error', 500);
     }
 
@@ -100,7 +116,7 @@ export async function POST(req: NextRequest) {
     adminAuditLog('LOGIN_SUCCESS', { ip }, req);
     return res;
   } catch (err) {
-    console.error('[ADMIN_LOGIN] error:', err);
+    logger.error('[ADMIN_LOGIN] error:', err);
     return jsonError('Bad request', 400);
   }
 }

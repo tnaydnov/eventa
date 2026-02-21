@@ -4,6 +4,9 @@ import imageCompression from 'browser-image-compression';
  * Compress an image file before upload.
  * - Profile photos: max 1600px, max 800KB
  * - Chat images: max 1600px, max 800KB
+ *
+ * All images pass through canvas-based compression which naturally
+ * strips EXIF metadata (GPS, camera info, etc.) from the output.
  */
 
 export interface CompressionOptions {
@@ -23,16 +26,56 @@ const CHAT_IMAGE_OPTIONS: CompressionOptions = {
   maxSizeMB: 0.8,
 };
 
+/** Maximum input file size (20 MB) — reject before processing. */
+const MAX_INPUT_SIZE = 20 * 1024 * 1024;
+
+/** Maximum input dimension (px) — reject decompression bombs. */
+const MAX_INPUT_DIMENSION = 8000;
+
+/**
+ * Read image intrinsic dimensions via a temporary <img> load.
+ * Resolves with { width, height } or rejects on load failure.
+ */
+function getImageDimensions(file: File): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Failed to read image dimensions'));
+    };
+    img.src = url;
+  });
+}
+
 export async function compressImage(
   file: File,
   options: CompressionOptions = PROFILE_PHOTO_OPTIONS
 ): Promise<File> {
-  // Skip compression for small files
-  if (file.size < options.maxSizeMB * 1024 * 1024) {
-    return file;
+  // Guard: reject files over 20 MB instantly (no OOM from huge files)
+  if (file.size > MAX_INPUT_SIZE) {
+    throw new Error('File too large — maximum 20 MB');
+  }
+
+  // Guard: reject images with extreme dimensions (decompression-bomb defense)
+  try {
+    const { width, height } = await getImageDimensions(file);
+    if (width > MAX_INPUT_DIMENSION || height > MAX_INPUT_DIMENSION) {
+      throw new Error(`Image too large — maximum ${MAX_INPUT_DIMENSION}×${MAX_INPUT_DIMENSION} pixels`);
+    }
+  } catch (dimErr) {
+    // If dimension check itself fails, the file is probably corrupt — reject
+    if (dimErr instanceof Error && dimErr.message.startsWith('Image too large')) throw dimErr;
+    throw new Error('Unable to read image — file may be corrupt');
   }
 
   try {
+    // Always compress through canvas to strip EXIF metadata,
+    // even for small files that are already below the size limit.
     const compressed = await imageCompression(file, {
       maxSizeMB: options.maxSizeMB,
       maxWidthOrHeight: options.maxSizePx,
@@ -45,8 +88,11 @@ export async function compressImage(
     const newName = file.name.replace(/\.[^.]+$/, '.webp');
     return new File([compressed], newName, { type: 'image/webp' });
   } catch (error) {
-    console.warn('Image compression failed, using original:', error);
-    return file;
+    // Don't return the original — it still contains EXIF metadata (GPS, camera info).
+    // Throwing forces the caller to handle the failure explicitly.
+    throw new Error(
+      `Image compression failed: ${error instanceof Error ? error.message : 'unknown error'}`
+    );
   }
 }
 

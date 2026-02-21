@@ -1,8 +1,8 @@
 import { create } from 'zustand';
-import type { Conversation, Participant, ParticipantPhoto, Message } from '../database.types';
+import type { Conversation, PublicParticipant, ParticipantPhoto, Message } from '../database.types';
 
 export interface ConversationWithDetails extends Conversation {
-  otherParticipant: Participant & { photos: ParticipantPhoto[] };
+  otherParticipant: PublicParticipant & { photos: ParticipantPhoto[] };
   lastMessageText?: string;
   unreadCount: number;
 }
@@ -16,6 +16,7 @@ interface ChatsState {
   removeConversation: (id: string) => void;
   /** Update a conversation's preview text, unread count, and sort to top */
   updateConversationPreview: (conversationId: string, text: string, time: string, incrementUnread: boolean) => void;
+  reset: () => void;
 }
 
 export const useChatsStore = create<ChatsState>((set) => ({
@@ -45,4 +46,5 @@ export const useChatsStore = create<ChatsState>((set) => ({
       updated.sort((a, b) => (b.last_message_at || b.created_at).localeCompare(a.last_message_at || a.created_at));
       return { conversations: updated };
     }),
+  reset: () => set({ conversations: [], currentMessages: [] }),
 }));

@@ -4,6 +4,7 @@ import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
 import { evictEventStatusCache } from '@/lib/route-helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * DELETE /api/admin/events/[eventId]/delete
@@ -28,11 +29,29 @@ export async function DELETE(
 
   try {
     // 1. Collect participant IDs for storage cleanup
-    const { data: parts } = await supabase
+    const { data: parts, error: partsErr } = await supabase
       .from('participants')
       .select('id')
       .eq('event_id', eventId);
+    if (partsErr) {
+      logger.error('[ADMIN_EVENT_DELETE] participants query error:', partsErr.message);
+      return jsonError('Failed to query participants', 500);
+    }
     const pIds = (parts || []).map((p: { id: string }) => p.id);
+
+    // Helper: delete from a table and log errors (non-fatal for cascade)
+    const warnings: string[] = [];
+    const purge = async (table: string, filter: { col: string; val: string | string[]; op?: 'eq' | 'in' }) => {
+      const query = supabase.from(table).delete();
+      const q = filter.op === 'in'
+        ? query.in(filter.col, filter.val as string[])
+        : query.eq(filter.col, filter.val as string);
+      const { error } = await q;
+      if (error) {
+        logger.error(`[ADMIN_EVENT_DELETE] ${table} delete error:`, error.message);
+        warnings.push(`${table}: ${error.message}`);
+      }
+    };
 
     // 2. Delete participant photos from storage + DB
     if (pIds.length > 0) {
@@ -42,12 +61,13 @@ export async function DELETE(
         .in('participant_id', pIds);
 
       if (photos && photos.length > 0) {
-        await supabase.storage
+        const { error: storageErr } = await supabase.storage
           .from('photos')
           .remove(photos.map((p: { storage_path: string }) => p.storage_path));
+        if (storageErr) logger.error('[ADMIN_EVENT_DELETE] photo storage remove error:', storageErr.message);
       }
 
-      await supabase.from('participant_photos').delete().in('participant_id', pIds);
+      await purge('participant_photos', { col: 'participant_id', val: pIds, op: 'in' });
     }
 
     // 3. Delete chat media from storage, then messages + conversations
@@ -65,40 +85,46 @@ export async function DELETE(
         .not('media_path', 'is', null);
 
       if (chatMedia && chatMedia.length > 0) {
-        await supabase.storage
+        const { error: mediaErr } = await supabase.storage
           .from('photos')
           .remove(chatMedia.map((m: { media_path: string }) => m.media_path));
+        if (mediaErr) logger.error('[ADMIN_EVENT_DELETE] chat media storage remove error:', mediaErr.message);
       }
 
-      await supabase.from('messages').delete().in('conversation_id', cIds);
+      await purge('messages', { col: 'conversation_id', val: cIds, op: 'in' });
     }
-    await supabase.from('conversations').delete().eq('event_id', eventId);
+    await purge('conversations', { col: 'event_id', val: eventId });
 
     // 4. Delete independent tables in parallel
     await Promise.all([
-      supabase.from('likes').delete().eq('event_id', eventId),
-      supabase.from('blocks').delete().eq('event_id', eventId),
-      supabase.from('banned_devices').delete().eq('event_id', eventId),
-      supabase.from('notifications').delete().eq('event_id', eventId),
-      supabase.from('activity_log').delete().eq('event_id', eventId),
-      supabase.from('event_analytics_snapshots').delete().eq('event_id', eventId),
+      purge('likes', { col: 'event_id', val: eventId }),
+      purge('blocks', { col: 'event_id', val: eventId }),
+      purge('banned_devices', { col: 'event_id', val: eventId }),
+      purge('notifications', { col: 'event_id', val: eventId }),
+      purge('activity_log', { col: 'event_id', val: eventId }),
+      purge('event_analytics_snapshots', { col: 'event_id', val: eventId }),
     ]);
 
-    // 5. Delete participants + the event itself (order: FK children first)
-    await supabase.from('participants').delete().eq('event_id', eventId);
+    // 5. Delete participants (FK children before parent)
+    await purge('participants', { col: 'event_id', val: eventId });
 
-    // 6. Cleanup background images from storage (best-effort, before deleting event row)
-    await supabase.storage.from('backgrounds').remove(
+    // 6. Cleanup background images from storage (best-effort)
+    const { error: bgErr } = await supabase.storage.from('backgrounds').remove(
       ['jpg', 'png', 'webp'].map(ext => `${eventId}/bg.${ext}`)
     );
+    if (bgErr) logger.error('[ADMIN_EVENT_DELETE] background storage remove error:', bgErr.message);
 
-    await supabase.from('events').delete().eq('id', eventId);
+    const { error: eventDelErr } = await supabase.from('events').delete().eq('id', eventId);
+    if (eventDelErr) {
+      logger.error('[ADMIN_EVENT_DELETE] event delete error:', eventDelErr.message);
+      return jsonError('Failed to delete event', 500);
+    }
 
     evictEventStatusCache(eventId);
-    adminAuditLog('EVENT_DELETE', { eventId }, req);
-    return NextResponse.json({ success: true });
+    adminAuditLog('EVENT_DELETE', { eventId, warnings }, req);
+    return NextResponse.json({ success: true, ...(warnings.length > 0 && { warnings }) });
   } catch (err) {
-    console.error('[ADMIN_EVENT_DELETE] error:', err);
+    logger.error('[ADMIN_EVENT_DELETE] error:', err);
     return jsonError('Failed to delete event', 500);
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/admin/events/[eventId]/stats
@@ -34,6 +35,20 @@ export async function GET(
       countByEvent('blocks'),
     ]);
 
+    // Check for query errors — don't silently show 0 stats
+    const countErrors = [
+      participants.error && `participants: ${participants.error.message}`,
+      conversations.error && `conversations: ${conversations.error.message}`,
+      likes.error && `likes: ${likes.error.message}`,
+      messages.error && `messages: ${messages.error.message}`,
+      blocks.error && `blocks: ${blocks.error.message}`,
+    ].filter(Boolean);
+
+    if (countErrors.length > 0) {
+      logger.error('[ADMIN_STATS] count query errors:', countErrors.join('; '));
+      return jsonError('Failed to load stats', 500);
+    }
+
     return NextResponse.json({
       participants: participants.count || 0,
       conversations: conversations.count || 0,
@@ -42,7 +57,7 @@ export async function GET(
       blocks: blocks.count || 0,
     });
   } catch (err) {
-    console.error('[ADMIN_STATS] error:', err);
+    logger.error('[ADMIN_STATS] error:', err);
     return jsonError('Failed to load stats', 500);
   }
 }

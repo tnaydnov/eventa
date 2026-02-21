@@ -84,7 +84,7 @@ export default function PushSubscriptionManager() {
       // Already granted — silently refresh the subscription on server
       subscribeToPush()
         .then(() => localStorage.setItem(PUSH_REGISTERED_KEY, '1'))
-        .catch(() => {});
+        .catch((err) => console.warn('[PushSubscriptionManager] silent refresh failed:', err));
       return;
     }
 

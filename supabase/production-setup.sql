@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS participants (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
   device_fingerprint TEXT,
+  hardware_fingerprint TEXT,
   display_name TEXT NOT NULL DEFAULT '',
   gender gender NOT NULL DEFAULT 'male',
   attracted_to attracted_to NOT NULL DEFAULT 'all',
@@ -173,6 +174,61 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN null;
 END $$;
 
+-- Text field length constraints (defense-in-depth, matches Zod/constants.ts)
+DO $$ BEGIN
+  ALTER TABLE participants ADD CONSTRAINT chk_display_name_length
+    CHECK (char_length(display_name) <= 30);
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE participants ADD CONSTRAINT chk_bio_length
+    CHECK (bio IS NULL OR char_length(bio) <= 200);
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE participants ADD CONSTRAINT chk_city_length
+    CHECK (city IS NULL OR char_length(city) <= 50);
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE participants ADD CONSTRAINT chk_age_range
+    CHECK (age IS NULL OR (age >= 16 AND age <= 120));
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE messages ADD CONSTRAINT chk_message_text_length
+    CHECK (text IS NULL OR char_length(text) <= 2000);
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE events ADD CONSTRAINT chk_event_name_length
+    CHECK (char_length(name) <= 100);
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE events ADD CONSTRAINT chk_event_slug_length
+    CHECK (char_length(slug) <= 100);
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE events ADD CONSTRAINT chk_event_description_length
+    CHECK (description IS NULL OR char_length(description) <= 500);
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE participant_photos ADD CONSTRAINT chk_order_index_range
+    CHECK (order_index >= 0 AND order_index <= 20);
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
 
 -- ════════════════════════════════════════════
 -- 5. INDEXES
@@ -284,6 +340,9 @@ ALTER TABLE notifications REPLICA IDENTITY FULL;
 ALTER TABLE participants REPLICA IDENTITY FULL;
 ALTER TABLE events REPLICA IDENTITY FULL;
 
+-- NOTE: Realtime publication column lists are configured in section 8
+-- to exclude sensitive fields (fingerprints, join_code).
+
 
 -- ════════════════════════════════════════════
 -- 8. REALTIME PUBLICATION
@@ -294,8 +353,16 @@ ALTER PUBLICATION supabase_realtime ADD TABLE likes;
 ALTER PUBLICATION supabase_realtime ADD TABLE blocks;
 ALTER PUBLICATION supabase_realtime ADD TABLE conversations;
 ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
-ALTER PUBLICATION supabase_realtime ADD TABLE participants;
-ALTER PUBLICATION supabase_realtime ADD TABLE events;
+-- Participants: exclude fingerprint columns from realtime payloads
+ALTER PUBLICATION supabase_realtime ADD TABLE participants (
+  id, event_id, display_name, gender, attracted_to, bio, age, city,
+  looking_for, is_banned, last_seen_at, created_at
+);
+-- Events: exclude join_code from realtime payloads
+ALTER PUBLICATION supabase_realtime ADD TABLE events (
+  id, slug, name, event_type, status, description, starts_at, ends_at,
+  is_active, background_image, archived_at, created_at
+);
 
 
 -- ════════════════════════════════════════════

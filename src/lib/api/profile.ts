@@ -1,12 +1,12 @@
 import { supabase } from '../supabase';
-import type { Participant, ParticipantPhoto } from '../database.types';
+import type { PublicParticipant, ParticipantPhoto } from '../database.types';
 import { PARTICIPANT_COLUMNS, PHOTO_COLUMNS } from './helpers';
 
 /** Update the current user's profile fields. */
 export async function updateProfile(
   participantId: string,
-  data: Partial<Participant>
-): Promise<Participant | null> {
+  data: Partial<PublicParticipant>
+): Promise<PublicParticipant | null> {
   try {
     const res = await fetch('/api/secure/profile', {
       method: 'PATCH',
@@ -23,8 +23,8 @@ export async function updateProfile(
 /** Fetch a single participant with their photos. */
 export async function getParticipant(
   participantId: string
-): Promise<(Participant & { photos: ParticipantPhoto[] }) | null> {
-  const [{ data: p }, { data: photos }] = await Promise.all([
+): Promise<(PublicParticipant & { photos: ParticipantPhoto[] }) | null> {
+  const [participantRes, photosRes] = await Promise.all([
     supabase
       .from('participants')
       .select(PARTICIPANT_COLUMNS)
@@ -36,7 +36,9 @@ export async function getParticipant(
       .eq('participant_id', participantId)
       .order('order_index'),
   ]);
-  if (!p) return null;
+  if (participantRes.error) console.error('[getParticipant] participant query error:', participantRes.error.message);
+  if (photosRes.error) console.error('[getParticipant] photos query error:', photosRes.error.message);
+  if (!participantRes.data) return null;
 
-  return { ...p, photos: photos || [] };
+  return { ...participantRes.data, photos: photosRes.data || [] };
 }

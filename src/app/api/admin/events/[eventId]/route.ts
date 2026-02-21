@@ -5,6 +5,7 @@ import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../_helpers';
 import { evictEventStatusCache } from '@/lib/route-helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * PATCH /api/admin/events/[eventId]
@@ -41,7 +42,7 @@ export async function PATCH(
       .single();
 
     if (error) {
-      console.error('[ADMIN_EVENT_PATCH] DB error:', error.message);
+      logger.error('[ADMIN_EVENT_PATCH] DB error:', error.message);
       return jsonError('Failed to update event', 500);
     }
 
@@ -53,7 +54,7 @@ export async function PATCH(
     adminAuditLog('EVENT_UPDATE', { eventId, changes: Object.keys(parsed.data) }, req);
     return NextResponse.json({ event: data });
   } catch (err) {
-    console.error('[ADMIN_EVENT_PATCH] error:', err);
+    logger.error('[ADMIN_EVENT_PATCH] error:', err);
     return jsonError('Bad request', 400);
   }
 }

@@ -4,6 +4,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
 import { evictEventStatusCache } from '@/lib/route-helpers';
 import { adminAuditLog } from '@/lib/admin-auth';
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/admin/events/[eventId]/archive
@@ -107,33 +108,47 @@ export async function POST(
       );
 
     if (snapErr) {
-      console.error('[ARCHIVE] snapshot upsert error:', snapErr.message);
+      logger.error('[ARCHIVE] snapshot upsert error:', snapErr.message);
       return jsonError('Failed to save analytics snapshot', 500);
     }
 
     // ── Step 3: Purge user data (cascade-safe order) ──
     // Delete in dependency order: leaf tables first
-    await supabase.from('notifications').delete().eq('event_id', eventId);
-    await supabase.from('activity_log').delete().eq('event_id', eventId);
-    await supabase.from('messages').delete().eq('event_id', eventId);
-    await supabase.from('conversations').delete().eq('event_id', eventId);
-    await supabase.from('blocks').delete().eq('event_id', eventId);
-    await supabase.from('likes').delete().eq('event_id', eventId);
+    const purgeWarnings: string[] = [];
+    const purge = async (table: string) => {
+      const { error: err } = await supabase.from(table).delete().eq('event_id', eventId);
+      if (err) {
+        logger.error(`[ARCHIVE] purge ${table} error:`, err.message);
+        purgeWarnings.push(table);
+      }
+    };
+
+    await purge('notifications');
+    await purge('activity_log');
+    await purge('messages');
+    await purge('conversations');
+    await purge('blocks');
+    await purge('likes');
 
     // Delete participant photos from storage
-    const { data: photoRows } = await supabase
+    const { data: photoRows, error: photoQueryErr } = await supabase
       .from('participant_photos')
       .select('storage_path')
       .eq('event_id', eventId);
+
+    if (photoQueryErr) {
+      logger.error('[ARCHIVE] photo query error:', photoQueryErr.message);
+      purgeWarnings.push('participant_photos_query');
+    }
 
     if (photoRows && photoRows.length > 0) {
       const paths = photoRows.map((p: { storage_path: string }) => p.storage_path);
       await supabase.storage.from('photos').remove(paths);
     }
 
-    await supabase.from('participant_photos').delete().eq('event_id', eventId);
-    await supabase.from('banned_devices').delete().eq('event_id', eventId);
-    await supabase.from('participants').delete().eq('event_id', eventId);
+    await purge('participant_photos');
+    await purge('banned_devices');
+    await purge('participants');
 
     // ── Step 4: Mark event as archived ──
     const { error: updateErr } = await supabase
@@ -146,16 +161,20 @@ export async function POST(
       .eq('id', eventId);
 
     if (updateErr) {
-      console.error('[ARCHIVE] event update error:', updateErr.message);
+      logger.error('[ARCHIVE] event update error:', updateErr.message);
       return jsonError('Failed to archive event', 500);
     }
 
     evictEventStatusCache(eventId);
     adminAuditLog('EVENT_ARCHIVE', { eventId, eventName: event.name, snapshot }, req);
 
-    return NextResponse.json({ success: true, snapshot });
+    return NextResponse.json({
+      success: true,
+      snapshot,
+      ...(purgeWarnings.length > 0 && { warnings: purgeWarnings }),
+    });
   } catch (err) {
-    console.error('[ARCHIVE] error:', err);
+    logger.error('[ARCHIVE] error:', err);
     return jsonError('Archive failed', 500);
   }
 }

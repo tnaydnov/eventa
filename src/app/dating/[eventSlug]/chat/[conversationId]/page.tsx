@@ -18,7 +18,7 @@ import { useRealtimeHub } from '@/hooks/useRealtimeHub';
 import { useAppResume } from '@/hooks/useAppResume';
 import MobileGuard from '@/components/MobileGuard';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import type { Message, Participant, ParticipantPhoto } from '@/lib/database.types';
+import type { Message, PublicParticipant, ParticipantPhoto } from '@/lib/database.types';
 import { validateImageFile } from '@/lib/validations';
 
 import ChatHeader from './_components/ChatHeader';
@@ -43,7 +43,7 @@ export default function ChatRoomPage({
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(!cachedOther);
-  const [otherUser, setOtherUser] = useState<(Participant & { photos: ParticipantPhoto[] }) | null>(cachedOther);
+  const [otherUser, setOtherUser] = useState<(PublicParticipant & { photos: ParticipantPhoto[] }) | null>(cachedOther);
   const [showMenu, setShowMenu] = useState(false);
   const [sending, setSending] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);

@@ -4,16 +4,23 @@
  */
 import webpush from 'web-push';
 import { getServiceClient } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 
-if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+/** Lazy-init flag — set VAPID details on first use, not at module load. */
+let _vapidConfigured = false;
+function ensureVapidConfigured(): boolean {
+  if (_vapidConfigured) return true;
+  if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return false;
   webpush.setVapidDetails(
     'mailto:contact@eventa.productions',
     VAPID_PUBLIC_KEY,
     VAPID_PRIVATE_KEY
   );
+  _vapidConfigured = true;
+  return true;
 }
 
 export interface PushPayload {
@@ -33,7 +40,7 @@ export async function sendPushToParticipant(
   participantId: string,
   payload: PushPayload
 ): Promise<void> {
-  if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return;
+  if (!ensureVapidConfigured()) return;
 
   const supabase = getServiceClient();
   const { data: subs } = await supabase
@@ -65,6 +72,10 @@ export async function sendPushToParticipant(
         // 404 or 410 = subscription expired/unsubscribed
         if (statusCode === 404 || statusCode === 410) {
           expiredIds.push(sub.id);
+        } else {
+          logger.warn('Push notification delivery failed', {
+            participantId, subscriptionId: sub.id, statusCode,
+          });
         }
       }
     })

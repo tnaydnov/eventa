@@ -256,9 +256,9 @@ export default function ParticipantsTable({ eventId, isArchived }: ParticipantsT
                 <tbody>
                   {filtered.map(p => (
                     <tr key={p.id} className={`pt-row ${p.is_banned ? 'pt-row--banned' : ''}`}>
-                      <td className="pt-td pt-td--name" style={(p as any).profile_complete === false ? { opacity: 0.5 } : undefined}>
+                      <td className="pt-td pt-td--name" style={p.profile_complete === false ? { opacity: 0.5 } : undefined}>
                         {p.display_name || '(ללא שם)'}
-                        {(p as any).profile_complete === false && (
+                        {p.profile_complete === false && (
                           <span style={{ fontSize: '11px', color: '#ff9800', marginRight: '6px' }}>⚠️ לא השלים</span>
                         )}
                       </td>

@@ -104,7 +104,7 @@ function getNavigatorFingerprint(): string {
       n.language,
       n.languages?.join(',') || '',
       n.hardwareConcurrency || 0,
-      (n as any).deviceMemory || 0,
+      (n as Navigator & { deviceMemory?: number }).deviceMemory || 0,
       n.maxTouchPoints || 0,
       n.platform || '',
       Intl.DateTimeFormat().resolvedOptions().timeZone || '',

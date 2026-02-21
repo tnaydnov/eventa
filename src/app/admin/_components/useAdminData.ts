@@ -48,7 +48,7 @@ export function useAdminData() {
         setEvents(data.events || []);
         setAuthed(true);
       }
-    }).catch(() => {});
+    }).catch((err) => console.warn('[useAdminData] auth check failed:', err));
   }, [authedFetch]);
 
   /* ─── login ─── */

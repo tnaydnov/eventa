@@ -45,6 +45,9 @@ export interface Participant {
   created_at: string;
 }
 
+/** Participant without internal fingerprint fields — safe for client-side use. */
+export type PublicParticipant = Omit<Participant, 'device_fingerprint' | 'hardware_fingerprint'>;
+
 export interface ParticipantPhoto {
   id: string;
   event_id: string;

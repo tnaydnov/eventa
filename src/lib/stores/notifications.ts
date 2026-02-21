@@ -24,6 +24,7 @@ interface NotificationState {
   removeGridHighlight: (participantId: string) => void;
   removeGridHighlightByType: (participantId: string, type: 'like' | 'message') => void;
   setInitialized: (v: boolean) => void;
+  reset: () => void;
 }
 
 export const useNotificationStore = create<NotificationState>((set) => ({
@@ -69,4 +70,11 @@ export const useNotificationStore = create<NotificationState>((set) => ({
       ),
     })),
   setInitialized: (v) => set({ _initialized: v }),
+  reset: () => set({
+    unreadLikes: 0,
+    unreadMessages: 0,
+    gridHighlights: [],
+    _unreadConvoIds: new Set(),
+    _initialized: false,
+  }),
 }));

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Participant, ParticipantPhoto } from '../database.types';
+import type { PublicParticipant, ParticipantPhoto } from '../database.types';
 
 export interface WeddingSession {
   eventId: string;
@@ -11,10 +11,10 @@ export interface WeddingSession {
 
 interface SessionState {
   session: WeddingSession | null;
-  participant: Participant | null;
+  participant: PublicParticipant | null;
   photos: ParticipantPhoto[];
   setSession: (s: WeddingSession) => void;
-  setParticipant: (p: Participant) => void;
+  setParticipant: (p: PublicParticipant) => void;
   setPhotos: (ph: ParticipantPhoto[]) => void;
   clearSession: () => void;
 }
@@ -38,31 +38,14 @@ export const useSessionStore = create<SessionState>((set) => ({
     set({ session: null, participant: null, photos: [] });
 
     // Reset ALL other stores to prevent stale data leak between sessions.
-    // Dynamic import avoids circular dependency and is tree-shakeable (unlike require).
-    import('./grid').then(({ useGridStore }) =>
-      useGridStore.setState({ participants: [], filter: 'all' }));
-    import('./chats').then(({ useChatsStore }) =>
-      useChatsStore.setState({ conversations: [], currentMessages: [] }));
-    import('./likes').then(({ useLikesStore }) =>
-      useLikesStore.setState({ receivedLikes: [], sentLikes: [] }));
-    import('./blocks').then(({ useBlocksStore }) =>
-      useBlocksStore.setState({ blocks: [], blockedIds: new Set() }));
-    import('./matches').then(({ useMatchStore }) =>
-      useMatchStore.setState({ pendingMatch: null, matches: [], matchesLoaded: false }));
-    import('./notifications').then(({ useNotificationStore }) =>
-      useNotificationStore.setState({
-        unreadLikes: 0,
-        unreadMessages: 0,
-        gridHighlights: [],
-        _unreadConvoIds: new Set(),
-        _initialized: false,
-      }));
-    import('./swipe').then(({ useSwipeStore }) =>
-      useSwipeStore.setState({
-        viewMode: 'grid',
-        dismissedIds: new Set(),
-        likedIds: new Set(),
-        likedIdsLoaded: false,
-      }));
+    // Each store now owns its own reset() method — no duplicated initial state.
+    import('./grid').then(({ useGridStore }) => useGridStore.getState().reset()).catch(() => {});
+    import('./chats').then(({ useChatsStore }) => useChatsStore.getState().reset()).catch(() => {});
+    import('./likes').then(({ useLikesStore }) => useLikesStore.getState().reset()).catch(() => {});
+    import('./blocks').then(({ useBlocksStore }) => useBlocksStore.getState().reset()).catch(() => {});
+    import('./matches').then(({ useMatchStore }) => useMatchStore.getState().reset()).catch(() => {});
+    import('./notifications').then(({ useNotificationStore }) => useNotificationStore.getState().reset()).catch(() => {});
+    import('./swipe').then(({ useSwipeStore }) => useSwipeStore.getState().reset()).catch(() => {});
+    import('./toast').then(({ useToastStore }) => useToastStore.getState().reset()).catch(() => {});
   },
 }));
