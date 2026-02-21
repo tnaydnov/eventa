@@ -18,7 +18,13 @@
 -- ═══════════════════════════════════════════════
 
 -- Remove and re-add with explicit column list
-ALTER PUBLICATION supabase_realtime DROP TABLE IF EXISTS participants;
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime DROP TABLE participants;
+EXCEPTION WHEN undefined_object THEN
+  NULL; -- table not in publication
+END $$;
+
 ALTER PUBLICATION supabase_realtime ADD TABLE participants (
   id, event_id, display_name, gender, attracted_to, bio, age, city,
   looking_for, is_banned, last_seen_at, created_at
@@ -29,7 +35,13 @@ ALTER PUBLICATION supabase_realtime ADD TABLE participants (
 -- 2. Restrict events columns (exclude join_code)
 -- ═══════════════════════════════════════════════
 
-ALTER PUBLICATION supabase_realtime DROP TABLE IF EXISTS events;
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime DROP TABLE events;
+EXCEPTION WHEN undefined_object THEN
+  NULL; -- table not in publication
+END $$;
+
 ALTER PUBLICATION supabase_realtime ADD TABLE events (
   id, slug, name, event_type, status, description, starts_at, ends_at,
   is_active, background_image, archived_at, created_at
