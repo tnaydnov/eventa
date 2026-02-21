@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServiceClient } from '@/lib/supabase';
+import { getServiceClient, serviceUpdate } from '@/lib/supabase';
 import { isValidUUID } from '@/lib/session';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { MAX_PHOTOS } from '@/lib/constants';
@@ -171,10 +171,7 @@ export async function PATCH(req: NextRequest) {
     // Update all order_index values in parallel
     const reorderResults = await Promise.all(
       order.map((item) =>
-        supabase
-          .from('participant_photos')
-          .update({ order_index: item.order_index })
-          .eq('id', item.id)
+        serviceUpdate('participant_photos', { order_index: item.order_index }, { id: item.id })
       )
     );
 

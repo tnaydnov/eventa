@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RATE_LIMITS } from '@/lib/rate-limit';
-import { getServiceClient } from '@/lib/supabase';
+import { getServiceClient, serviceUpdate } from '@/lib/supabase';
 import { secureGuard, jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 
@@ -44,10 +44,7 @@ export async function POST(req: NextRequest) {
     if (stale) {
       // Fire-and-forget — don't wait for the UPDATE to respond
       Promise.resolve(
-        supabase
-          .from('participants')
-          .update({ last_seen_at: now })
-          .eq('id', session.sub)
+        serviceUpdate('participants', { last_seen_at: now }, { id: session.sub })
       ).catch((err) => logger.error('[HEARTBEAT] last_seen update error:', err));
     }
 

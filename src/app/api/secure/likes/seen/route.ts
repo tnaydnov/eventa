@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServiceClient } from '@/lib/supabase';
+import { getServiceClient, serviceUpdate } from '@/lib/supabase';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { secureGuard, jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
@@ -25,18 +25,20 @@ export async function POST(req: NextRequest) {
 
     const supabase = getServiceClient();
 
-    let query = supabase
-      .from('likes')
-      .update({ seen_at: new Date().toISOString() })
-      .eq('event_id', session.eid)
-      .eq('to_participant_id', session.sub)
-      .is('seen_at', null);
-
+    const whereConditions: Record<string, unknown> = {
+      event_id: session.eid,
+      to_participant_id: session.sub,
+      seen_at: null,
+    };
     if (fromParticipantId) {
-      query = query.eq('from_participant_id', fromParticipantId);
+      whereConditions.from_participant_id = fromParticipantId;
     }
 
-    const { error } = await query;
+    const { error } = await serviceUpdate(
+      'likes',
+      { seen_at: new Date().toISOString() },
+      whereConditions
+    );
 
     if (error) {
       logger.error('[likes/seen] error:', error);

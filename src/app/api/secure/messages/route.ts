@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServiceClient } from '@/lib/supabase';
+import { getServiceClient, serviceUpdate } from '@/lib/supabase';
 import { isValidUUID } from '@/lib/session';
 import { sanitizeWithLimit } from '@/lib/sanitize';
 import { RATE_LIMITS } from '@/lib/rate-limit';
@@ -102,10 +102,7 @@ export async function POST(req: NextRequest) {
     // when the realtime INSERT event fires.
     const now = new Date().toISOString();
     const [convUpdateResult, { data, error }] = await Promise.all([
-      supabase
-        .from('conversations')
-        .update({ last_message_at: now })
-        .eq('id', conversationId),
+      serviceUpdate('conversations', { last_message_at: now }, { id: conversationId }),
       supabase
         .from('messages')
         .insert({
@@ -203,10 +200,11 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Soft delete
-    const { error } = await supabase
-      .from('messages')
-      .update({ is_deleted: true, text: null, media_path: null })
-      .eq('id', messageId);
+    const { error } = await serviceUpdate(
+      'messages',
+      { is_deleted: true, text: null, media_path: null },
+      { id: messageId }
+    );
 
     if (error) {
       logger.error('[MESSAGES_DELETE] error:', error);
