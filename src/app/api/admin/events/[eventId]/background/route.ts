@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
-import { getServiceClient, serviceUpdate } from '@/lib/supabase';
+import { getServiceClient } from '@/lib/supabase';
 import { MAX_BACKGROUND_SIZE_BYTES } from '@/lib/constants';
 import { jsonError } from '@/lib/route-helpers';
 import { validateImageMagicBytes } from '@/lib/validations';
@@ -81,11 +81,10 @@ export async function POST(
     const { data: urlData } = supabase.storage.from('backgrounds').getPublicUrl(storagePath);
     const publicUrlWithCacheBust = `${urlData.publicUrl}?t=${Date.now()}`;
 
-    const { error: updateError } = await serviceUpdate(
-      'events',
-      { background_image: publicUrlWithCacheBust },
-      { id: eventId }
-    );
+    const { error: updateError } = await supabase
+      .from('events')
+      .update({ background_image: publicUrlWithCacheBust })
+      .eq('id', eventId);
 
     if (updateError) {
       logger.error('[BACKGROUND_UPLOAD] DB error:', updateError.message);
@@ -125,11 +124,10 @@ export async function DELETE(
     if (removeErr) logger.error('[BACKGROUND_DELETE] storage remove error:', removeErr.message);
 
     // Clear the DB field
-    const { error } = await serviceUpdate(
-      'events',
-      { background_image: null },
-      { id: eventId }
-    );
+    const { error } = await supabase
+      .from('events')
+      .update({ background_image: null })
+      .eq('id', eventId);
 
     if (error) {
       logger.error('[BACKGROUND_DELETE] DB error:', error.message);

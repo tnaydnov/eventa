@@ -55,24 +55,6 @@ export function getServiceClient(): SupabaseClient {
   return _serviceClient;
 }
 
-/**
- * Execute an UPDATE via the service_update RPC function.
- * Bypasses PostgREST table operation restrictions by using a
- * SECURITY DEFINER function with dynamic SQL.
- */
-export async function serviceUpdate(
-  table: string,
-  setData: Record<string, unknown>,
-  where: Record<string, unknown>,
-) {
-  const client = getServiceClient();
-  return client.rpc('service_update', {
-    p_table_name: table,
-    p_set_data: setData,
-    p_where_conditions: where,
-  });
-}
-
 /** Generate a random 16-char hex join code */
 export function generateJoinCode(): string {
   return crypto.randomBytes(8).toString('hex');

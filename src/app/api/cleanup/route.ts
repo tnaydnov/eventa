@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { getServiceClient, serviceUpdate } from '@/lib/supabase';
+import { getServiceClient } from '@/lib/supabase';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { RETENTION_DAYS, STORAGE_BATCH_SIZE } from '@/lib/constants';
 import { jsonError } from '@/lib/route-helpers';
@@ -216,11 +216,14 @@ async function handler(req: NextRequest) {
       if (participantsErr) logger.error(`[CLEANUP] participants delete error for ${eventId}:`, participantsErr.message);
 
       // ── Step 4: Mark event as archived (preserve the row forever) ──
-      await serviceUpdate(
-        'events',
-        { status: 'archived', is_active: false, archived_at: new Date().toISOString() },
-        { id: eventId }
-      );
+      await supabase
+        .from('events')
+        .update({
+          status: 'archived',
+          is_active: false,
+          archived_at: new Date().toISOString(),
+        })
+        .eq('id', eventId);
 
       archivedCount++;
       logger.info(`[CLEANUP] Archived event "${event.name}" (${eventId})`);

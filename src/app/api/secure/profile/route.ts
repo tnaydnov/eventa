@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { serviceUpdate } from '@/lib/supabase';
+import { getServiceClient } from '@/lib/supabase';
 import { sanitizeWithLimit } from '@/lib/sanitize';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { profileSetupSchema } from '@/lib/validations';
@@ -58,21 +58,23 @@ export async function PATCH(req: NextRequest) {
 
     logger.info('[PROFILE] update attempt', { sub: session.sub, eid: session.eid, fields: Object.keys(allowed).join(',') });
 
-    const { data: rows, error } = await serviceUpdate(
-      'participants',
-      allowed,
-      { id: session.sub, event_id: session.eid }
-    );
+    const supabase = getServiceClient();
+    const { data: rows, error } = await supabase
+      .from('participants')
+      .update(allowed)
+      .eq('id', session.sub)
+      .eq('event_id', session.eid)
+      .select();
 
     if (error) {
       logger.error('[PROFILE] update error:', { message: error.message, code: error.code, details: error.details });
       return jsonError(`Failed to update profile: ${error.message}`, 400);
     }
-    if (!rows || (rows as unknown[]).length === 0) {
+    if (!rows || rows.length === 0) {
       logger.error('[PROFILE] update matched 0 rows — sub=' + session.sub + ' eid=' + session.eid);
       return jsonError('Participant not found', 404);
     }
-    return NextResponse.json((rows as unknown[])[0]);
+    return NextResponse.json(rows[0]);
   } catch (err) {
     logger.error('[PROFILE] error:', err);
     return jsonError('Server error', 500);

@@ -281,25 +281,6 @@ ALTER TABLE banned_devices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE event_analytics_snapshots ENABLE ROW LEVEL SECURITY;
 
--- ── Explicit privilege grants ───────────────────────────────────
--- Ensures service_role (and anon/authenticated via RLS) can read/write all tables.
--- Required because tables created before DEFAULT PRIVILEGES may lack grants.
-GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
-GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;
-GRANT ALL ON ALL ROUTINES IN SCHEMA public TO service_role;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
-GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO anon;
-GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO authenticated;
-
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO service_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO service_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO service_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO anon;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO authenticated;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE ON SEQUENCES TO anon;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE ON SEQUENCES TO authenticated;
-
 -- Helper functions for event-scoped RLS
 CREATE OR REPLACE FUNCTION public.get_request_event_id()
 RETURNS uuid AS $$
@@ -346,49 +327,6 @@ CREATE POLICY "notifications_select" ON notifications FOR SELECT
 
 -- banned_devices, activity_log, event_analytics_snapshots: NO select policy = denied for anon (service_role only)
 
--- Service-role write policies (INSERT/UPDATE/DELETE)
--- All writes go through server-side API routes using the service client.
--- These policies ensure the service_role can write to all tables.
-CREATE POLICY "service_role_insert_participants" ON participants FOR INSERT TO service_role WITH CHECK (true);
-CREATE POLICY "service_role_update_participants" ON participants FOR UPDATE TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "service_role_delete_participants" ON participants FOR DELETE TO service_role USING (true);
-
-CREATE POLICY "service_role_insert_photos" ON participant_photos FOR INSERT TO service_role WITH CHECK (true);
-CREATE POLICY "service_role_update_photos" ON participant_photos FOR UPDATE TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "service_role_delete_photos" ON participant_photos FOR DELETE TO service_role USING (true);
-
-CREATE POLICY "service_role_insert_conversations" ON conversations FOR INSERT TO service_role WITH CHECK (true);
-CREATE POLICY "service_role_update_conversations" ON conversations FOR UPDATE TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "service_role_delete_conversations" ON conversations FOR DELETE TO service_role USING (true);
-
-CREATE POLICY "service_role_insert_messages" ON messages FOR INSERT TO service_role WITH CHECK (true);
-CREATE POLICY "service_role_update_messages" ON messages FOR UPDATE TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "service_role_delete_messages" ON messages FOR DELETE TO service_role USING (true);
-
-CREATE POLICY "service_role_insert_likes" ON likes FOR INSERT TO service_role WITH CHECK (true);
-CREATE POLICY "service_role_update_likes" ON likes FOR UPDATE TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "service_role_delete_likes" ON likes FOR DELETE TO service_role USING (true);
-
-CREATE POLICY "service_role_insert_blocks" ON blocks FOR INSERT TO service_role WITH CHECK (true);
-CREATE POLICY "service_role_delete_blocks" ON blocks FOR DELETE TO service_role USING (true);
-
-CREATE POLICY "service_role_insert_notifications" ON notifications FOR INSERT TO service_role WITH CHECK (true);
-CREATE POLICY "service_role_delete_notifications" ON notifications FOR DELETE TO service_role USING (true);
-
-CREATE POLICY "service_role_insert_activity_log" ON activity_log FOR INSERT TO service_role WITH CHECK (true);
-CREATE POLICY "service_role_delete_activity_log" ON activity_log FOR DELETE TO service_role USING (true);
-
-CREATE POLICY "service_role_insert_events" ON events FOR INSERT TO service_role WITH CHECK (true);
-CREATE POLICY "service_role_update_events" ON events FOR UPDATE TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "service_role_delete_events" ON events FOR DELETE TO service_role USING (true);
-
-CREATE POLICY "service_role_all_banned_devices" ON banned_devices FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "service_role_all_analytics" ON event_analytics_snapshots FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "service_role_all_push_subs" ON push_subscriptions FOR ALL TO service_role USING (true) WITH CHECK (true);
-
--- Notify PostgREST to reload schema (pick up new grants + policies)
-NOTIFY pgrst, 'reload schema';
-
 
 -- ════════════════════════════════════════════
 -- 7. REPLICA IDENTITY (for Realtime)
@@ -399,11 +337,11 @@ ALTER TABLE likes REPLICA IDENTITY FULL;
 ALTER TABLE blocks REPLICA IDENTITY FULL;
 ALTER TABLE conversations REPLICA IDENTITY FULL;
 ALTER TABLE notifications REPLICA IDENTITY FULL;
-ALTER TABLE participants REPLICA IDENTITY FULL;
-ALTER TABLE events REPLICA IDENTITY FULL;
-
--- NOTE: Realtime publication column lists are configured in section 8
--- to exclude sensitive fields (fingerprints, join_code).
+-- participants & events use DEFAULT (not FULL) because section 8 uses
+-- column-list publications on them. FULL requires the publication to
+-- include ALL columns, which conflicts with the column exclusions.
+ALTER TABLE participants REPLICA IDENTITY DEFAULT;
+ALTER TABLE events REPLICA IDENTITY DEFAULT;
 
 
 -- ════════════════════════════════════════════

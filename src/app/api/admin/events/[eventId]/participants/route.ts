@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { isValidUUID } from '@/lib/session';
 import { RATE_LIMITS } from '@/lib/rate-limit';
-import { getServiceClient, serviceUpdate } from '@/lib/supabase';
+import { getServiceClient } from '@/lib/supabase';
 import { evictBanCache } from '@/lib/route-helpers';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
 import { logger } from '@/lib/logger';
@@ -77,11 +77,11 @@ export async function PATCH(
     const supabase = getServiceClient();
 
     // Update participant ban status
-    const { error } = await serviceUpdate(
-      'participants',
-      { is_banned },
-      { id: participantId, event_id: eventId }
-    );
+    const { error } = await supabase
+      .from('participants')
+      .update({ is_banned })
+      .eq('id', participantId)
+      .eq('event_id', eventId);
 
     if (error) return jsonError('Failed to update participant', 400);
 

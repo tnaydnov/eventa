@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
-import { getServiceClient, generateJoinCode, serviceUpdate } from '@/lib/supabase';
+import { getServiceClient, generateJoinCode } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
 import { logger } from '@/lib/logger';
 
@@ -22,21 +22,20 @@ export async function POST(
 
   try {
     const supabase = getServiceClient();
-    const { data, error } = await serviceUpdate(
-      'events',
-      { join_code: generateJoinCode() },
-      { id: eventId }
-    );
+    const { data, error } = await supabase
+      .from('events')
+      .update({ join_code: generateJoinCode() })
+      .eq('id', eventId)
+      .select()
+      .single();
 
     if (error) {
       logger.error('[ADMIN_ROTATE] DB error:', error.message);
       return jsonError('Failed to rotate code', 500);
     }
 
-    const updated = Array.isArray(data) ? data[0] : data;
-
     adminAuditLog('JOIN_CODE_ROTATE', { eventId }, req);
-    return NextResponse.json({ event: updated });
+    return NextResponse.json({ event: data });
   } catch (err) {
     logger.error('[ADMIN_ROTATE] error:', err);
     return jsonError('Failed to rotate code', 500);

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { updateEventSchema } from '@/lib/validations';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
-import { getServiceClient, serviceUpdate } from '@/lib/supabase';
+import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../_helpers';
 import { evictEventStatusCache } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
@@ -34,18 +34,17 @@ export async function PATCH(
     }
 
     const supabase = getServiceClient();
-    const { data, error } = await serviceUpdate(
-      'events',
-      parsed.data as Record<string, unknown>,
-      { id: eventId }
-    );
+    const { data, error } = await supabase
+      .from('events')
+      .update(parsed.data)
+      .eq('id', eventId)
+      .select()
+      .single();
 
     if (error) {
       logger.error('[ADMIN_EVENT_PATCH] DB error:', error.message);
       return jsonError('Failed to update event', 500);
     }
-
-    const updated = Array.isArray(data) ? data[0] : data;
 
     // Evict event status cache if status or is_active changed
     if ('status' in parsed.data || 'is_active' in parsed.data) {
@@ -53,7 +52,7 @@ export async function PATCH(
     }
 
     adminAuditLog('EVENT_UPDATE', { eventId, changes: Object.keys(parsed.data) }, req);
-    return NextResponse.json({ event: updated });
+    return NextResponse.json({ event: data });
   } catch (err) {
     logger.error('[ADMIN_EVENT_PATCH] error:', err);
     return jsonError('Bad request', 400);

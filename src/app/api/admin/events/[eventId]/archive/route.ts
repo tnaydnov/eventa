@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RATE_LIMITS } from '@/lib/rate-limit';
-import { getServiceClient, serviceUpdate } from '@/lib/supabase';
+import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
 import { evictEventStatusCache } from '@/lib/route-helpers';
 import { adminAuditLog } from '@/lib/admin-auth';
@@ -151,11 +151,14 @@ export async function POST(
     await purge('participants');
 
     // ── Step 4: Mark event as archived ──
-    const { error: updateErr } = await serviceUpdate(
-      'events',
-      { status: 'archived', is_active: false, archived_at: new Date().toISOString() },
-      { id: eventId }
-    );
+    const { error: updateErr } = await supabase
+      .from('events')
+      .update({
+        status: 'archived',
+        is_active: false,
+        archived_at: new Date().toISOString(),
+      })
+      .eq('id', eventId);
 
     if (updateErr) {
       logger.error('[ARCHIVE] event update error:', updateErr.message);

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { RETENTION_DAYS } from '@/lib/constants';
-import { getServiceClient, serviceUpdate } from '@/lib/supabase';
+import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, jsonError } from '../_helpers';
 import { evictEventStatusCache } from '@/lib/route-helpers';
 import { adminAuditLog } from '@/lib/admin-auth';
@@ -49,7 +49,10 @@ async function handler(req: NextRequest) {
         });
       } else {
         for (const ev of endableEvents) {
-          await serviceUpdate('events', { status: 'ended', is_active: false }, { id: ev.id });
+          await supabase
+            .from('events')
+            .update({ status: 'ended', is_active: false })
+            .eq('id', ev.id);
           evictEventStatusCache(ev.id);
           endedCount++;
         }

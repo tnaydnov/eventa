@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServiceClient, serviceUpdate } from '@/lib/supabase';
+import { getServiceClient } from '@/lib/supabase';
 import { signSessionToken, sessionCookieHeader, checkCsrf } from '@/lib/session';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { joinEventSchema } from '@/lib/validations';
@@ -143,7 +143,10 @@ export async function POST(req: NextRequest) {
         // Update hardware fingerprint if not already set
         if (hwFingerprint) {
           Promise.resolve(
-            serviceUpdate('participants', { hardware_fingerprint: hwFingerprint }, { id: existing.id })
+            supabase
+              .from('participants')
+              .update({ hardware_fingerprint: hwFingerprint })
+              .eq('id', existing.id)
           ).catch((err) => logger.error('[AUTH_JOIN] hw fingerprint update error:', err));
         }
       }
@@ -168,7 +171,10 @@ export async function POST(req: NextRequest) {
         // Update localStorage fingerprint to current one
         if (fingerprint) {
           Promise.resolve(
-            serviceUpdate('participants', { device_fingerprint: fingerprint }, { id: existing.id })
+            supabase
+              .from('participants')
+              .update({ device_fingerprint: fingerprint })
+              .eq('id', existing.id)
           ).catch((err) => logger.error('[AUTH_JOIN] device fingerprint update error:', err));
         }
       }
