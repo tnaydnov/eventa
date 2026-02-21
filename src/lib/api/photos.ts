@@ -15,20 +15,26 @@ export async function uploadPhoto(
   try {
     const headerBytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
     if (!validateImageMagicBytes(headerBytes, file.type)) {
-      console.warn('[uploadPhoto] Magic byte mismatch', { type: file.type, name: file.name });
+      console.error('[uploadPhoto] Magic byte mismatch — blocking upload', {
+        claimedType: file.type,
+        name: file.name,
+        headerHex: Array.from(headerBytes.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(' '),
+      });
       return null;
     }
-  } catch {
-    // ArrayBuffer read failed — reject
+  } catch (err) {
+    console.error('[uploadPhoto] Failed to read file header:', err);
     return null;
   }
 
   let compressed: File;
   try {
     compressed = await compressProfilePhoto(file);
-  } catch {
-    // Compression failed (e.g. canvas error on corrupt image) — reject upload
-    return null;
+  } catch (err) {
+    // Canvas-cropped photos are already EXIF-free, so falling back to the
+    // original is safe.  Log the failure for diagnostics.
+    console.warn('[uploadPhoto] Compression failed, using original file:', err);
+    compressed = file;
   }
   const ext = compressed.name.split('.').pop() || 'webp';
   const path = `${eventId}/${participantId}/${Date.now()}_${orderIndex}.${ext}`;
@@ -40,7 +46,11 @@ export async function uploadPhoto(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path }),
     });
-    if (!urlRes.ok) return null;
+    if (!urlRes.ok) {
+      const errText = await urlRes.text().catch(() => '');
+      console.error('[uploadPhoto] upload-url failed:', urlRes.status, errText);
+      return null;
+    }
     const { signedUrl, token } = await urlRes.json();
 
     // Upload to storage using signed URL
@@ -50,13 +60,18 @@ export async function uploadPhoto(
       body: compressed,
     });
     if (!uploadRes.ok) {
+      console.warn('[uploadPhoto] Raw PUT failed, trying SDK fallback:', uploadRes.status);
       // Fallback: try with token as header (Supabase signed upload)
       const uploadRes2 = await supabase.storage
         .from('photos')
         .uploadToSignedUrl(path, token, compressed);
-      if (uploadRes2.error) return null;
+      if (uploadRes2.error) {
+        console.error('[uploadPhoto] SDK upload also failed:', uploadRes2.error.message);
+        return null;
+      }
     }
-  } catch {
+  } catch (err) {
+    console.error('[uploadPhoto] Storage upload error:', err);
     return null;
   }
 
@@ -67,9 +82,14 @@ export async function uploadPhoto(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ storagePath: path, orderIndex }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      console.error('[uploadPhoto] DB record creation failed:', res.status, errText);
+      return null;
+    }
     return res.json();
-  } catch {
+  } catch (err) {
+    console.error('[uploadPhoto] DB record error:', err);
     return null;
   }
 }

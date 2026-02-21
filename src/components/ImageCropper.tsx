@@ -59,8 +59,12 @@ async function getCroppedImg(
           reject(new Error('Canvas toBlob failed'));
           return;
         }
-        const outName = fileName.replace(/\.[^.]+$/, '.webp');
-        resolve(new File([blob], outName, { type: 'image/webp' }));
+        // Use the actual blob type — browser may fall back to PNG
+        // if WebP canvas encoding isn't supported.
+        const actualType = blob.type || 'image/webp';
+        const ext = actualType === 'image/webp' ? '.webp' : actualType === 'image/png' ? '.png' : '.jpg';
+        const outName = fileName.replace(/\.[^.]+$/, ext);
+        resolve(new File([blob], outName, { type: actualType }));
       },
       'image/webp',
       0.92
