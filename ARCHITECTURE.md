@@ -31,7 +31,6 @@ Eventa is a **Hebrew-language, mobile-first, event-scoped dating Progressive Web
 | **QR Codes** | qrcode | `^1.5.4` | Generates event join QR codes in the admin panel. |
 | **Email** | Nodemailer | `^8.0.1` | Sends HTML order-form emails via SMTP. |
 | **Sanitization** | DOMPurify | `^3.3.1` | Client-side HTML sanitization. Server-side uses regex-based stripping (no DOM in Node.js). |
-| **Push Notifications** | web-push | `^3.6.7` | VAPID-based Web Push notifications for likes and messages. |
 | **Service Worker** | Serwist (Next.js plugin) | `^9.5.5` | Service worker with precaching + runtime caching. Modern replacement for Workbox/next-pwa. |
 | **Linting** | ESLint | `^10.0.0` | Next.js lint rules. |
 | **Build Tool** | PostCSS | `^8.5.6` | Tailwind CSS 4 integration. |
@@ -88,7 +87,6 @@ Everything lives in one Next.js repository:
 | `NetworkStatus` | Offline/online floating banner |
 | `HeartbeatPinger` | 60s heartbeat to server; enforces bans and event status in real-time |
 | `RealtimeNotificationListener` | Global likes/messages/blocks Realtime processor with polling fallback |
-| `PushSubscriptionManager` | Web Push opt-in banner and subscription lifecycle |
 | `MatchPopup` | Dynamically imported (`ssr: false`) match celebration overlay |
 
 **Rationale**: All cross-cutting concerns are in the layout so individual pages don't need to worry about session state, realtime, or connectivity. The layout is a client component (`'use client'`) because the dating app requires full interactivity.
@@ -101,7 +99,7 @@ Everything lives in one Next.js repository:
 
 - **`MobileGuard` component** blocks desktop users (viewport > 768px + no mobile user agent). The app is designed for event attendees on their phones.
 - **No native app** — PWA via `manifest.json` with `"display": "standalone"` and `"orientation": "portrait"`. Users add to home screen from Chrome/Safari.
-- **Rationale**: Event attendees won't download an app for a one-night event. QR scan → browser → instant access. PWA gives app-like UX (fullscreen, home screen icon, push notifications) without app store friction. Zero install time is critical when people are at a live event.
+- **Rationale**: Event attendees won't download an app for a one-night event. QR scan → browser → instant access. PWA gives app-like UX (fullscreen, home screen icon) without app store friction. Zero install time is critical when people are at a live event.
 
 ### 4.2 Realtime Requirements
 
@@ -134,7 +132,7 @@ The app needs **instant** feedback for:
 | **Heartbeat debounce** | `last_seen_at` only updated when stale > 2 minutes despite 60s heartbeat interval | Reduces DB writes by ~30× |
 | **Caching** | Ban check cached 5min (10s if banned), event status cached 5min (30s if paused), blocked-IDs cached 30s, participant names cached 5min | Avoids redundant DB queries on every API call |
 | **Batched queries** | Participant + photo loading uses batches of 50 UUIDs (PostgREST URL length limit) with `Promise.all` | Prevents 414 URI Too Long errors while maximizing parallelism |
-| **Fire-and-forget** | Activity logging, push notifications, and notification inserts never block API responses | User waits for the like/message to save, not for analytics or push delivery |
+| **Fire-and-forget** | Activity logging and notification inserts never block API responses | User waits for the like/message to save, not for analytics |
 | **CSS approach** | 9 modular hand-written CSS files, no runtime CSS-in-JS | Zero JS overhead for styling; styles are statically extracted |
 | **Font loading** | `display: 'swap'` on both fonts | Prevents Flash of Invisible Text (FOIT) on slow connections |
 
@@ -142,7 +140,6 @@ The app needs **instant** feedback for:
 
 - `<html lang="he" dir="rtl">` in root layout
 - All UI text is in Hebrew
-- Push notifications set `dir: 'rtl'` and `lang: 'he'`
 - PWA manifest: `"lang": "he"`, `"dir": "rtl"`
 - **Fonts**: **Rubik** (supports Hebrew + Latin subsets) as primary, **Great Vibes** as decorative script font
 - Font loading: `display: 'swap'` to prevent FOIT
@@ -268,8 +265,7 @@ Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 | 9 | `banned_devices` | No anon access | No | Device fingerprints for ban enforcement |
 | 10 | `activity_log` | No anon access | No | Usage timeline for analytics (joins, likes, messages, etc.) |
 | 11 | `event_analytics_snapshots` | No anon access | No | Preserved aggregate analytics after archiving |
-| 12 | `push_subscriptions` | No anon access | No | Web Push endpoints per participant per device |
-| 13 | `banned_devices` (hardware) | No anon access | No | Hardware fingerprint bans (separate from device fingerprint) |
+| 12 | `banned_devices` (hardware) | No anon access | No | Hardware fingerprint bans (separate from device fingerprint) |
 
 ### 6.2 Enums (PostgreSQL)
 
@@ -346,16 +342,14 @@ Writes are never done directly by the client. The API generates **signed upload 
 | `DELETE /api/secure/photos` | DELETE | Delete photo (storage file + DB record, ownership verified) |
 | `PATCH /api/secure/photos` | PATCH | Reorder photos (batch `order_index` update) |
 | `POST /api/secure/upload-url` | POST | Generate signed upload URL (path scoping + extension whitelist) |
-| `POST /api/secure/likes` | POST | Send like (block check, dedup, match detection, push notification, activity log) |
+| `POST /api/secure/likes` | POST | Send like (block check, dedup, match detection, activity log) |
 | `DELETE /api/secure/likes` | DELETE | Remove like + associated notification |
 | `POST /api/secure/likes/seen` | POST | Mark likes as seen (single or all) |
 | `POST /api/secure/conversations` | POST | Get or create conversation (block/self-chat guard, race-condition safe) |
 | `POST /api/secure/conversations/read` | POST | Mark conversation as read |
-| `POST /api/secure/messages` | POST | Send message (membership check, block check, Zod schema, sanitization, push notification) |
+| `POST /api/secure/messages` | POST | Send message (membership check, block check, Zod schema, sanitization) |
 | `PATCH /api/secure/messages` | PATCH | Soft-delete message (sender only — sets `is_deleted`, clears content) |
 | `POST /api/secure/blocks` | POST | Block participant (full cascade: records context, deletes likes/convos/messages/notifications/media) |
-| `POST /api/secure/push-subscribe` | POST | Save Web Push subscription (upsert by participant + endpoint) |
-| `DELETE /api/secure/push-subscribe` | DELETE | Remove push subscription |
 | `POST /api/account/delete` | POST | **Permanent account deletion** — full cascade + session clear |
 
 ### 7.3 Admin Endpoints (via `adminGuard()`)
@@ -469,20 +463,7 @@ Built from `src/app/sw.ts` at build time via `@serwist/next`:
 - **Skip waiting + clients claim**: New SW version activates immediately without waiting for all tabs to close
 - **Navigation preload**: Enabled for faster navigations on repeat visits
 
-### 10.2 Web Push Notifications
-
-| Aspect | Detail |
-|---|---|
-| **Protocol** | VAPID-based Web Push API (no Firebase/FCM dependency) |
-| **Server library** | `web-push` npm package |
-| **TTL** | 1 hour per notification |
-| **Locale** | Hebrew (`he`), RTL direction |
-| **Click behavior** | Focuses existing tab + navigates, or opens new window |
-| **Cleanup** | Expired subscriptions auto-removed on 404/410 push responses |
-| **Opt-in UX** | Animated Hebrew banner after 2.5s delay; dismissal remembered in `localStorage` |
-| **Re-registration** | Silent re-subscription on mount if permission already granted |
-
-### 10.3 PWA Manifest
+### 10.2 PWA Manifest
 
 ```json
 {
@@ -585,8 +566,6 @@ The SW is never cached by the browser — ensures updates propagate immediately.
 | `JWT_SECRET` | Server only | Yes (min 32 chars) | HMAC key for session JWTs |
 | `ADMIN_PASSWORD` | Server only | Yes (min 12 chars) | Admin login password |
 | `CRON_SECRET` | Server only | Yes (min 16 chars) | Bearer token for Vercel Cron authentication |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Client + Server | Optional | VAPID public key for Web Push |
-| `VAPID_PRIVATE_KEY` | Server only | Optional | VAPID private key for Web Push |
 | `SMTP_HOST` | Server only | Optional | SMTP server for order emails |
 | `SMTP_PORT` | Server only | Optional | SMTP port |
 | `SMTP_USER` | Server only | Optional | SMTP username |
@@ -698,12 +677,11 @@ A full single-page admin panel at `/admin`:
 │   │   │
 │   │   └── (legal pages)       # about, faq, privacy, terms, safety, cookies, community
 │   │
-│   ├── components/             # 18 shared components
+│   ├── components/             # 17 shared components
 │   │   ├── SessionProvider.tsx
 │   │   ├── RealtimeNotificationListener.tsx
 │   │   ├── HeartbeatPinger.tsx
 │   │   ├── NetworkStatus.tsx
-│   │   ├── PushSubscriptionManager.tsx
 │   │   ├── MobileGuard.tsx
 │   │   ├── MatchPopup.tsx
 │   │   ├── TabBar.tsx
@@ -735,7 +713,6 @@ A full single-page admin panel at `/admin`:
 │   │   ├── sanitize.ts         # Server + client HTML sanitization
 │   │   ├── image-compression.ts# Client-side WebP compression
 │   │   ├── device-fingerprint.ts# Canvas + WebGL + screen + navigator fingerprinting
-│   │   ├── web-push.ts         # Server-side push notification sender
 │   │   ├── database.types.ts   # Full TypeScript types for all tables + enums
 │   │   ├── api.ts              # Legacy (barrel)
 │   │   ├── api/                # 11 client API function files
@@ -754,6 +731,6 @@ A full single-page admin panel at `/admin`:
         ├── 003_rls_event_scoping.sql
         ├── 004_check_constraints_and_realtime.sql
         ├── 005_nullable_last_message_at.sql
-        ├── 006_push_subscriptions.sql
+        ├── 006_push_subscriptions.sql  # (table dropped — push removed)
         └── 007_hardware_fingerprint.sql
 ```

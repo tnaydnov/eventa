@@ -4,7 +4,6 @@ import { use, type ReactNode } from 'react';
 import dynamic from 'next/dynamic';
 import SessionProvider from '@/components/SessionProvider';
 import RealtimeNotificationListener from '@/components/RealtimeNotificationListener';
-import PushSubscriptionManager from '@/components/PushSubscriptionManager';
 import NetworkStatus from '@/components/NetworkStatus';
 import EventBackground from '@/components/EventBackground';
 import HeartbeatPinger from '@/components/HeartbeatPinger';
@@ -26,7 +25,6 @@ export default function EventLayout({
       <HeartbeatPinger />
       {children}
       <RealtimeNotificationListener />
-      <PushSubscriptionManager />
       <MatchPopup />
     </SessionProvider>
   );

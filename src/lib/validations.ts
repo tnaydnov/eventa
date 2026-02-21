@@ -124,21 +124,6 @@ export const joinEventSchema = z.object({
   joinCode: z.string().min(12).max(32),
 });
 
-/* ---- Push subscription schema ---- */
-export const pushSubscribeSchema = z.object({
-  subscription: z.object({
-    endpoint: z.string().url().max(2048),
-    keys: z.object({
-      p256dh: z.string().min(1).max(512),
-      auth: z.string().min(1).max(512),
-    }),
-  }),
-});
-
-export const pushUnsubscribeSchema = z.object({
-  endpoint: z.string().url().max(2048),
-});
-
 /* ---- Photo reorder schema ---- */
 export const photoReorderSchema = z.object({
   order: z

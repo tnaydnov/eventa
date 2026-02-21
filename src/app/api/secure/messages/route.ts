@@ -6,7 +6,6 @@ import { RATE_LIMITS } from '@/lib/rate-limit';
 import { sendMessageSchema, messageTypeValues } from '@/lib/validations';
 import { MAX_MESSAGE_LENGTH } from '@/lib/constants';
 import { secureGuard, jsonError, isSafePath } from '@/lib/route-helpers';
-import { sendPushToParticipant } from '@/lib/web-push';
 import { logger } from '@/lib/logger';
 
 /** Allowed message types for validation. */
@@ -143,22 +142,6 @@ export async function POST(req: NextRequest) {
       payload: { from_participant_id: session.sub, conversation_id: conversationId },
       is_read: false,
     })).catch((err) => logger.error('[MESSAGES_POST] notification insert error:', err));
-
-    // Web Push (fire-and-forget)
-    Promise.all([
-      supabase.from('participants').select('display_name').eq('id', session.sub).single(),
-      supabase.from('events').select('slug').eq('id', session.eid).single(),
-    ]).then(([{ data: sender }, { data: event }]) => {
-        const name = sender?.display_name || 'מישהו';
-        const slug = event?.slug || '';
-        const preview = type === 'text' ? (cleanText || '').slice(0, 40) : '📷 תמונה';
-        sendPushToParticipant(recipientId, {
-          title: `💬 ${name}`,
-          body: preview,
-          url: slug ? `/dating/${slug}/chats` : '/dating',
-          tag: `msg-${conversationId}`,
-        });
-      }).catch((err) => logger.error('[MESSAGES_POST] push notification error:', err));
 
     return NextResponse.json(data);
   } catch (err) {
