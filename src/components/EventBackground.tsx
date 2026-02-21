@@ -35,7 +35,7 @@ export default function EventBackground() {
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'rgba(10, 10, 10, 0.88)',
+            background: 'rgba(6, 6, 6, 0.92)',
           }}
         />
       </div>

@@ -10,17 +10,17 @@
   --primary-light: #E8C4BB;
   --primary-dark: #B8877C;
   --accent-gold: #C9A580;
-  --card-bg: rgba(255, 255, 255, 0.08);
-  --card-border: rgba(255, 255, 255, 0.13);
-  --surface: rgba(255, 255, 255, 0.09);
-  --surface-light: rgba(255, 255, 255, 0.14);
-  --text-muted: #9B9B9B;
+  --card-bg: rgba(255, 255, 255, 0.12);
+  --card-border: rgba(255, 255, 255, 0.18);
+  --surface: rgba(255, 255, 255, 0.13);
+  --surface-light: rgba(255, 255, 255, 0.18);
+  --text-muted: #B0B0B0;
   --success: #34D399;
   --warning: #FBBF24;
   --danger: #EF4444;
   --glass-blur: 20px;
-  --glass-bg: rgba(255, 255, 255, 0.08);
-  --glass-border: rgba(255, 255, 255, 0.13);
+  --glass-bg: rgba(255, 255, 255, 0.12);
+  --glass-border: rgba(255, 255, 255, 0.18);
 }
 
 html {

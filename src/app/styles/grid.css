@@ -16,7 +16,7 @@
   aspect-ratio: 3/4;
   cursor: pointer;
   transition: transform 0.2s ease;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   content-visibility: auto;
   contain-intrinsic-size: auto 120px 160px;
 }
@@ -51,7 +51,7 @@
   left: 0;
   right: 0;
   padding: 10px 8px 8px;
-  background: linear-gradient(transparent, rgba(0,0,0,0.75));
+  background: linear-gradient(transparent, rgba(0,0,0,0.85));
   color: white;
 }
 
