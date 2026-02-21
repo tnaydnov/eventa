@@ -67,7 +67,7 @@ async function isBanned(participantId: string): Promise<boolean> {
     .from('participants')
     .select('is_banned')
     .eq('id', participantId)
-    .single();
+    .maybeSingle();
 
   if (error) {
     logger.error('Ban check DB error — failing closed (treating as banned)', {
@@ -76,7 +76,10 @@ async function isBanned(participantId: string): Promise<boolean> {
     return true; // fail closed: deny access when DB is unreachable
   }
 
-  const banned = !!data?.is_banned;
+  // Participant deleted (self-deletion) — not banned, session is stale
+  if (!data) return false;
+
+  const banned = !!data.is_banned;
   boundedSet(_banCache, participantId, { banned, ts: Date.now() });
   return banned;
 }
