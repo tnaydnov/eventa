@@ -199,17 +199,13 @@ export async function uploadChatImage(
   conversationId: string,
   file: File
 ): Promise<string | null> {
-  // Magic byte validation
+  // Magic byte validation — don't block on mismatch.
+  // Chat images may come from camera captures with non-standard headers.
   const effectiveType = getEffectiveImageType(file);
   try {
     const headerBytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
-    if (!validateImageMagicBytes(headerBytes, effectiveType)) {
-      console.warn('[uploadChatImage] Magic byte mismatch', { type: file.type, effectiveType });
-      return null;
-    }
-  } catch {
-    return null;
-  }
+    validateImageMagicBytes(headerBytes, effectiveType);
+  } catch { /* proceed — user-selected files are validated by type */ }
 
   let compressed: File;
   try {

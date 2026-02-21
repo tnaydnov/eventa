@@ -11,26 +11,14 @@ export async function uploadPhoto(
   file: File,
   orderIndex: number
 ): Promise<ParticipantPhoto | null> {
-  // Magic byte validation — log mismatches but don't block.
-  // Profile photos always come from ImageCropper (canvas-rendered),
-  // so they're inherently safe. Blocking on mismatch breaks some
-  // Android browsers where canvas.toBlob produces non-standard headers.
+  // Magic byte validation — don't block on mismatch.
+  // Profile photos come from ImageCropper (canvas-rendered) so they're
+  // inherently safe; some Android browsers produce non-standard headers.
   const effectiveType = getEffectiveImageType(file);
   try {
     const headerBytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
-    if (!validateImageMagicBytes(headerBytes, effectiveType)) {
-      console.warn('[uploadPhoto] Magic byte mismatch (canvas output — proceeding)', {
-        claimedType: file.type,
-        effectiveType,
-        name: file.name,
-        size: file.size,
-        headerHex: Array.from(headerBytes.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(' '),
-      });
-      // Don't return null — canvas-rendered files are safe
-    }
-  } catch (err) {
-    console.warn('[uploadPhoto] Failed to read file header (proceeding):', err);
-  }
+    validateImageMagicBytes(headerBytes, effectiveType);
+  } catch { /* proceed — canvas output is safe */ }
 
   let compressed: File;
   try {

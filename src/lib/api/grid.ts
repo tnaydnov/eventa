@@ -37,7 +37,7 @@ export async function getGridParticipants(
       .from('participants')
       .select('gender, attracted_to')
       .eq('id', myId)
-      .single(),
+      .maybeSingle(),
     supabase
       .from('participants')
       .select('id, event_id, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at, participant_photos(id, event_id, participant_id, storage_path, order_index, created_at)')
@@ -48,11 +48,12 @@ export async function getGridParticipants(
       .limit(200),
   ]);
 
-  // If myProfile query failed, return empty — don't show unfiltered grid
+  // If myProfile query failed or participant doesn't exist, return empty
   if (myProfileRes.error) {
     console.error('[getGridParticipants] myProfile error:', myProfileRes.error.message);
     return [];
   }
+  if (!myProfileRes.data) return [];
 
   if (participantsRes.error) {
     console.error('[getGridParticipants] participants error:', participantsRes.error.message);

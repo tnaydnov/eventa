@@ -34,7 +34,7 @@ export async function getParticipant(
       .from('participants')
       .select(PARTICIPANT_COLUMNS)
       .eq('id', participantId)
-      .single(),
+      .maybeSingle(),
     supabase
       .from('participant_photos')
       .select(PHOTO_COLUMNS)

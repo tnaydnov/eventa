@@ -84,7 +84,6 @@ export default function ProfileSetupPage({
         city: data.city?.trim() || null,
         looking_for: data.looking_for ?? null,
       };
-      console.log('[setup] saving profile...', profileData);
       const p = await updateProfile(session.participantId, profileData);
 
       if (!p) {
