@@ -54,7 +54,6 @@ export async function GET(req: NextRequest) {
     }
 
     const events       = eventsRes.data || [];
-    const participants = participantsRes.data || [];
     const photos       = photosRes.data || [];
     const likes        = likesRes.data || [];
     const conversations = conversationsRes.data || [];
@@ -108,9 +107,17 @@ export async function GET(req: NextRequest) {
     };
 
     /* ── Participants ── */
+    // Split complete vs incomplete registrations (complete = has display_name)
+    const allParticipants = participantsRes.data || [];
+    const liveIncompleteRegistrations = allParticipants.filter(
+      p => !p.display_name || !p.display_name.trim()
+    ).length;
+    const participants = allParticipants.filter(
+      p => p.display_name && p.display_name.trim().length > 0
+    );
+
     const attractionCounts: Record<string, number> = {};
     const ageBuckets: Record<string, number> = {};
-    let setupProfileCount = 0;
     const pEventMap = new Map<string, string>(); // pid → event_id
 
     for (const p of participants) {
@@ -129,7 +136,6 @@ export async function GET(req: NextRequest) {
         const bucket = p.age < 23 ? '18-22' : p.age < 28 ? '23-27' : p.age < 33 ? '28-32' : p.age < 38 ? '33-37' : '38+';
         ageBuckets[bucket] = (ageBuckets[bucket] || 0) + 1;
       }
-      if (p.display_name && p.display_name.trim().length > 0) setupProfileCount++;
     }
 
     /* ── Photos ── */
@@ -262,9 +268,9 @@ export async function GET(req: NextRequest) {
       if (d.likePairs > 0) { mRateSum += d.matchRate; mRateN++; }
     }
 
-    // Live funnel
-    gFunnel.joined = participants.length;
-    gFunnel.setupProfile = setupProfileCount;
+    // Live funnel — "joined" uses ALL participants (including incomplete) for full drop-off
+    gFunnel.joined = allParticipants.length;
+    gFunnel.setupProfile = participants.length; // complete profiles only
     gFunnel.sentFirstLike = likeSenderSet.size;
     gFunnel.gotMatch = [...matchedPidsGlobal].filter(id => pEventMap.has(id)).length;
     gFunnel.sentFirstMessage = msgSenderSet.size;
@@ -472,9 +478,16 @@ export async function GET(req: NextRequest) {
     ].filter(b => b.count > 0);
 
     /* ═══ Assemble response ═══ */
+    // Aggregate incomplete registrations (live + archived snapshots)
+    let totalIncompleteRegistrations = liveIncompleteRegistrations;
+    for (const snap of snapshots.map(s => s.snapshot)) {
+      if (snap?.incompleteRegistrations) totalIncompleteRegistrations += snap.incompleteRegistrations;
+    }
+
     const analytics: GlobalAnalytics = {
       totalEvents, activeEvents, archivedEvents,
       eventsByStatus, eventsByType,
+      incompleteRegistrations: totalIncompleteRegistrations,
       totalParticipants: gP, totalMen: gMen, totalWomen: gWomen,
       avgParticipantsPerEvent: Math.round((gP / n) * 10) / 10,
       avgMenPct: gP > 0 ? Math.round((gMen / gP) * 100) : 0,

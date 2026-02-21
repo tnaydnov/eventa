@@ -171,6 +171,17 @@ export default function EventAnalyticsView({
                 <StatCard icon="💬" label="שיחות" value={analytics.totalConversations} color="blue" />
                 <StatCard icon="✉️" label="הודעות" value={analytics.totalMessages} color="purple" />
               </div>
+              {analytics.incompleteRegistrations > 0 && (
+                <div className="ea-incomplete-banner">
+                  <span className="ea-incomplete-banner__icon">⚠️</span>
+                  <span className="ea-incomplete-banner__text">
+                    {analytics.incompleteRegistrations} משתמשים הצטרפו אך לא השלימו הרשמה
+                  </span>
+                  <span className="ea-incomplete-banner__note">
+                    (לא נכללים בסטטיסטיקות)
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </>

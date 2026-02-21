@@ -129,7 +129,7 @@ export async function GET(
       return jsonError('Failed to load analytics data', 500);
     }
 
-    const participants = participantsRes.data || [];
+    const allParticipants = participantsRes.data || [];
     const photos = photosRes.data || [];
     const likes = likesRes.data || [];
     const conversations = conversationsRes.data || [];
@@ -137,7 +137,16 @@ export async function GET(
     const blocks = blocksRes.data || [];
     const activityRows = activityRes.data || [];
 
-    // ── Build participant lookup ──
+    // ── Split complete vs incomplete registrations ──
+    // "Complete" = has display_name set (finished setup flow)
+    const incompleteRegistrations = allParticipants.filter(
+      p => !p.display_name || !p.display_name.trim()
+    ).length;
+    const participants = allParticipants.filter(
+      p => p.display_name && p.display_name.trim().length > 0
+    );
+
+    // ── Build participant lookup (complete profiles only) ──
     const pMap = new Map<string, {
       gender: string; attracted_to: string; age: number | null;
       display_name: string; created_at: string;
@@ -149,7 +158,7 @@ export async function GET(
       });
     }
 
-    // ── Participant demographics ──
+    // ── Participant demographics (complete profiles only) ──
     const totalParticipants = participants.length;
     let totalMen = 0, totalWomen = 0;
     let menAttractedToMen = 0, menAttractedToWomen = 0, menAttractedToAll = 0;
@@ -293,7 +302,8 @@ export async function GET(
     }
 
     // ── Funnel ──
-    const setupProfile = participants.filter(p => p.display_name && p.display_name.trim().length > 0).length;
+    // "joined" uses allParticipants (total who entered the event) to show full drop-off
+    const setupProfile = participants.length; // all complete participants
     const likeSenders = new Set(likes.map(l => l.from_participant_id));
     const sentFirstLike = [...likeSenders].filter(id => pMap.has(id)).length;
 
@@ -316,7 +326,7 @@ export async function GET(
       .filter(([id, count]) => count >= 3 && pMap.has(id)).length;
 
     const funnel = {
-      joined: totalParticipants,
+      joined: allParticipants.length, // total who entered event (including incomplete)
       setupProfile,
       sentFirstLike,
       gotMatch,
@@ -606,6 +616,7 @@ export async function GET(
 
     // ── Assemble response ──
     const analytics: EventAnalytics = {
+      incompleteRegistrations,
       totalParticipants,
       totalMen,
       totalWomen,

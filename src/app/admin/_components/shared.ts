@@ -3,7 +3,10 @@
 /* ---------- Analytics ---------- */
 
 export interface EventAnalytics {
-  // === Participants ===
+  // === Registration ===
+  incompleteRegistrations: number;   // joined but never set up profile
+
+  // === Participants (complete profiles only) ===
   totalParticipants: number;
   totalMen: number;
   totalWomen: number;
@@ -124,7 +127,10 @@ export interface GlobalAnalytics {
   eventsByStatus: Record<string, number>;
   eventsByType: Record<string, number>;
 
-  // ═══ Participants (all-time including archived) ═══
+  // ═══ Registration ═══
+  incompleteRegistrations: number;   // joined but never set up profile (all-time)
+
+  // ═══ Participants (complete profiles only, all-time including archived) ═══
   totalParticipants: number;
   totalMen: number;
   totalWomen: number;

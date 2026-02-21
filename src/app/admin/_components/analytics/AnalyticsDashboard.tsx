@@ -156,6 +156,18 @@ export default function AnalyticsDashboard({ analytics: a }: Props) {
 
   return (
     <div className="ad-root">
+      {/* ════════════ Incomplete Registrations Banner ════════════ */}
+      {a.incompleteRegistrations > 0 && (
+        <div className="ad-incomplete-banner">
+          <div className="ad-incomplete-banner__icon">⚠️</div>
+          <div className="ad-incomplete-banner__content">
+            <span className="ad-incomplete-banner__count">{fmt(a.incompleteRegistrations)}</span>
+            <span className="ad-incomplete-banner__text"> משתמשים הצטרפו אך לא השלימו הרשמה</span>
+          </div>
+          <div className="ad-incomplete-banner__note">לא נכללים בסטטיסטיקות למטה</div>
+        </div>
+      )}
+
       {/* ════════════ KPI Row ════════════ */}
       <div className="ad-kpi-grid">
         <KPI icon="👥" value={fmt(a.totalParticipants)} label="משתתפים" sub={`♂ ${a.totalMen} (${menPct}%)  ·  ♀ ${a.totalWomen} (${womenPct}%)`} accent="accent" />

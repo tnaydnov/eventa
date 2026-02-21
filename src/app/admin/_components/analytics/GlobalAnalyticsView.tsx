@@ -160,6 +160,18 @@ function AnalyticsContent({ d }: { d: GlobalAnalytics }) {
         <KPI icon="📸" value={`${d.overallPhotoRate}%`} label="שיעור תמונות" sub={`${fmt(d.totalPhotos)} תמונות`} accent="orange" />
       </div>
 
+      {/* ════════════ Incomplete Registrations Banner ════════════ */}
+      {d.incompleteRegistrations > 0 && (
+        <div className="ad-incomplete-banner">
+          <div className="ad-incomplete-banner__icon">⚠️</div>
+          <div className="ad-incomplete-banner__content">
+            <span className="ad-incomplete-banner__count">{fmt(d.incompleteRegistrations)}</span>
+            <span className="ad-incomplete-banner__text"> משתמשים הצטרפו אך לא השלימו הרשמה (כלל-אירועים)</span>
+          </div>
+          <div className="ad-incomplete-banner__note">לא נכללים בסטטיסטיקות למטה</div>
+        </div>
+      )}
+
       {/* ════════════ Events Distribution ════════════ */}
       <Section icon="📊" title="פילוח אירועים">
         <div className="ad-grid-2">
