@@ -1,53 +1,63 @@
 'use client';
 
-import { Suspense, useEffect, useState, useRef } from 'react';
+import { Suspense, useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 
 /**
  * /dating/event-over
- * Marketing-style "event ended" splash page.
- * Shown to QR scanners when the event is no longer active.
- * Auto-redirects to /dating landing page after 7 seconds.
+ * Cinematic "event ended" splash — full-screen atmospheric experience.
+ * Auto-redirects to /dating after 15 seconds.
  *
  * Query params: ?reason=ended|paused|archived
  */
 
-const REDIRECT_SECONDS = 7;
+const REDIRECT_SECONDS = 15;
 
-const REASON_CONFIG: Record<string, { emoji: string; headline: string; sub: string }> = {
+const REASON_COPY: Record<string, { line1: string; line2: string; sub: string }> = {
   ended: {
-    emoji: '🎉',
-    headline: 'האירוע הסתיים!',
-    sub: 'תודה שהגעתם — מקווים שנהניתם ויצרתם חיבורים מדהימים',
+    line1: 'הערב הזה',
+    line2: 'כבר הפך לזיכרון',
+    sub: 'החיבורים נוצרו, הרגעים נשמרו. תודה שהייתם חלק מזה.',
   },
   paused: {
-    emoji: '⏸️',
-    headline: 'האירוע מושהה כרגע',
-    sub: 'מנהל האירוע השהה את הפעילות זמנית. בדקו שוב בקרוב!',
+    line1: 'רגע של',
+    line2: 'השהייה',
+    sub: 'האירוע מושהה זמנית. נחזור בקרוב — שווה לבדוק שוב.',
   },
   archived: {
-    emoji: '📦',
-    headline: 'האירוע הסתיים',
-    sub: 'האירוע כבר לא פעיל, אבל אנחנו עדיין כאן',
+    line1: 'הסיפור הזה',
+    line2: 'כבר נכתב',
+    sub: 'האירוע הסתיים, אבל החיבורים שנוצרו ממשיכים.',
   },
 };
 
-const DEFAULT_CONFIG = {
-  emoji: '🎉',
-  headline: 'האירוע הסתיים!',
-  sub: 'תודה שהגעתם — מקווים שנהניתם',
+const DEFAULT_COPY = {
+  line1: 'הערב הזה',
+  line2: 'כבר הפך לזיכרון',
+  sub: 'תודה שהייתם חלק מזה.',
 };
+
+/** Generate deterministic floating particle positions */
+function generateParticles(count: number) {
+  const particles: Array<{ x: number; y: number; size: number; delay: number; duration: number }> = [];
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: ((i * 37 + 13) % 100),
+      y: ((i * 53 + 7) % 100),
+      size: 1.5 + (i % 4) * 0.8,
+      delay: (i * 0.7) % 8,
+      duration: 6 + (i % 5) * 2,
+    });
+  }
+  return particles;
+}
+
+const PARTICLES = generateParticles(30);
 
 export default function EventOverPage() {
   return (
-    <Suspense fallback={
-      <div className="event-over-page">
-        <div className="event-over-blob event-over-blob--1" />
-        <div className="event-over-blob event-over-blob--2" />
-        <div className="event-over-blob event-over-blob--3" />
-      </div>
-    }>
+    <Suspense fallback={<div className="eo" />}>
       <EventOverContent />
     </Suspense>
   );
@@ -56,11 +66,17 @@ export default function EventOverPage() {
 function EventOverContent() {
   const searchParams = useSearchParams();
   const reason = searchParams.get('reason') ?? 'ended';
-  const config = REASON_CONFIG[reason] ?? DEFAULT_CONFIG;
+  const copy = REASON_COPY[reason] ?? DEFAULT_COPY;
 
   const [countdown, setCountdown] = useState(REDIRECT_SECONDS);
   const [progress, setProgress] = useState(0);
+  const [revealed, setRevealed] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    // Stagger the reveal
+    requestAnimationFrame(() => setRevealed(true));
+  }, []);
 
   useEffect(() => {
     const start = Date.now();
@@ -85,68 +101,88 @@ function EventOverContent() {
     };
   }, []);
 
-  return (
-    <div className="event-over-page">
-      {/* Animated background blobs */}
-      <div className="event-over-blob event-over-blob--1" />
-      <div className="event-over-blob event-over-blob--2" />
-      <div className="event-over-blob event-over-blob--3" />
+  const handleSkip = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    window.location.href = '/dating';
+  }, []);
 
-      <div className="event-over-content">
-        {/* Logo */}
-        <div className="event-over-logo">
+  return (
+    <div className={`eo${revealed ? ' eo--revealed' : ''}`}>
+      {/* Ambient light layer */}
+      <div className="eo__ambient" />
+
+      {/* Floating particles */}
+      <div className="eo__particles" aria-hidden="true">
+        {PARTICLES.map((p, i) => (
+          <span
+            key={i}
+            className="eo__particle"
+            style={{
+              left: `${p.x}%`,
+              top: `${p.y}%`,
+              width: `${p.size}px`,
+              height: `${p.size}px`,
+              animationDelay: `${p.delay}s`,
+              animationDuration: `${p.duration}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Horizontal accent line */}
+      <div className="eo__line" />
+
+      {/* Main content — vertically centered */}
+      <div className="eo__center">
+        {/* Logo — small, subtle */}
+        <div className="eo__logo">
           <Image
             src="/icons/Eventa_Logo.png"
             alt="Eventa"
-            width={120}
-            height={120}
+            width={48}
+            height={48}
             style={{ objectFit: 'contain' }}
             priority
           />
         </div>
 
-        {/* Emoji with pulse */}
-        <div className="event-over-emoji">{config.emoji}</div>
+        {/* Typography — large, cinematic, two lines */}
+        <h1 className="eo__title">
+          <span className="eo__title-line eo__title-line--1">{copy.line1}</span>
+          <span className="eo__title-line eo__title-line--2">{copy.line2}</span>
+        </h1>
 
-        {/* Headline */}
-        <h1 className="event-over-headline">{config.headline}</h1>
-        <p className="event-over-sub">{config.sub}</p>
+        <p className="eo__sub">{copy.sub}</p>
 
-        {/* Divider */}
-        <div className="event-over-divider" />
+        {/* Thin separator */}
+        <div className="eo__sep" />
 
-        {/* Marketing CTA */}
-        <div className="event-over-cta-section">
-          <p className="event-over-cta-text">
-            רוצים חוויה כזו גם באירוע שלכם?
-          </p>
-          <p className="event-over-cta-desc">
-            Eventa מביאה שכבת היכרויות חכמה לחתונות, מסיבות ואירועים —
-            <br />
-            סריקת QR, פרופילים, לייקים, מאצ׳ים וצ׳אט. הכל בדפדפן.
-          </p>
-          <a href="/dating" className="event-over-btn">
-            גלו את Eventa
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M7 4l-6 6 6 6" />
+        {/* CTA block */}
+        <div className="eo__cta">
+          <p className="eo__cta-label">האירוע הבא יכול להיות שלכם</p>
+          <a href="/dating" className="eo__btn" onClick={(e) => { e.preventDefault(); handleSkip(); }}>
+            <span>לגלות עוד</span>
+            <svg className="eo__btn-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
             </svg>
           </a>
         </div>
+      </div>
 
-        {/* Countdown */}
-        <div className="event-over-countdown">
-          <div className="event-over-countdown-bar">
-            <div
-              className="event-over-countdown-fill"
-              style={{ width: `${progress}%` }}
+      {/* Bottom: progress ring + countdown */}
+      <div className="eo__bottom">
+        <div className="eo__timer">
+          <svg className="eo__ring" viewBox="0 0 40 40">
+            <circle className="eo__ring-bg" cx="20" cy="20" r="17" />
+            <circle
+              className="eo__ring-fill"
+              cx="20" cy="20" r="17"
+              style={{ strokeDashoffset: `${106.8 - (progress / 100) * 106.8}` }}
             />
-          </div>
-          <span className="event-over-countdown-text">
-            {countdown > 0
-              ? `מועברים לעמוד הראשי בעוד ${countdown} שניות...`
-              : 'מעביר...'}
-          </span>
+          </svg>
+          <span className="eo__timer-num">{countdown}</span>
         </div>
+        <span className="eo__timer-label">מועברים לאתר הראשי</span>
       </div>
     </div>
   );
