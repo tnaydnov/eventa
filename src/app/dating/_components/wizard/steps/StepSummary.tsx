@@ -12,7 +12,7 @@ interface Props {
 
 /** Format datetime-local value to readable Hebrew string. */
 function formatDateTime(iso: string): string {
-  if (!iso) return '—';
+  if (!iso) return '-';
   const d = new Date(iso);
   return d.toLocaleString('he-IL', {
     weekday: 'long',
@@ -107,6 +107,25 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
           <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(4)}>
             שנה
           </button>
+        </div>
+      </div>
+
+      {/* Price breakdown */}
+      <div className="wiz-price">
+        <div className="wiz-price__row">
+          <span>חבילת אירוע בסיסית</span>
+          <span>₪250</span>
+        </div>
+        {state.wantsGuestMessages && (
+          <div className="wiz-price__row">
+            <span>הודעות לאורחים (SMS / WhatsApp)</span>
+            <span>₪50</span>
+          </div>
+        )}
+        <div className="wiz-price__divider" />
+        <div className="wiz-price__row wiz-price__row--total">
+          <span>סה״כ</span>
+          <span>₪{250 + (state.wantsGuestMessages ? 50 : 0)}</span>
         </div>
       </div>
 

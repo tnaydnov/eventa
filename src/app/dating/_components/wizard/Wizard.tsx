@@ -56,7 +56,9 @@ function validateStep(step: number, state: WizardFormState): string | null {
     }
 
     case 2:
-      // Background is fully optional
+      if (state.wantsCustomBackground && !state.backgroundBase64) {
+        return 'בחרתם רקע מותאם - יש להעלות תמונה לפני שממשיכים';
+      }
       return null;
 
     case 3:
@@ -278,11 +280,13 @@ export default function Wizard() {
           <Image
             src="/icons/Eventa_Logo.png"
             alt="Eventa"
-            width={90}
-            height={30}
+            width={80}
+            height={26}
             style={{ objectFit: 'contain' }}
           />
         </Link>
+        {/* Invisible spacer to balance the back button for centering */}
+        <span className="wiz-header__spacer" />
       </div>
 
       {/* Progress rail */}

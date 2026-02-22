@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   Order Wizard — Cinematic Multi-Step Experience
+   Order Wizard - Cinematic Multi-Step Experience
    Ambient particles · Glassmorphism · Micro-interactions
    ═══════════════════════════════════════════ */
 
@@ -98,10 +98,13 @@
   padding: 24px 24px 0;
   display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
 }
 
 .wiz-back {
+  position: absolute;
+  right: 24px;
+  top: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -123,12 +126,16 @@
 }
 
 .wiz-header__logo {
-  opacity: 0.6;
+  opacity: 0.7;
   transition: opacity 0.3s;
 }
 
 .wiz-header__logo:hover {
-  opacity: 0.9;
+  opacity: 1;
+}
+
+.wiz-header__spacer {
+  display: none;
 }
 
 /* ── Progress Rail ── */
@@ -873,6 +880,55 @@
 .wiz-contact-opt__desc {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+/* ═══ Toggle Price Tag ═══ */
+.wiz-toggle__price {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+  background: rgba(212, 165, 154, 0.1);
+  border: 1px solid rgba(212, 165, 154, 0.2);
+  border-radius: 8px;
+  padding: 4px 10px;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+.wiz-toggle--active .wiz-toggle__price {
+  background: rgba(212, 165, 154, 0.18);
+  border-color: rgba(212, 165, 154, 0.35);
+}
+
+/* ═══ Price Breakdown (Summary) ═══ */
+.wiz-price {
+  margin-top: 24px;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid rgba(212, 165, 154, 0.15);
+  background: rgba(212, 165, 154, 0.04);
+}
+
+.wiz-price__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.wiz-price__row--total {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.wiz-price__divider {
+  height: 1px;
+  background: rgba(212, 165, 154, 0.15);
+  margin: 8px 0;
 }
 
 /* ═══ Navigation Buttons ═══ */

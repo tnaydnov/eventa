@@ -20,7 +20,7 @@ export default function StepEventDetails({ state, onChange }: Props) {
       </div>
 
       <div className="wiz-fields">
-        {/* Event Name — dynamic per type */}
+        {/* Event Name - dynamic per type */}
         {nameField && (
           <div className="wiz-field">
             <label className="wiz-field__label">

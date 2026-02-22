@@ -1,5 +1,5 @@
 /**
- * Wizard Configuration — Single source of truth for the order wizard.
+ * Wizard Configuration - Single source of truth for the order wizard.
  *
  * To add/remove an event type → add/remove one entry in WIZARD_TYPES.
  * Everything (labels, fields, templates, validation) cascades from here.
@@ -19,9 +19,9 @@ export interface NameFieldConfig {
 }
 
 export interface WizardTypeConfig {
-  /** DB key — e.g. 'wedding' */
+  /** DB key - e.g. 'wedding' */
   key: string;
-  /** Hebrew label — e.g. 'חתונה' */
+  /** Hebrew label - e.g. 'חתונה' */
   label: string;
   /** Icon for the type card */
   icon: string;
@@ -29,7 +29,7 @@ export interface WizardTypeConfig {
   description: string;
   /** Name field configuration (dynamic per type) */
   nameField: NameFieldConfig;
-  /** Poster catalog folder key — maps to manifest.json types */
+  /** Poster catalog folder key - maps to manifest.json types */
   posterCatalog: string;
   /** Default event duration in hours */
   defaultDurationHours: number;

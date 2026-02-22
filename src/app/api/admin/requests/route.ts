@@ -179,7 +179,7 @@ export async function POST(req: NextRequest) {
         }
       } catch (bgErr) {
         logger.warn('[ADMIN_REQUESTS] bg processing error:', bgErr);
-        // Non-fatal — event is still created
+        // Non-fatal - event is still created
       }
     }
 
@@ -196,7 +196,7 @@ export async function POST(req: NextRequest) {
 
     if (updateErr) {
       logger.warn('[ADMIN_REQUESTS] approve update error:', updateErr.message);
-      // Non-fatal — event was already created
+      // Non-fatal - event was already created
     }
 
     adminAuditLog('REQUEST_APPROVE', { requestId, eventId: newEvent.id, slug }, req);

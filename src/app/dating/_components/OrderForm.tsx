@@ -1,15 +1,11 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { EVENT_TYPE_OPTIONS } from '@/lib/constants';
 
 const EVENT_TYPES = [
   { value: '', label: 'בחרו סוג אירוע...' },
-  { value: 'wedding', label: 'חתונה' },
-  { value: 'corporate', label: 'אירוע חברה / כנס' },
-  { value: 'birthday', label: 'יום הולדת' },
-  { value: 'conference', label: 'אירוע נטוורקינג' },
-  { value: 'party', label: 'מסיבה פרטית' },
-  { value: 'other', label: 'אחר' },
+  ...EVENT_TYPE_OPTIONS,
 ];
 
 type FormData = {

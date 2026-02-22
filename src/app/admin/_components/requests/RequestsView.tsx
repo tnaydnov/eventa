@@ -85,7 +85,7 @@ export default function RequestsView({ requests, onApprove, onDeny, onReload }: 
 
   /* ─── Format date ─── */
   const fmtDate = (d: string | null) => {
-    if (!d) return '—';
+    if (!d) return '-';
     try {
       return new Intl.DateTimeFormat('he-IL', {
         day: '2-digit', month: '2-digit', year: 'numeric',
@@ -97,7 +97,7 @@ export default function RequestsView({ requests, onApprove, onDeny, onReload }: 
   };
 
   const fmtShortDate = (d: string | null) => {
-    if (!d) return '—';
+    if (!d) return '-';
     try {
       return new Intl.DateTimeFormat('he-IL', {
         day: '2-digit', month: '2-digit', year: '2-digit',
@@ -166,7 +166,7 @@ export default function RequestsView({ requests, onApprove, onDeny, onReload }: 
               key={req.id}
               className={`req-card req-card--${req.status}`}
             >
-              {/* Card Header — always visible */}
+              {/* Card Header - always visible */}
               <div
                 className="req-card__header"
                 onClick={() => setExpandedId(isExpanded ? null : req.id)}
@@ -208,7 +208,7 @@ export default function RequestsView({ requests, onApprove, onDeny, onReload }: 
                     </div>
                     <div className="req-info-item">
                       <span className="req-info-label">🖼️ בחירת פוסטר</span>
-                      <span className="req-info-value">{req.poster_choice || '—'}</span>
+                      <span className="req-info-value">{req.poster_choice || '-'}</span>
                     </div>
                     <div className="req-info-item">
                       <span className="req-info-label">💬 הודעות אורחים</span>
@@ -216,7 +216,7 @@ export default function RequestsView({ requests, onApprove, onDeny, onReload }: 
                     </div>
                     <div className="req-info-item">
                       <span className="req-info-label">💳 העדפת קשר</span>
-                      <span className="req-info-value">{CONTACT_LABELS[req.contact_preference || ''] || req.contact_preference || '—'}</span>
+                      <span className="req-info-value">{CONTACT_LABELS[req.contact_preference || ''] || req.contact_preference || '-'}</span>
                     </div>
                   </div>
 
@@ -305,7 +305,7 @@ export default function RequestsView({ requests, onApprove, onDeny, onReload }: 
                   {/* Link to event if approved */}
                   {req.status === 'approved' && req.approved_event_id && (
                     <div className="req-approved-link">
-                      ✅ אירוע נוצר — ניתן למצוא אותו בעמוד האירועים
+                      ✅ אירוע נוצר - ניתן למצוא אותו בעמוד האירועים
                     </div>
                   )}
                 </div>

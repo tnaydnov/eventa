@@ -34,7 +34,7 @@ const orderSchema = z.object({
     .regex(/^[\d\s+\-()]+$/, 'Invalid phone format'),
   contactEmail: z.string().max(ORDER_EMAIL_MAX_LENGTH).email().optional()
     .or(z.literal('')),
-  // Extended wizard fields (optional — absent for simple OrderForm submissions)
+  // Extended wizard fields (optional - absent for simple OrderForm submissions)
   source: z.enum(['wizard', 'form']).optional(),
   eventName: z.string().max(100).optional(),
   startsAt: z.string().max(30).optional(),
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
 
       if (dbErr) {
         logger.error('Failed to save event request to DB', { error: dbErr.message });
-        // Continue even if DB save fails — email is still important
+        // Continue even if DB save fails - email is still important
       } else {
         requestId = reqRow.id;
       }

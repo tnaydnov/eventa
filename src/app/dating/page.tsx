@@ -215,7 +215,7 @@ export default function LandingPage() {
           הזמינו <span className="gradient-text">Eventa</span> לאירוע שלכם
         </h2>
         <p className="landing-subheading" style={{ margin: '0 auto' }}>
-          בחרו את הדרך שנוחה לכם — הזמנה מלאה עם בחירת עיצוב, או השארת פרטים ואנחנו נחזור אליכם.
+          בחרו את הדרך שנוחה לכם - הזמנה מלאה עם בחירת עיצוב, או השארת פרטים ואנחנו נחזור אליכם.
         </p>
 
         <div className="order-split">
@@ -230,7 +230,7 @@ export default function LandingPage() {
             </div>
             <h3 className="order-split__cta-title">הזמנה מלאה</h3>
             <p className="order-split__cta-desc">
-              בחרו סוג אירוע, עיצוב פוסטר, רקע מותאם אישית ועוד — ושלמו אונליין.
+              בחרו סוג אירוע, עיצוב פוסטר, רקע מותאם אישית ועוד - ושלמו אונליין.
             </p>
             <span className="order-split__cta-btn">
               להזמנה &larr;
@@ -246,7 +246,7 @@ export default function LandingPage() {
           <div className="order-split__form-wrap">
             <h3 className="order-split__form-title">רוצים לשמוע עוד?</h3>
             <p className="order-split__form-desc">
-              השאירו פרטים ונחזור אליכם תוך 24 שעות עם הצעה מותאמת אישית.
+              השאירו פרטים ונחזור אליכם תוך 48 שעות עם הצעה מותאמת אישית.
             </p>
             <OrderForm />
           </div>

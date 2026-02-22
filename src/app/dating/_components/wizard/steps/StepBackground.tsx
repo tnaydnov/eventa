@@ -114,7 +114,7 @@ export default function StepBackground({ state, onChange }: Props) {
         >
           <div className="wiz-upload__icon"><WizardIcon name="upload" size={36} /></div>
           <p className="wiz-upload__text">גררו תמונה לכאן או לחצו לבחירה</p>
-          <p className="wiz-upload__hint">JPG, PNG, WebP — עד 5MB</p>
+          <p className="wiz-upload__hint">JPG, PNG, WebP - עד 5MB</p>
           <input
             ref={fileRef}
             type="file"
