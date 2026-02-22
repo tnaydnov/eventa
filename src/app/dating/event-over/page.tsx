@@ -139,8 +139,8 @@ function EventOverContent() {
           <Image
             src="/icons/Eventa_Logo.png"
             alt="Eventa"
-            width={120}
-            height={120}
+            width={200}
+            height={200}
             style={{ objectFit: 'contain' }}
             priority
           />
@@ -161,7 +161,7 @@ function EventOverContent() {
         <div className="eo__cta">
           <p className="eo__cta-label">האירוע הבא יכול להיות שלכם</p>
           <a href="/dating" className="eo__btn" onClick={(e) => { e.preventDefault(); handleSkip(); }}>
-            <span>לגלות עוד</span>
+            <span>גלו עוד</span>
             <svg className="eo__btn-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 18l-6-6 6-6" />
             </svg>

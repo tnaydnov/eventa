@@ -146,7 +146,7 @@
 
 /* ── Logo ── */
 .eo__logo {
-  margin-bottom: 40px;
+  margin-bottom: 16px;
   opacity: 0;
   transform: translateY(-8px);
   transition: opacity 1s ease 0.2s, transform 1s ease 0.2s;
@@ -371,7 +371,7 @@
 
 @media (min-height: 800px) {
   .eo__logo {
-    margin-bottom: 52px;
+    margin-bottom: 20px;
   }
 
   .eo__sub {
