@@ -1,9 +1,32 @@
 /**
  * Email templates for the order system.
- * Professional HTML email designs matching the Eventa brand.
+ * Clean, table-based HTML emails with correct RTL + BiDi isolation.
+ *
+ * Design principles:
+ *  - Light background for maximum email-client compatibility
+ *  - Table layout (no flexbox/grid) for Outlook + Gmail
+ *  - No emojis — only styled HTML elements
+ *  - English brand names wrapped in dir="ltr" spans for proper BiDi
+ *  - Minimal color palette: warm neutral + rose-gold accent
  */
 
 import { EVENT_TYPE_LABELS } from '@/lib/constants';
+
+/* ─── Shared palette ─── */
+const C = {
+  bg:       '#f5f3f0',
+  card:     '#ffffff',
+  text:     '#1a1a1a',
+  muted:    '#6b6b6b',
+  dim:      '#999999',
+  border:   '#e8e4df',
+  accent:   '#b08d7e', // warm rose-gold
+  accentBg: '#faf6f4',
+  paybox:   '#004aad',
+  bit:      '#1aab4a',
+  warn:     '#c27816',
+  warnBg:   '#fef9f0',
+} as const;
 
 /** Escape HTML special characters to prevent injection in email template. */
 export function escapeHtml(str: string): string {
@@ -15,21 +38,31 @@ export function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;');
 }
 
-/** Format ISO datetime to a readable Hebrew string. */
-function formatDateHebrew(iso: string): string {
-  if (!iso) return '—';
+/** Wrap an English string in LTR isolation so it flows correctly inside RTL. */
+function ltr(s: string): string {
+  return `<span dir="ltr" style="unicode-bidi:embed;">${s}</span>`;
+}
+
+/** Format ISO datetime to readable Hebrew date. */
+function fmtDate(iso: string): string {
+  if (!iso) return '\u2014';
   try {
     const d = new Date(iso);
-    return d.toLocaleString('he-IL', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return d.toLocaleDateString('he-IL', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     });
   } catch {
     return iso;
+  }
+}
+
+/** Format ISO datetime to HH:MM */
+function fmtTime(iso: string): string {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return '';
   }
 }
 
@@ -63,128 +96,169 @@ export function buildAdminNotificationEmail(data: OrderData): { subject: string;
     phone: escapeHtml(data.contactPhone),
     email: data.contactEmail ? escapeHtml(data.contactEmail) : '',
     eventName: escapeHtml(data.eventName),
-    startsAt: formatDateHebrew(data.startsAt),
-    endsAt: formatDateHebrew(data.endsAt),
+    startsAt: fmtDate(data.startsAt),
+    startsTime: fmtTime(data.startsAt),
+    endsAt: fmtDate(data.endsAt),
+    endsTime: fmtTime(data.endsAt),
     template: escapeHtml(data.selectedTemplate),
     specialReqs: escapeHtml(data.specialRequests),
   };
 
   const contactPrefLabel = data.contactPreference === 'call-me'
-    ? 'צרו איתי קשר'
+    ? 'התקשרו אליי'
     : 'שלחו לינק לתשלום';
 
-  const subject = `בקשה חדשה — ${s.eventLabel} | ${s.name}`;
+  const subject = `בקשה חדשה \u2014 ${s.eventLabel} | ${data.contactName}`;
 
-  const html = `
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
-  <div style="max-width:600px;margin:0 auto;padding:24px 16px;">
-    
-    <!-- Header -->
-    <div style="text-align:center;padding:32px 24px 24px;border-radius:16px 16px 0 0;background:linear-gradient(135deg,#1a1216 0%,#0d0a0b 100%);border-bottom:2px solid rgba(212,165,154,0.3);">
-      <div style="font-size:28px;font-weight:700;color:#d4a59a;letter-spacing:1px;margin-bottom:4px;">EVENTA</div>
-      <div style="font-size:13px;color:#b0b0b0;letter-spacing:2px;text-transform:uppercase;">בקשת אירוע חדשה</div>
-    </div>
+  const html = `<!DOCTYPE html>
+<html lang="he" dir="rtl" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>${escapeHtml(subject)}</title>
+</head>
+<body style="margin:0;padding:0;background-color:${C.bg};font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
 
-    <!-- Body -->
-    <div style="background:#141414;padding:28px 24px;border-radius:0 0 16px 16px;">
-      
-      <!-- Priority Banner -->
-      <div style="background:linear-gradient(90deg,rgba(212,165,154,0.12),rgba(212,165,154,0.04));border-right:3px solid #d4a59a;border-radius:8px;padding:14px 18px;margin-bottom:24px;">
-        <div style="font-size:15px;font-weight:600;color:#e8c4bb;margin-bottom:4px;">
-          ${data.contactPreference === 'send-link' ? '⚡ רוצה לינק לתשלום מיידי' : '📞 מבקש שנחזור אליו'}
-        </div>
-        <div style="font-size:13px;color:#b0b0b0;">
-          ${data.contactPreference === 'send-link' ? 'נשלח ללקוח אימייל עם כפתורי תשלום' : 'יש לחזור ללקוח תוך 24 שעות'}
-        </div>
-      </div>
+  <!-- Outer wrapper -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${C.bg};">
+    <tr><td align="center" style="padding:32px 16px;">
 
-      <!-- Event Info Section -->
-      <div style="margin-bottom:20px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#d4a59a;margin-bottom:12px;font-weight:600;">פרטי האירוע</div>
-        <table style="width:100%;border-collapse:collapse;">
-          <tr>
-            <td style="padding:10px 12px;border-bottom:1px solid #222;color:#888;font-size:13px;width:120px;vertical-align:top;">סוג</td>
-            <td style="padding:10px 12px;border-bottom:1px solid #222;color:#f0ede8;font-size:14px;font-weight:500;">${s.eventLabel}</td>
-          </tr>
-          ${s.eventName ? `
-          <tr>
-            <td style="padding:10px 12px;border-bottom:1px solid #222;color:#888;font-size:13px;vertical-align:top;">שם</td>
-            <td style="padding:10px 12px;border-bottom:1px solid #222;color:#f0ede8;font-size:14px;font-weight:500;">${s.eventName}</td>
-          </tr>` : ''}
-          <tr>
-            <td style="padding:10px 12px;border-bottom:1px solid #222;color:#888;font-size:13px;vertical-align:top;">התחלה</td>
-            <td style="padding:10px 12px;border-bottom:1px solid #222;color:#f0ede8;font-size:14px;">${s.startsAt}</td>
-          </tr>
-          <tr>
-            <td style="padding:10px 12px;border-bottom:1px solid #222;color:#888;font-size:13px;vertical-align:top;">סיום</td>
-            <td style="padding:10px 12px;border-bottom:1px solid #222;color:#f0ede8;font-size:14px;">${s.endsAt}</td>
-          </tr>
-        </table>
-      </div>
+      <!-- Main card -->
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background-color:${C.card};border-radius:12px;overflow:hidden;border:1px solid ${C.border};">
 
-      <!-- Options Section -->
-      <div style="margin-bottom:20px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#d4a59a;margin-bottom:12px;font-weight:600;">אפשרויות שנבחרו</div>
-        <table style="width:100%;border-collapse:collapse;">
-          <tr>
-            <td style="padding:10px 12px;border-bottom:1px solid #222;color:#888;font-size:13px;width:120px;">רקע</td>
-            <td style="padding:10px 12px;border-bottom:1px solid #222;color:#f0ede8;font-size:14px;">
-              ${data.wantsCustomBackground ? `<span style="color:#22c55e;">✓</span> רקע מותאם${data.hasBgImage ? ' (תמונה מצורפת)' : ''}` : '<span style="color:#888;">ברירת מחדל</span>'}
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:10px 12px;border-bottom:1px solid #222;color:#888;font-size:13px;">פוסטר</td>
-            <td style="padding:10px 12px;border-bottom:1px solid #222;color:#f0ede8;font-size:14px;">
-              ${data.posterChoice === 'qr-only' ? 'QR בלבד' : `תבנית: ${s.template}`}
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:10px 12px;border-bottom:1px solid #222;color:#888;font-size:13px;">הודעות</td>
-            <td style="padding:10px 12px;border-bottom:1px solid #222;color:#f0ede8;font-size:14px;">
-              ${data.wantsGuestMessages ? '<span style="color:#22c55e;">✓</span> כן, שלחו הודעות' : '<span style="color:#888;">לא</span>'}
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:10px 12px;color:#888;font-size:13px;">העדפת קשר</td>
-            <td style="padding:10px 12px;color:#f0ede8;font-size:14px;">${contactPrefLabel}</td>
-          </tr>
-        </table>
-      </div>
+        <!-- Header bar -->
+        <tr>
+          <td style="background-color:${C.text};padding:24px 32px;text-align:center;">
+            <div style="font-size:22px;font-weight:700;letter-spacing:3px;color:${C.card};">${ltr('EVENTA')}</div>
+            <div style="font-size:12px;color:${C.dim};margin-top:6px;letter-spacing:1px;">בקשת אירוע חדשה</div>
+          </td>
+        </tr>
 
-      ${s.specialReqs ? `
-      <!-- Special Requests -->
-      <div style="background:#1a1a1a;border-radius:10px;padding:14px 16px;margin-bottom:20px;border:1px solid #222;">
-        <div style="font-size:12px;color:#d4a59a;margin-bottom:6px;font-weight:600;">בקשות מיוחדות</div>
-        <div style="font-size:14px;color:#e0e0e0;line-height:1.6;">${s.specialReqs}</div>
-      </div>` : ''}
+        <!-- Contact preference banner -->
+        <tr>
+          <td style="padding:0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="background-color:${data.contactPreference === 'send-link' ? '#eef4ff' : C.accentBg};padding:14px 32px;border-bottom:1px solid ${C.border};">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="font-size:14px;font-weight:600;color:${data.contactPreference === 'send-link' ? C.paybox : C.accent};">
+                        ${data.contactPreference === 'send-link' ? 'הלקוח ביקש לקבל לינק לתשלום' : 'הלקוח מבקש שנחזור אליו'}
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
 
-      <!-- Contact Section -->
-      <div style="background:linear-gradient(135deg,rgba(212,165,154,0.08),rgba(212,165,154,0.02));border-radius:12px;padding:18px 20px;border:1px solid rgba(212,165,154,0.15);">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#d4a59a;margin-bottom:12px;font-weight:600;">פרטי הלקוח</div>
-        <div style="margin-bottom:8px;">
-          <span style="color:#888;font-size:13px;">שם: </span>
-          <span style="color:#f0ede8;font-size:15px;font-weight:600;">${s.name}</span>
-        </div>
-        <div style="margin-bottom:8px;">
-          <span style="color:#888;font-size:13px;">טלפון: </span>
-          <a href="tel:${s.phone}" style="color:#d4a59a;font-size:15px;font-weight:600;text-decoration:none;">${s.phone}</a>
-        </div>
-        ${s.email ? `
-        <div>
-          <span style="color:#888;font-size:13px;">אימייל: </span>
-          <a href="mailto:${s.email}" style="color:#d4a59a;font-size:14px;text-decoration:none;">${s.email}</a>
-        </div>` : ''}
-      </div>
-    </div>
+        <!-- Event info section -->
+        <tr>
+          <td style="padding:28px 32px 0;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">פרטי האירוע</div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+              <tr>
+                <td style="padding:10px 0;border-bottom:1px solid ${C.border};color:${C.muted};font-size:13px;width:90px;vertical-align:top;">סוג אירוע</td>
+                <td style="padding:10px 0;border-bottom:1px solid ${C.border};color:${C.text};font-size:14px;font-weight:600;">${s.eventLabel}</td>
+              </tr>
+              ${s.eventName ? `<tr>
+                <td style="padding:10px 0;border-bottom:1px solid ${C.border};color:${C.muted};font-size:13px;vertical-align:top;">שם</td>
+                <td style="padding:10px 0;border-bottom:1px solid ${C.border};color:${C.text};font-size:14px;font-weight:500;">${s.eventName}</td>
+              </tr>` : ''}
+              <tr>
+                <td style="padding:10px 0;border-bottom:1px solid ${C.border};color:${C.muted};font-size:13px;vertical-align:top;">התחלה</td>
+                <td style="padding:10px 0;border-bottom:1px solid ${C.border};color:${C.text};font-size:14px;">${s.startsAt}${s.startsTime ? `, ${ltr(s.startsTime)}` : ''}</td>
+              </tr>
+              <tr>
+                <td style="padding:10px 0;border-bottom:1px solid ${C.border};color:${C.muted};font-size:13px;vertical-align:top;">סיום</td>
+                <td style="padding:10px 0;border-bottom:1px solid ${C.border};color:${C.text};font-size:14px;">${s.endsAt}${s.endsTime ? `, ${ltr(s.endsTime)}` : ''}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
 
-    <!-- Footer -->
-    <div style="text-align:center;padding:16px;font-size:11px;color:#555;">
-      Eventa — בקשה מהוויזארד באתר · ${new Date().toLocaleDateString('he-IL')}
-    </div>
-  </div>
+        <!-- Options section -->
+        <tr>
+          <td style="padding:24px 32px 0;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">אפשרויות</div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+              <tr>
+                <td style="padding:10px 0;border-bottom:1px solid ${C.border};color:${C.muted};font-size:13px;width:90px;">רקע</td>
+                <td style="padding:10px 0;border-bottom:1px solid ${C.border};color:${C.text};font-size:14px;">
+                  ${data.wantsCustomBackground ? `רקע מותאם אישית${data.hasBgImage ? ' (תמונה מצורפת)' : ''}` : 'ברירת מחדל'}
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:10px 0;border-bottom:1px solid ${C.border};color:${C.muted};font-size:13px;">פוסטר</td>
+                <td style="padding:10px 0;border-bottom:1px solid ${C.border};color:${C.text};font-size:14px;">
+                  ${data.posterChoice === 'qr-only' ? `${ltr('QR')} בלבד` : `תבנית: ${s.template}`}
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:10px 0;border-bottom:1px solid ${C.border};color:${C.muted};font-size:13px;">הודעות</td>
+                <td style="padding:10px 0;border-bottom:1px solid ${C.border};color:${C.text};font-size:14px;">
+                  ${data.wantsGuestMessages ? 'כן' : 'לא'}
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:10px 0;color:${C.muted};font-size:13px;">העדפת קשר</td>
+                <td style="padding:10px 0;color:${C.text};font-size:14px;font-weight:500;">${contactPrefLabel}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        ${s.specialReqs ? `
+        <!-- Special requests -->
+        <tr>
+          <td style="padding:24px 32px 0;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:10px;">בקשות מיוחדות</div>
+            <div style="background-color:${C.accentBg};border-right:3px solid ${C.accent};border-radius:6px;padding:14px 16px;font-size:14px;color:${C.text};line-height:1.7;">
+              ${s.specialReqs}
+            </div>
+          </td>
+        </tr>` : ''}
+
+        <!-- Contact section -->
+        <tr>
+          <td style="padding:24px 32px 28px;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">פרטי לקוח</div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background-color:#fafaf8;border-radius:8px;overflow:hidden;">
+              <tr>
+                <td style="padding:12px 16px;border-bottom:1px solid ${C.border};color:${C.muted};font-size:13px;width:70px;">שם</td>
+                <td style="padding:12px 16px;border-bottom:1px solid ${C.border};color:${C.text};font-size:15px;font-weight:600;">${s.name}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 16px;${s.email ? `border-bottom:1px solid ${C.border};` : ''}color:${C.muted};font-size:13px;">טלפון</td>
+                <td style="padding:12px 16px;${s.email ? `border-bottom:1px solid ${C.border};` : ''}">
+                  <a href="tel:${s.phone}" style="color:${C.accent};font-size:15px;font-weight:600;text-decoration:none;" dir="ltr">${s.phone}</a>
+                </td>
+              </tr>
+              ${s.email ? `<tr>
+                <td style="padding:12px 16px;color:${C.muted};font-size:13px;">אימייל</td>
+                <td style="padding:12px 16px;">
+                  <a href="mailto:${s.email}" style="color:${C.accent};font-size:14px;text-decoration:none;" dir="ltr">${s.email}</a>
+                </td>
+              </tr>` : ''}
+            </table>
+          </td>
+        </tr>
+
+      </table>
+      <!-- /Main card -->
+
+      <!-- Footer -->
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+        <tr>
+          <td style="padding:16px 0;text-align:center;font-size:11px;color:${C.dim};">
+            ${ltr('Eventa')} &middot; בקשה מהאתר &middot; ${ltr(new Date().toLocaleDateString('he-IL'))}
+          </td>
+        </tr>
+      </table>
+
+    </td></tr>
+  </table>
 </body>
 </html>`;
 
@@ -211,110 +285,133 @@ export function buildClientPaymentEmail(data: {
   const safeEventName = data.eventName ? escapeHtml(data.eventName) : '';
   const contactMeUrl = `${data.baseUrl}/api/order/contact-me?id=${data.requestId}`;
 
-  const subject = `Eventa — פרטי תשלום עבור ${safeEventLabel}${safeEventName ? ` | ${safeEventName}` : ''}`;
+  const eventLine = safeEventName
+    ? `${safeEventLabel} &middot; ${safeEventName}`
+    : safeEventLabel;
 
-  const html = `
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
-  <div style="max-width:560px;margin:0 auto;padding:24px 16px;">
+  const subject = `${ltr('Eventa')} \u2014 פרטי תשלום עבור האירוע שלך`;
 
-    <!-- Header with gradient -->
-    <div style="text-align:center;padding:40px 24px 32px;border-radius:20px 20px 0 0;background:linear-gradient(160deg,#1a1216 0%,#0f0c0d 50%,#0a0a0a 100%);position:relative;overflow:hidden;">
-      <!-- Decorative circles -->
-      <div style="position:absolute;top:-30px;left:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(212,165,154,0.08),transparent);"></div>
-      <div style="position:absolute;bottom:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,rgba(201,165,128,0.06),transparent);"></div>
-      
-      <div style="font-size:32px;font-weight:700;color:#d4a59a;letter-spacing:2px;margin-bottom:8px;">EVENTA</div>
-      <div style="width:40px;height:2px;background:linear-gradient(90deg,transparent,#d4a59a,transparent);margin:0 auto 16px;"></div>
-      <div style="font-size:16px;color:#f0ede8;font-weight:500;margin-bottom:4px;">היי ${safeName}! 👋</div>
-      <div style="font-size:14px;color:#b0b0b0;">תודה שבחרת ב-Eventa לאירוע שלך</div>
-    </div>
+  const html = `<!DOCTYPE html>
+<html lang="he" dir="rtl" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>${escapeHtml(subject)}</title>
+</head>
+<body style="margin:0;padding:0;background-color:${C.bg};font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
 
-    <!-- Body -->
-    <div style="background:#111;padding:0;border-radius:0 0 20px 20px;overflow:hidden;">
-      
-      <!-- Event Summary strip -->
-      <div style="background:#161616;padding:18px 24px;border-bottom:1px solid #222;display:flex;justify-content:space-between;">
-        <table style="width:100%;">
-          <tr>
-            <td style="text-align:right;">
-              <div style="font-size:12px;color:#888;margin-bottom:2px;">האירוע שלך</div>
-              <div style="font-size:16px;color:#f0ede8;font-weight:600;">${safeEventLabel}${safeEventName ? ` — ${safeEventName}` : ''}</div>
-            </td>
-          </tr>
-        </table>
-      </div>
+  <!-- Outer wrapper -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${C.bg};">
+    <tr><td align="center" style="padding:40px 16px;">
 
-      <!-- Payment Section -->
-      <div style="padding:28px 24px;">
-        <div style="text-align:center;margin-bottom:24px;">
-          <div style="font-size:18px;font-weight:600;color:#f0ede8;margin-bottom:6px;">בחרו את אמצעי התשלום</div>
-          <div style="font-size:13px;color:#888;">לחצו על הכפתור המועדף ותועברו לאפליקציה</div>
-        </div>
+      <!-- Main card -->
+      <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;background-color:${C.card};border-radius:12px;overflow:hidden;border:1px solid ${C.border};">
 
-        <!-- PayBox Button -->
-        <a href="#" style="display:block;text-decoration:none;margin-bottom:12px;">
-          <div style="background:linear-gradient(135deg,#0066cc,#0052a3);border-radius:14px;padding:18px 24px;text-align:center;transition:all 0.3s;">
-            <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:2px;">PayBox</div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.7);">תשלום מאובטח דרך PayBox</div>
-          </div>
-        </a>
+        <!-- Header -->
+        <tr>
+          <td style="padding:36px 32px 28px;text-align:center;background-color:${C.card};border-bottom:1px solid ${C.border};">
+            <div style="font-size:24px;font-weight:700;letter-spacing:4px;color:${C.text};margin-bottom:20px;">${ltr('EVENTA')}</div>
+            <div style="font-size:16px;color:${C.text};font-weight:500;line-height:1.6;">שלום ${safeName},</div>
+            <div style="font-size:14px;color:${C.muted};margin-top:6px;line-height:1.6;">הבקשה שלך התקבלה בהצלחה.</div>
+            <div style="font-size:14px;color:${C.muted};line-height:1.6;">ניתן להשלים את התשלום באחת הדרכים הבאות:</div>
+          </td>
+        </tr>
 
-        <!-- Bit Button -->
-        <a href="#" style="display:block;text-decoration:none;margin-bottom:12px;">
-          <div style="background:linear-gradient(135deg,#2bc157,#1fa34a);border-radius:14px;padding:18px 24px;text-align:center;">
-            <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:2px;">Bit</div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.7);">תשלום מאובטח דרך Bit</div>
-          </div>
-        </a>
+        <!-- Event summary -->
+        <tr>
+          <td style="padding:18px 32px;background-color:#fafaf8;border-bottom:1px solid ${C.border};">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td>
+                  <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:${C.dim};margin-bottom:4px;">האירוע שלך</div>
+                  <div style="font-size:15px;font-weight:600;color:${C.text};">${eventLine}</div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
 
-        <!-- Divider -->
-        <div style="display:flex;align-items:center;gap:12px;margin:24px 0;">
-          <div style="flex:1;height:1px;background:#222;"></div>
-          <div style="font-size:12px;color:#555;white-space:nowrap;">או שנתקשר אליך?</div>
-          <div style="flex:1;height:1px;background:#222;"></div>
-        </div>
+        <!-- Payment buttons -->
+        <tr>
+          <td style="padding:32px 32px 24px;">
 
-        <!-- Contact Me Instead Button -->
-        <a href="${contactMeUrl}" style="display:block;text-decoration:none;">
-          <div style="border:1px solid rgba(212,165,154,0.25);border-radius:14px;padding:16px 24px;text-align:center;background:rgba(212,165,154,0.04);">
-            <div style="font-size:15px;font-weight:600;color:#d4a59a;margin-bottom:2px;">העדפתי שתצרו איתי קשר</div>
-            <div style="font-size:12px;color:#888;">נחזור אליכם תוך 24 שעות</div>
-          </div>
-        </a>
-      </div>
+            <!-- PayBox -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
+              <tr>
+                <td align="center">
+                  <a href="#" style="display:block;text-decoration:none;" target="_blank">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td align="center" style="background-color:${C.paybox};border-radius:10px;padding:18px 24px;">
+                          <div style="font-size:18px;font-weight:700;color:#ffffff;letter-spacing:0.5px;">${ltr('PayBox')}</div>
+                          <div style="font-size:12px;color:rgba(255,255,255,0.75);margin-top:4px;">תשלום מאובטח</div>
+                        </td>
+                      </tr>
+                    </table>
+                  </a>
+                </td>
+              </tr>
+            </table>
 
-      <!-- Trust Section -->
-      <div style="background:#0d0d0d;padding:20px 24px;border-top:1px solid #1a1a1a;">
-        <table style="width:100%;">
-          <tr>
-            <td style="text-align:center;padding:0 8px;">
-              <div style="font-size:18px;margin-bottom:4px;">🔒</div>
-              <div style="font-size:11px;color:#666;">תשלום מאובטח</div>
-            </td>
-            <td style="text-align:center;padding:0 8px;">
-              <div style="font-size:18px;margin-bottom:4px;">⚡</div>
-              <div style="font-size:11px;color:#666;">הפעלה מיידית</div>
-            </td>
-            <td style="text-align:center;padding:0 8px;">
-              <div style="font-size:18px;margin-bottom:4px;">💎</div>
-              <div style="font-size:11px;color:#666;">חוויה פרימיום</div>
-            </td>
-          </tr>
-        </table>
-      </div>
-    </div>
+            <!-- Bit -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:4px;">
+              <tr>
+                <td align="center">
+                  <a href="#" style="display:block;text-decoration:none;" target="_blank">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td align="center" style="background-color:${C.bit};border-radius:10px;padding:18px 24px;">
+                          <div style="font-size:18px;font-weight:700;color:#ffffff;letter-spacing:0.5px;">${ltr('Bit')}</div>
+                          <div style="font-size:12px;color:rgba(255,255,255,0.75);margin-top:4px;">תשלום מאובטח</div>
+                        </td>
+                      </tr>
+                    </table>
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
 
-    <!-- Footer -->
-    <div style="text-align:center;padding:20px 16px;">
-      <div style="font-size:11px;color:#444;margin-bottom:8px;">
-        אימייל זה נשלח אוטומטית מ-Eventa. לשאלות: <a href="mailto:contact@eventa.productions" style="color:#d4a59a;text-decoration:none;">contact@eventa.productions</a>
-      </div>
-      <div style="font-size:10px;color:#333;">© ${new Date().getFullYear()} Eventa</div>
-    </div>
-  </div>
+        <!-- Separator -->
+        <tr>
+          <td style="padding:0 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="border-top:1px solid ${C.border};font-size:0;line-height:0;">&nbsp;</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Contact me instead -->
+        <tr>
+          <td style="padding:24px 32px 32px;text-align:center;">
+            <div style="font-size:13px;color:${C.muted};margin-bottom:14px;">מעדיפים שניצור איתכם קשר?</div>
+            <a href="${contactMeUrl}" style="display:inline-block;text-decoration:none;border:1px solid ${C.accent};border-radius:8px;padding:12px 28px;color:${C.accent};font-size:14px;font-weight:600;" target="_blank">
+              העדפתי שתצרו איתי קשר
+            </a>
+            <div style="font-size:12px;color:${C.dim};margin-top:10px;">נחזור אליכם תוך 24 שעות</div>
+          </td>
+        </tr>
+
+      </table>
+      <!-- /Main card -->
+
+      <!-- Footer -->
+      <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;">
+        <tr>
+          <td style="padding:20px 0;text-align:center;">
+            <div style="font-size:12px;color:${C.dim};margin-bottom:6px;">
+              לשאלות ניתן לפנות אלינו: <a href="mailto:contact@eventa.productions" style="color:${C.accent};text-decoration:none;" dir="ltr">contact@eventa.productions</a>
+            </div>
+            <div style="font-size:11px;color:#bbb;">&copy; ${ltr(String(new Date().getFullYear()))} ${ltr('Eventa')}</div>
+          </td>
+        </tr>
+      </table>
+
+    </td></tr>
+  </table>
 </body>
 </html>`;
 
@@ -344,55 +441,91 @@ export function buildContactMeInsteadEmail(data: {
     eventName: data.eventName ? escapeHtml(data.eventName) : '',
   };
 
-  const subject = `🔔 לקוח מבקש שנחזור אליו — ${s.name}`;
+  const subject = `לקוח מבקש שניצור קשר \u2014 ${data.contactName}`;
 
-  const html = `
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Tahoma,Arial,sans-serif;">
-  <div style="max-width:560px;margin:0 auto;padding:24px 16px;">
+  const html = `<!DOCTYPE html>
+<html lang="he" dir="rtl" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>${escapeHtml(subject)}</title>
+</head>
+<body style="margin:0;padding:0;background-color:${C.bg};font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
 
-    <!-- Header -->
-    <div style="text-align:center;padding:28px 24px;border-radius:16px 16px 0 0;background:linear-gradient(135deg,#1a1216 0%,#0d0a0b 100%);border-bottom:2px solid rgba(212,165,154,0.3);">
-      <div style="font-size:24px;font-weight:700;color:#d4a59a;letter-spacing:1px;margin-bottom:8px;">EVENTA</div>
-      <div style="font-size:14px;color:#f59e0b;font-weight:600;">⚠️ לקוח שינה דעתו — רוצה שנתקשר</div>
-    </div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${C.bg};">
+    <tr><td align="center" style="padding:32px 16px;">
 
-    <!-- Body -->
-    <div style="background:#141414;padding:24px;border-radius:0 0 16px 16px;">
-      <div style="background:rgba(245,158,11,0.08);border-right:3px solid #f59e0b;border-radius:8px;padding:14px 18px;margin-bottom:20px;">
-        <div style="font-size:14px;color:#f0ede8;">
-          הלקוח <strong>${s.name}</strong> קיבל לינק לתשלום עבור <strong>${s.eventLabel}</strong>${s.eventName ? ` (${s.eventName})` : ''} אבל לחץ על "העדפתי שתצרו איתי קשר".
-        </div>
-      </div>
+      <!-- Main card -->
+      <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;background-color:${C.card};border-radius:12px;overflow:hidden;border:1px solid ${C.border};">
 
-      <div style="background:#1a1a1a;border-radius:10px;padding:16px 18px;border:1px solid #222;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#d4a59a;margin-bottom:12px;font-weight:600;">פרטי קשר</div>
-        <div style="margin-bottom:8px;">
-          <span style="color:#888;">שם: </span>
-          <span style="color:#f0ede8;font-weight:600;">${s.name}</span>
-        </div>
-        <div style="margin-bottom:8px;">
-          <span style="color:#888;">טלפון: </span>
-          <a href="tel:${s.phone}" style="color:#d4a59a;font-weight:600;text-decoration:none;">${s.phone}</a>
-        </div>
-        ${s.email ? `
-        <div>
-          <span style="color:#888;">אימייל: </span>
-          <a href="mailto:${s.email}" style="color:#d4a59a;text-decoration:none;">${s.email}</a>
-        </div>` : ''}
-      </div>
+        <!-- Header -->
+        <tr>
+          <td style="background-color:${C.text};padding:22px 32px;text-align:center;">
+            <div style="font-size:20px;font-weight:700;letter-spacing:3px;color:${C.card};">${ltr('EVENTA')}</div>
+          </td>
+        </tr>
 
-      <div style="margin-top:16px;font-size:12px;color:#666;text-align:center;">
-        מזהה בקשה: ${escapeHtml(data.requestId)}
-      </div>
-    </div>
+        <!-- Alert banner -->
+        <tr>
+          <td style="padding:0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="background-color:${C.warnBg};padding:16px 32px;border-bottom:1px solid ${C.border};">
+                  <div style="font-size:14px;font-weight:600;color:${C.warn};">לקוח שינה העדפה \u2014 מבקש שניצור קשר</div>
+                  <div style="font-size:13px;color:${C.muted};margin-top:4px;">
+                    הלקוח קיבל לינק לתשלום אבל בחר לבקש שנחזור אליו.
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
 
-    <div style="text-align:center;padding:12px;font-size:11px;color:#444;">
-      Eventa — התראת שינוי העדפה
-    </div>
-  </div>
+        <!-- Details -->
+        <tr>
+          <td style="padding:24px 32px;">
+            <div style="font-size:14px;color:${C.text};line-height:1.7;margin-bottom:20px;">
+              <strong>${s.name}</strong> ביקש/ה ליצור קשר טלפוני במקום תשלום אונליין עבור ${s.eventLabel}${s.eventName ? ` (${s.eventName})` : ''}.
+            </div>
+
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background-color:#fafaf8;border-radius:8px;overflow:hidden;">
+              <tr>
+                <td style="padding:12px 16px;border-bottom:1px solid ${C.border};color:${C.muted};font-size:13px;width:70px;">שם</td>
+                <td style="padding:12px 16px;border-bottom:1px solid ${C.border};color:${C.text};font-size:14px;font-weight:600;">${s.name}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 16px;${s.email ? `border-bottom:1px solid ${C.border};` : ''}color:${C.muted};font-size:13px;">טלפון</td>
+                <td style="padding:12px 16px;${s.email ? `border-bottom:1px solid ${C.border};` : ''}">
+                  <a href="tel:${s.phone}" style="color:${C.accent};font-size:15px;font-weight:600;text-decoration:none;" dir="ltr">${s.phone}</a>
+                </td>
+              </tr>
+              ${s.email ? `<tr>
+                <td style="padding:12px 16px;color:${C.muted};font-size:13px;">אימייל</td>
+                <td style="padding:12px 16px;">
+                  <a href="mailto:${s.email}" style="color:${C.accent};font-size:14px;text-decoration:none;" dir="ltr">${s.email}</a>
+                </td>
+              </tr>` : ''}
+            </table>
+
+            <div style="margin-top:16px;font-size:12px;color:${C.dim};">
+              מזהה בקשה: ${ltr(escapeHtml(data.requestId))}
+            </div>
+          </td>
+        </tr>
+
+      </table>
+
+      <!-- Footer -->
+      <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;">
+        <tr>
+          <td style="padding:14px 0;text-align:center;font-size:11px;color:${C.dim};">
+            ${ltr('Eventa')} &middot; התראת שינוי העדפה
+          </td>
+        </tr>
+      </table>
+
+    </td></tr>
+  </table>
 </body>
 </html>`;
 
