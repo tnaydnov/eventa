@@ -232,13 +232,11 @@ export default function LandingPage() {
           />
         </div>
         <div className="landing-footer__links">
+          <a href="/how-it-works">איך זה עובד</a>
+          <a href="/faq">שאלות נפוצות</a>
           <a href="/privacy">מדיניות פרטיות</a>
           <a href="/terms">תנאי שימוש</a>
           <a href="/cookies">מדיניות עוגיות</a>
-          <a href="/safety">טיפים לבטיחות</a>
-          <a href="/community">כללי קהילה</a>
-          <a href="/faq">שאלות נפוצות</a>
-          <a href="/about">אודות</a>
         </div>
         <p className="landing-footer__copy">
           © {new Date().getFullYear()} Eventa. כל הזכויות שמורות.
