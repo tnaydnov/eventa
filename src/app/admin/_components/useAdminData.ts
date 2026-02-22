@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { Event } from '@/lib/database.types';
-import { adminFetch, type EventStats, type AdminParticipant } from './shared';
+import { adminFetch, type EventStats, type AdminParticipant, type EventRequest } from './shared';
 
 /**
  * Custom hook encapsulating all admin data fetching, mutations, and state.
@@ -15,6 +15,7 @@ export function useAdminData() {
   const [stats, setStats] = useState<Record<string, EventStats>>({});
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [participants, setParticipants] = useState<AdminParticipant[]>([]);
+  const [requests, setRequests] = useState<EventRequest[]>([]);
 
   /** Wrapper around adminFetch that resets auth state on 401 */
   const authedFetch: typeof adminFetch = useCallback(async (url, init) => {
@@ -218,12 +219,58 @@ export function useAdminData() {
     }
   };
 
+  /* ─── requests ─── */
+  const loadRequests = useCallback(async () => {
+    try {
+      const res = await authedFetch('/api/admin/requests');
+      if (res.ok) {
+        const data = await res.json();
+        setRequests(data.requests || []);
+      }
+    } catch (err) {
+      console.warn('[useAdminData] loadRequests failed:', err);
+    }
+  }, [authedFetch]);
+
+  const approveRequest = async (requestId: string, adminNotes?: string): Promise<{ ok: boolean; error?: string }> => {
+    const res = await authedFetch('/api/admin/requests', {
+      method: 'POST',
+      body: JSON.stringify({ requestId, action: 'approve', adminNotes }),
+    });
+    if (res.ok) {
+      loadRequests();
+      loadEvents();
+      return { ok: true };
+    }
+    const err = await res.json().catch(() => ({}));
+    return { ok: false, error: err.error || 'שגיאה באישור הבקשה' };
+  };
+
+  const denyRequest = async (requestId: string, adminNotes?: string): Promise<{ ok: boolean; error?: string }> => {
+    const res = await authedFetch('/api/admin/requests', {
+      method: 'POST',
+      body: JSON.stringify({ requestId, action: 'deny', adminNotes }),
+    });
+    if (res.ok) {
+      loadRequests();
+      return { ok: true };
+    }
+    const err = await res.json().catch(() => ({}));
+    return { ok: false, error: err.error || 'שגיאה בדחיית הבקשה' };
+  };
+
+  // Load requests on mount alongside events
+  useEffect(() => {
+    if (authed) loadRequests();
+  }, [authed, loadRequests]);
+
   return {
-    authed, events, loading, stats,
+    authed, events, loading, stats, requests,
     selectedEvent, participants,
     login, logout, loadEvents,
     createEvent, toggleEvent, rotateJoinCode, deleteEvent,
     loadStats, loadParticipants, banParticipant, closeParticipants,
     uploadBackground, removeBackground, updateStatus, archiveEvent,
+    loadRequests, approveRequest, denyRequest,
   };
 }

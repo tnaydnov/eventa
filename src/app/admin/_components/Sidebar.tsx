@@ -4,13 +4,14 @@ import { EVENT_STATUS_LABELS } from '@/lib/constants';
 import type { EventStatus } from '@/lib/database.types';
 
 /** Navigation view the sidebar can switch between. */
-export type AdminView = 'events' | 'global-analytics';
+export type AdminView = 'events' | 'global-analytics' | 'requests';
 
 interface SidebarProps {
   activeView: AdminView;
   onNavigate: (view: AdminView) => void;
   eventCounts: Record<string, number>;
   totalEvents: number;
+  pendingRequestsCount: number;
   onLogout: () => void;
   isOpen: boolean;
   onClose: () => void;
@@ -27,7 +28,7 @@ const STATUS_NAV: { key: string; icon: string; label: string }[] = [
 ];
 
 export default function Sidebar({
-  activeView, onNavigate, eventCounts, totalEvents, onLogout, isOpen, onClose,
+  activeView, onNavigate, eventCounts, totalEvents, pendingRequestsCount, onLogout, isOpen, onClose,
 }: SidebarProps) {
   return (
     <>
@@ -55,6 +56,17 @@ export default function Sidebar({
             <span className="admin-sidebar__nav-icon">📋</span>
             אירועים
             <span style={{ marginRight: 'auto', fontSize: '12px', opacity: 0.7 }}>{totalEvents}</span>
+          </button>
+
+          <button
+            className={`admin-sidebar__nav-item ${activeView === 'requests' ? 'admin-sidebar__nav-item--active' : ''}`}
+            onClick={() => { onNavigate('requests'); onClose(); }}
+          >
+            <span className="admin-sidebar__nav-icon">📩</span>
+            בקשות
+            {pendingRequestsCount > 0 && (
+              <span className="admin-sidebar__badge">{pendingRequestsCount}</span>
+            )}
           </button>
 
           <button

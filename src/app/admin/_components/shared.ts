@@ -264,6 +264,30 @@ export const adminFetch = (url: string, init?: RequestInit) => {
   });
 };
 
+/* ---------- Event Requests ---------- */
+
+export interface EventRequest {
+  id: string;
+  status: 'pending' | 'approved' | 'denied';
+  event_type: string;
+  event_name: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  wants_custom_background: boolean;
+  poster_choice: string | null;
+  selected_template_id: string | null;
+  special_requests: string | null;
+  wants_guest_messages: boolean;
+  contact_preference: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+  admin_notes: string | null;
+  approved_event_id: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+}
+
 /** Generate a URL-safe slug from a string. */
 export const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');

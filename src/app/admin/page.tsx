@@ -11,6 +11,7 @@ import EventsView from './_components/events/EventsView';
 import CreateEventDialog, { type CreateEventData } from './_components/events/CreateEventDialog';
 import EventAnalyticsView from './_components/analytics/EventAnalyticsView';
 import GlobalAnalyticsView from './_components/analytics/GlobalAnalyticsView';
+import RequestsView from './_components/requests/RequestsView';
 import QRDialog from './_components/QRDialog';
 import ParticipantsDialog from './_components/ParticipantsDialog';
 
@@ -49,6 +50,11 @@ export default function AdminPage() {
     }
     return counts;
   }, [admin.events]);
+
+  const pendingRequestsCount = useMemo(
+    () => admin.requests.filter(r => r.status === 'pending').length,
+    [admin.requests],
+  );
 
   /* ─── QR helpers ─── */
   const generateQR = async (event: Event) => {
@@ -155,6 +161,7 @@ export default function AdminPage() {
           onNavigate={handleNavigate}
           eventCounts={statusCounts}
           totalEvents={admin.events.length}
+          pendingRequestsCount={pendingRequestsCount}
           onLogout={admin.logout}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
@@ -208,6 +215,15 @@ export default function AdminPage() {
 
             {activeView === 'global-analytics' && (
               <GlobalAnalyticsView />
+            )}
+
+            {activeView === 'requests' && (
+              <RequestsView
+                requests={admin.requests}
+                onApprove={admin.approveRequest}
+                onDeny={admin.denyRequest}
+                onReload={admin.loadRequests}
+              />
             )}
           </div>
         </main>

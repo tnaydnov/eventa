@@ -2634,3 +2634,337 @@
     min-width: 120px;
   }
 }
+
+/* ═══════════════════════════════
+   SIDEBAR BADGE (pending count)
+   ═══════════════════════════════ */
+.admin-sidebar__badge {
+  margin-right: auto;
+  background: var(--admin-red);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 100px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  line-height: 1;
+}
+
+/* ═══════════════════════════════
+   REQUESTS VIEW
+   ═══════════════════════════════ */
+
+/* ─── Filter tabs ─── */
+.req-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.req-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 100px;
+  color: var(--admin-text-muted);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--admin-transition);
+}
+
+.req-tab:hover {
+  border-color: var(--admin-border-light);
+  color: var(--admin-text);
+}
+
+.req-tab--active {
+  background: var(--admin-accent-dim);
+  border-color: var(--admin-accent);
+  color: var(--admin-accent);
+  font-weight: 600;
+}
+
+.req-tab__count {
+  background: var(--admin-surface-3);
+  color: var(--admin-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 100px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+
+.req-tab--active .req-tab__count {
+  background: var(--admin-accent);
+  color: #fff;
+}
+
+/* ─── Empty state ─── */
+.req-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--admin-text-muted);
+}
+
+.req-empty__icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.req-empty__text {
+  font-size: 15px;
+}
+
+/* ─── Request list ─── */
+.req-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ─── Request card ─── */
+.req-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  overflow: hidden;
+  transition: border-color var(--admin-transition);
+}
+
+.req-card:hover {
+  border-color: var(--admin-border-light);
+}
+
+.req-card--pending {
+  border-right: 3px solid var(--admin-blue);
+}
+
+.req-card--approved {
+  border-right: 3px solid var(--admin-green);
+}
+
+.req-card--denied {
+  border-right: 3px solid var(--admin-red);
+  opacity: 0.7;
+}
+
+.req-card--denied:hover {
+  opacity: 1;
+}
+
+/* ─── Card header (clickable row) ─── */
+.req-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  cursor: pointer;
+  user-select: none;
+  gap: 12px;
+}
+
+.req-card__main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.req-card__type {
+  font-size: 12px;
+  color: var(--admin-text-muted);
+  background: var(--admin-surface-3);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.req-card__name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--admin-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+
+.req-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.req-card__date {
+  font-size: 12px;
+  color: var(--admin-text-dim);
+  white-space: nowrap;
+}
+
+.req-card__expand {
+  font-size: 11px;
+  color: var(--admin-text-muted);
+  transition: transform var(--admin-transition);
+}
+
+/* ─── Card body (expanded) ─── */
+.req-card__body {
+  padding: 0 18px 18px;
+  border-top: 1px solid var(--admin-border);
+  animation: admin-fadeIn 0.15s ease-out;
+}
+
+/* ─── Info grid ─── */
+.req-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.req-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.req-info-label {
+  font-size: 11px;
+  color: var(--admin-text-dim);
+  font-weight: 500;
+}
+
+.req-info-value {
+  font-size: 13px;
+  color: var(--admin-text);
+}
+
+/* ─── Special requests box ─── */
+.req-special {
+  margin-top: 14px;
+  background: var(--admin-surface-2);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  padding: 12px;
+}
+
+.req-special__label {
+  font-size: 12px;
+  color: var(--admin-text-muted);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.req-special__text {
+  font-size: 13px;
+  color: var(--admin-text);
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+/* ─── Contact info ─── */
+.req-contact {
+  margin-top: 14px;
+}
+
+.req-contact__label {
+  font-size: 12px;
+  color: var(--admin-text-muted);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.req-contact__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.req-contact__item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.req-contact__link {
+  font-size: 13px;
+  color: var(--admin-accent);
+  text-decoration: none;
+  direction: ltr;
+  display: inline;
+}
+
+.req-contact__link:hover {
+  text-decoration: underline;
+}
+
+/* ─── Admin notes textarea ─── */
+.req-notes {
+  margin-top: 14px;
+}
+
+.req-notes__textarea {
+  resize: vertical;
+  min-height: 48px;
+}
+
+/* ─── Actions row ─── */
+.req-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+/* ─── Reviewed timestamp ─── */
+.req-reviewed {
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--admin-text-dim);
+}
+
+/* ─── Approved link ─── */
+.req-approved-link {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: var(--admin-green-dim);
+  color: var(--admin-green);
+  border-radius: var(--admin-radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 640px) {
+  .req-card__name {
+    max-width: 160px;
+  }
+
+  .req-info-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .req-actions {
+    flex-direction: column;
+  }
+
+  .req-actions .admin-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

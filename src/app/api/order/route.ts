@@ -4,12 +4,16 @@ import nodemailer from 'nodemailer';
 import { checkCsrf } from '@/lib/session';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
-import { EVENT_TYPE_LABELS } from '@/lib/constants';
+import { getServiceClient } from '@/lib/supabase';
 import {
   ORDER_NAME_MAX_LENGTH,
   ORDER_PHONE_MAX_LENGTH,
   ORDER_EMAIL_MAX_LENGTH,
 } from '@/lib/config';
+import {
+  buildAdminNotificationEmail,
+  buildClientPaymentEmail,
+} from '@/lib/email-templates';
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -20,16 +24,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.SMTP_PASS,
   },
 });
-
-/** Escape HTML special characters to prevent injection in email template. */
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
 
 /** Zod schema for order form - validates and sanitizes all inputs. */
 const orderSchema = z.object({
@@ -56,7 +50,11 @@ const orderSchema = z.object({
 
 /**
  * POST /api/order
- * Receives a new order form submission and sends an email notification.
+ * Receives a new order form submission:
+ *  1. Saves to `event_requests` table (pending admin approval)
+ *  2. Sends a professional notification email to admin
+ *  3. If client chose "send-link" → sends payment email to client
+ *
  * Protected by CSRF + rate limiting (no session required - public form).
  */
 export async function POST(request: NextRequest) {
@@ -82,7 +80,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const { eventType, eventDate, contactName, contactPhone, contactEmail } = parsed.data;
+    const { eventType, contactName, contactPhone, contactEmail } = parsed.data;
 
     // Extended wizard fields (may be undefined for simple form submissions)
     const isWizard = parsed.data.source === 'wizard';
@@ -97,31 +95,59 @@ export async function POST(request: NextRequest) {
     const contactPref = parsed.data.contactPreference || 'call-me';
     const hasBgImage = wantsCustomBg && !!parsed.data.backgroundBase64;
 
-    // Escape ALL user input before interpolating into HTML template
-    const safeEventLabel = escapeHtml(EVENT_TYPE_LABELS[eventType] || eventType);
-    const safeDate = escapeHtml(eventDate);
-    const safeName = escapeHtml(contactName);
-    const safePhone = escapeHtml(contactPhone);
-    const safeEmail = contactEmail ? escapeHtml(contactEmail) : '';
-    const safeEventName = escapeHtml(eventName);
-    const safeStartsAt = escapeHtml(startsAt);
-    const safeEndsAt = escapeHtml(endsAt);
-    const safeTemplate = escapeHtml(selectedTemplate);
-    const safeSpecialReqs = escapeHtml(specialReqs);
+    // ── 1. Save to event_requests table ──
+    let requestId = '';
+    if (isWizard) {
+      const supabase = getServiceClient();
+      const { data: reqRow, error: dbErr } = await supabase
+        .from('event_requests')
+        .insert({
+          event_type: eventType,
+          event_name: eventName,
+          starts_at: startsAt || new Date().toISOString(),
+          ends_at: endsAt || new Date(Date.now() + 86_400_000).toISOString(),
+          wants_custom_background: wantsCustomBg,
+          background_base64: hasBgImage ? parsed.data.backgroundBase64 : null,
+          poster_choice: posterChoice,
+          selected_template_id: selectedTemplate || null,
+          special_requests: specialReqs || null,
+          wants_guest_messages: wantsMessages,
+          contact_preference: contactPref,
+          contact_name: contactName,
+          contact_phone: contactPhone,
+          contact_email: contactEmail || null,
+        })
+        .select('id')
+        .single();
 
-    // Build wizard-specific sections
-    const wizardSections = isWizard ? `
-          <div style="background: #f0f7ff; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
-            <h2 style="font-size: 18px; color: #333; margin: 0 0 12px;">⚙️ פרטים מורחבים (Wizard)</h2>
-            ${safeEventName ? `<p style="margin: 4px 0; color: #555;"><strong>שם האירוע:</strong> ${safeEventName}</p>` : ''}
-            ${safeStartsAt ? `<p style="margin: 4px 0; color: #555;"><strong>התחלה:</strong> ${safeStartsAt}</p>` : ''}
-            ${safeEndsAt ? `<p style="margin: 4px 0; color: #555;"><strong>סיום:</strong> ${safeEndsAt}</p>` : ''}
-            <p style="margin: 4px 0; color: #555;"><strong>רקע מותאם:</strong> ${wantsCustomBg ? '✅ כן' : '❌ לא'}${hasBgImage ? ' (תמונה מצורפת)' : ''}</p>
-            <p style="margin: 4px 0; color: #555;"><strong>פוסטר:</strong> ${posterChoice === 'qr-only' ? 'QR בלבד' : `תבנית: ${safeTemplate}`}</p>
-            ${safeSpecialReqs ? `<p style="margin: 4px 0; color: #555;"><strong>בקשות מיוחדות:</strong> ${safeSpecialReqs}</p>` : ''}
-            <p style="margin: 4px 0; color: #555;"><strong>הודעות לאורחים:</strong> ${wantsMessages ? '✅ כן' : '❌ לא'}</p>
-            <p style="margin: 4px 0; color: #555;"><strong>העדפת קשר:</strong> ${contactPref === 'call-me' ? '📞 צרו איתי קשר' : '🔗 שלחו לינק לתשלום'}</p>
-          </div>` : '';
+      if (dbErr) {
+        logger.error('Failed to save event request to DB', { error: dbErr.message });
+        // Continue even if DB save fails — email is still important
+      } else {
+        requestId = reqRow.id;
+      }
+    }
+
+    // ── 2. Build & send admin notification email ──
+    const orderData = {
+      eventType,
+      eventName,
+      startsAt,
+      endsAt,
+      contactName,
+      contactPhone,
+      contactEmail: contactEmail || '',
+      wantsCustomBackground: wantsCustomBg,
+      hasBgImage,
+      posterChoice,
+      selectedTemplate,
+      specialRequests: specialReqs,
+      wantsGuestMessages: wantsMessages,
+      contactPreference: contactPref,
+      isWizard,
+    };
+
+    const adminEmail = buildAdminNotificationEmail(orderData);
 
     // If wizard submission includes a background image, attach it
     const attachments: Array<{ filename: string; content: Buffer; cid: string }> = [];
@@ -137,37 +163,49 @@ export async function POST(request: NextRequest) {
     await transporter.sendMail({
       from: `"Eventa" <${process.env.SMTP_USER}>`,
       to: 'contact@eventa.productions',
-      subject: `🎉 הזמנה חדשה${isWizard ? ' (Wizard)' : ''} - ${safeEventLabel} | ${safeName}`,
-      html: `
-        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
-          <h1 style="color: #d4a59a; font-size: 24px; margin-bottom: 24px;">📋 הזמנה חדשה מהאתר${isWizard ? ' (Wizard)' : ''}</h1>
-          
-          <div style="background: #f9f9f9; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
-            <h2 style="font-size: 18px; color: #333; margin: 0 0 12px;">פרטי האירוע</h2>
-            <p style="margin: 4px 0; color: #555;"><strong>סוג:</strong> ${safeEventLabel}</p>
-            <p style="margin: 4px 0; color: #555;"><strong>תאריך:</strong> ${safeDate}</p>
-          </div>
-
-          ${wizardSections}
-
-          <div style="background: #f9f9f9; border-radius: 12px; padding: 20px;">
-            <h2 style="font-size: 18px; color: #333; margin: 0 0 12px;">פרטי יצירת קשר</h2>
-            <p style="margin: 4px 0; color: #555;"><strong>שם:</strong> ${safeName}</p>
-            <p style="margin: 4px 0; color: #555;"><strong>טלפון:</strong> <a href="tel:${safePhone}">${safePhone}</a></p>
-            ${safeEmail ? `<p style="margin: 4px 0; color: #555;"><strong>אימייל:</strong> <a href="mailto:${safeEmail}">${safeEmail}</a></p>` : ''}
-          </div>
-
-          <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
-          <p style="font-size: 12px; color: #999;">נשלח מ${isWizard ? 'ויזארד ההזמנות' : 'טופס ההזמנה'} באתר eventa.productions</p>
-        </div>
-      `,
+      subject: adminEmail.subject,
+      html: adminEmail.html,
       ...(attachments.length > 0 ? { attachments } : {}),
     });
 
-    logger.info('Order email sent', { eventType, contactName: safeName, source: isWizard ? 'wizard' : 'form' });
+    // ── 3. If client chose "send-link" and has email → send payment email ──
+    if (isWizard && contactPref === 'send-link' && contactEmail && requestId) {
+      try {
+        const baseUrl = `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host') || 'eventa.productions'}`;
+        const paymentEmail = buildClientPaymentEmail({
+          contactName,
+          contactEmail,
+          eventType,
+          eventName,
+          requestId,
+          baseUrl,
+        });
+
+        await transporter.sendMail({
+          from: `"Eventa" <${process.env.SMTP_USER}>`,
+          to: contactEmail,
+          subject: paymentEmail.subject,
+          html: paymentEmail.html,
+        });
+
+        logger.info('Payment email sent to client', { contactEmail, requestId });
+      } catch (emailErr) {
+        // Don't fail the whole request if client email fails
+        logger.error('Failed to send payment email', {
+          error: emailErr instanceof Error ? emailErr.message : String(emailErr),
+        });
+      }
+    }
+
+    logger.info('Order processed', {
+      eventType,
+      contactName,
+      source: isWizard ? 'wizard' : 'form',
+      requestId: requestId || 'n/a',
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error('Order email error', { error: error instanceof Error ? error.message : String(error) });
+    logger.error('Order error', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: 'Failed to send order' }, { status: 500 });
   }
 }
