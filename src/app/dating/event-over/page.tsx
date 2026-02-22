@@ -139,8 +139,8 @@ function EventOverContent() {
           <Image
             src="/icons/Eventa_Logo.png"
             alt="Eventa"
-            width={48}
-            height={48}
+            width={120}
+            height={120}
             style={{ objectFit: 'contain' }}
             priority
           />
