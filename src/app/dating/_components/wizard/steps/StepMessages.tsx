@@ -50,7 +50,7 @@ export default function StepMessages({ state, onChange }: Props) {
           <span className="wiz-toggle__icon"><WizardIcon name="chat" size={22} /></span>
           <div className="wiz-toggle__content">
             <p className="wiz-toggle__title">כן, שלחו הודעות</p>
-            <p className="wiz-toggle__desc">SMS / WhatsApp לאורחים ביום האירוע</p>
+            <p className="wiz-toggle__desc">WhatsApp לאורחים ביום האירוע</p>
           </div>
           <span className="wiz-toggle__price">+₪50</span>
           <span className="wiz-toggle__switch" />

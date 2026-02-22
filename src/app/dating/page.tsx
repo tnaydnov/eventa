@@ -41,13 +41,6 @@ const FEATURES = [
   },
 ];
 
-const STEPS = [
-  { num: '1', title: 'פונים אלינו', desc: 'שולחים את פרטי האירוע - סוג, תאריך ופרטים שלכם. אנחנו חוזרים תוך 48 שעות עם הצעה מותאמת.' },
-  { num: '2', title: 'מפיצים QR', desc: 'מקבלים QR ייחודי לאירוע ושמים אותו בכניסה, על הבר, בסטורי - איפה שתרצו.' },
-  { num: '3', title: 'האורחים סורקים', desc: 'סריקת QR, בניית פרופיל תוך דקה, ומיד אפשר לגלול בין הרווקים והרווקות באירוע.' },
-  { num: '4', title: 'הקסם קורה', desc: 'לייקים, מאצ׳ים ושיחות - האורחים נהנים והחיבורים נוצרים מעצמם.' },
-];
-
 export default function LandingPage() {
   const revealRef = useRef<HTMLDivElement>(null);
 
@@ -81,7 +74,7 @@ export default function LandingPage() {
         <div className="landing-nav__links">
           <button className="landing-nav__link" onClick={() => scrollTo('features')}>מה זה?</button>
           <button className="landing-nav__link" onClick={() => scrollTo('demo')}>דמו חי</button>
-          <button className="landing-nav__link" onClick={() => scrollTo('how')}>איך זה עובד</button>
+          <a className="landing-nav__link" href="/pricing">מחירון</a>
         </div>
         <a className="landing-nav__cta" href="/dating/order">הזמינו עכשיו</a>
       </nav>
@@ -186,23 +179,46 @@ export default function LandingPage() {
 
       <div className="landing-accent-line" />
 
-      {/* ═══ How It Works ═══ */}
-      <section id="how" className="landing-section landing-steps reveal">
-        <span className="landing-badge">🚀 פשוט וקל</span>
-        <h2 className="landing-heading" style={{ fontSize: 'clamp(26px, 4vw, 42px)' }}>
-          איך זה <span className="gradient-text">עובד</span>?
-        </h2>
-        <p className="landing-subheading" style={{ margin: '0 auto' }}>
-          ארבעה שלבים פשוטים - מפנייה ראשונה ועד חיבורים אמיתיים באירוע.
-        </p>
-        <div className="landing-steps__row">
-          {STEPS.map(s => (
-            <div key={s.num} className="step-card">
-              <div className="step-card__num">{s.num}</div>
-              <h3 className="step-card__title">{s.title}</h3>
-              <p className="step-card__desc">{s.desc}</p>
+      {/* ═══ Quick Links ═══ */}
+      <section className="landing-section landing-quicklinks reveal">
+        <div className="quicklinks">
+          <a href="/how-it-works" className="quicklink-card">
+            <div className="quicklink-card__icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
             </div>
-          ))}
+            <h3 className="quicklink-card__title">איך זה עובד?</h3>
+            <p className="quicklink-card__desc">4 שלבים פשוטים מהפנייה ועד האירוע</p>
+            <span className="quicklink-card__arrow">&larr;</span>
+          </a>
+
+          <a href="/faq" className="quicklink-card">
+            <div className="quicklink-card__icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                <line x1="9" y1="9" x2="15" y2="9" />
+                <line x1="9" y1="13" x2="13" y2="13" />
+              </svg>
+            </div>
+            <h3 className="quicklink-card__title">שאלות נפוצות</h3>
+            <p className="quicklink-card__desc">תשובות לכל מה שצריך לדעת</p>
+            <span className="quicklink-card__arrow">&larr;</span>
+          </a>
+
+          <a href="/pricing" className="quicklink-card">
+            <div className="quicklink-card__icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+              </svg>
+            </div>
+            <h3 className="quicklink-card__title">מחירון</h3>
+            <p className="quicklink-card__desc">תמחור שקוף — ₪250 לאירוע</p>
+            <span className="quicklink-card__arrow">&larr;</span>
+          </a>
         </div>
       </section>
 
@@ -267,6 +283,7 @@ export default function LandingPage() {
         <div className="landing-footer__links">
           <a href="/how-it-works">איך זה עובד</a>
           <a href="/faq">שאלות נפוצות</a>
+          <a href="/pricing">מחירון</a>
           <a href="/privacy">מדיניות פרטיות</a>
           <a href="/terms">תנאי שימוש</a>
           <a href="/cookies">מדיניות עוגיות</a>

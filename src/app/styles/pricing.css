@@ -1,0 +1,309 @@
+/* ═══════════════════════════════════════════
+   Pricing Page
+   ═══════════════════════════════════════════ */
+
+.pricing-page {
+  position: relative;
+  min-height: 100dvh;
+  background: #080808;
+  color: var(--foreground, #ece8e4);
+  font-family: var(--font-rubik, 'Rubik', sans-serif);
+  overflow: hidden;
+}
+
+/* ── Background glow ── */
+.pricing-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.pricing-glow::before {
+  content: '';
+  position: absolute;
+  width: 55vw;
+  height: 55vw;
+  max-width: 550px;
+  max-height: 550px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 165, 154, 0.10), transparent 70%);
+  top: -10%;
+  right: -15%;
+  filter: blur(100px);
+}
+
+.pricing-glow::after {
+  content: '';
+  position: absolute;
+  width: 40vw;
+  height: 40vw;
+  max-width: 400px;
+  max-height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(140, 110, 160, 0.07), transparent 70%);
+  bottom: -5%;
+  left: -10%;
+  filter: blur(100px);
+}
+
+/* ── Header ── */
+.pricing-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  padding: 32px 24px 0;
+}
+
+.pricing-header__logo {
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+.pricing-header__logo:hover {
+  opacity: 1;
+}
+
+/* ── Content ── */
+.pricing-content {
+  position: relative;
+  z-index: 1;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 48px 24px 64px;
+  text-align: center;
+}
+
+.pricing-title {
+  font-size: clamp(30px, 5vw, 48px);
+  font-weight: 700;
+  margin: 0 0 16px;
+  line-height: 1.2;
+}
+
+.pricing-title__accent {
+  background: linear-gradient(135deg, var(--primary, #D4A59A), var(--primary-light, #E8C4BB));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.pricing-subtitle {
+  font-size: 16px;
+  color: var(--text-muted, #b0b0b0);
+  line-height: 1.7;
+  margin: 0 auto 48px;
+  max-width: 540px;
+}
+
+/* ── Cards grid ── */
+.pricing-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+/* ── Single card ── */
+.pricing-card {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  padding: 36px 28px 32px;
+  text-align: center;
+  transition: border-color 0.3s, transform 0.35s;
+  position: relative;
+}
+
+.pricing-card:hover {
+  border-color: rgba(212, 165, 154, 0.25);
+  transform: translateY(-4px);
+}
+
+.pricing-card--base {
+  border-color: rgba(212, 165, 154, 0.2);
+}
+
+/* ── Badge ── */
+.pricing-card__badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--primary, #D4A59A);
+  background: rgba(212, 165, 154, 0.1);
+  border: 1px solid rgba(212, 165, 154, 0.2);
+  border-radius: 20px;
+  padding: 5px 16px;
+  margin-bottom: 24px;
+}
+
+.pricing-card__badge--addon {
+  color: #a78bfa;
+  background: rgba(167, 139, 250, 0.08);
+  border-color: rgba(167, 139, 250, 0.15);
+}
+
+/* ── Price ── */
+.pricing-card__price {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.pricing-card__plus {
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--text-muted, #b0b0b0);
+}
+
+.pricing-card__currency {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--primary, #D4A59A);
+}
+
+.pricing-card__amount {
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--foreground, #ece8e4);
+}
+
+.pricing-card__per {
+  font-size: 14px;
+  color: var(--text-muted, #b0b0b0);
+  margin: 0 0 28px;
+}
+
+/* ── Features list ── */
+.pricing-card__features {
+  list-style: none;
+  margin: 0 0 28px;
+  padding: 0;
+  text-align: right;
+}
+
+.pricing-card__features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--foreground, #ece8e4);
+  padding: 8px 0;
+  line-height: 1.5;
+}
+
+.pricing-check {
+  flex-shrink: 0;
+  color: var(--primary, #D4A59A);
+  margin-top: 2px;
+}
+
+.pricing-check--addon {
+  color: #a78bfa;
+}
+
+/* ── CTA button ── */
+.pricing-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--primary, #D4A59A), var(--primary-dark, #b08d7e));
+  color: #1a1a1a;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.35s, box-shadow 0.35s;
+  box-shadow: 0 4px 16px rgba(212, 165, 154, 0.2);
+}
+
+.pricing-card__cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(212, 165, 154, 0.3);
+}
+
+/* ── Note ── */
+.pricing-card__note {
+  font-size: 13px;
+  color: var(--text-muted, #b0b0b0);
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+/* ── Total strip ── */
+.pricing-total {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px 32px;
+  border-radius: 14px;
+  border: 1px solid rgba(212, 165, 154, 0.15);
+  background: rgba(212, 165, 154, 0.04);
+  margin-bottom: 32px;
+}
+
+.pricing-total__label {
+  font-size: 15px;
+  color: var(--text-muted, #b0b0b0);
+}
+
+.pricing-total__value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary, #D4A59A);
+}
+
+/* ── FAQ link ── */
+.pricing-faq-link {
+  font-size: 14px;
+  color: var(--text-muted, #b0b0b0);
+}
+
+.pricing-faq-link a {
+  color: var(--primary, #D4A59A);
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.pricing-faq-link a:hover {
+  opacity: 0.8;
+}
+
+/* ── Footer ── */
+.pricing-footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 24px;
+  font-size: 12px;
+  color: var(--text-muted, #b0b0b0);
+  opacity: 0.5;
+}
+
+/* ═══ Responsive ═══ */
+@media (max-width: 640px) {
+  .pricing-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .pricing-card {
+    padding: 28px 20px 24px;
+  }
+
+  .pricing-card__amount {
+    font-size: 44px;
+  }
+
+  .pricing-content {
+    padding: 32px 16px 48px;
+  }
+}

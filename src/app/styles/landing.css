@@ -829,6 +829,86 @@
   line-height: 1.6;
 }
 
+/* ═══ Quick Links Bar ═══ */
+.landing-quicklinks {
+  padding-top: 40px !important;
+  padding-bottom: 40px !important;
+}
+
+.quicklinks {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.quicklink-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 28px 20px 24px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+.quicklink-card:hover {
+  border-color: rgba(212, 165, 154, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-4px);
+}
+
+.quicklink-card__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(212, 165, 154, 0.08);
+  border: 1px solid rgba(212, 165, 154, 0.15);
+  color: var(--primary);
+  margin-bottom: 16px;
+  transition: background 0.3s;
+}
+
+.quicklink-card:hover .quicklink-card__icon {
+  background: rgba(212, 165, 154, 0.14);
+}
+
+.quicklink-card__title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 6px;
+  color: var(--foreground);
+}
+
+.quicklink-card__desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+.quicklink-card__arrow {
+  font-size: 18px;
+  color: var(--primary);
+  opacity: 0;
+  transform: translateX(6px);
+  transition: all 0.3s ease;
+}
+
+.quicklink-card:hover .quicklink-card__arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
 /* ═══ Order / CTA Form ═══ */
 .landing-order {
   text-align: center;
@@ -1225,6 +1305,12 @@
 
   .feature-card {
     padding: 28px 20px;
+  }
+
+  .quicklinks {
+    grid-template-columns: 1fr;
+    max-width: 360px;
+    margin: 0 auto;
   }
 }
 

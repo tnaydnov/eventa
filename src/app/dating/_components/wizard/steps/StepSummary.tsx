@@ -118,7 +118,7 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
         </div>
         {state.wantsGuestMessages && (
           <div className="wiz-price__row">
-            <span>הודעות לאורחים (SMS / WhatsApp)</span>
+            <span>הודעות לאורחים (WhatsApp)</span>
             <span>₪50</span>
           </div>
         )}

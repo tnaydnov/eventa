@@ -153,6 +153,29 @@ function shell(title: string, inner: string, subtitle?: string): string {
 </html>`;
 }
 
+/** Build the price breakdown table shared by admin & client emails. */
+function priceBlock(wantsGuestMessages: boolean): string {
+  const base = 250;
+  const msgAddon = wantsGuestMessages ? 50 : 0;
+  const total = base + msgAddon;
+
+  return `
+        <!-- Price breakdown -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:24px 32px 0;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">עלות</div>
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
+              ${row('חבילה בסיסית', ltr(`\u20AA${base}`))}
+              ${wantsGuestMessages ? row('הודעות לאורחים', ltr(`\u20AA${msgAddon}`)) : ''}
+              <tr>
+                <td dir="rtl" style="text-align:right;padding:14px 0 14px 12px;background-color:${C.card};color:${C.accent};font-size:15px;font-weight:700;width:90px;border-top:2px solid ${C.accent};vertical-align:top;">סה\u05F4כ</td>
+                <td dir="rtl" style="text-align:right;padding:14px 12px 14px 0;background-color:${C.card};color:${C.text};font-size:18px;font-weight:700;border-top:2px solid ${C.accent};">${ltr(`\u20AA${total}`)}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>`;
+}
+
 /** Build the event details + options sections shared by admin & client emails. */
 function eventDetailsBlock(data: OrderData): string {
   const s = {
@@ -233,6 +256,8 @@ export function buildAdminNotificationEmail(data: OrderData): { subject: string;
         </tr>
 
         ${eventDetailsBlock(data)}
+
+        ${priceBlock(data.wantsGuestMessages)}
 
         <!-- Contact preference row -->
         <tr>
@@ -379,6 +404,8 @@ export function buildClientPaymentEmail(data: {
         </tr>
 
         ${eventDetailsBlock(orderLike)}
+
+        ${priceBlock(data.wantsGuestMessages)}
 
         <!-- Separator -->
         <tr>
