@@ -2,6 +2,7 @@
 
 import type { WizardFormState, WizardTypeConfig } from '../wizard-config';
 import { WIZARD_TYPES } from '../wizard-config';
+import WizardIcon from '../WizardIcons';
 
 interface Props {
   state: WizardFormState;
@@ -32,7 +33,7 @@ export default function StepEventType({ state, onChange }: Props) {
                 <path d="M2 6l3 3 5-5" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </span>
-            <span className="wiz-type-card__icon">{t.icon}</span>
+            <span className="wiz-type-card__icon"><WizardIcon name={t.icon} size={32} /></span>
             <span className="wiz-type-card__label">{t.label}</span>
             <span className="wiz-type-card__desc">{t.description}</span>
           </button>

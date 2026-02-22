@@ -15,6 +15,7 @@ import StepBackground from './steps/StepBackground';
 import StepPoster from './steps/StepPoster';
 import StepMessages from './steps/StepMessages';
 import StepSummary from './steps/StepSummary';
+import WizardIcon from './WizardIcons';
 
 // ─── Helpers ────────────────────────────────────────────
 
@@ -306,7 +307,7 @@ export default function Wizard() {
                     <path d="M3 7l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                   </svg>
                 ) : (
-                  <span style={{ fontSize: '12px' }}>{s.icon}</span>
+                  <WizardIcon name={s.icon} size={16} />
                 )}
               </div>
               <span className="wiz-progress__label">{s.label}</span>

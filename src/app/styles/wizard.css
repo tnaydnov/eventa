@@ -360,7 +360,10 @@
 }
 
 .wiz-type-card__icon {
-  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   z-index: 1;
@@ -504,7 +507,10 @@
 }
 
 .wiz-toggle__icon {
-  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
   flex-shrink: 0;
 }
 
@@ -580,7 +586,10 @@
 }
 
 .wiz-upload__icon {
-  font-size: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
   margin-bottom: 12px;
   opacity: 0.6;
 }
@@ -712,7 +721,10 @@
 }
 
 .wiz-poster--qr .wiz-poster__qr-icon {
-  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
   opacity: 0.5;
   transition: opacity 0.3s;
 }
@@ -784,6 +796,18 @@
   font-size: 15px;
   font-weight: 500;
   color: var(--foreground);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Inline SVG icon inside summary card value text */
+.wiz-summary__inline-icon {
+  display: inline-block;
+  vertical-align: middle;
+  color: var(--primary);
+  flex-shrink: 0;
 }
 
 .wiz-summary__card-edit {
@@ -832,7 +856,10 @@
 }
 
 .wiz-contact-opt__icon {
-  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
   margin-bottom: 8px;
 }
 

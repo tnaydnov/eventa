@@ -2,6 +2,7 @@
 
 import type { WizardFormState } from '../wizard-config';
 import { WIZARD_TYPE_MAP } from '../wizard-config';
+import WizardIcon from '../WizardIcons';
 
 interface Props {
   state: WizardFormState;
@@ -39,7 +40,7 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
           <div className="wiz-summary__card-content">
             <div className="wiz-summary__card-label">סוג אירוע</div>
             <div className="wiz-summary__card-value">
-              {typeConfig?.icon} {typeConfig?.label}
+              {typeConfig && <WizardIcon name={typeConfig.icon} size={16} className="wiz-summary__inline-icon" />} {typeConfig?.label}
             </div>
           </div>
           <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(0)}>
@@ -66,7 +67,10 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
           <div className="wiz-summary__card-content">
             <div className="wiz-summary__card-label">רקע</div>
             <div className="wiz-summary__card-value">
-              {state.wantsCustomBackground ? '📎 רקע מותאם אישית' : '🌑 ברירת מחדל'}
+              {state.wantsCustomBackground
+                ? <><WizardIcon name="paperclip" size={14} className="wiz-summary__inline-icon" /> רקע מותאם אישית</>
+                : <><WizardIcon name="moon" size={14} className="wiz-summary__inline-icon" /> ברירת מחדל</>
+              }
             </div>
           </div>
           <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(2)}>
@@ -78,7 +82,10 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
           <div className="wiz-summary__card-content">
             <div className="wiz-summary__card-label">פוסטר</div>
             <div className="wiz-summary__card-value">
-              {state.posterChoice === 'qr-only' ? '📲 QR בלבד' : `🖼️ תבנית: ${state.selectedTemplateId ?? ''}`}
+              {state.posterChoice === 'qr-only'
+                ? <><WizardIcon name="qr" size={14} className="wiz-summary__inline-icon" /> QR בלבד</>
+                : <><WizardIcon name="image" size={14} className="wiz-summary__inline-icon" /> תבנית: {state.selectedTemplateId ?? ''}</>
+              }
               {state.specialRequests && ' + בקשות מיוחדות'}
             </div>
           </div>
@@ -91,7 +98,10 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
           <div className="wiz-summary__card-content">
             <div className="wiz-summary__card-label">הודעות לאורחים</div>
             <div className="wiz-summary__card-value">
-              {state.wantsGuestMessages ? '💬 כן, שלחו הודעות' : '🚫 לא'}
+              {state.wantsGuestMessages
+                ? <><WizardIcon name="chat" size={14} className="wiz-summary__inline-icon" /> כן, שלחו הודעות</>
+                : <><WizardIcon name="x-circle" size={14} className="wiz-summary__inline-icon" /> לא</>
+              }
             </div>
           </div>
           <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(4)}>
@@ -114,7 +124,7 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
           className={`wiz-contact-opt${state.contactPreference === 'call-me' ? ' wiz-contact-opt--selected' : ''}`}
           onClick={() => onChange({ contactPreference: 'call-me' })}
         >
-          <div className="wiz-contact-opt__icon">📞</div>
+          <div className="wiz-contact-opt__icon"><WizardIcon name="phone" size={22} /></div>
           <div className="wiz-contact-opt__label">צרו איתי קשר</div>
           <div className="wiz-contact-opt__desc">נחזור אליכם תוך 24 שעות</div>
         </button>
@@ -124,7 +134,7 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
           className={`wiz-contact-opt${state.contactPreference === 'send-link' ? ' wiz-contact-opt--selected' : ''}`}
           onClick={() => onChange({ contactPreference: 'send-link' })}
         >
-          <div className="wiz-contact-opt__icon">🔗</div>
+          <div className="wiz-contact-opt__icon"><WizardIcon name="link" size={22} /></div>
           <div className="wiz-contact-opt__label">שלחו לי לינק</div>
           <div className="wiz-contact-opt__desc">לינק לתשלום ישירות</div>
         </button>

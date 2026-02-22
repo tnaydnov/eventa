@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { WizardFormState, PosterTemplate } from '../wizard-config';
 import { getTemplatesForType } from '../wizard-config';
+import WizardIcon from '../WizardIcons';
 
 interface Props {
   state: WizardFormState;
@@ -59,7 +60,7 @@ export default function StepPoster({ state, onChange }: Props) {
                 <path d="M2 6l3 3 5-5" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </span>
-            <span className="wiz-poster__qr-icon">📲</span>
+            <span className="wiz-poster__qr-icon"><WizardIcon name="qr" size={30} /></span>
             <span className="wiz-poster__qr-text">QR בלבד<br />בלי פוסטר</span>
           </button>
 

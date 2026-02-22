@@ -41,7 +41,7 @@ export const WIZARD_TYPES: WizardTypeConfig[] = [
   {
     key: 'wedding',
     label: 'חתונה',
-    icon: '💒',
+    icon: 'rings',
     description: 'שכבת היכרויות לרווקים והרווקות באירוע',
     nameField: {
       required: true,
@@ -56,7 +56,7 @@ export const WIZARD_TYPES: WizardTypeConfig[] = [
   {
     key: 'party',
     label: 'מסיבה',
-    icon: '🎉',
+    icon: 'glass',
     description: 'מסיבה פרטית, מועדון, אירוע חברתי',
     nameField: {
       required: false,
@@ -68,37 +68,9 @@ export const WIZARD_TYPES: WizardTypeConfig[] = [
     supportsGuestMessages: true,
   },
   {
-    key: 'bar_mitzvah',
-    label: 'בר / בת מצווה',
-    icon: '🎓',
-    description: 'אירוע בר או בת מצווה',
-    nameField: {
-      required: true,
-      label: 'שם החוגג/ת',
-      placeholder: 'נועם',
-    },
-    posterCatalog: 'bar_mitzvah',
-    defaultDurationHours: 5,
-    supportsGuestMessages: true,
-  },
-  {
-    key: 'brit',
-    label: 'ברית',
-    icon: '👶',
-    description: 'ברית מילה או ברית בת',
-    nameField: {
-      required: false,
-      label: 'שם התינוק/ת (לא חובה)',
-      placeholder: 'יונתן',
-    },
-    posterCatalog: 'brit',
-    defaultDurationHours: 4,
-    supportsGuestMessages: true,
-  },
-  {
     key: 'corporate',
     label: 'אירוע חברה',
-    icon: '🏢',
+    icon: 'building',
     description: 'כנס, גיבוש, אירוע חברה',
     nameField: {
       required: false,
@@ -112,7 +84,7 @@ export const WIZARD_TYPES: WizardTypeConfig[] = [
   {
     key: 'meetup',
     label: 'מיטאפ',
-    icon: '🤝',
+    icon: 'people',
     description: 'מפגש נטוורקינג, קהילה, מיטאפ',
     nameField: {
       required: false,
@@ -126,7 +98,7 @@ export const WIZARD_TYPES: WizardTypeConfig[] = [
   {
     key: 'other',
     label: 'אחר',
-    icon: '✨',
+    icon: 'sparkle',
     description: 'סוג אירוע אחר - ספרו לנו!',
     nameField: {
       required: false,
@@ -153,12 +125,12 @@ export interface WizardStepMeta {
 }
 
 export const WIZARD_STEPS: WizardStepMeta[] = [
-  { id: 'type',       label: 'סוג אירוע',   icon: '🎯' },
-  { id: 'details',    label: 'פרטים',       icon: '📅' },
-  { id: 'background', label: 'רקע',         icon: '🎨' },
-  { id: 'poster',     label: 'פוסטר',       icon: '🖼️' },
-  { id: 'messages',   label: 'הודעות',      icon: '💬' },
-  { id: 'summary',    label: 'סיכום',       icon: '✅' },
+  { id: 'type',       label: 'סוג אירוע',   icon: 'grid' },
+  { id: 'details',    label: 'פרטים',       icon: 'calendar' },
+  { id: 'background', label: 'רקע',         icon: 'palette' },
+  { id: 'poster',     label: 'פוסטר',       icon: 'frame' },
+  { id: 'messages',   label: 'הודעות',      icon: 'chat' },
+  { id: 'summary',    label: 'סיכום',       icon: 'check' },
 ];
 
 // ─── Wizard Form State ──────────────────────────────────────

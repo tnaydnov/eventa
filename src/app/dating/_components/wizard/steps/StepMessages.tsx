@@ -2,6 +2,7 @@
 
 import type { WizardFormState } from '../wizard-config';
 import { WIZARD_TYPE_MAP } from '../wizard-config';
+import WizardIcon from '../WizardIcons';
 
 interface Props {
   state: WizardFormState;
@@ -33,7 +34,7 @@ export default function StepMessages({ state, onChange }: Props) {
           className={`wiz-toggle${!state.wantsGuestMessages ? ' wiz-toggle--active' : ''}`}
           onClick={() => onChange({ wantsGuestMessages: false })}
         >
-          <span className="wiz-toggle__icon">🚫</span>
+          <span className="wiz-toggle__icon"><WizardIcon name="x-circle" size={22} /></span>
           <div className="wiz-toggle__content">
             <p className="wiz-toggle__title">לא, תודה</p>
             <p className="wiz-toggle__desc">אסתפק ב-QR בכניסה לאירוע</p>
@@ -46,7 +47,7 @@ export default function StepMessages({ state, onChange }: Props) {
           className={`wiz-toggle${state.wantsGuestMessages ? ' wiz-toggle--active' : ''}`}
           onClick={() => onChange({ wantsGuestMessages: true })}
         >
-          <span className="wiz-toggle__icon">💬</span>
+          <span className="wiz-toggle__icon"><WizardIcon name="chat" size={22} /></span>
           <div className="wiz-toggle__content">
             <p className="wiz-toggle__title">כן, שלחו הודעות</p>
             <p className="wiz-toggle__desc">SMS / WhatsApp לאורחים ביום האירוע</p>

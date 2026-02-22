@@ -2,6 +2,7 @@
 
 import { useRef, useCallback } from 'react';
 import type { WizardFormState } from '../wizard-config';
+import WizardIcon from '../WizardIcons';
 
 interface Props {
   state: WizardFormState;
@@ -73,7 +74,7 @@ export default function StepBackground({ state, onChange }: Props) {
           className={`wiz-toggle${!state.wantsCustomBackground ? ' wiz-toggle--active' : ''}`}
           onClick={clearImage}
         >
-          <span className="wiz-toggle__icon">🌑</span>
+          <span className="wiz-toggle__icon"><WizardIcon name="moon" size={22} /></span>
           <div className="wiz-toggle__content">
             <p className="wiz-toggle__title">רקע ברירת מחדל</p>
             <p className="wiz-toggle__desc">רקע כהה אלגנטי - מושלם לכל אירוע</p>
@@ -91,7 +92,7 @@ export default function StepBackground({ state, onChange }: Props) {
             }
           }}
         >
-          <span className="wiz-toggle__icon">🎨</span>
+          <span className="wiz-toggle__icon"><WizardIcon name="brush" size={22} /></span>
           <div className="wiz-toggle__content">
             <p className="wiz-toggle__title">רקע מותאם אישית</p>
             <p className="wiz-toggle__desc">העלו תמונה משלכם</p>
@@ -111,7 +112,7 @@ export default function StepBackground({ state, onChange }: Props) {
           tabIndex={0}
           onKeyDown={e => { if (e.key === 'Enter') fileRef.current?.click(); }}
         >
-          <div className="wiz-upload__icon">📁</div>
+          <div className="wiz-upload__icon"><WizardIcon name="upload" size={36} /></div>
           <p className="wiz-upload__text">גררו תמונה לכאן או לחצו לבחירה</p>
           <p className="wiz-upload__hint">JPG, PNG, WebP — עד 5MB</p>
           <input
