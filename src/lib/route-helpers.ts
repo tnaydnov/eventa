@@ -15,9 +15,9 @@ import {
   MAX_CACHE_SIZE,
 } from '@/lib/config';
 
-/** Default JSON body size limit — 256 KB. */
+/** Default JSON body size limit - 256 KB. */
 const DEFAULT_MAX_BODY_BYTES = 256 * 1024;
-/** Larger body size limit for upload-URL route — 1 KB (it only sends a path string). */
+/** Larger body size limit for upload-URL route - 1 KB (it only sends a path string). */
 const UPLOAD_MAX_BODY_BYTES = 1024;
 
 /** Shorthand for JSON error response. */
@@ -70,13 +70,13 @@ async function isBanned(participantId: string): Promise<boolean> {
     .maybeSingle();
 
   if (error) {
-    logger.error('Ban check DB error — failing closed (treating as banned)', {
+    logger.error('Ban check DB error - failing closed (treating as banned)', {
       participantId, error: error.message,
     });
     return true; // fail closed: deny access when DB is unreachable
   }
 
-  // Participant deleted (self-deletion) — not banned, session is stale
+  // Participant deleted (self-deletion) - not banned, session is stale
   if (!data) return false;
 
   const banned = !!data.is_banned;
@@ -110,7 +110,7 @@ async function getEventStatus(eventId: string): Promise<string | null> {
     .single();
 
   if (error) {
-    logger.error('Event status DB error — failing closed (treating as deleted)', {
+    logger.error('Event status DB error - failing closed (treating as deleted)', {
       eventId, error: error.message,
     });
     _eventStatusCache.delete(eventId);
@@ -142,7 +142,7 @@ export async function secureGuard(
 ): Promise<NextResponse | SessionPayload> {
   const requestId = generateRequestId();
 
-  // Body size guard — reject oversized payloads early (DoS protection).
+  // Body size guard - reject oversized payloads early (DoS protection).
   // Uses Content-Length header as a fast pre-check; doesn't consume the body.
   const maxBody = options?.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
   const contentLength = req.headers.get('content-length');
@@ -173,7 +173,7 @@ export async function secureGuard(
     return jsonError('Account banned', 403);
   }
 
-  // Check event status — block API usage for paused/archived/deleted events
+  // Check event status - block API usage for paused/archived/deleted events
   const eventStatus = await getEventStatus(session.eid);
   if (!eventStatus) {
     return NextResponse.json(

@@ -67,7 +67,7 @@ export async function getConversations(
       .in('conversation_id', convoIds)
       .order('created_at', { ascending: false })
       .limit(convoIds.length * 2 || 100),
-    // Unread count — single query, partition client-side
+    // Unread count - single query, partition client-side
     (async () => {
       const { data: unreadRows, error: unreadErr } = await supabase
         .from('messages')
@@ -199,19 +199,19 @@ export async function uploadChatImage(
   conversationId: string,
   file: File
 ): Promise<string | null> {
-  // Magic byte validation — don't block on mismatch.
+  // Magic byte validation - don't block on mismatch.
   // Chat images may come from camera captures with non-standard headers.
   const effectiveType = getEffectiveImageType(file);
   try {
     const headerBytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
     validateImageMagicBytes(headerBytes, effectiveType);
-  } catch { /* proceed — user-selected files are validated by type */ }
+  } catch { /* proceed - user-selected files are validated by type */ }
 
   let compressed: File;
   try {
     compressed = await compressChatImage(file);
   } catch {
-    // Compression failed — reject upload
+    // Compression failed - reject upload
     return null;
   }
   const ext = compressed.name.split('.').pop() || 'webp';
@@ -265,7 +265,7 @@ export async function getUnreadConversations(
 
   const convoIds = convos.map((c) => c.id);
 
-  // Single batch query — select only conversation_id to minimize transfer
+  // Single batch query - select only conversation_id to minimize transfer
   const { data: unreadMsgs } = await supabase
     .from('messages')
     .select('conversation_id, created_at')

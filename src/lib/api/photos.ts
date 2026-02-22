@@ -11,14 +11,14 @@ export async function uploadPhoto(
   file: File,
   orderIndex: number
 ): Promise<ParticipantPhoto | null> {
-  // Magic byte validation — don't block on mismatch.
+  // Magic byte validation - don't block on mismatch.
   // Profile photos come from ImageCropper (canvas-rendered) so they're
   // inherently safe; some Android browsers produce non-standard headers.
   const effectiveType = getEffectiveImageType(file);
   try {
     const headerBytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
     validateImageMagicBytes(headerBytes, effectiveType);
-  } catch { /* proceed — canvas output is safe */ }
+  } catch { /* proceed - canvas output is safe */ }
 
   let compressed: File;
   try {

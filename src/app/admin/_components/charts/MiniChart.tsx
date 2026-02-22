@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * MiniChart — Lightweight SVG line chart with gradient fill.
+ * MiniChart - Lightweight SVG line chart with gradient fill.
  * Used for usage timeline display. No external chart library needed.
  */
 
@@ -57,7 +57,7 @@ export default function MiniChart({
     label: Math.round(pct * maxVal).toString(),
   }));
 
-  // X-axis labels — show every Nth to avoid crowding
+  // X-axis labels - show every Nth to avoid crowding
   const xStep = Math.max(1, Math.floor(data.length / 6));
 
   const gradientId = `chart-grad-${Math.random().toString(36).slice(2, 8)}`;

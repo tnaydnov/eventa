@@ -3,7 +3,7 @@ import LegalPageLayout from '@/components/LegalPageLayout';
 
 export const metadata: Metadata = {
   title: 'טיפים לבטיחות | Eventa',
-  description: 'טיפים לבטיחות השימוש ב-Eventa — כיצד ליהנות מהיכרויות באירועים בצורה בטוחה.',
+  description: 'טיפים לבטיחות השימוש ב-Eventa - כיצד ליהנות מהיכרויות באירועים בצורה בטוחה.',
   alternates: { canonical: 'https://www.eventa.productions/safety' },
 };
 
@@ -22,11 +22,11 @@ const iconStyle: React.CSSProperties = { fontSize: '22px', flexShrink: 0, lineHe
 const tipTextStyle: React.CSSProperties = { color: '#ccc', fontSize: '15px', lineHeight: 1.8, margin: 0 };
 
 const tips = [
-  { icon: '🤝', text: 'היכרות באירוע צריכה להיות בהסכמה ובכבוד. אם מישהו לא מעוניין — עוצרים.' },
+  { icon: '🤝', text: 'היכרות באירוע צריכה להיות בהסכמה ובכבוד. אם מישהו לא מעוניין - עוצרים.' },
   { icon: '📍', text: 'מומלץ להיפגש במקום ציבורי בתוך האירוע, לא במקום מבודד.' },
   { icon: '🔒', text: 'אל תשתפו מיד פרטים רגישים (כתובת, עבודה, מצב משפחתי וכו\').' },
-  { icon: '🚫', text: 'אם מישהו מתנהג בצורה מטרידה / מאיימת — חסמו אותם מיד.' },
-  { icon: '👫', text: 'אם אתם מרגישים לא בטוחים — פנו לחברים / מארגני האירוע.' },
+  { icon: '🚫', text: 'אם מישהו מתנהג בצורה מטרידה / מאיימת - חסמו אותם מיד.' },
+  { icon: '👫', text: 'אם אתם מרגישים לא בטוחים - פנו לחברים / מארגני האירוע.' },
 ];
 
 export default function SafetyPage() {

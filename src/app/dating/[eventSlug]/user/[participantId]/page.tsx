@@ -76,7 +76,7 @@ export default function UserProfilePage({
         // Revert
         setLiked(true);
         addLiked(participantId);
-        toast('שגיאה בהסרת הלייק — נסו שוב');
+        toast('שגיאה בהסרת הלייק - נסו שוב');
       }
     } else {
       // Optimistic: show liked immediately
@@ -97,7 +97,7 @@ export default function UserProfilePage({
         // Revert
         setLiked(false);
         removeLiked(participantId);
-        toast('שגיאה בשליחת הלייק — נסו שוב');
+        toast('שגיאה בשליחת הלייק - נסו שוב');
       }
     }
   };
@@ -112,7 +112,7 @@ export default function UserProfilePage({
     if (conv) {
       router.push(`/dating/${eventSlug}/chat/${conv.id}`);
     } else {
-      toast('שגיאה בפתיחת שיחה — נסו שוב');
+      toast('שגיאה בפתיחת שיחה - נסו שוב');
     }
   };
 
@@ -125,7 +125,7 @@ export default function UserProfilePage({
       toast('המשתמש נחסם');
       router.back();
     } else {
-      toast('שגיאה בחסימה — נסו שוב');
+      toast('שגיאה בחסימה - נסו שוב');
     }
   };
 

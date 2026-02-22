@@ -45,13 +45,13 @@ export async function POST(req: NextRequest) {
     // Fingerprint format: hex string or UUID-like, max 64 chars
     const FP_PATTERN = /^[a-f0-9-]+$/i;
 
-    // Fingerprint is optional — sanitize to plain string or null
+    // Fingerprint is optional - sanitize to plain string or null
     const fingerprint: string | null =
       typeof body.fingerprint === 'string' && body.fingerprint.length > 0
         ? (FP_PATTERN.test(body.fingerprint.slice(0, 64)) ? body.fingerprint.slice(0, 64) : null)
         : null;
 
-    // Hardware fingerprint (canvas/WebGL/screen-based) — survives incognito
+    // Hardware fingerprint (canvas/WebGL/screen-based) - survives incognito
     const hwFingerprint: string | null =
       typeof body.hardwareFingerprint === 'string' && body.hardwareFingerprint.length > 0
         ? (FP_PATTERN.test(body.hardwareFingerprint.slice(0, 128)) ? body.hardwareFingerprint.slice(0, 128) : null)
@@ -77,8 +77,8 @@ export async function POST(req: NextRequest) {
       return jsonError('Invalid event or join code', 404);
     }
 
-    // Check if this device is banned — check BOTH fingerprint types
-    // SAFETY: fail-closed — if the ban check query errors, treat as banned
+    // Check if this device is banned - check BOTH fingerprint types
+    // SAFETY: fail-closed - if the ban check query errors, treat as banned
     const banChecks: PromiseLike<boolean>[] = [];
     if (fingerprint) {
       banChecks.push(
@@ -211,7 +211,7 @@ export async function POST(req: NextRequest) {
       })).catch((err) => logger.error('[AUTH_JOIN] activity_log error:', err));
     }
 
-    // Guard: should never happen — either existing or newly created
+    // Guard: should never happen - either existing or newly created
     if (!participantId) {
       return jsonError('Failed to resolve participant', 500);
     }

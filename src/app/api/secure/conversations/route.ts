@@ -6,7 +6,7 @@ import { secureGuard, jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 
 /**
- * POST /api/secure/conversations — Get or create a conversation.
+ * POST /api/secure/conversations - Get or create a conversation.
  * Guards: CSRF, auth, rate limit, self-chat, block check.
  */
 export async function POST(req: NextRequest) {
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     const eventId = session.eid;
     const supabase = getServiceClient();
 
-    // Block check + existing conversation — fire in parallel
+    // Block check + existing conversation - fire in parallel
     const [blockResult, existingResult] = await Promise.all([
       supabase
         .from('blocks')
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     }
 
     if ((blockResult.count ?? 0) > 0) {
-      return jsonError('Cannot start conversation — user is blocked', 403);
+      return jsonError('Cannot start conversation - user is blocked', 403);
     }
 
     if (existingResult.data) return NextResponse.json(existingResult.data);

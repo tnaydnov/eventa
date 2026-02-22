@@ -104,7 +104,7 @@ describe('POST /api/account/delete', () => {
   });
 
   it('returns 404 when participant not found', async () => {
-    // Call 0: pre-check — participant not found
+    // Call 0: pre-check - participant not found
     fromCallOverrides[0] = makeChain({
       single: vi.fn().mockResolvedValue({ data: null, error: { message: 'not found' } }),
     });
@@ -136,7 +136,7 @@ describe('POST /api/account/delete', () => {
   });
 
   it('returns 500 when final participant delete fails', async () => {
-    // Call 0: pre-check — participant exists
+    // Call 0: pre-check - participant exists
     fromCallOverrides[0] = makeChain({
       single: vi.fn().mockResolvedValue({ data: { id: 'p1' }, error: null }),
     });

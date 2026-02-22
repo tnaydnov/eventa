@@ -93,7 +93,7 @@ export default function EventRow({
         </span>
       </td>
       <td className="et-td et-td--date et-td--hide-mobile">
-        {shortDate(event.starts_at)} — {shortDate(event.ends_at)}
+        {shortDate(event.starts_at)} - {shortDate(event.ends_at)}
       </td>
       <td className="et-td et-td--actions" onClick={e => e.stopPropagation()}>
         <div className="et-actions-wrap">

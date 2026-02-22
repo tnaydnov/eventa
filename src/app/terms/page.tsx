@@ -3,7 +3,7 @@ import LegalPageLayout from '@/components/LegalPageLayout';
 
 export const metadata: Metadata = {
   title: 'תנאי שימוש | Eventa',
-  description: 'תנאי השימוש של Eventa — כללים, התחייבויות ומדיניות השירות.',
+  description: 'תנאי השימוש של Eventa - כללים, התחייבויות ומדיניות השירות.',
   alternates: { canonical: 'https://www.eventa.productions/terms' },
 };
 
@@ -45,10 +45,10 @@ export default function TermsPage() {
       <div style={sectionStyle}>
         <h2 style={headingStyle}>1. קבלת התנאים</h2>
         <p style={textStyle}>
-          כניסה לשירות, יצירת פרופיל, העלאת תוכן, שליחת הודעות, שימוש בלייקים —
+          כניסה לשירות, יצירת פרופיל, העלאת תוכן, שליחת הודעות, שימוש בלייקים -
           כולם מהווים הסכמה לתנאים אלה ולמדיניות הפרטיות.
         </p>
-        <p style={boldText}>אם אינך מסכים/ה לתנאים — אין להשתמש בשירות.</p>
+        <p style={boldText}>אם אינך מסכים/ה לתנאים - אין להשתמש בשירות.</p>
       </div>
 
       {/* 2 */}
@@ -82,7 +82,7 @@ export default function TermsPage() {
           <li style={liStyle}>יצירת פרופיל עם תמונות ומידע בסיסי (כפוף להגדרות האירוע)</li>
           <li style={liStyle}>צפייה בפרופילים של משתתפים אחרים באותו אירוע</li>
           <li style={liStyle}>שליחת לייקים</li>
-          <li style={liStyle}>פתיחת שיחות צ&apos;אט (טקסט ותמונות — לפי מה שמופעל בשירות)</li>
+          <li style={liStyle}>פתיחת שיחות צ&apos;אט (טקסט ותמונות - לפי מה שמופעל בשירות)</li>
         </ul>
         <p style={boldText}>
           השירות הוא זמני מטבעו ומיועד לשימוש במהלך האירוע ובתקופה מוגבלת לאחריו.
@@ -94,7 +94,7 @@ export default function TermsPage() {
         <h2 style={headingStyle}>5. הרשאות מכשיר</h2>
         <p style={textStyle}>חלק מהתכונות עשויות לבקש הרשאות:</p>
         <ul style={listStyle}>
-          <li style={liStyle}><strong>גלריה / מצלמה</strong> — לצורך העלאת תמונות לפרופיל ולצ&apos;אט.</li>
+          <li style={liStyle}><strong>גלריה / מצלמה</strong> - לצורך העלאת תמונות לפרופיל ולצ&apos;אט.</li>
 
         </ul>
         <p style={textStyle}>
@@ -180,7 +180,7 @@ export default function TermsPage() {
         <h2 style={headingStyle}>11. זמינות השירות</h2>
         <p style={textStyle}>
           המפעיל עושה מאמץ לספק שירות תקין, אך השירות מסופק <strong>&quot;כמות שהוא&quot; (AS IS)</strong> וללא
-          התחייבות לזמינות רציפה, תמיכה בזמן אמת, או חוויית שימוש ללא תקלות — במיוחד בעומסים.
+          התחייבות לזמינות רציפה, תמיכה בזמן אמת, או חוויית שימוש ללא תקלות - במיוחד בעומסים.
         </p>
       </div>
 
@@ -188,7 +188,7 @@ export default function TermsPage() {
       <div style={sectionStyle}>
         <h2 style={headingStyle}>12. קניין רוחני</h2>
         <p style={textStyle}>
-          כל הזכויות בשירות, בקוד, בעיצוב, בשם Eventa ובתכנים שיצר המפעיל — שמורות למפעיל השירות.
+          כל הזכויות בשירות, בקוד, בעיצוב, בשם Eventa ובתכנים שיצר המפעיל - שמורות למפעיל השירות.
           אין להעתיק, לשכפל, להפיץ או לבצע שימוש מסחרי בשירות או בחלקיו ללא אישור מראש ובכתב.
         </p>
       </div>

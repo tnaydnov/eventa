@@ -27,7 +27,7 @@ export function validateEnv() {
     CRON_SECRET: process.env.CRON_SECRET,
   });
   if (!result.success) {
-    // Use console.error here intentionally — logger.ts may depend on env vars
+    // Use console.error here intentionally - logger.ts may depend on env vars
     // that haven't been validated yet, risking a circular failure.
     console.error('❌ Invalid environment variables:', result.error.flatten().fieldErrors);
   }
@@ -98,7 +98,7 @@ export const createEventSchema = z.object({
 });
 
 /* ---- Admin update event schema ---- */
-// Exclude 'archived' — must go through the dedicated archive endpoint
+// Exclude 'archived' - must go through the dedicated archive endpoint
 const updateableStatusValues = eventStatusValues.filter((s) => s !== 'archived') as [string, ...string[]];
 export const updateEventSchema = z.object({
   is_active: z.boolean().optional(),
@@ -191,9 +191,9 @@ export function validateImageFile(file: File): string | null {
   }
   // Allowlist check
   if (!ALLOWED_IMAGE_TYPES.has(effectiveType)) {
-    return 'פורמט לא נתמך — נא להעלות JPEG, PNG, GIF, WebP או AVIF';
+    return 'פורמט לא נתמך - נא להעלות JPEG, PNG, GIF, WebP או AVIF';
   }
-  if (file.size > MAX_IMAGE_SIZE_BYTES) return 'הקובץ גדול מדי — עד 20MB';
+  if (file.size > MAX_IMAGE_SIZE_BYTES) return 'הקובץ גדול מדי - עד 20MB';
   return null;
 }
 
@@ -220,7 +220,7 @@ export function validateImageMagicBytes(
   };
 
   const expected = signatures[claimedType];
-  if (!expected || expected.length === 0) return true; // unknown or container formats — allow
+  if (!expected || expected.length === 0) return true; // unknown or container formats - allow
 
   return expected.some((sig) =>
     sig.every((byte, i) => bytes[i] === byte)

@@ -71,7 +71,7 @@ export default function ProfilePhotoGrid({
     if (photo) {
       onPhotosChange([...photos, photo]);
     } else {
-      toast('שגיאה בהעלאת התמונה — נסו שוב');
+      toast('שגיאה בהעלאת התמונה - נסו שוב');
     }
     setUploading(false);
   };
@@ -88,7 +88,7 @@ export default function ProfilePhotoGrid({
     if (success) {
       onPhotosChange(photos.filter((p) => p.id !== photo.id));
     } else {
-      toast('שגיאה במחיקת התמונה — נסו שוב');
+      toast('שגיאה במחיקת התמונה - נסו שוב');
     }
     setDeletingId(null);
   };
@@ -111,14 +111,14 @@ export default function ProfilePhotoGrid({
     if (photos.length < 2) return; // Nothing to swap
 
     if (selectedIdx === null) {
-      // First tap — select this photo
+      // First tap - select this photo
       setSelectedIdx(idx);
       try { navigator.vibrate?.(15); } catch {}
     } else if (selectedIdx === idx) {
-      // Tapped same photo — deselect
+      // Tapped same photo - deselect
       setSelectedIdx(null);
     } else {
-      // Second tap on a different photo — swap!
+      // Second tap on a different photo - swap!
       const from = selectedIdx;
       setSelectedIdx(null);
       try { navigator.vibrate?.(30); } catch {}

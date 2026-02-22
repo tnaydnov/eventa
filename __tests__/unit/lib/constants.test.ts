@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/constants.ts — Domain constants, labels, and limits
+ * Unit tests for lib/constants.ts - Domain constants, labels, and limits
  * Tests: U-CON-01 through U-CON-12+
  *
  * @vitest-environment node

@@ -1,5 +1,5 @@
 -- ============================================
--- RLS Event-Scoping — P3 Security Hardening
+-- RLS Event-Scoping - P3 Security Hardening
 -- ============================================
 -- HOW IT WORKS:
 --   The anon Supabase client sends an x-event-id header on every REST request
@@ -7,7 +7,7 @@
 --   RLS policies extract this header and restrict SELECT to matching event_id.
 --
 --   For Realtime (postgres_changes via WebSocket), there is no PostgREST
---   request context so we fall through to ALLOW — Realtime subscriptions
+--   request context so we fall through to ALLOW - Realtime subscriptions
 --   already scope by event_id in their filter clause.
 --
 --   Detection: current_setting('request.method', true) is non-NULL only
@@ -93,4 +93,4 @@ CREATE POLICY "notifications_select" ON notifications FOR SELECT
   );
 
 -- events: keep open (lookup by slug before event_id is known)
--- No change needed — original "events_select" USING(true) stays.
+-- No change needed - original "events_select" USING(true) stays.

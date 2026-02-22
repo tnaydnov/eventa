@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/api/blocks.ts — blockParticipant
+ * Unit tests for lib/api/blocks.ts - blockParticipant
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 

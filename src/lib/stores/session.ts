@@ -38,7 +38,7 @@ export const useSessionStore = create<SessionState>((set) => ({
     set({ session: null, participant: null, photos: [] });
 
     // Reset ALL other stores to prevent stale data leak between sessions.
-    // Each store now owns its own reset() method — no duplicated initial state.
+    // Each store now owns its own reset() method - no duplicated initial state.
     import('./grid').then(({ useGridStore }) => useGridStore.getState().reset()).catch(() => {});
     import('./chats').then(({ useChatsStore }) => useChatsStore.getState().reset()).catch(() => {});
     import('./likes').then(({ useLikesStore }) => useLikesStore.getState().reset()).catch(() => {});

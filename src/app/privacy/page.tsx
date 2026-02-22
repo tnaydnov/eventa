@@ -3,7 +3,7 @@ import LegalPageLayout from '@/components/LegalPageLayout';
 
 export const metadata: Metadata = {
   title: 'מדיניות פרטיות | Eventa',
-  description: 'מדיניות הפרטיות של Eventa — כיצד אנו אוספים, משתמשים ומגנים על המידע שלכם.',
+  description: 'מדיניות הפרטיות של Eventa - כיצד אנו אוספים, משתמשים ומגנים על המידע שלכם.',
   alternates: { canonical: 'https://www.eventa.productions/privacy' },
 };
 
@@ -95,8 +95,8 @@ export default function PrivacyPage() {
 
         <h3 style={subHeadingStyle}>עוגיות חיוניות (Functional / Strictly Necessary)</h3>
         <ul style={listStyle}>
-          <li style={liStyle}><strong>ws_session</strong> — עוגיית סשן לצורך התחברות והפעלת השירות (כוללת מזהי אירוע / משתתף).</li>
-          <li style={liStyle}><strong>ws_admin</strong> — עוגיית סשן לממשק אדמין.</li>
+          <li style={liStyle}><strong>ws_session</strong> - עוגיית סשן לצורך התחברות והפעלת השירות (כוללת מזהי אירוע / משתתף).</li>
+          <li style={liStyle}><strong>ws_admin</strong> - עוגיית סשן לממשק אדמין.</li>
         </ul>
         <p style={textStyle}>
           העוגיות מוגדרות כעוגיות חיוניות, ואינן מיועדות לפרסום / מעקב / אנליטיקה.
@@ -145,8 +145,8 @@ export default function PrivacyPage() {
         <h2 style={headingStyle}>6. שיתוף מידע עם צדדים שלישיים</h2>
         <p style={textStyle}>אנו משתמשים בספקי תשתית טכנית בלבד:</p>
         <ul style={listStyle}>
-          <li style={liStyle}><strong>Supabase</strong> — מסד נתונים, אחסון קבצים, תקשורת בזמן אמת</li>
-          <li style={liStyle}><strong>Vercel</strong> — אירוח והפצת האתר (CDN / Serverless)</li>
+          <li style={liStyle}><strong>Supabase</strong> - מסד נתונים, אחסון קבצים, תקשורת בזמן אמת</li>
+          <li style={liStyle}><strong>Vercel</strong> - אירוח והפצת האתר (CDN / Serverless)</li>
         </ul>
         <p style={boldText}>
           איננו משלבים נכון למועד זה שירותי אנליטיקה / פרסום (כגון Google Analytics, Mixpanel וכו&apos;).
@@ -206,7 +206,7 @@ export default function PrivacyPage() {
         <h2 style={headingStyle}>10. קטינים</h2>
         <p style={textStyle}>
           השירות מיועד לבני 18+ בלבד. איננו אוספים ביודעין מידע מקטינים.
-          אם יימצא חשד סביר לקטינות — ננקוט צעדים להסרה / חסימה / מחיקה.
+          אם יימצא חשד סביר לקטינות - ננקוט צעדים להסרה / חסימה / מחיקה.
         </p>
       </div>
 
@@ -232,7 +232,7 @@ export default function PrivacyPage() {
       <div style={{ ...sectionStyle, marginBottom: 0 }}>
         <h2 style={headingStyle}>13. יצירת קשר</h2>
         <p style={textStyle}>
-          לפניות פרטיות, שאלות או בקשות — השתמש/י באמצעי הקשר המופיעים בשירות.
+          לפניות פרטיות, שאלות או בקשות - השתמש/י באמצעי הקשר המופיעים בשירות.
         </p>
         <p style={textStyle}>
           דוא&quot;ל: <span style={linkColor}>contact@eventa.productions</span>

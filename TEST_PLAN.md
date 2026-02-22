@@ -1,6 +1,6 @@
-# Eventa — Comprehensive Test Plan
+# Eventa - Comprehensive Test Plan
 
-> **Status:** Plan only — no tests implemented yet.
+> **Status:** Plan only - no tests implemented yet.
 > **Created:** Session 14
 > **Scope:** Every function, route, store, component, hook, and user flow.
 
@@ -45,7 +45,7 @@ __tests__/
 
 ## 2. Unit Tests
 
-### 2.1 `lib/session.ts` — Session & Auth (7 functions)
+### 2.1 `lib/session.ts` - Session & Auth (7 functions)
 
 | ID | Function | Test | Expected |
 |----|----------|------|----------|
@@ -70,7 +70,7 @@ __tests__/
 | U-SES-19 | `isValidUUID()` | Empty string, random text, partial UUID | Returns `false` |
 | U-SES-20 | `isValidUUID()` | UUID with wrong length | Returns `false` |
 
-### 2.2 `lib/admin-auth.ts` — Admin Auth (7 functions)
+### 2.2 `lib/admin-auth.ts` - Admin Auth (7 functions)
 
 | ID | Function | Test | Expected |
 |----|----------|------|----------|
@@ -88,7 +88,7 @@ __tests__/
 | U-ADM-12 | `verifyAdminFromRequest()` | Invalid admin cookie | Returns `false` |
 | U-ADM-13 | `adminAuditLog()` | Logs action with correct format | Logger called with `[ADMIN]` prefix, action, details, timestamp |
 
-### 2.3 `lib/validations.ts` — Zod Schemas & Image Validation (10 schemas, 3 functions)
+### 2.3 `lib/validations.ts` - Zod Schemas & Image Validation (10 schemas, 3 functions)
 
 | ID | Target | Test | Expected |
 |----|--------|------|----------|
@@ -140,7 +140,7 @@ __tests__/
 | U-VAL-46 | `validateImageMagicBytes()` | Empty buffer | Returns error string |
 | U-VAL-47 | `validateImageMagicBytes()` | PDF masquerading as image | Returns error string |
 
-### 2.4 `lib/sanitize.ts` — Input Sanitization (2 functions)
+### 2.4 `lib/sanitize.ts` - Input Sanitization (2 functions)
 
 | ID | Function | Test | Expected |
 |----|----------|------|----------|
@@ -156,7 +156,7 @@ __tests__/
 | U-SAN-10 | `sanitizeWithLimit()` | XSS + exceeds limit | Sanitized AND truncated |
 | U-SAN-11 | `sanitizeWithLimit()` | Limit = 0 | Returns empty string |
 
-### 2.5 `lib/rate-limit.ts` — Rate Limiting (2 functions, 1 config)
+### 2.5 `lib/rate-limit.ts` - Rate Limiting (2 functions, 1 config)
 
 | ID | Function | Test | Expected |
 |----|----------|------|----------|
@@ -171,7 +171,7 @@ __tests__/
 | U-RAT-09 | `getClientIp()` | `x-real-ip` header | Returns its value |
 | U-RAT-10 | `RATE_LIMITS` | Has `default`, `auth`, `upload`, `admin` tiers | All 4 exist with `max` and `windowMs` |
 
-### 2.6 `lib/route-helpers.ts` — Route Security Pipeline (5 functions)
+### 2.6 `lib/route-helpers.ts` - Route Security Pipeline (5 functions)
 
 | ID | Function | Test | Expected |
 |----|----------|------|----------|
@@ -196,7 +196,7 @@ __tests__/
 | U-RTH-19 | `isSafePath()` | Empty string | Returns `false` |
 | U-RTH-20 | `isSafePath()` | Path with spaces | Returns `true` |
 
-### 2.7 `lib/device-fingerprint.ts` — Device Identification (2 functions)
+### 2.7 `lib/device-fingerprint.ts` - Device Identification (2 functions)
 
 | ID | Function | Test | Expected |
 |----|----------|------|----------|
@@ -208,7 +208,7 @@ __tests__/
 | U-DFP-06 | `getDeviceIdentifiers()` | New localStorage UUID if not present | UUID v4 format |
 | U-DFP-07 | `getDeviceIdentifiers()` | Canvas not supported → graceful fallback | Returns fingerprint (with empty canvas data) |
 
-### 2.8 `lib/image-compression.ts` — Image Processing (4 functions)
+### 2.8 `lib/image-compression.ts` - Image Processing (4 functions)
 
 | ID | Function | Test | Expected |
 |----|----------|------|----------|
@@ -221,18 +221,18 @@ __tests__/
 | U-IMG-07 | `createThumbnailUrl()` | Returns data URL | Starts with `data:image/` |
 | U-IMG-08 | `createThumbnailUrl()` | Thumbnail is small | Output URL length within reasonable bounds |
 
-### 2.9 `lib/supabase.ts` — Client Setup (3 functions)
+### 2.9 `lib/supabase.ts` - Client Setup (3 functions)
 
 | ID | Function | Test | Expected |
 |----|----------|------|----------|
 | U-SUP-01 | `setEventContext()` | Sets `eventId` | Subsequent requests include `x-event-id` header |
 | U-SUP-02 | `setEventContext(null)` | Clears context | Header removed |
 | U-SUP-03 | `getServiceClient()` | Returns Supabase client | Client has `service_role` key |
-| U-SUP-04 | `getServiceClient()` | Singleton — same instance | Two calls return same reference |
+| U-SUP-04 | `getServiceClient()` | Singleton - same instance | Two calls return same reference |
 | U-SUP-05 | `generateJoinCode()` | Returns 6-char uppercase alphanumeric | Matches `/^[A-Z0-9]{6}$/` |
 | U-SUP-06 | `generateJoinCode()` | No ambiguous characters (O/0/I/1) | None of those chars appear |
 
-### 2.10 `lib/config.ts` — Configuration Constants
+### 2.10 `lib/config.ts` - Configuration Constants
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -244,7 +244,7 @@ __tests__/
 | U-CFG-06 | `MAX_CACHE_SIZE` is reasonable (500–50000) | Within range |
 | U-CFG-07 | Order field max lengths are positive | All `> 0` |
 
-### 2.11 `lib/constants.ts` — Domain Constants
+### 2.11 `lib/constants.ts` - Domain Constants
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -261,7 +261,7 @@ __tests__/
 | U-CON-11 | All label values are non-empty Hebrew strings | Length > 0 |
 | U-CON-12 | `EVENT_TYPE_ICONS` has keys for all event types | Keys match |
 
-### 2.12 `lib/logger.ts` — Structured Logger
+### 2.12 `lib/logger.ts` - Structured Logger
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -274,9 +274,9 @@ __tests__/
 
 ---
 
-### 2.13 Zustand Stores — State Management
+### 2.13 Zustand Stores - State Management
 
-#### 2.13.1 `stores/session.ts` — Session Store (4 actions)
+#### 2.13.1 `stores/session.ts` - Session Store (4 actions)
 
 | ID | Action | Test | Expected |
 |----|--------|------|----------|
@@ -287,7 +287,7 @@ __tests__/
 | U-STO-SES-05 | `clearSession()` | Removes localStorage entry | `eventa_session` gone |
 | U-STO-SES-06 | `clearSession()` | Cascade resets all other stores | grid, chats, likes, blocks, matches, notifications, swipe, toast all reset |
 
-#### 2.13.2 `stores/grid.ts` — Grid Store (6 actions)
+#### 2.13.2 `stores/grid.ts` - Grid Store (6 actions)
 
 | ID | Action | Test | Expected |
 |----|--------|------|----------|
@@ -301,7 +301,7 @@ __tests__/
 | U-STO-GRD-08 | `updateParticipant()` | Non-existent ID → no-op | Array unchanged |
 | U-STO-GRD-09 | `reset()` | Clears participants, filter → `'all'` | Empty array, filter reset |
 
-#### 2.13.3 `stores/chats.ts` — Chats Store (6 actions)
+#### 2.13.3 `stores/chats.ts` - Chats Store (6 actions)
 
 | ID | Action | Test | Expected |
 |----|--------|------|----------|
@@ -315,7 +315,7 @@ __tests__/
 | U-STO-CHT-08 | `updateConversationPreview()` | Re-sorts conversations by `last_message_at` desc | Updated convo moves to top |
 | U-STO-CHT-09 | `reset()` | Clears conversations + messages | Both empty |
 
-#### 2.13.4 `stores/likes.ts` — Likes Store (4 actions)
+#### 2.13.4 `stores/likes.ts` - Likes Store (4 actions)
 
 | ID | Action | Test | Expected |
 |----|--------|------|----------|
@@ -325,7 +325,7 @@ __tests__/
 | U-STO-LIK-04 | `removeParticipantLikes()` | Non-existent ID → no-op | Arrays unchanged |
 | U-STO-LIK-05 | `reset()` | Clears both arrays | Both empty |
 
-#### 2.13.5 `stores/matches.ts` — Match Store (5 actions)
+#### 2.13.5 `stores/matches.ts` - Match Store (5 actions)
 
 | ID | Action | Test | Expected |
 |----|--------|------|----------|
@@ -336,7 +336,7 @@ __tests__/
 | U-STO-MAT-05 | `removeMatch()` | Non-existent → no-op | Array unchanged |
 | U-STO-MAT-06 | `reset()` | Clears pendingMatch, matches, matchesLoaded | All reset |
 
-#### 2.13.6 `stores/blocks.ts` — Blocks Store (2 actions)
+#### 2.13.6 `stores/blocks.ts` - Blocks Store (2 actions)
 
 | ID | Action | Test | Expected |
 |----|--------|------|----------|
@@ -345,7 +345,7 @@ __tests__/
 | U-STO-BLK-03 | `setBlocks()` | Both blocker and blocked IDs in Set (except self) | Union of both sides |
 | U-STO-BLK-04 | `reset()` | Clears blocks + blockedIds | Both empty |
 
-#### 2.13.7 `stores/notifications.ts` — Notification Store (10 actions)
+#### 2.13.7 `stores/notifications.ts` - Notification Store (10 actions)
 
 | ID | Action | Test | Expected |
 |----|--------|------|----------|
@@ -361,7 +361,7 @@ __tests__/
 | U-STO-NOT-10 | `removeGridHighlightByType()` | Removes only matching type | Only type-matched removed |
 | U-STO-NOT-11 | `reset()` | Clears all counts, sets, highlights | All zeroed/empty |
 
-#### 2.13.8 `stores/swipe.ts` — Swipe Store (8 actions)
+#### 2.13.8 `stores/swipe.ts` - Swipe Store (8 actions)
 
 | ID | Action | Test | Expected |
 |----|--------|------|----------|
@@ -373,7 +373,7 @@ __tests__/
 | U-STO-SWP-06 | `resetPool()` | Clears `dismissedIds` only | `dismissedIds` empty, `likedIds` preserved |
 | U-STO-SWP-07 | `reset()` | Clears everything | All initial state |
 
-#### 2.13.9 `stores/toast.ts` — Toast Store (2 actions)
+#### 2.13.9 `stores/toast.ts` - Toast Store (2 actions)
 
 | ID | Action | Test | Expected |
 |----|--------|------|----------|
@@ -384,7 +384,7 @@ __tests__/
 
 ---
 
-### 2.14 Client API Helpers — `lib/api/`
+### 2.14 Client API Helpers - `lib/api/`
 
 #### 2.14.1 `api/helpers.ts` (5 exports)
 
@@ -393,7 +393,7 @@ __tests__/
 | U-API-HLP-01 | `getPhotoUrl()` | Builds public URL from storage path | Correct Supabase URL |
 | U-API-HLP-02 | `getPhotoUrl()` | Handles paths with special chars | Properly encoded |
 | U-API-HLP-03 | `getBlockedIds()` | Fetches blocked IDs from Supabase | Returns `Set<string>` |
-| U-API-HLP-04 | `getBlockedIds()` | Cached — second call doesn't re-fetch | No additional DB query |
+| U-API-HLP-04 | `getBlockedIds()` | Cached - second call doesn't re-fetch | No additional DB query |
 | U-API-HLP-05 | `invalidateBlockedCache()` | Clears cache | Next call re-fetches |
 | U-API-HLP-06 | `buildParticipantPhotoMaps()` | Batches photo lookup for ID list | Returns maps with all IDs |
 | U-API-HLP-07 | `buildParticipantPhotoMaps()` | Empty ID list | Returns empty maps |
@@ -466,7 +466,7 @@ __tests__/
 | U-API-CNV-02 | `getOrCreateConversation()` | New → creates and returns | New ID |
 | U-API-CNV-03 | `getConversations()` | Fetches with other participant + photos | Populated list |
 | U-API-CNV-04 | `getMessages()` | Fetches messages for conversation | Ordered by `created_at` |
-| U-API-CNV-05 | `getMessagesBefore()` | Pagination — messages before cursor | Older messages only |
+| U-API-CNV-05 | `getMessagesBefore()` | Pagination - messages before cursor | Older messages only |
 | U-API-CNV-06 | `sendMessage()` | Sends text message | Returns message object |
 | U-API-CNV-07 | `deleteMessage()` | Soft-deletes message | `is_deleted: true` |
 | U-API-CNV-08 | `uploadChatImage()` | Uploads + sends image message | Returns message with `media_path` |
@@ -490,7 +490,7 @@ __tests__/
 
 ---
 
-### 2.15 Components — Render & Behavior Tests
+### 2.15 Components - Render & Behavior Tests
 
 | ID | Component | Test | Expected |
 |----|-----------|------|----------|
@@ -528,7 +528,7 @@ __tests__/
 | U-CMP-32 | `RealtimeNotificationListener` | Message event → addUnreadConvo | Store updated |
 | U-CMP-33 | `RealtimeNotificationListener` | Polling fallback every 15s | Fetch called at interval |
 
-### 2.16 Hooks — Custom Hook Tests
+### 2.16 Hooks - Custom Hook Tests
 
 | ID | Hook | Test | Expected |
 |----|------|------|----------|
@@ -539,7 +539,7 @@ __tests__/
 | U-HK-05 | `useRealtimeHub` | Unsubscribes on unmount | Cleanup function called |
 | U-HK-06 | `useRealtimeHub` | Re-subscribes on channel key change | Old unsub + new sub |
 
-### 2.17 `lib/realtimeHub.ts` — Singleton Channel Manager
+### 2.17 `lib/realtimeHub.ts` - Singleton Channel Manager
 
 | ID | Function | Test | Expected |
 |----|----------|------|----------|
@@ -585,7 +585,7 @@ __tests__/
 
 > Integration tests call API route handlers directly (using `NextRequest`) with mocked Supabase and verify the full request→response pipeline including guards, validation, DB calls, and response shape.
 
-### 3.1 `POST /api/auth/join` — Join Event (247 lines)
+### 3.1 `POST /api/auth/join` - Join Event (247 lines)
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -595,7 +595,7 @@ __tests__/
 | I-JOIN-04 | Event not found (wrong slug) | 404 error |
 | I-JOIN-05 | Event not active (ended/paused/archived/draft) | 403 with status info |
 | I-JOIN-06 | Wrong join code for event | 403 "Invalid join code" |
-| I-JOIN-07 | Returning user — fingerprint match → reconnects | 200 + existing participant data |
+| I-JOIN-07 | Returning user - fingerprint match → reconnects | 200 + existing participant data |
 | I-JOIN-08 | Hardware fingerprint match → reconnects | 200 + existing data |
 | I-JOIN-09 | Device fingerprint match → reconnects | 200 + existing data |
 | I-JOIN-10 | Banned device fingerprint → rejected | 403 "banned" |
@@ -605,7 +605,7 @@ __tests__/
 | I-JOIN-14 | Sets `ws_session` cookie with correct attributes | `HttpOnly`, `Secure`, `SameSite=Lax`, correct `Max-Age` |
 | I-JOIN-15 | Concurrent join attempts → no duplicate participants | Only 1 participant created |
 
-### 3.2 `POST /api/auth/verify` — Verify Session (107 lines)
+### 3.2 `POST /api/auth/verify` - Verify Session (107 lines)
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -616,7 +616,7 @@ __tests__/
 | I-VER-05 | Event ended since last verify | 200 but with event status |
 | I-VER-06 | Rate limited | 429 |
 
-### 3.3 `GET /api/health` — Health Check
+### 3.3 `GET /api/health` - Health Check
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -624,7 +624,7 @@ __tests__/
 | I-HLT-02 | Rate limited | 429 |
 | I-HLT-03 | Cached for 5s | Second call within 5s returns same |
 
-### 3.4 `POST /api/order` — Order Form
+### 3.4 `POST /api/order` - Order Form
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -638,7 +638,7 @@ __tests__/
 | I-ORD-08 | Nodemailer failure → 500 | Error response |
 | I-ORD-09 | Rate limited | 429 |
 
-### 3.5 `DELETE /api/account/delete` — Account Deletion (159 lines)
+### 3.5 `DELETE /api/account/delete` - Account Deletion (159 lines)
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -654,7 +654,7 @@ __tests__/
 | I-DEL-10 | Missing CSRF → 403 | Error |
 | I-DEL-11 | Clears session cookie in response | `ws_session` cookie expired |
 
-### 3.6 `PATCH /api/secure/profile` — Profile Update
+### 3.6 `PATCH /api/secure/profile` - Profile Update
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -669,7 +669,7 @@ __tests__/
 | I-PRF-09 | Banned user → 403 | Error |
 | I-PRF-10 | Event not active → 403 | Error |
 
-### 3.7 `POST /api/secure/messages` — Send Message (205 lines)
+### 3.7 `POST /api/secure/messages` - Send Message (205 lines)
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -686,7 +686,7 @@ __tests__/
 | I-MSG-11 | No session → 401 | Error |
 | I-MSG-12 | No CSRF → 403 | Error |
 
-### 3.8 `PATCH /api/secure/messages` — Delete Message
+### 3.8 `PATCH /api/secure/messages` - Delete Message
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -695,7 +695,7 @@ __tests__/
 | I-MSG-DEL-03 | Already deleted message → idempotent | Still 200 |
 | I-MSG-DEL-04 | Non-existent message | 404 |
 
-### 3.9 `POST /api/secure/photos` — Upload Photo
+### 3.9 `POST /api/secure/photos` - Upload Photo
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -708,10 +708,10 @@ __tests__/
 | I-PHO-07 | Magic bytes mismatch (fake MIME) → rejected | 400 |
 | I-PHO-08 | Already at `MAX_PHOTOS` → rejected | 400 "Max photos reached" |
 | I-PHO-09 | Assigns correct `order_index` | Sequential from existing |
-| I-PHO-10 | Ownership — photo linked to session participant | `participant_id` matches |
+| I-PHO-10 | Ownership - photo linked to session participant | `participant_id` matches |
 | I-PHO-11 | No session → 401 | Error |
 
-### 3.10 `DELETE /api/secure/photos` — Delete Photo
+### 3.10 `DELETE /api/secure/photos` - Delete Photo
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -719,7 +719,7 @@ __tests__/
 | I-PHO-DEL-02 | Other's photo → 403 | Error |
 | I-PHO-DEL-03 | Non-existent photo | 404 |
 
-### 3.11 `PATCH /api/secure/photos` — Reorder Photos
+### 3.11 `PATCH /api/secure/photos` - Reorder Photos
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -727,16 +727,16 @@ __tests__/
 | I-PHO-RO-02 | IDs not owned by user → 403 | Error |
 | I-PHO-RO-03 | Duplicate indices | 400 |
 
-### 3.12 `POST /api/secure/upload-url` — Signed Upload URL
+### 3.12 `POST /api/secure/upload-url` - Signed Upload URL
 
 | ID | Test | Expected |
 |----|------|----------|
 | I-SGN-01 | Valid request → returns signed URL | URL + path |
-| I-SGN-02 | Path scope validation — must be in user's directory | Path starts with correct prefix |
+| I-SGN-02 | Path scope validation - must be in user's directory | Path starts with correct prefix |
 | I-SGN-03 | Path traversal attempt | Rejected |
 | I-SGN-04 | No session → 401 | Error |
 
-### 3.13 `POST /api/secure/blocks` — Block User (145 lines)
+### 3.13 `POST /api/secure/blocks` - Block User (145 lines)
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -751,16 +751,16 @@ __tests__/
 | I-BLK-09 | Block already-blocked user → idempotent | 200 (no duplicate) |
 | I-BLK-10 | No session → 401 | Error |
 
-### 3.14 `POST /api/secure/heartbeat` — Heartbeat
+### 3.14 `POST /api/secure/heartbeat` - Heartbeat
 
 | ID | Test | Expected |
 |----|------|----------|
 | I-HRT-01 | Updates `last_seen_at` | DB field updated |
-| I-HRT-02 | Throttled — 2-min stale threshold | Second call within 2 min → no DB write |
+| I-HRT-02 | Throttled - 2-min stale threshold | Second call within 2 min → no DB write |
 | I-HRT-03 | Call after 2 min → updates | DB write occurs |
 | I-HRT-04 | No session → 401 | Error |
 
-### 3.15 `POST /api/secure/likes` — Send Like
+### 3.15 `POST /api/secure/likes` - Send Like
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -772,7 +772,7 @@ __tests__/
 | I-LIK-06 | Creates notification for recipient | Notification row created |
 | I-LIK-07 | No session → 401 | Error |
 
-### 3.16 `DELETE /api/secure/likes` — Remove Like
+### 3.16 `DELETE /api/secure/likes` - Remove Like
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -780,7 +780,7 @@ __tests__/
 | I-LIK-DEL-02 | Non-existent like → idempotent | 200 |
 | I-LIK-DEL-03 | No session → 401 | Error |
 
-### 3.17 `POST /api/secure/likes/seen` — Mark Like Seen
+### 3.17 `POST /api/secure/likes/seen` - Mark Like Seen
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -788,7 +788,7 @@ __tests__/
 | I-LIK-SEEN-02 | Invalid UUID | 400 |
 | I-LIK-SEEN-03 | No session → 401 | Error |
 
-### 3.18 `POST /api/secure/conversations` — Get or Create Conversation
+### 3.18 `POST /api/secure/conversations` - Get or Create Conversation
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -796,10 +796,10 @@ __tests__/
 | I-CNV-02 | New → creates conversation | New ID |
 | I-CNV-03 | Blocked user → rejected | 403 |
 | I-CNV-04 | Self → rejected | 400 |
-| I-CNV-05 | Race condition — concurrent creates → single conversation | Only 1 row |
+| I-CNV-05 | Race condition - concurrent creates → single conversation | Only 1 row |
 | I-CNV-06 | No session → 401 | Error |
 
-### 3.19 `POST /api/secure/conversations/read` — Mark Conversation Read
+### 3.19 `POST /api/secure/conversations/read` - Mark Conversation Read
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -808,25 +808,25 @@ __tests__/
 | I-CNV-RD-03 | Not a participant → 403 | Error |
 | I-CNV-RD-04 | No session → 401 | Error |
 
-### 3.20 `POST /api/admin/login` — Admin Login
+### 3.20 `POST /api/admin/login` - Admin Login
 
 | ID | Test | Expected |
 |----|------|----------|
 | I-ADM-LGN-01 | Correct password → 200 + `ws_admin` cookie | Cookie set |
 | I-ADM-LGN-02 | Wrong password → 401 | Error |
 | I-ADM-LGN-03 | Missing password → 400 | Validation error |
-| I-ADM-LGN-04 | Brute-force — 5 wrong attempts → lockout | 429 "locked" |
+| I-ADM-LGN-04 | Brute-force - 5 wrong attempts → lockout | 429 "locked" |
 | I-ADM-LGN-05 | Timing-safe comparison | No timing leak between short vs. long passwords |
 | I-ADM-LGN-06 | Rate limited | 429 |
 
-### 3.21 `POST /api/admin/logout` — Admin Logout
+### 3.21 `POST /api/admin/logout` - Admin Logout
 
 | ID | Test | Expected |
 |----|------|----------|
 | I-ADM-LGT-01 | Clears `ws_admin` cookie | Cookie expired |
 | I-ADM-LGT-02 | Succeeds even without cookie | 200 |
 
-### 3.22 `GET /api/admin/events` — List Events
+### 3.22 `GET /api/admin/events` - List Events
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -835,7 +835,7 @@ __tests__/
 | I-ADM-EVT-03 | Search injection (`'; DROP TABLE`) → safe | No SQL injection |
 | I-ADM-EVT-04 | Not authenticated → 401 | Error |
 
-### 3.23 `POST /api/admin/events` — Create Event
+### 3.23 `POST /api/admin/events` - Create Event
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -846,7 +846,7 @@ __tests__/
 | I-ADM-EVT-CR-05 | Not authenticated → 401 | Error |
 | I-ADM-EVT-CR-06 | CSRF check for cookie auth | 403 without CSRF |
 
-### 3.24 `PATCH /api/admin/events/[eventId]` — Update Event
+### 3.24 `PATCH /api/admin/events/[eventId]` - Update Event
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -855,7 +855,7 @@ __tests__/
 | I-ADM-EVT-UP-03 | Invalid status value → 400 | Error |
 | I-ADM-EVT-UP-04 | Not authenticated → 401 | Error |
 
-### 3.25 `GET /api/admin/events/[eventId]/stats` — Event Quick Stats
+### 3.25 `GET /api/admin/events/[eventId]/stats` - Event Quick Stats
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -863,7 +863,7 @@ __tests__/
 | I-ADM-STA-02 | Invalid event ID → 400 | Error |
 | I-ADM-STA-03 | Not authenticated → 401 | Error |
 
-### 3.26 `GET /api/admin/events/[eventId]/participants` — List Participants
+### 3.26 `GET /api/admin/events/[eventId]/participants` - List Participants
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -871,7 +871,7 @@ __tests__/
 | I-ADM-PRT-02 | Invalid event ID → 400 | Error |
 | I-ADM-PRT-03 | Not authenticated → 401 | Error |
 
-### 3.27 `PATCH /api/admin/events/[eventId]/participants` — Ban/Unban
+### 3.27 `PATCH /api/admin/events/[eventId]/participants` - Ban/Unban
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -883,7 +883,7 @@ __tests__/
 | I-ADM-BAN-06 | Invalid participant ID → 404 | Error |
 | I-ADM-BAN-07 | Not authenticated → 401 | Error |
 
-### 3.28 `GET /api/admin/events/[eventId]/analytics` — Deep Event Analytics (684 lines)
+### 3.28 `GET /api/admin/events/[eventId]/analytics` - Deep Event Analytics (684 lines)
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -894,7 +894,7 @@ __tests__/
 | I-ADM-ANA-05 | Invalid event ID → 400 | Error |
 | I-ADM-ANA-06 | Not authenticated → 401 | Error |
 
-### 3.29 `GET /api/admin/global-analytics` — Global Analytics (541 lines)
+### 3.29 `GET /api/admin/global-analytics` - Global Analytics (541 lines)
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -903,7 +903,7 @@ __tests__/
 | I-ADM-GA-03 | Not authenticated → 401 | Error |
 | I-ADM-GA-04 | Cron auth (Authorization header) → 200 | Works without cookie |
 
-### 3.30 `DELETE /api/admin/events/[eventId]/delete` — Delete Event
+### 3.30 `DELETE /api/admin/events/[eventId]/delete` - Delete Event
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -913,7 +913,7 @@ __tests__/
 | I-ADM-DEL-04 | Non-existent event → 404 | Error |
 | I-ADM-DEL-05 | Not authenticated → 401 | Error |
 
-### 3.31 `POST /api/admin/events/[eventId]/archive` — Archive Event
+### 3.31 `POST /api/admin/events/[eventId]/archive` - Archive Event
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -923,7 +923,7 @@ __tests__/
 | I-ADM-ARC-04 | Already archived → idempotent | 200 |
 | I-ADM-ARC-05 | Not authenticated → 401 | Error |
 
-### 3.32 `POST /api/admin/events/[eventId]/rotate` — Rotate Join Code
+### 3.32 `POST /api/admin/events/[eventId]/rotate` - Rotate Join Code
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -932,7 +932,7 @@ __tests__/
 | I-ADM-ROT-03 | Old code no longer works for joining | Join with old code → 403 |
 | I-ADM-ROT-04 | Not authenticated → 401 | Error |
 
-### 3.33 `POST /api/admin/events/[eventId]/background` — Upload Background
+### 3.33 `POST /api/admin/events/[eventId]/background` - Upload Background
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -946,7 +946,7 @@ __tests__/
 | I-ADM-BG-08 | Cache-busting URL parameter | `?v=timestamp` appended |
 | I-ADM-BG-09 | Not authenticated → 401 | Error |
 
-### 3.34 `DELETE /api/admin/events/[eventId]/background` — Delete Background
+### 3.34 `DELETE /api/admin/events/[eventId]/background` - Delete Background
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -954,7 +954,7 @@ __tests__/
 | I-ADM-BG-DEL-02 | No existing background → idempotent | 200 |
 | I-ADM-BG-DEL-03 | Not authenticated → 401 | Error |
 
-### 3.35 `POST /api/admin/auto-archive` — Auto-Archive Cron
+### 3.35 `POST /api/admin/auto-archive` - Auto-Archive Cron
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -964,7 +964,7 @@ __tests__/
 | I-ADM-AA-04 | Cron auth required | 401 without secret |
 | I-ADM-AA-05 | Cookie auth also works | 200 |
 
-### 3.36 `POST /api/cleanup` — Cleanup Cron (250 lines)
+### 3.36 `POST /api/cleanup` - Cleanup Cron (250 lines)
 
 | ID | Test | Expected |
 |----|------|----------|
@@ -977,21 +977,21 @@ __tests__/
 | I-CLN-07 | Handles storage batch size correctly | Batches of `STORAGE_BATCH_SIZE` |
 | I-CLN-08 | Fire-and-forget failures don't crash | Continues to next event |
 
-### 3.37 Admin `_helpers.ts` — Guard Functions
+### 3.37 Admin `_helpers.ts` - Guard Functions
 
 | ID | Function | Test | Expected |
 |----|----------|------|----------|
-| I-ADH-01 | `adminGuard()` — valid cookie | Returns parsed request body |
-| I-ADH-02 | `adminGuard()` — invalid cookie | 401 error |
-| I-ADH-03 | `adminGuard()` — cron secret auth | Returns body (no CSRF required) |
-| I-ADH-04 | `adminGuard()` — cookie auth without CSRF | 403 error |
-| I-ADH-05 | `adminGuard()` — body > `ADMIN_MAX_BODY_BYTES` | 413 error |
-| I-ADH-06 | `adminGuard()` — rate limited | 429 error |
-| I-ADH-07 | `validateEventId()` — valid UUID | Returns UUID |
-| I-ADH-08 | `validateEventId()` — invalid UUID | Returns error response |
-| I-ADH-09 | `hasCronAuth()` — correct secret hash | Returns `true` |
-| I-ADH-10 | `hasCronAuth()` — wrong secret | Returns `false` |
-| I-ADH-11 | `hasCronAuth()` — timing-safe comparison | Constant-time (verify with mock) |
+| I-ADH-01 | `adminGuard()` - valid cookie | Returns parsed request body |
+| I-ADH-02 | `adminGuard()` - invalid cookie | 401 error |
+| I-ADH-03 | `adminGuard()` - cron secret auth | Returns body (no CSRF required) |
+| I-ADH-04 | `adminGuard()` - cookie auth without CSRF | 403 error |
+| I-ADH-05 | `adminGuard()` - body > `ADMIN_MAX_BODY_BYTES` | 413 error |
+| I-ADH-06 | `adminGuard()` - rate limited | 429 error |
+| I-ADH-07 | `validateEventId()` - valid UUID | Returns UUID |
+| I-ADH-08 | `validateEventId()` - invalid UUID | Returns error response |
+| I-ADH-09 | `hasCronAuth()` - correct secret hash | Returns `true` |
+| I-ADH-10 | `hasCronAuth()` - wrong secret | Returns `false` |
+| I-ADH-11 | `hasCronAuth()` - timing-safe comparison | Constant-time (verify with mock) |
 
 ### 3.38 Security Cross-Cutting Tests
 
@@ -1003,7 +1003,7 @@ __tests__/
 | I-SEC-04 | All `/api/secure/*` routes reject inactive events | 403 |
 | I-SEC-05 | All `/api/admin/*` routes reject unauthenticated | 401 |
 | I-SEC-06 | Response headers include security headers | `X-Content-Type-Options`, `X-Frame-Options`, etc. |
-| I-SEC-07 | CORS — non-allowed origins rejected | No `Access-Control-Allow-Origin` |
+| I-SEC-07 | CORS - non-allowed origins rejected | No `Access-Control-Allow-Origin` |
 | I-SEC-08 | JSON responses never leak stack traces | No `stack` field in error responses |
 | I-SEC-09 | All mutation endpoints check CSRF | 403 without |
 | I-SEC-10 | 13-digit body size limits enforced | 413 on oversized bodies |
@@ -1168,7 +1168,7 @@ __tests__/
 | E-EU-02 | Event paused | Admin pauses | Appropriate message |
 | E-EU-03 | Event archived | Event archived | Unavailable page |
 
-### 4.14 Admin — Login Flow
+### 4.14 Admin - Login Flow
 
 | ID | Flow | Steps | Expected |
 |----|------|-------|----------|
@@ -1178,7 +1178,7 @@ __tests__/
 | E-AD-LGN-04 | Logout | Click logout | Redirected to login |
 | E-AD-LGN-05 | Session expiry | Wait > 24h (mock) | Redirected to login |
 
-### 4.15 Admin — Event Management Flow
+### 4.15 Admin - Event Management Flow
 
 | ID | Flow | Steps | Expected |
 |----|------|-------|----------|
@@ -1193,7 +1193,7 @@ __tests__/
 | E-AD-EVT-09 | Search events | Type in search | Results filtered |
 | E-AD-EVT-10 | Empty state | No events | "אין אירועים" message |
 
-### 4.16 Admin — Participant Management Flow
+### 4.16 Admin - Participant Management Flow
 
 | ID | Flow | Steps | Expected |
 |----|------|-------|----------|
@@ -1202,7 +1202,7 @@ __tests__/
 | E-AD-PRT-03 | Unban participant | Click unban → confirm | Badge removed |
 | E-AD-PRT-04 | View participant details | Click participant | Full profile visible |
 
-### 4.17 Admin — Analytics Flow
+### 4.17 Admin - Analytics Flow
 
 | ID | Flow | Steps | Expected |
 |----|------|-------|----------|
@@ -1267,8 +1267,8 @@ __tests__/
 | E-CC-02 | Two-user interaction | UserA likes UserB → UserB likes UserA → chat opens | Match + conversation work |
 | E-CC-03 | Admin + user parallel | Admin creates event → user joins → admin views participant → admin bans | All steps succeed |
 | E-CC-04 | Hebrew throughout | All UI text appropriate | RTL layout, Hebrew labels |
-| E-CC-05 | Performance — grid with 50 participants | Seed 50 users | Page loads < 3s |
-| E-CC-06 | Performance — chat with 100 messages | Seed 100 messages | Loads + scrolls smoothly |
+| E-CC-05 | Performance - grid with 50 participants | Seed 50 users | Page loads < 3s |
+| E-CC-06 | Performance - chat with 100 messages | Seed 100 messages | Loads + scrolls smoothly |
 
 ---
 
@@ -1276,17 +1276,17 @@ __tests__/
 
 | Category | Count | Coverage Target |
 |----------|-------|-----------------|
-| **Unit — lib/ functions** | ~120 tests | Every exported function, all branches |
-| **Unit — Zustand stores** | ~55 tests | Every action, state transitions, edge cases |
-| **Unit — client API helpers** | ~35 tests | Every function, request shape, error handling |
-| **Unit — components** | ~33 tests | Render, interaction, conditional states |
-| **Unit — hooks** | ~6 tests | Mount/unmount/update lifecycle |
-| **Unit — realtimeHub** | ~8 tests | Subscription management, refcounting |
-| **Integration — API routes** | ~135 tests | Every route × method × guard × error path |
-| **Integration — security** | ~10 tests | Cross-cutting auth/CSRF/ban/event checks |
-| **E2E — user flows** | ~95 tests | Every page, interaction, user journey |
-| **E2E — admin flows** | ~25 tests | Event CRUD, participants, analytics |
-| **E2E — cross-cutting** | ~15 tests | Multi-user, performance, RTL, PWA |
+| **Unit - lib/ functions** | ~120 tests | Every exported function, all branches |
+| **Unit - Zustand stores** | ~55 tests | Every action, state transitions, edge cases |
+| **Unit - client API helpers** | ~35 tests | Every function, request shape, error handling |
+| **Unit - components** | ~33 tests | Render, interaction, conditional states |
+| **Unit - hooks** | ~6 tests | Mount/unmount/update lifecycle |
+| **Unit - realtimeHub** | ~8 tests | Subscription management, refcounting |
+| **Integration - API routes** | ~135 tests | Every route × method × guard × error path |
+| **Integration - security** | ~10 tests | Cross-cutting auth/CSRF/ban/event checks |
+| **E2E - user flows** | ~95 tests | Every page, interaction, user journey |
+| **E2E - admin flows** | ~25 tests | Event CRUD, participants, analytics |
+| **E2E - cross-cutting** | ~15 tests | Multi-user, performance, RTL, PWA |
 | | | |
 | **TOTAL** | **~537 tests** | **Complete coverage** |
 

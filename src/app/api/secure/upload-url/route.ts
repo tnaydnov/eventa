@@ -10,7 +10,7 @@ const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic',
 /**
  * POST /api/secure/upload-url
  * Generate a signed upload URL for Supabase Storage.
- * Client uploads the file directly to the signed URL — no anon key needed.
+ * Client uploads the file directly to the signed URL - no anon key needed.
  *
  * Validated paths:
  *   - Profile photo: {eventId}/{participantId}/...

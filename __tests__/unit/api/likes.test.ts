@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/api/likes.ts — sendLike, removeLike, markLikeSeen, markAllLikesSeen
+ * Unit tests for lib/api/likes.ts - sendLike, removeLike, markLikeSeen, markAllLikesSeen
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 

@@ -1,5 +1,5 @@
 /**
- * Barrel re-export — all stores live in ./stores/ now.
+ * Barrel re-export - all stores live in ./stores/ now.
  * This file is kept for backward-compatibility with existing imports.
  */
 export {

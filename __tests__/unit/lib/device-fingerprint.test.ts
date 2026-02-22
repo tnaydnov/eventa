@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/device-fingerprint.ts — Device identification
+ * Unit tests for lib/device-fingerprint.ts - Device identification
  * Tests: U-DFP-01 through U-DFP-07+
  *
  * Uses jsdom environment for browser APIs (canvas, navigator, etc.)

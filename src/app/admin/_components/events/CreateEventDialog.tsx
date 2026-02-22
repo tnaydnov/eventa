@@ -150,7 +150,7 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
           className="admin-dialog admin-dialog--lg admin-animate-in"
           onClick={(e) => e.stopPropagation()}
         >
-          <h3 className="admin-dialog__title">✨ אירוע חדש — בחרו סוג</h3>
+          <h3 className="admin-dialog__title">✨ אירוע חדש - בחרו סוג</h3>
 
           <div className="ced-type-grid">
             {EVENT_TYPES.map((t) => (

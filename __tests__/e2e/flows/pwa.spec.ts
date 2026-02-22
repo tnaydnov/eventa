@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('PWA & Service Worker', () => {
-  test('E-PWA-01: Install prompt — manifest linked in HTML', async ({ page }) => {
+  test('E-PWA-01: Install prompt - manifest linked in HTML', async ({ page }) => {
     await page.goto('/');
     // Check that manifest link exists in head
     const manifestLink = page.locator('link[rel="manifest"]');
@@ -24,7 +24,7 @@ test.describe('PWA & Service Worker', () => {
     expect(body?.display).toBe('standalone');
   });
 
-  test('E-PWA-03: Offline fallback — SW file valid', async ({ page }) => {
+  test('E-PWA-03: Offline fallback - SW file valid', async ({ page }) => {
     // We can't easily test offline in Playwright without service worker context,
     // but we can verify the SW file is valid JavaScript
     const res = await page.goto('/sw.js');

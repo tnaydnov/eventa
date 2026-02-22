@@ -104,11 +104,11 @@ export async function POST(req: NextRequest) {
     if (!crypto.timingSafeEqual(inputHash, secretHash)) {
       recordFailedAttempt(ip);
       adminAuditLog('LOGIN_FAILED', { ip }, req);
-      // Constant generic error — don't reveal if password was close
+      // Constant generic error - don't reveal if password was close
       return jsonError('Unauthorized', 401);
     }
 
-    // Success — clear failed attempts and issue token
+    // Success - clear failed attempts and issue token
     clearFailedAttempts(ip);
     const token = signAdminToken();
     const res = NextResponse.json({ success: true });

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   How It Works — Journey Path Design
+   How It Works - Journey Path Design
    Vertical timeline with scroll-reveal stages
    ═══════════════════════════════════════════ */
 
@@ -178,7 +178,7 @@
   font-weight: 500;
 }
 
-/* ═══ Path — the journey ═══ */
+/* ═══ Path - the journey ═══ */
 .hiw__path {
   position: relative;
   z-index: 1;
@@ -222,7 +222,7 @@
   transform: translateY(0);
 }
 
-/* Timeline node — icon dot */
+/* Timeline node - icon dot */
 .hiw-stage__node {
   position: relative;
   display: flex;

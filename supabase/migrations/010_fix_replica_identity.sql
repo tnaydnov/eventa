@@ -6,8 +6,8 @@
 -- to include ALL columns. PostgreSQL error 42P10:
 --   "Column list used by the publication does not cover the replica identity."
 --
--- This blocked ALL UPDATE and DELETE operations on participants and events —
--- even for service_role — because PostgreSQL checks publication compatibility
+-- This blocked ALL UPDATE and DELETE operations on participants and events -
+-- even for service_role - because PostgreSQL checks publication compatibility
 -- before allowing DML when logical replication is configured.
 --
 -- FIX: Change REPLICA IDENTITY to DEFAULT (primary key only) on these two

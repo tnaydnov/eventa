@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/logger.ts — Structured logger
+ * Unit tests for lib/logger.ts - Structured logger
  * Tests: U-LOG-01 through U-LOG-06+
  *
  * @vitest-environment node

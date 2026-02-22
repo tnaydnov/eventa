@@ -7,7 +7,7 @@
 --
 -- FIX: Use PostgreSQL 15+ column lists on the publication so that
 -- only safe columns are included in realtime change events.
--- This is transparent to the client — the Realtime API still delivers
+-- This is transparent to the client - the Realtime API still delivers
 -- INSERT/UPDATE/DELETE events, just without the excluded columns.
 --
 -- IMPORTANT: This does NOT affect service_role queries, RLS, or

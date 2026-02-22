@@ -1,7 +1,7 @@
 import DOMPurify from 'dompurify';
 
 /**
- * Sanitize user input — strips HTML/JS while preserving text content.
+ * Sanitize user input - strips HTML/JS while preserving text content.
  * Safe for chat messages, bios, display names, etc.
  */
 export function sanitize(input: string): string {

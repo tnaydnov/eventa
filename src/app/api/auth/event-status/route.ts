@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ status: 'not_found' });
     }
 
-    // Return the raw status — let the client decide how to handle it
+    // Return the raw status - let the client decide how to handle it
     return NextResponse.json({
       status: event.status as string,
       isActive: event.is_active as boolean,

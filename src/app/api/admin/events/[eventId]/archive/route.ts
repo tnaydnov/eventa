@@ -14,7 +14,7 @@ import { logger } from '@/lib/logger';
  *  3. Purges user data (participants, photos, likes, messages, etc.).
  *  4. Sets event status → 'archived', archived_at, is_active → false.
  *
- * This is a destructive operation — use with care.
+ * This is a destructive operation - use with care.
  */
 export async function POST(
   req: NextRequest,

@@ -6,7 +6,7 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 /** Build the public URL for a participant photo. */
 export function getPhotoUrl(storagePath: string): string {
   if (!SUPABASE_URL) {
-    console.error('NEXT_PUBLIC_SUPABASE_URL is not set — photo URLs will be broken');
+    console.error('NEXT_PUBLIC_SUPABASE_URL is not set - photo URLs will be broken');
     return '';
   }
   return `${SUPABASE_URL}/storage/v1/object/public/photos/${storagePath}`;
@@ -32,7 +32,7 @@ export async function getBlockedIds(eventId: string, myId: string): Promise<Set<
     .or(`blocker_id.eq.${myId},blocked_id.eq.${myId}`);
 
   if (error) {
-    // SAFETY: never return an empty set on failure — blocked users would become visible.
+    // SAFETY: never return an empty set on failure - blocked users would become visible.
     // Throw so callers (grid, likes, matches, conversations) surface the error.
     throw new Error(`Failed to fetch blocked IDs: ${error.message}`);
   }
@@ -57,7 +57,7 @@ export function invalidateBlockedCache() {
  * Returns { pMap, phMap } for joining participant data with photos.
  * Batches .in() calls to avoid exceeding PostgREST URL length limits (~50 UUIDs per batch).
  */
-/** Explicit columns for participant queries (avoids SELECT *). Excludes fingerprints — those are internal only. */
+/** Explicit columns for participant queries (avoids SELECT *). Excludes fingerprints - those are internal only. */
 export const PARTICIPANT_COLUMNS = 'id, event_id, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at' as const;
 export const PHOTO_COLUMNS = 'id, event_id, participant_id, storage_path, order_index, created_at' as const;
 export const CONVERSATION_COLUMNS = 'id, event_id, a_participant_id, b_participant_id, created_at, last_message_at, a_last_read_at, b_last_read_at' as const;

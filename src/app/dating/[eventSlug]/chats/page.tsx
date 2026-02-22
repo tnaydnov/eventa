@@ -26,7 +26,7 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(hours / 24)} ימים`;
 }
 
-/** Memoized chat list item — only re-renders when conversation data changes. */
+/** Memoized chat list item - only re-renders when conversation data changes. */
 const ChatListItem = memo(function ChatListItem({
   conv,
   onClick,
@@ -101,7 +101,7 @@ export default function ChatsPage({
   // Reload chats when user returns from background
   useAppResume(() => loadChats(), !!session);
 
-  // Realtime via Hub — local updates where possible, full reload as fallback
+  // Realtime via Hub - local updates where possible, full reload as fallback
   useRealtimeHub({
     channelKey: `chats-live:${session?.eventId}`,
     postgres: [
@@ -116,7 +116,7 @@ export default function ChatsPage({
           // Only care about messages in conversations I'm part of
           const conv = useChatsStore.getState().conversations.find((c) => c.id === msg.conversation_id);
           if (!conv) {
-            // Could be a new conversation — reload
+            // Could be a new conversation - reload
             loadChats();
             return;
           }
@@ -146,7 +146,7 @@ export default function ChatsPage({
   });
 
   // Realtime via Hub handles live updates; useAppResume handles returning from background.
-  // No additional polling needed — RealtimeNotificationListener provides global fallback.
+  // No additional polling needed - RealtimeNotificationListener provides global fallback.
 
   return (
     <MobileGuard>

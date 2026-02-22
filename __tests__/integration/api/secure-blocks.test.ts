@@ -85,7 +85,7 @@ describe('POST /api/secure/blocks', () => {
   it('blocks user and cascades', async () => {
     vi.mocked(isValidUUID).mockReturnValue(true);
 
-    // Context checks (like forward, like reverse, convo) — 3 parallel queries
+    // Context checks (like forward, like reverse, convo) - 3 parallel queries
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -156,7 +156,7 @@ describe('POST /api/secure/blocks', () => {
       maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
     });
 
-    // Block insert — duplicate (23505)
+    // Block insert - duplicate (23505)
     mockFrom.mockReturnValueOnce({
       insert: vi.fn().mockResolvedValue({ error: { code: '23505', message: 'duplicate' } }),
     });

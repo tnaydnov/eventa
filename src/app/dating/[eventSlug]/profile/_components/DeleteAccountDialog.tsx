@@ -29,7 +29,7 @@ export default function DeleteAccountDialog({
     if (result.ok) {
       onDeleted();
     } else {
-      toast('שגיאה במחיקת החשבון — נסו שוב');
+      toast('שגיאה במחיקת החשבון - נסו שוב');
       setDeleting(false);
     }
   };
@@ -40,7 +40,7 @@ export default function DeleteAccountDialog({
         <div style={{ marginBottom: '12px', color: 'var(--danger)' }}><TrashIcon size={40} /></div>
         <h3 style={{ marginBottom: '8px', color: 'var(--danger)' }}>מחיקת חשבון?</h3>
         <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px', lineHeight: 1.6 }}>
-          כל הנתונים שלך יימחקו לצמיתות — תמונות, שיחות, לייקים, והפרופיל.
+          כל הנתונים שלך יימחקו לצמיתות - תמונות, שיחות, לייקים, והפרופיל.
           <br />לא ניתן לשחזר.
         </p>
         <div style={{ display: 'flex', gap: '12px' }}>

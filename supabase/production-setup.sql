@@ -1,5 +1,5 @@
 -- ============================================
--- Eventa — FULL PRODUCTION SETUP
+-- Eventa - FULL PRODUCTION SETUP
 -- Run this entire file in Supabase SQL Editor
 -- (Dashboard → SQL Editor → New Query → Paste → Run)
 -- ============================================

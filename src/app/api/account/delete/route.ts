@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
     if (activityRes.error) logger.error('[ACCOUNT_DELETE] activity_log delete error:', activityRes.error.message);
 
     // 7. Remove device from banned_devices so the user can rejoin freely.
-    //    Self-deletion is NOT an admin ban — the user should get a clean slate.
+    //    Self-deletion is NOT an admin ban - the user should get a clean slate.
     const { data: selfParticipant } = await supabase
       .from('participants')
       .select('device_fingerprint, hardware_fingerprint')
@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 8. Finally, delete the participant record (critical — must succeed)
+    // 8. Finally, delete the participant record (critical - must succeed)
     const { error: participantDelErr } = await supabase
       .from('participants')
       .delete()

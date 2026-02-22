@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * DonutChart — Lightweight SVG donut chart.
+ * DonutChart - Lightweight SVG donut chart.
  * Used for gender/attraction breakdown.
  */
 

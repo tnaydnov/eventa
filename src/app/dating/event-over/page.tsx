@@ -6,7 +6,7 @@ import Image from 'next/image';
 
 /**
  * /dating/event-over
- * Cinematic "event ended" splash — full-screen atmospheric experience.
+ * Cinematic "event ended" splash - full-screen atmospheric experience.
  * Auto-redirects to /dating after 15 seconds.
  *
  * Query params: ?reason=ended|paused|archived
@@ -23,7 +23,7 @@ const REASON_COPY: Record<string, { line1: string; line2: string; sub: string }>
   paused: {
     line1: 'רגע של',
     line2: 'השהייה',
-    sub: 'האירוע מושהה זמנית. נחזור בקרוב — שווה לבדוק שוב.',
+    sub: 'האירוע מושהה זמנית. נחזור בקרוב - שווה לבדוק שוב.',
   },
   archived: {
     line1: 'הסיפור הזה',
@@ -132,9 +132,9 @@ function EventOverContent() {
       {/* Horizontal accent line */}
       <div className="eo__line" />
 
-      {/* Main content — vertically centered */}
+      {/* Main content - vertically centered */}
       <div className="eo__center">
-        {/* Logo — small, subtle */}
+        {/* Logo - small, subtle */}
         <div className="eo__logo">
           <Image
             src="/icons/Eventa_Logo.png"
@@ -146,7 +146,7 @@ function EventOverContent() {
           />
         </div>
 
-        {/* Typography — large, cinematic, two lines */}
+        {/* Typography - large, cinematic, two lines */}
         <h1 className="eo__title">
           <span className="eo__title-line eo__title-line--1">{copy.line1}</span>
           <span className="eo__title-line eo__title-line--2">{copy.line2}</span>

@@ -43,7 +43,7 @@ async function handler(req: NextRequest) {
     let endedCount = 0;
     if (endableEvents && endableEvents.length > 0) {
       if (dryRun) {
-        logger.info('[AUTO_ARCHIVE] DRY RUN — would end events', {
+        logger.info('[AUTO_ARCHIVE] DRY RUN - would end events', {
           count: endableEvents.length,
           names: endableEvents.map((e) => e.name),
         });
@@ -81,7 +81,7 @@ async function handler(req: NextRequest) {
     if (archivable && archivable.length > 0) {
       if (dryRun) {
         const names = archivable.map((e) => e.name);
-        logger.info('[AUTO_ARCHIVE] DRY RUN — would archive events', { count: archivable.length, names });
+        logger.info('[AUTO_ARCHIVE] DRY RUN - would archive events', { count: archivable.length, names });
         return NextResponse.json({
           success: true,
           dryRun: true,
@@ -94,7 +94,7 @@ async function handler(req: NextRequest) {
 
       for (const ev of archivable) {
         try {
-          // Call the archive endpoint internally — forward auth headers
+          // Call the archive endpoint internally - forward auth headers
           const archiveUrl = new URL(`/api/admin/events/${ev.id}/archive`, req.url);
           const headers: Record<string, string> = {};
           const cookie = req.headers.get('cookie');
@@ -140,5 +140,5 @@ async function handler(req: NextRequest) {
   }
 }
 
-// Vercel Cron sends GET — expose both methods
+// Vercel Cron sends GET - expose both methods
 export { handler as GET, handler as POST };

@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/session.ts — Session & Auth
+ * Unit tests for lib/session.ts - Session & Auth
  * Tests: U-SES-01 through U-SES-20
  *
  * @vitest-environment node
@@ -274,7 +274,7 @@ describe('checkCsrf', () => {
       method: 'POST',
       headers: { origin: 'https://example.com' },
     });
-    // Host may be auto-set by Request constructor — test behavior
+    // Host may be auto-set by Request constructor - test behavior
     const result = checkCsrf(req);
     // Origin present but host might be auto-set
     expect(typeof result).toBe('boolean');

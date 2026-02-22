@@ -110,7 +110,7 @@ export default function ProfileEditPage({
       toast('הפרופיל עודכן');
       router.back();
     } else {
-      toast('שגיאה בעדכון הפרופיל — נסו שוב');
+      toast('שגיאה בעדכון הפרופיל - נסו שוב');
     }
   };
 

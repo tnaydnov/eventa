@@ -22,7 +22,7 @@ const SwipeView = dynamic(() => import('./_components/SwipeView'), {
 import type { Gender } from '@/lib/database.types';
 import type { GridParticipant } from '@/lib/stores/grid';
 
-/** Memoized grid card — only re-renders when participant data or highlights change. */
+/** Memoized grid card - only re-renders when participant data or highlights change. */
 const GridCard = memo(function GridCard({
   p,
   hasLikeHighlight,
@@ -76,7 +76,7 @@ const GridCard = memo(function GridCard({
 });
 
 /**
- * Main event page — handles:
+ * Main event page - handles:
  * 1. QR redirect (?k=joinCode) → /join
  * 2. Grid view for logged-in participants
  * 3. Swipe (Tinder-style) view as an alternative browsing mode
@@ -128,7 +128,7 @@ export default function EventPage({
     }
   }, [eventSlug, searchParams, router, session]);
 
-  // Profile completeness guard — redirect to setup if profile is incomplete
+  // Profile completeness guard - redirect to setup if profile is incomplete
   useEffect(() => {
     if (!session) return;
     const hasProfile = localStorage.getItem(`profile_setup_${session.participantId}`);
@@ -138,17 +138,17 @@ export default function EventPage({
     getParticipant(session.participantId).then((p) => {
       if (!p) return;
       if (p.display_name.trim() && p.age != null) {
-        // Profile is actually complete — restore the flag
+        // Profile is actually complete - restore the flag
         localStorage.setItem(`profile_setup_${session.participantId}`, 'true');
         setParticipant(p);
       } else {
-        // Profile is incomplete — redirect to setup
+        // Profile is incomplete - redirect to setup
         router.replace(`/dating/${eventSlug}/setup`);
       }
     });
   }, [session, eventSlug, router, setParticipant]);
 
-  // Load grid (skip if recently fetched — Realtime keeps data fresh)
+  // Load grid (skip if recently fetched - Realtime keeps data fresh)
   useEffect(() => {
     if (session) {
       if (Date.now() - lastFetchRef.current < 10_000) return;
@@ -211,7 +211,7 @@ export default function EventPage({
             // Just update the existing entry
             updateParticipant(updated.id, payload.new as Partial<GridParticipant>);
           } else {
-            // Participant completed their profile — check if they should be added
+            // Participant completed their profile - check if they should be added
             if (!session || updated.id === session.participantId) return;
             if (!updated.display_name?.trim() || updated.age == null) return;
 

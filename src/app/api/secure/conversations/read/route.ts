@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const supabase = getServiceClient();
     const now = new Date().toISOString();
 
-    // Try both updates in parallel — only one will match
+    // Try both updates in parallel - only one will match
     const [aRes, bRes] = await Promise.all([
       supabase
         .from('conversations')
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         .select('id'),
     ]);
 
-    // Check for DB errors first — don't mask them as 403
+    // Check for DB errors first - don't mask them as 403
     if (aRes.error || bRes.error) {
       if (aRes.error) logger.error('[conversations/read] a update error:', aRes.error.message);
       if (bRes.error) logger.error('[conversations/read] b update error:', bRes.error.message);

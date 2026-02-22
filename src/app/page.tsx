@@ -3,208 +3,149 @@ import Image from 'next/image';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Eventa — Turn Any Event Into an Experience',
+  title: 'Eventa — הפכו כל אירוע לחוויה',
   description:
-    'Eventa adds smart social layers to events — dating, networking, and engagement tools that make your events unforgettable.',
+    'Eventa מוסיפה שכבות חכמות לאירועים — היכרויות, נטוורקינג ועוד. הכל בדפדפן, בלי להוריד כלום.',
   alternates: { canonical: 'https://www.eventa.productions' },
 };
 
-const PRODUCTS = [
-  {
-    emoji: '💘',
-    title: 'Eventa Dating',
-    desc: 'שכבת היכרויות חכמה לכל אירוע — חתונות, מסיבות, אירועי חברה ועוד. האורחים סורקים QR, בונים פרופיל, ונהנים מלייקים, מאצ׳ים וצ׳אטים.',
-    href: '/dating',
-    cta: 'גלו עוד',
-    color: '#d4a59a',
-  },
-];
-
 export default function HomePage() {
   return (
-    <div
-      dir="rtl"
-      style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(180deg, #0a0a0a 0%, #111 50%, #0a0a0a 100%)',
-        color: '#f0f0f0',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      {/* ─── Nav ─── */}
-      <nav
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '20px 24px',
-          maxWidth: '1100px',
-          width: '100%',
-          margin: '0 auto',
-        }}
-      >
+    <div className="hp" dir="rtl">
+      {/* ── Ambient layer ── */}
+      <div className="hp__ambient" />
+
+      {/* ── Nav ── */}
+      <nav className="hp__nav">
         <Image
           src="/icons/Eventa_Logo.png"
           alt="Eventa"
-          width={120}
-          height={40}
+          width={110}
+          height={37}
           style={{ objectFit: 'contain' }}
           priority
         />
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <Link
-            href="/dating"
-            style={{
-              color: '#d4a59a',
-              textDecoration: 'none',
-              fontSize: '14px',
-              fontWeight: 500,
-              padding: '8px 16px',
-              borderRadius: '8px',
-              border: '1px solid rgba(212,165,154,0.3)',
-              transition: 'all 0.2s',
-            }}
-          >
-            Dating
-          </Link>
-        </div>
       </nav>
 
-      {/* ─── Hero ─── */}
-      <main
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          padding: '40px 24px 60px',
-          maxWidth: '800px',
-          margin: '0 auto',
-        }}
-      >
-        <div
-          style={{
-            fontSize: '13px',
-            color: '#d4a59a',
-            fontWeight: 500,
-            letterSpacing: '0.5px',
-            marginBottom: '24px',
-            background: 'rgba(212,165,154,0.08)',
-            padding: '6px 16px',
-            borderRadius: '20px',
-            border: '1px solid rgba(212,165,154,0.15)',
-          }}
-        >
-          ✨ הפלטפורמה לחוויות באירועים
-        </div>
-
-        <h1
-          style={{
-            fontSize: 'clamp(32px, 6vw, 56px)',
-            fontWeight: 800,
-            lineHeight: 1.15,
-            marginBottom: '20px',
-            color: '#fff',
-          }}
-        >
-          הפכו כל אירוע
-          <br />
-          <span
-            style={{
-              background: 'linear-gradient(135deg, #d4a59a, #ff6b9d, #d4a59a)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            לחוויה בלתי נשכחת
-          </span>
+      {/* ── Hero ── */}
+      <header className="hp__hero">
+        <p className="hp__badge">הפלטפורמה לחוויות באירועים</p>
+        <h1 className="hp__title">
+          <span className="hp__title-line1">כל אירוע.</span>
+          <span className="hp__title-line2">חוויה אחרת.</span>
         </h1>
-
-        <p
-          style={{
-            fontSize: 'clamp(16px, 2.5vw, 20px)',
-            color: '#999',
-            maxWidth: '600px',
-            lineHeight: 1.7,
-            marginBottom: '48px',
-          }}
-        >
-          Eventa מוסיפה שכבות חברתיות חכמות לאירועים — היכרויות, נטוורקינג, ומעורבות קהל. הכל בדפדפן, בלי להוריד כלום.
+        <p className="hp__sub">
+          Eventa מוסיפה שכבות חכמות לכל אירוע — היכרויות, מעורבות קהל ועוד.
+          <br />
+          הכל ישר מהדפדפן, בלי להוריד כלום.
         </p>
+      </header>
 
-        {/* ─── Products Grid ─── */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '24px',
-            width: '100%',
-            maxWidth: '700px',
-          }}
-        >
-          {PRODUCTS.map((p) => (
-            <Link
-              key={p.href}
-              href={p.href}
-              style={{
-                textDecoration: 'none',
-                background: 'rgba(255,255,255,0.04)',
-                border: `1px solid rgba(212,165,154,0.15)`,
-                borderRadius: '20px',
-                padding: '32px 28px',
-                textAlign: 'center',
-                transition: 'all 0.3s',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '12px',
-              }}
-            >
-              <span style={{ fontSize: '48px' }}>{p.emoji}</span>
-              <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', margin: 0 }}>{p.title}</h2>
-              <p style={{ fontSize: '14px', color: '#999', lineHeight: 1.7, margin: 0 }}>{p.desc}</p>
-              <span
-                style={{
-                  marginTop: '8px',
-                  color: p.color,
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                {p.cta}
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M7 4l-6 6 6 6" />
+      {/* ── Services section ── */}
+      <section className="hp__services">
+        <p className="hp__services-label">השירותים שלנו</p>
+
+        {/* Dating — LIVE */}
+        <Link href="/dating" className="hp__card hp__card--live">
+          <div className="hp__card-status">
+            <span className="hp__card-dot" />
+            <span>זמין עכשיו</span>
+          </div>
+          <div className="hp__card-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </div>
+          <h2 className="hp__card-title">Eventa Dating</h2>
+          <p className="hp__card-desc">
+            שכבת היכרויות חכמה לכל אירוע. האורחים סורקים QR, בונים פרופיל, ומגלים אחד את השנייה עם לייקים, מאצ׳ים וצ׳אט — בזמן אמת.
+          </p>
+          <span className="hp__card-cta">
+            <span>גלו עוד</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </span>
+        </Link>
+
+        {/* Coming Soon cards — teaser grid */}
+        <div className="hp__coming">
+          <div className="hp__coming-header">
+            <div className="hp__coming-line" />
+            <span className="hp__coming-tag">בקרוב</span>
+            <div className="hp__coming-line" />
+          </div>
+
+          <div className="hp__coming-grid">
+            {/* Networking */}
+            <div className="hp__card hp__card--soon">
+              <div className="hp__card-icon hp__card-icon--muted">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                 </svg>
-              </span>
-            </Link>
-          ))}
-        </div>
-      </main>
+              </div>
+              <h3 className="hp__card-title hp__card-title--sm">Eventa Network</h3>
+              <p className="hp__card-desc hp__card-desc--sm">
+                נטוורקינג חכם בכנסים ואירועי חברה. חיבור בין אנשים עם תחומי עניין משותפים.
+              </p>
+              <span className="hp__card-soon-badge">Coming Soon</span>
+            </div>
 
-      {/* ─── Footer ─── */}
-      <footer
-        style={{
-          borderTop: '1px solid rgba(255,255,255,0.06)',
-          padding: '24px',
-          textAlign: 'center',
-          fontSize: '13px',
-          color: '#555',
-        }}
-      >
-        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
-          <Link href="/how-it-works" style={{ color: '#777', textDecoration: 'none' }}>איך זה עובד</Link>
-          <Link href="/faq" style={{ color: '#777', textDecoration: 'none' }}>שאלות נפוצות</Link>
-          <Link href="/privacy" style={{ color: '#777', textDecoration: 'none' }}>מדיניות פרטיות</Link>
-          <Link href="/terms" style={{ color: '#777', textDecoration: 'none' }}>תנאי שימוש</Link>
-          <Link href="/cookies" style={{ color: '#777', textDecoration: 'none' }}>מדיניות עוגיות</Link>
+            {/* Engage */}
+            <div className="hp__card hp__card--soon">
+              <div className="hp__card-icon hp__card-icon--muted">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  <line x1="9" y1="10" x2="15" y2="10" />
+                </svg>
+              </div>
+              <h3 className="hp__card-title hp__card-title--sm">Eventa Engage</h3>
+              <p className="hp__card-desc hp__card-desc--sm">
+                סקרים, Q&A חי, והצבעות בזמן אמת. דרך מעולה לשמור את האורחים מעורבים.
+              </p>
+              <span className="hp__card-soon-badge">Coming Soon</span>
+            </div>
+
+            {/* Mystery slot */}
+            <div className="hp__card hp__card--mystery">
+              <span className="hp__mystery-q">?</span>
+              <p className="hp__card-desc hp__card-desc--sm">
+                ויש עוד...<br />הישארו מעודכנים.
+              </p>
+            </div>
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', margin: 0 }}>
+      </section>
+
+      {/* ── Bottom CTA ── */}
+      <section className="hp__bottom-cta">
+        <h2 className="hp__bottom-title">
+          רוצים להיות הראשונים לדעת?
+        </h2>
+        <p className="hp__bottom-sub">
+          יש לנו עוד הרבה בדרך. בינתיים, גלו את Eventa Dating ותנו לאורחים חוויה שלא ישכחו.
+        </p>
+        <Link href="/dating" className="hp__bottom-btn">
+          <span>לEventa Dating</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </Link>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className="hp__footer">
+        <div className="hp__footer-links">
+          <Link href="/how-it-works">איך זה עובד</Link>
+          <Link href="/faq">שאלות נפוצות</Link>
+          <Link href="/privacy">מדיניות פרטיות</Link>
+          <Link href="/terms">תנאי שימוש</Link>
+          <Link href="/cookies">מדיניות עוגיות</Link>
+        </div>
+        <div className="hp__footer-copy">
           <span>© {new Date().getFullYear()}</span>
           <Image
             src="/icons/Eventa_Logo.png"

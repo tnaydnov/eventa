@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/admin-auth.ts — Admin Auth
+ * Unit tests for lib/admin-auth.ts - Admin Auth
  * Tests: U-ADM-01 through U-ADM-13
  *
  * @vitest-environment node

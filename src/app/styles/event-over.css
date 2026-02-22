@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
-   Event Over — Cinematic Full-Screen Experience
-   No cards, no boxes — atmospheric & editorial
+   Event Over - Cinematic Full-Screen Experience
+   No cards, no boxes - atmospheric & editorial
    ═══════════════════════════════════════════ */
 
 /* ── Page shell ── */
@@ -18,7 +18,7 @@
   font-family: var(--font-rubik, 'Rubik', 'Segoe UI', sans-serif);
 }
 
-/* ── Ambient light — two soft gradients that drift ── */
+/* ── Ambient light - two soft gradients that drift ── */
 .eo__ambient {
   position: absolute;
   inset: 0;
@@ -157,7 +157,7 @@
   transform: translateY(0);
 }
 
-/* ── Title — large editorial type ── */
+/* ── Title - large editorial type ── */
 .eo__title {
   margin: 0 0 20px;
   font-size: 36px;
@@ -284,7 +284,7 @@
   transform: translateX(-3px);
 }
 
-/* ── Bottom countdown — circular timer ── */
+/* ── Bottom countdown - circular timer ── */
 .eo__bottom {
   position: absolute;
   bottom: 36px;

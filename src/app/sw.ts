@@ -18,9 +18,9 @@ const sw = self as unknown as ServiceWorkerGlobalScope;
  * Prepend NetworkOnly rules for sensitive API routes so they are
  * never served from the service-worker cache.
  *
- * - /api/admin, /api/auth — session/auth endpoints
- * - /api/secure — all authenticated user endpoints
- * - /api/cleanup, /api/health — infrastructure endpoints
+ * - /api/admin, /api/auth - session/auth endpoints
+ * - /api/secure - all authenticated user endpoints
+ * - /api/cleanup, /api/health - infrastructure endpoints
  *
  * The generic "/api/" NetworkFirst entry in defaultCache would
  * otherwise cache GET responses, masking expired sessions or

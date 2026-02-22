@@ -34,7 +34,7 @@ export default function ParticipantsDialog({ event, participants, onClose, onBan
     <div className="admin-overlay" onClick={onClose}>
       <div className="admin-dialog admin-dialog--lg" onClick={e => e.stopPropagation()}>
         <h3 className="admin-dialog__title">
-          👥 {event.name} — {participants.length} משתתפים
+          👥 {event.name} - {participants.length} משתתפים
         </h3>
 
         {participants.length === 0 ? (
@@ -52,7 +52,7 @@ export default function ParticipantsDialog({ event, participants, onClose, onBan
                 <div>
                   <span style={{ fontWeight: 600 }}>{p.display_name || '(ללא שם)'}</span>
                   <span className="admin-text-muted" style={{ marginRight: '8px', fontSize: '12px' }}>
-                    {p.gender === 'male' ? 'ג׳' : p.gender === 'female' ? 'א׳' : '—'}
+                    {p.gender === 'male' ? 'ג׳' : p.gender === 'female' ? 'א׳' : '-'}
                     {p.age ? `, ${p.age}` : ''}
                   </span>
                   {p.is_banned && <span style={{ color: 'var(--admin-red)', fontSize: '12px' }}> (חסום)</span>}

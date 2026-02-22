@@ -1,14 +1,14 @@
 /**
- * RealtimeHub — Singleton channel manager outside React lifecycle.
+ * RealtimeHub - Singleton channel manager outside React lifecycle.
  *
  * Architecture:
  * - One shared Supabase Realtime channel per unique key
  * - Reference counting: subscribe once, unsubscribe when last handler leaves
- * - Components call hub.subscribe() via useRealtimeHub hook — never supabase.channel() directly
+ * - Components call hub.subscribe() via useRealtimeHub hook - never supabase.channel() directly
  * - Survives React StrictMode double-mount, fast-refresh, and navigation
  * - Auto-reconnects when the app returns from background (visibilitychange)
  *
- * Only postgres_changes are used — broadcast was removed as redundant.
+ * Only postgres_changes are used - broadcast was removed as redundant.
  */
 
 import { supabase } from '@/lib/supabase';
@@ -197,7 +197,7 @@ function reconnectStaleChannels(): void {
     const state = managed.channel.state;
     if (state === 'joined' || state === 'joining') continue;
 
-    // Channel is stale — tear down and rebuild
+    // Channel is stale - tear down and rebuild
     try { supabase.removeChannel(managed.channel); } catch { /* already removed */ }
 
     let ch = supabase.channel(key);

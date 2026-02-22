@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/api/photos.ts — uploadPhoto, deletePhoto, reorderPhotos, getMyPhotos
+ * Unit tests for lib/api/photos.ts - uploadPhoto, deletePhoto, reorderPhotos, getMyPhotos
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 

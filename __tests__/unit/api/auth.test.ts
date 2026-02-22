@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/api/auth.ts — joinEvent
+ * Unit tests for lib/api/auth.ts - joinEvent
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { joinEvent } from '@/lib/api/auth';

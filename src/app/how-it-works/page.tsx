@@ -6,7 +6,7 @@ import Image from 'next/image';
 /**
  * /how-it-works
  * A visually-rich journey page showing event organizers
- * exactly how Eventa works — from first contact to event night.
+ * exactly how Eventa works - from first contact to event night.
  * Uses a vertical "path" with scroll-reveal stages.
  */
 
@@ -21,7 +21,7 @@ const STAGES: {
   {
     num: '01',
     title: 'פנו אלינו',
-    desc: 'ספרו לנו על האירוע — סוג, תאריך, כמות מוזמנים ומה שחשוב לכם. נחזור תוך 24 שעות עם הצעה מותאמת.',
+    desc: 'ספרו לנו על האירוע - סוג, תאריך, כמות מוזמנים ומה שחשוב לכם. נחזור תוך 24 שעות עם הצעה מותאמת.',
     accent: 'var(--primary, #D4A59A)',
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -32,7 +32,7 @@ const STAGES: {
   {
     num: '02',
     title: 'התאימו את החוויה',
-    desc: 'בחרו עיצוב לדף הכניסה של האירוע, רקע מותאם לאפלקיציה, ואם תרצו — שירות שליחת הודעות לאורחים ביום האירוע.',
+    desc: 'בחרו עיצוב לדף הכניסה של האירוע, רקע מותאם לאפליקציה, ואם תרצו - שירות שליחת הודעות לאורחים ביום האירוע.',
     accent: 'var(--primary-light, #E8C4BB)',
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -44,7 +44,7 @@ const STAGES: {
   {
     num: '03',
     title: 'קבלו את ה-QR',
-    desc: 'נשלח לכם קוד QR ייחודי לאירוע + לינק ישיר. תדפיסו את הדף, תשימו בכניסה, על הבר, בסטורי — איפה שתרצו.',
+    desc: 'נשלח לכם קוד QR ייחודי לאירוע + לינק ישיר. תדפיסו את הדף, תשימו בכניסה, על הבר, בסטורי - איפה שתרצו.',
     accent: 'var(--accent-gold, #C9A580)',
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -61,7 +61,7 @@ const STAGES: {
   {
     num: '04',
     title: 'האורחים סורקים ונכנסים',
-    desc: 'האורחים סורקים את ה-QR, בונים פרופיל תוך דקה (שם, תמונה, ביו קצר) — והם בפנים. בלי הורדה, ישר מהדפדפן.',
+    desc: 'האורחים סורקים את ה-QR, בונים פרופיל תוך דקה (שם, תמונה, ביו קצר) - והם בפנים. בלי הורדה, ישר מהדפדפן.',
     accent: 'var(--primary, #D4A59A)',
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -73,7 +73,7 @@ const STAGES: {
   {
     num: '05',
     title: 'הקסם קורה',
-    desc: 'לייקים, מאצ\'ים, וצ\'אט בין הרווקים והרווקות — הכל קורה בזמן אמת, במהלך האירוע. חוויה שיוצרת באזז אמיתי.',
+    desc: 'לייקים, מאצ\'ים, וצ\'אט בין הרווקים והרווקות - הכל קורה בזמן אמת, במהלך האירוע. חוויה שיוצרת באזז אמיתי.',
     accent: 'var(--primary-light, #E8C4BB)',
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -83,7 +83,7 @@ const STAGES: {
   },
   {
     num: '06',
-    title: 'הכל נמחק — פרטיות מלאה',
+    title: 'הכל נמחק - פרטיות מלאה',
     desc: 'תוך 7 ימים מסיום האירוע, כל המידע האישי נמחק אוטומטית. בלי מעקב, בלי פרסומות, בלי שיתוף עם צד שלישי.',
     accent: 'var(--accent-gold, #C9A580)',
     icon: (
@@ -160,7 +160,7 @@ export default function HowItWorksPage() {
         </h1>
 
         <p className="hiw__hero-sub">
-          מהרגע שפניתם ועד הלילה של האירוע —<br />
+          מהרגע שפניתם ועד הלילה של האירוע -<br />
           ככה נראית החוויה, צעד אחרי צעד.
         </p>
       </header>

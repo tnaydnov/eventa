@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 
 /**
- * Swipe-mode store — manages the Tinder-style card view state.
+ * Swipe-mode store - manages the Tinder-style card view state.
  *
  * - `viewMode` toggles between the classic grid and the swipe deck.
- * - `dismissedIds` tracks participants swiped-left (skipped) — reset‐able.
- * - `likedIds` tracks participants swiped-right (liked) — persists across resets.
+ * - `dismissedIds` tracks participants swiped-left (skipped) - reset‐able.
+ * - `likedIds` tracks participants swiped-right (liked) - persists across resets.
  *
  * Both sets are scoped to the current session; changing events or
  * refreshing the browser naturally resets the in-memory store.
@@ -30,7 +30,7 @@ interface SwipeState {
   removeLiked: (id: string) => void;
   /** Bulk-seed liked IDs from the server on first load. */
   setLikedIds: (ids: string[]) => void;
-  /** Reset the pool — clears dismissed, keeps liked. */
+  /** Reset the pool - clears dismissed, keeps liked. */
   resetPool: () => void;
   /** Full store reset (for session clear). */
   reset: () => void;

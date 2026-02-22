@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/route-helpers.ts — secureGuard, jsonError, isSafePath, caches
+ * Unit tests for lib/route-helpers.ts - secureGuard, jsonError, isSafePath, caches
  * Tests: U-RTH-01 through U-RTH-20+
  *
  * @vitest-environment node

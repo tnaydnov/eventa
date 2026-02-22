@@ -9,7 +9,7 @@
   z-index: 1;
 }
 
-/* ── Bottom Tab Bar — Glass ── */
+/* ── Bottom Tab Bar - Glass ── */
 .tab-bar {
   position: fixed;
   bottom: 0;
@@ -52,7 +52,7 @@
   height: 22px;
 }
 
-/* ── Header — Glass ── */
+/* ── Header - Glass ── */
 .app-header {
   position: fixed;
   top: 0;

@@ -51,7 +51,7 @@ const INITIAL_CONVOS: Record<string, Msg[]> = {
 const AUTO_REPLIES = ['😊 נעים מאוד!', 'כן! אירוע מדהים', 'מסכים/ה לגמרי 😂', 'בוא/י נדבר אחרי?', 'תודה על הלייק 💕', 'איזה כיף!'];
 
 /* ═══════════════════════════════════════════
-   SVG ICONS — exact copies from real app
+   SVG ICONS - exact copies from real app
    ═══════════════════════════════════════════ */
 
 const I = {
@@ -191,7 +191,7 @@ export default function DemoPhone() {
     </header>
   );
 
-  // ── Tab Bar (exact match — 3 buttons, RTL order: likes|chats|grid, 10px label, badge) ──
+  // ── Tab Bar (exact match - 3 buttons, RTL order: likes|chats|grid, 10px label, badge) ──
   const renderTabBar = () => (
     <div className="demo-tabbar">
       <button className={activeTab === 'grid' ? 'dtb-active' : ''} onClick={() => goTab('grid')}>
@@ -274,7 +274,7 @@ export default function DemoPhone() {
         <div className="demo-empty">
           <div style={{ opacity: 0.8, color: 'var(--primary)' }}>{I.heartFill('var(--primary)', 52)}</div>
           <p className="demo-empty-t">עברת על כולם! 🎉</p>
-          <p className="demo-empty-s">כשמישהו חדש יצטרף — הוא יופיע כאן אוטומטית</p>
+          <p className="demo-empty-s">כשמישהו חדש יצטרף - הוא יופיע כאן אוטומטית</p>
           <button className="demo-empty-btn" onClick={() => { setSkippedUsers(new Set()); setLikedUsers(new Set()); setSentLikes(new Set()); }}>🔄 אפס רשימה</button>
         </div>
       )}
@@ -349,7 +349,7 @@ export default function DemoPhone() {
     </div>
   );
 
-  // ── Likes (exact: 3 sub-tabs row — התאמות / קיבלתי / עשיתי with counts) ──
+  // ── Likes (exact: 3 sub-tabs row - התאמות / קיבלתי / עשיתי with counts) ──
   const renderLikes = () => (
     <div className="demo-scroll">
       <div className="demo-lt-bar">
@@ -360,7 +360,7 @@ export default function DemoPhone() {
       <div style={{ padding: '0 0 8px' }}>
         {likesTab === 'matches' ? (
           matchList.length === 0 ? (
-            <div className="demo-empty"><div style={{ fontSize: 48 }}>💞</div><p className="demo-empty-t">עדיין אין התאמות</p><p className="demo-empty-s">כששני אנשים עושים לייק אחד לשני — זו התאמה!</p></div>
+            <div className="demo-empty"><div style={{ fontSize: 48 }}>💞</div><p className="demo-empty-t">עדיין אין התאמות</p><p className="demo-empty-s">כששני אנשים עושים לייק אחד לשני - זו התאמה!</p></div>
           ) : (
             <div className="profile-grid" style={{ padding: '12px' }}>
               {matchList.map(u => (

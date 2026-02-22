@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/supabase.ts — Supabase client, generateJoinCode, setEventContext
+ * Unit tests for lib/supabase.ts - Supabase client, generateJoinCode, setEventContext
  * Tests: U-SUP-01 through U-SUP-06+
  *
  * @vitest-environment node

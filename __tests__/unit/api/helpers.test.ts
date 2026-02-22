@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/api/helpers.ts — getPhotoUrl, getBlockedIds, invalidateBlockedCache, buildParticipantPhotoMaps
+ * Unit tests for lib/api/helpers.ts - getPhotoUrl, getBlockedIds, invalidateBlockedCache, buildParticipantPhotoMaps
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 

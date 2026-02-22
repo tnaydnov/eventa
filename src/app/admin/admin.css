@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════
-   EVENTA ADMIN DASHBOARD — CSS
+   EVENTA ADMIN DASHBOARD - CSS
    Dark theme, RTL, responsive sidebar layout
    ══════════════════════════════════════════════ */
 
@@ -47,7 +47,7 @@
 }
 
 /* ═══════════════════════════════
-   LAYOUT — Sidebar + Main
+   LAYOUT - Sidebar + Main
    ═══════════════════════════════ */
 .admin-layout {
   display: flex;
@@ -224,7 +224,7 @@
 }
 
 /* ═══════════════════════════════
-   TOP BAR — page header section
+   TOP BAR - page header section
    ═══════════════════════════════ */
 .admin-topbar {
   display: flex;
@@ -1228,7 +1228,7 @@
 }
 
 /* ═══════════════════════════════
-   CHARTS — SVG
+   CHARTS - SVG
    ═══════════════════════════════ */
 
 .chart-svg {
@@ -2044,7 +2044,7 @@
   margin: 0;
 }
 
-/* Recharts override — hide default tooltips in favor of custom */
+/* Recharts override - hide default tooltips in favor of custom */
 .recharts-default-tooltip {
   display: none !important;
 }
@@ -2053,7 +2053,7 @@
    COMPREHENSIVE MOBILE / RESPONSIVE FIXES
    ═══════════════════════════════════════════ */
 
-/* ─── Scrollable tabs (base rule — always safe) ─── */
+/* ─── Scrollable tabs (base rule - always safe) ─── */
 .edt-tabs {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -2106,7 +2106,7 @@
   color: var(--admin-text);
 }
 
-/* ═══ @media ≤ 860px — sidebar already collapses ═══ */
+/* ═══ @media ≤ 860px - sidebar already collapses ═══ */
 
 /* ─── Global overflow containment (mobile) ─── */
 @media (max-width: 860px) {
@@ -2155,7 +2155,7 @@
   }
 }
 
-/* ═══ @media ≤ 768px — tablet adjustments ═══ */
+/* ═══ @media ≤ 768px - tablet adjustments ═══ */
 @media (max-width: 768px) {
   .admin-topbar {
     flex-direction: column;
@@ -2191,7 +2191,7 @@
   }
 }
 
-/* ═══ @media ≤ 640px — small tablet / large phone ═══ */
+/* ═══ @media ≤ 640px - small tablet / large phone ═══ */
 @media (max-width: 640px) {
   /* ── Main content ── */
   .admin-main__content {
@@ -2371,7 +2371,7 @@
   }
 }
 
-/* ═══ @media ≤ 480px — phones ═══ */
+/* ═══ @media ≤ 480px - phones ═══ */
 @media (max-width: 480px) {
   .admin-main__content {
     padding: 8px;
@@ -2593,7 +2593,7 @@
   }
 }
 
-/* ═══ @media ≤ 380px — tiny phones ═══ */
+/* ═══ @media ≤ 380px - tiny phones ═══ */
 @media (max-width: 380px) {
   .admin-topbar__title {
     font-size: 15px;

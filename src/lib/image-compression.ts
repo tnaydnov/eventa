@@ -26,10 +26,10 @@ const CHAT_IMAGE_OPTIONS: CompressionOptions = {
   maxSizeMB: 1.5,
 };
 
-/** Maximum input file size (20 MB) — reject before processing. */
+/** Maximum input file size (20 MB) - reject before processing. */
 const MAX_INPUT_SIZE = 20 * 1024 * 1024;
 
-/** Maximum input dimension (px) — reject decompression bombs. */
+/** Maximum input dimension (px) - reject decompression bombs. */
 const MAX_INPUT_DIMENSION = 8000;
 
 /**
@@ -58,25 +58,25 @@ export async function compressImage(
 ): Promise<File> {
   // Guard: reject files over 20 MB instantly (no OOM from huge files)
   if (file.size > MAX_INPUT_SIZE) {
-    throw new Error('File too large — maximum 20 MB');
+    throw new Error('File too large - maximum 20 MB');
   }
 
   // Guard: reject images with extreme dimensions (decompression-bomb defense)
   try {
     const { width, height } = await getImageDimensions(file);
     if (width > MAX_INPUT_DIMENSION || height > MAX_INPUT_DIMENSION) {
-      throw new Error(`Image too large — maximum ${MAX_INPUT_DIMENSION}×${MAX_INPUT_DIMENSION} pixels`);
+      throw new Error(`Image too large - maximum ${MAX_INPUT_DIMENSION}×${MAX_INPUT_DIMENSION} pixels`);
     }
   } catch (dimErr) {
     if (dimErr instanceof Error && dimErr.message.startsWith('Image too large')) throw dimErr;
-    // Dimension check failed but file might still be valid — log and continue
+    // Dimension check failed but file might still be valid - log and continue
     console.warn('[compressImage] Dimension check failed, proceeding anyway:', dimErr);
   }
 
   try {
     // Always compress through canvas to strip EXIF metadata,
     // even for small files that are already below the size limit.
-    // Do NOT force fileType — let the library use the input format
+    // Do NOT force fileType - let the library use the input format
     // so it works on every browser (Safari < 16.4 doesn't support WebP canvas).
     const compressed = await imageCompression(file, {
       maxSizeMB: options.maxSizeMB,
@@ -91,7 +91,7 @@ export async function compressImage(
     const newName = file.name.replace(/\.[^.]+$/, outExt);
     return new File([compressed], newName, { type: outType });
   } catch (error) {
-    // Don't return the original — it still contains EXIF metadata (GPS, camera info).
+    // Don't return the original - it still contains EXIF metadata (GPS, camera info).
     // Throwing forces the caller to handle the failure explicitly.
     throw new Error(
       `Image compression failed: ${error instanceof Error ? error.message : 'unknown error'}`
@@ -111,7 +111,7 @@ export function compressChatImage(file: File): Promise<File> {
 
 /**
  * Generate a thumbnail preview URL for immediate display.
- * Returns a data URL. For production use, prefer URL.createObjectURL() — it's
+ * Returns a data URL. For production use, prefer URL.createObjectURL() - it's
  * much lighter for large files (no base64 overhead).
  */
 export function createThumbnailUrl(file: File): Promise<string> {

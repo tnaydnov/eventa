@@ -6,7 +6,7 @@ import { secureGuard, jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 
 /**
- * POST /api/secure/blocks — Block a participant.
+ * POST /api/secure/blocks - Block a participant.
  *
  * Cascade: inserts block row, removes bidirectional likes,
  * deletes conversation + messages,
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       });
 
     if (blockError) {
-      // Duplicate block — return success idempotently
+      // Duplicate block - return success idempotently
       if (blockError.code === '23505') {
         return NextResponse.json({ success: true });
       }
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
       action: 'block',
     })).catch((err) => logger.error('[BLOCKS] activity_log error:', err));
 
-    // Delete bidirectional likes + notifications (independent — parallelize)
+    // Delete bidirectional likes + notifications (independent - parallelize)
     const [likesDel1, likesDel2, notifDel1, notifDel2] = await Promise.all([
       supabase.from('likes').delete()
         .eq('event_id', eventId)

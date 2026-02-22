@@ -128,7 +128,7 @@ export async function DELETE(req: NextRequest) {
 
 /**
  * PATCH /api/secure/photos
- * Reorder photos — update order_index for each photo.
+ * Reorder photos - update order_index for each photo.
  * Body: { order: [{ id: string, order_index: number }] }
  */
 export async function PATCH(req: NextRequest) {

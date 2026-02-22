@@ -1,4 +1,4 @@
-# Eventa — Complete Technical Architecture Document
+# Eventa - Complete Technical Architecture Document
 
 > **Last updated**: February 20, 2026
 
@@ -6,28 +6,28 @@
 
 ## 1. What Is Eventa
 
-Eventa is a **Hebrew-language, mobile-first, event-scoped dating Progressive Web App (PWA)**. Participants at real-world events (weddings, parties, corporate events, bar mitzvahs) scan a QR code, build a profile in under a minute, browse other participants in a photo grid or swipe view, send likes, get matched on mutual likes, and chat — all scoped to that single event and auto-deleted after 7 days.
+Eventa is a **Hebrew-language, mobile-first, event-scoped dating Progressive Web App (PWA)**. Participants at real-world events (weddings, parties, corporate events, bar mitzvahs) scan a QR code, build a profile in under a minute, browse other participants in a photo grid or swipe view, send likes, get matched on mutual likes, and chat - all scoped to that single event and auto-deleted after 7 days.
 
 ---
 
-## 2. Technology Stack — Exact Versions
+## 2. Technology Stack - Exact Versions
 
 | Layer | Technology | Version | Rationale |
 |---|---|---|---|
-| **Language** | TypeScript | `^5.9.3` | Strict mode (`strict: true`), `ES2022` target. Type safety across the full stack — shared types between API routes and client. |
+| **Language** | TypeScript | `^5.9.3` | Strict mode (`strict: true`), `ES2022` target. Type safety across the full stack - shared types between API routes and client. |
 | **Runtime** | Node.js | `>=20.0.0` | Required for native `crypto.timingSafeEqual`, `SubtleCrypto`, and modern ESM (`"type": "module"`). |
 | **Framework** | Next.js (App Router) | `^16.1.6` | Server/client component model lets landing pages SSR for SEO while the dating app is fully client-rendered for interactivity. Built-in API routes eliminate a separate backend. |
 | **React** | React + ReactDOM | `^19.2.4` | React 19's `use()` hook for async params, improved concurrent rendering. Required for Next.js 16 compatibility. |
-| **Database** | Supabase (PostgreSQL 17) | `@supabase/supabase-js ^2.95.3` | Postgres 17 (`major_version = 17` in config.toml). Managed hosting with built-in Realtime, Storage, and Row Level Security — eliminates the need for separate backend infrastructure. |
+| **Database** | Supabase (PostgreSQL 17) | `@supabase/supabase-js ^2.95.3` | Postgres 17 (`major_version = 17` in config.toml). Managed hosting with built-in Realtime, Storage, and Row Level Security - eliminates the need for separate backend infrastructure. |
 | **Realtime** | Supabase Realtime | (bundled with supabase-js) | WebSocket-based `postgres_changes` for instant delivery of likes, messages, blocks, and event updates. |
 | **State Management** | Zustand | `^5.0.11` | Lightweight (~1KB), no boilerplate, no providers. Stores persist to `localStorage`. Cross-store reset on session clear prevents data leaks between events. |
-| **Forms** | React Hook Form + Zod | `^7.71.1` / `^4.3.6` | Uncontrolled forms for performance on mobile. Zod schemas shared between client validation and server-side API routes — single source of truth. |
-| **Styling** | Tailwind CSS 4 + hand-written CSS | `^4.1.18` | Tailwind via PostCSS plugin (`@tailwindcss/postcss`). 9 modular CSS files for different UI areas (grid, chat, profile, landing, etc.) — no CSS modules or CSS-in-JS, keeping bundle size minimal. |
+| **Forms** | React Hook Form + Zod | `^7.71.1` / `^4.3.6` | Uncontrolled forms for performance on mobile. Zod schemas shared between client validation and server-side API routes - single source of truth. |
+| **Styling** | Tailwind CSS 4 + hand-written CSS | `^4.1.18` | Tailwind via PostCSS plugin (`@tailwindcss/postcss`). 9 modular CSS files for different UI areas (grid, chat, profile, landing, etc.) - no CSS modules or CSS-in-JS, keeping bundle size minimal. |
 | **Animations** | Framer Motion | `^12.34.0` | Swipe gestures, match popups, page transitions. Tree-shaken via `optimizePackageImports`. |
-| **Image Compression** | browser-image-compression | `^2.0.2` | Client-side compression to WebP (max 1600px, max 800KB) using Web Workers — reduces upload size by ~80% before it hits the server. |
+| **Image Compression** | browser-image-compression | `^2.0.2` | Client-side compression to WebP (max 1600px, max 800KB) using Web Workers - reduces upload size by ~80% before it hits the server. |
 | **Image Cropping** | react-easy-crop | `^5.5.6` | Touch-friendly crop UI for profile photos on mobile. |
 | **Image Optimization** | Sharp | `^0.33.5` | Used by Next.js `<Image>` component for server-side resizing/format conversion. |
-| **Charts** | Recharts | `^3.7.0` | Admin analytics dashboards — event timelines, engagement funnels, demographics. |
+| **Charts** | Recharts | `^3.7.0` | Admin analytics dashboards - event timelines, engagement funnels, demographics. |
 | **QR Codes** | qrcode | `^1.5.4` | Generates event join QR codes in the admin panel. |
 | **Email** | Nodemailer | `^8.0.1` | Sends HTML order-form emails via SMTP. |
 | **Sanitization** | DOMPurify | `^3.3.1` | Client-side HTML sanitization. Server-side uses regex-based stripping (no DOM in Node.js). |
@@ -44,10 +44,10 @@ Eventa is a **Hebrew-language, mobile-first, event-scoped dating Progressive Web
 
 Everything lives in one Next.js repository:
 
-- **Static/SSR pages** (landing, legal pages) — server-rendered for SEO
-- **Client-side SPA** (the dating app at `/dating/[eventSlug]/*`) — fully interactive, no server rendering
-- **API routes** (`/api/*`) — serverless functions on Vercel, acting as the backend
-- **Database** — managed Supabase (external PostgreSQL 17)
+- **Static/SSR pages** (landing, legal pages) - server-rendered for SEO
+- **Client-side SPA** (the dating app at `/dating/[eventSlug]/*`) - fully interactive, no server rendering
+- **API routes** (`/api/*`) - serverless functions on Vercel, acting as the backend
+- **Database** - managed Supabase (external PostgreSQL 17)
 
 **Why this architecture**: A solo-developer project doesn't benefit from microservices overhead. Next.js App Router gives you SSR, API routes, and client SPA in one deployment. Supabase eliminates the need to manage Postgres, file storage, or WebSocket infrastructure separately.
 
@@ -98,7 +98,7 @@ Everything lives in one Next.js repository:
 ### 4.1 Mobile-Only, Browser-Only
 
 - **`MobileGuard` component** blocks desktop users (viewport > 768px + no mobile user agent). The app is designed for event attendees on their phones.
-- **No native app** — PWA via `manifest.json` with `"display": "standalone"` and `"orientation": "portrait"`. Users add to home screen from Chrome/Safari.
+- **No native app** - PWA via `manifest.json` with `"display": "standalone"` and `"orientation": "portrait"`. Users add to home screen from Chrome/Safari.
 - **Rationale**: Event attendees won't download an app for a one-night event. QR scan → browser → instant access. PWA gives app-like UX (fullscreen, home screen icon) without app store friction. Zero install time is critical when people are at a live event.
 
 ### 4.2 Realtime Requirements
@@ -116,7 +116,7 @@ The app needs **instant** feedback for:
 
 **Primary mechanism**: Supabase Realtime WebSocket (`postgres_changes`). 7 tables are published to `supabase_realtime` with `REPLICA IDENTITY FULL` (required to deliver both old and new row data in change payloads).
 
-**Fallback mechanism**: A 15-second polling interval acts as a safety net in case WebSocket messages are dropped. Mobile browsers aggressively kill background WebSocket connections — this ensures no notification is permanently lost. Polling is paused when the tab is hidden via `document.visibilityState` to save battery and bandwidth.
+**Fallback mechanism**: A 15-second polling interval acts as a safety net in case WebSocket messages are dropped. Mobile browsers aggressively kill background WebSocket connections - this ensures no notification is permanently lost. Polling is paused when the tab is hidden via `document.visibilityState` to save battery and bandwidth.
 
 **Reconnection strategy**: The `RealtimeHub` singleton detects when the app returns from background (`visibilitychange` event + `online` event) and reconstructs stale WebSocket channels. A 500ms delay allows the network stack to wake up first before attempting reconnection.
 
@@ -151,28 +151,28 @@ Event created → active → ended (auto, when ends_at passes) → archived (aut
 ```
 
 - **7-day retention (`RETENTION_DAYS = 7`)**: All user data is auto-deleted 7 days after the event ends. Two Vercel Cron jobs handle this:
-  - `auto-archive` (daily at 3:00 AM UTC) — transitions events past `ends_at` to "ended", then archives after retention period
-  - `cleanup` (daily at 4:00 AM UTC) — saves analytics snapshots, deletes all storage files in batches of 100, cascade-deletes all DB data, marks event as archived
-- **Account self-deletion**: Users can delete their entire account at any time — full cascade (photos from storage, all DB records, session cookie cleared)
+  - `auto-archive` (daily at 3:00 AM UTC) - transitions events past `ends_at` to "ended", then archives after retention period
+  - `cleanup` (daily at 4:00 AM UTC) - saves analytics snapshots, deletes all storage files in batches of 100, cascade-deletes all DB data, marks event as archived
+- **Account self-deletion**: Users can delete their entire account at any time - full cascade (photos from storage, all DB records, session cookie cleared)
 - **Analytics survive archiving**: `event_analytics_snapshots` table preserves aggregate statistics permanently for business reporting, even after all user-level data is purged
-- **Event row is never deleted** by automatic processes — only by explicit admin action
+- **Event row is never deleted** by automatic processes - only by explicit admin action
 
 ---
 
 ## 5. Security Architecture
 
-### 5.1 Authentication — Dual JWT System
+### 5.1 Authentication - Dual JWT System
 
 | Token | Cookie Name | SameSite | HttpOnly | Secure | Max Age | Purpose |
 |---|---|---|---|---|---|---|
 | **Participant session** | `ws_session` | `Lax` | Yes | Yes (prod) | 30 days | Contains `participantId`, `eventId`, `eventSlug`, `eventName`. Lax allows top-level navigations (QR code → join page). |
 | **Admin session** | `ws_admin` | `Strict` | Yes | Yes (prod) | 24 hours | Contains admin flag + issued-at. Strict prevents any cross-site request including top-level navigations. |
 
-Both are **hand-rolled HMAC-SHA256 JWTs** using Node.js `crypto` module — no dependency on external JWT libraries. Signature verification uses `crypto.timingSafeEqual` to prevent timing attacks.
+Both are **hand-rolled HMAC-SHA256 JWTs** using Node.js `crypto` module - no dependency on external JWT libraries. Signature verification uses `crypto.timingSafeEqual` to prevent timing attacks.
 
 **Why hand-rolled JWT**: Eliminates a dependency. The token format is simple (3 fields + expiry). A `typ` discriminator field prevents admin tokens from being used as participant sessions and vice versa.
 
-### 5.2 API Security Pipeline — `secureGuard()`
+### 5.2 API Security Pipeline - `secureGuard()`
 
 Every authenticated API call passes through this pipeline:
 
@@ -183,9 +183,9 @@ Every authenticated API call passes through this pipeline:
    ↓
 3. Rate limiting (per-IP, sliding window, configurable tiers)
    ↓
-4. Ban check (cached lookup — dual fingerprint)
+4. Ban check (cached lookup - dual fingerprint)
    ↓
-5. Event status check (cached — rejects if event is paused, archived, or ended)
+5. Event status check (cached - rejects if event is paused, archived, or ended)
 ```
 
 If any step fails, the request is rejected with the appropriate HTTP status code and the pipeline short-circuits.
@@ -205,7 +205,7 @@ In-memory sliding window rate limiter with configurable tiers:
 
 **Production caveat**: The in-memory store does NOT persist across Vercel serverless cold starts. For true production rate limiting, would need to be replaced with Upstash Redis or Vercel KV. Currently sufficient because cold starts naturally reset per-instance counters and the 15s function timeout limits abuse windows.
 
-### 5.4 Ban Enforcement — Dual Fingerprint System
+### 5.4 Ban Enforcement - Dual Fingerprint System
 
 | Fingerprint Type | Storage | Survives Incognito | Survives Clear Data | Purpose |
 |---|---|---|---|---|
@@ -250,7 +250,7 @@ Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 
 ## 6. Database Architecture
 
-### 6.1 Schema — 13 Tables
+### 6.1 Schema - 13 Tables
 
 | # | Table | RLS Policy | Realtime Published | Purpose |
 |---|---|---|---|---|
@@ -279,7 +279,7 @@ Additional TypeScript-only enums (validated via Zod, stored as TEXT with CHECK c
 - `event_type`: wedding, party, brit, bar_mitzvah, corporate, meetup, other
 - `event_status`: draft, active, paused, ended, archived
 
-### 6.3 RLS Strategy — Event-Scoped Isolation
+### 6.3 RLS Strategy - Event-Scoped Isolation
 
 The anon Supabase client injects a custom `x-event-id` HTTP header on every REST request via a custom `fetch` wrapper in the Supabase client configuration (`setEventContext()`). On the PostgreSQL side:
 
@@ -292,7 +292,7 @@ The anon Supabase client injects a custom `x-event-id` HTTP header on every REST
 
 **Write strategy**: Anon role has no INSERT/UPDATE/DELETE policies on any table. All writes go through API routes using the `service_role` key (which bypasses RLS). This moves all write authorization logic into TypeScript where it can be tested and reasoned about, rather than complex SQL policies.
 
-### 6.4 Indexes — 25+ Covering Indexes
+### 6.4 Indexes - 25+ Covering Indexes
 
 Designed around actual query patterns:
 
@@ -307,7 +307,7 @@ Designed around actual query patterns:
 7 tables added to the `supabase_realtime` publication:
 - `messages`, `likes`, `blocks`, `conversations`, `notifications`, `participants`, `events`
 
-All 7 have `REPLICA IDENTITY FULL` set — required for Supabase Realtime to deliver complete old + new row data in change payloads (without this, only the primary key is delivered for UPDATE/DELETE events).
+All 7 have `REPLICA IDENTITY FULL` set - required for Supabase Realtime to deliver complete old + new row data in change payloads (without this, only the primary key is delivered for UPDATE/DELETE events).
 
 ### 6.6 Storage Buckets
 
@@ -320,17 +320,17 @@ Writes are never done directly by the client. The API generates **signed upload 
 
 ---
 
-## 7. API Endpoints — Complete Map
+## 7. API Endpoints - Complete Map
 
 ### 7.1 Public / Authentication
 
 | Endpoint | Method | Purpose |
 |---|---|---|
-| `GET /api/health` | GET | Health check — pings Supabase, returns `{status, latency, timestamp}` |
-| `POST /api/order` | POST | Order form — sends HTML booking email via SMTP (Nodemailer) |
+| `GET /api/health` | GET | Health check - pings Supabase, returns `{status, latency, timestamp}` |
+| `POST /api/order` | POST | Order form - sends HTML booking email via SMTP (Nodemailer) |
 | `POST /api/auth/join` | POST | **Main entry**: validates slug + join code, checks dual fingerprint bans, creates or reconnects participant, issues JWT session cookie |
 | `GET /api/auth/verify` | GET | Verifies session cookie, checks ban/event status; clears cookie on failure |
-| `DELETE /api/auth/verify` | DELETE | Logout — clears session cookie |
+| `DELETE /api/auth/verify` | DELETE | Logout - clears session cookie |
 
 ### 7.2 Authenticated Participant Endpoints (via `secureGuard()`)
 
@@ -348,9 +348,9 @@ Writes are never done directly by the client. The API generates **signed upload 
 | `POST /api/secure/conversations` | POST | Get or create conversation (block/self-chat guard, race-condition safe) |
 | `POST /api/secure/conversations/read` | POST | Mark conversation as read |
 | `POST /api/secure/messages` | POST | Send message (membership check, block check, Zod schema, sanitization) |
-| `PATCH /api/secure/messages` | PATCH | Soft-delete message (sender only — sets `is_deleted`, clears content) |
+| `PATCH /api/secure/messages` | PATCH | Soft-delete message (sender only - sets `is_deleted`, clears content) |
 | `POST /api/secure/blocks` | POST | Block participant (full cascade: records context, deletes likes/convos/messages/notifications/media) |
-| `POST /api/account/delete` | POST | **Permanent account deletion** — full cascade + session clear |
+| `POST /api/account/delete` | POST | **Permanent account deletion** - full cascade + session clear |
 
 ### 7.3 Admin Endpoints (via `adminGuard()`)
 
@@ -378,7 +378,7 @@ Writes are never done directly by the client. The API generates **signed upload 
 
 ## 8. State Management Architecture
 
-### 8.1 Zustand Stores — 10 Stores
+### 8.1 Zustand Stores - 10 Stores
 
 | Store | Persisted | Purpose |
 |---|---|---|
@@ -404,19 +404,19 @@ useSessionStore.clearSession()
 - No Provider wrapper needed (critical for the layout shell pattern where each component mounts independently)
 - Minimal re-renders (only subscribed selectors trigger)
 - Tiny bundle (~1KB gzipped)
-- Simple API — no actions/reducers/dispatch ceremony
-- Event-scoped data doesn't need persistence — it's refetched from the server on every reconnect
+- Simple API - no actions/reducers/dispatch ceremony
+- Event-scoped data doesn't need persistence - it's refetched from the server on every reconnect
 
 ---
 
-## 9. Realtime Architecture — RealtimeHub
+## 9. Realtime Architecture - RealtimeHub
 
 ### 9.1 Singleton Pattern
 
 `RealtimeHub` is a module-level singleton (`Map<string, ManagedChannel>`) that lives **outside the React component tree**. This is critical because:
 
-- React StrictMode double-mounts components in dev — the hub uses reference counting to survive this
-- Fast-refresh and navigation unmount/remount components — channels persist across navigations
+- React StrictMode double-mounts components in dev - the hub uses reference counting to survive this
+- Fast-refresh and navigation unmount/remount components - channels persist across navigations
 - Only one WebSocket connection per channel key, shared across all subscribers
 
 ### 9.2 Channel Lifecycle
@@ -448,7 +448,7 @@ User backgrounds app (locks phone, switches to another app)
 
 - Handlers stored in `useRef` so they always have latest closure values without triggering re-subscriptions
 - Only `channelKey` and `enabled` flag changes cause re-subscription
-- Cleanup in `useEffect` return — safe for StrictMode
+- Cleanup in `useEffect` return - safe for StrictMode
 
 ---
 
@@ -495,13 +495,13 @@ next build --webpack
 
 ### 11.1 Organization
 
-- `src/lib/api/*.ts` — Individual API function files (auth, grid, likes, matches, conversations, photos, blocks, profile, account)
-- `src/lib/api/index.ts` — Barrel re-export of all ~30 client-side API functions
-- `src/lib/api/helpers.ts` — Server-side data helpers (photo URL building, blocked-IDs cache, batch loading)
+- `src/lib/api/*.ts` - Individual API function files (auth, grid, likes, matches, conversations, photos, blocks, profile, account)
+- `src/lib/api/index.ts` - Barrel re-export of all ~30 client-side API functions
+- `src/lib/api/helpers.ts` - Server-side data helpers (photo URL building, blocked-IDs cache, batch loading)
 
 ### 11.2 Data Fetching Pattern
 
-Client components call typed API functions which make `fetch()` calls to Next.js API routes. The API routes use the Supabase `service_role` client for database operations and return JSON responses. No direct Supabase client calls for writes — only reads (via the anon client with RLS) and realtime subscriptions.
+Client components call typed API functions which make `fetch()` calls to Next.js API routes. The API routes use the Supabase `service_role` client for database operations and return JSON responses. No direct Supabase client calls for writes - only reads (via the anon client with RLS) and realtime subscriptions.
 
 ---
 
@@ -522,7 +522,7 @@ Client components call typed API functions which make `fetch()` calls to Next.js
 }
 ```
 
-- **Region**: Frankfurt (`fra1`) — lowest latency to Israel
+- **Region**: Frankfurt (`fra1`) - lowest latency to Israel
 - **Function timeout**: 15 seconds max (sufficient for all operations including analytics aggregation)
 - **Cron jobs**: Two daily maintenance tasks for event lifecycle management
 
@@ -538,7 +538,7 @@ Client components call typed API functions which make `fetch()` calls to Next.js
 }
 ```
 
-The SW is never cached by the browser — ensures updates propagate immediately.
+The SW is never cached by the browser - ensures updates propagate immediately.
 
 ---
 
@@ -546,8 +546,8 @@ The SW is never cached by the browser — ensures updates propagate immediately.
 
 | Feature | Implementation |
 |---|---|
-| **Sitemap** | Dynamic `sitemap.ts` — 9 URLs with change frequencies and priorities |
-| **Robots** | `robots.txt` — allows all, blocks `/admin`, `/api/` |
+| **Sitemap** | Dynamic `sitemap.ts` - 9 URLs with change frequencies and priorities |
+| **Robots** | `robots.txt` - allows all, blocks `/admin`, `/api/` |
 | **Structured data** | `application/ld+json` Organization schema in root layout |
 | **Open Graph** | Full OG metadata on landing pages with `og-image.png` (1536×1024) |
 | **Twitter Cards** | `summary_large_image` card type |
@@ -731,6 +731,6 @@ A full single-page admin panel at `/admin`:
         ├── 003_rls_event_scoping.sql
         ├── 004_check_constraints_and_realtime.sql
         ├── 005_nullable_last_message_at.sql
-        ├── 006_push_subscriptions.sql  # (table dropped — push removed)
+        ├── 006_push_subscriptions.sql  # (table dropped - push removed)
         └── 007_hardware_fingerprint.sql
 ```

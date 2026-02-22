@@ -1,5 +1,5 @@
 -- ============================================
--- Performance Indexes — Added for P2 optimization
+-- Performance Indexes - Added for P2 optimization
 -- ============================================
 
 -- Chat list: conversations sorted by last_message_at DESC per event
@@ -14,7 +14,7 @@ CREATE INDEX IF NOT EXISTS idx_participants_event_active
 
 -- Messages: explicit DESC order for keyset pagination
 -- Speeds up: getMessagesBefore() WHERE conversation_id = X AND created_at < cursor ORDER BY created_at DESC
--- (existing idx_messages_conversation is ASC — backward scan works but explicit DESC is optimal)
+-- (existing idx_messages_conversation is ASC - backward scan works but explicit DESC is optimal)
 CREATE INDEX IF NOT EXISTS idx_messages_conversation_desc
   ON messages(conversation_id, created_at DESC);
 

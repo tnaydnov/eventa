@@ -63,7 +63,7 @@ export default function ProfileSetupPage({
   const onSubmit = async (data: ProfileSetupData) => {
     if (!session) {
       console.error('[setup] session is null at submit time');
-      toast('אין סשן פעיל — רפרשו את העמוד');
+      toast('אין סשן פעיל - רפרשו את העמוד');
       return;
     }
 
@@ -99,7 +99,7 @@ export default function ProfileSetupPage({
 
       router.replace(`/dating/${eventSlug}`);
     } catch {
-      toast('שגיאה — נסו שוב');
+      toast('שגיאה - נסו שוב');
     }
   };
 
@@ -107,7 +107,7 @@ export default function ProfileSetupPage({
     return (
       <MobileGuard>
         <div className="app-container" style={{ padding: '32px', textAlign: 'center' }}>
-          <p>אין סשן פעיל — סרקו QR כדי להיכנס</p>
+          <p>אין סשן פעיל - סרקו QR כדי להיכנס</p>
         </div>
       </MobileGuard>
     );

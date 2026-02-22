@@ -126,7 +126,7 @@ export default function EventsView({
           </div>
           <p className="admin-empty__text">
             {events.length === 0
-              ? 'עוד אין אירועים — צרו את הראשון!'
+              ? 'עוד אין אירועים - צרו את הראשון!'
               : 'לא נמצאו אירועים לפי הסינון'}
           </p>
         </div>

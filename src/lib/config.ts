@@ -1,5 +1,5 @@
 /**
- * Application configuration — tunable runtime settings.
+ * Application configuration - tunable runtime settings.
  *
  * Unlike constants.ts (which holds domain labels, enum arrays, and
  * fixed validation limits), this file centralises operational knobs
@@ -28,7 +28,7 @@ export const JWT_AUDIENCE = 'eventa-app';
 /** Ban-check cache TTL for non-banned users (ms). */
 export const BAN_CACHE_TTL_MS = 5 * 60 * 1000;
 
-/** Ban-check cache TTL for banned users — short so bans take effect fast (ms). */
+/** Ban-check cache TTL for banned users - short so bans take effect fast (ms). */
 export const BAN_CACHE_TTL_BANNED_MS = 10_000;
 
 /** Event-status cache TTL for active/ended events (ms). */

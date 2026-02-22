@@ -43,7 +43,7 @@ import {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // Default supabase mock — query chain
+  // Default supabase mock - query chain
   mockFrom.mockReturnValue({
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),

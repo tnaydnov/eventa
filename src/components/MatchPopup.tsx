@@ -85,7 +85,7 @@ export default function MatchPopup() {
           {/* Hearts rain background */}
           <HeartsRain />
 
-          {/* Content — prevent click-through to backdrop dismiss */}
+          {/* Content - prevent click-through to backdrop dismiss */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

@@ -183,7 +183,7 @@ describe('Security Cross-Cutting Tests', () => {
         // Admin routes should reject unauthenticated requests
         expect(res.status).toBeGreaterThanOrEqual(400);
       } catch {
-        // Module may have issues importing in test context — acceptable
+        // Module may have issues importing in test context - acceptable
       }
     });
   });

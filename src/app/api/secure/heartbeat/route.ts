@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     const stale = Date.now() - lastSeen > 2 * 60 * 1000; // 2 minutes
 
     if (stale) {
-      // Fire-and-forget — don't wait for the UPDATE to respond
+      // Fire-and-forget - don't wait for the UPDATE to respond
       Promise.resolve(
         supabase
           .from('participants')

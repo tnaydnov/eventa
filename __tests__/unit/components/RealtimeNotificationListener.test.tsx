@@ -144,7 +144,7 @@ describe('RealtimeNotificationListener', () => {
 
   it('sets up polling interval on mount', async () => {
     render(<RealtimeNotificationListener />);
-    // Advance 15 seconds — polling should fire
+    // Advance 15 seconds - polling should fire
     await vi.advanceTimersByTimeAsync(15_000);
     // No error means polling ran successfully
   });

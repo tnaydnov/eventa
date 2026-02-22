@@ -119,7 +119,7 @@ function randomFingerprint() {
 }
 
 async function downloadPhoto(name, gender) {
-  // DiceBear avataaars — cartoon-style avatars, clearly not real photos
+  // DiceBear avataaars - cartoon-style avatars, clearly not real photos
   const seed = encodeURIComponent(`${name}-${gender}-${Date.now()}`);
   const url = `https://api.dicebear.com/9.x/avataaars/png?seed=${seed}&size=400&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
   const res = await fetch(url);

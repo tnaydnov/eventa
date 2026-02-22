@@ -1,5 +1,5 @@
 /**
- * API barrel — re-exports all client-side API functions.
+ * API barrel - re-exports all client-side API functions.
  * Import from '@/lib/api' continues to work via the facade in ../api.ts.
  */
 export { getPhotoUrl } from './helpers';

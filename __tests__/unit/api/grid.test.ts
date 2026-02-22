@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/api/grid.ts — getGridParticipants
+ * Unit tests for lib/api/grid.ts - getGridParticipants
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -42,7 +42,7 @@ describe('getGridParticipants', () => {
 
     // getBlockedIds is mocked separately, so the first mockFrom call = myProfile
     // Actually the function does Promise.all([getBlockedIds, myProfile, participants])
-    // getBlockedIds doesn't call mockFrom — it's mocked directly
+    // getBlockedIds doesn't call mockFrom - it's mocked directly
     // So mockFrom calls: myProfile, participants
     const result = await getGridParticipants('e1', 'me');
     expect(result).toEqual([]);

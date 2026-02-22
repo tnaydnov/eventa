@@ -6,10 +6,10 @@ import { secureGuard, jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 
 /**
- * POST /api/secure/likes — Send a like.
+ * POST /api/secure/likes - Send a like.
  * Guards: block check, self-like prevention.
  *
- * DELETE /api/secure/likes — Remove a like.
+ * DELETE /api/secure/likes - Remove a like.
  * Also removes the associated like_received notification.
  */
 export async function POST(req: NextRequest) {
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     const supabase = getServiceClient();
 
-    // Block check — refuse like if either party blocked the other
+    // Block check - refuse like if either party blocked the other
     const { count: blockCount, error: blockError } = await supabase
       .from('blocks')
       .select('id', { count: 'exact', head: true })
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     }
 
     if ((blockCount ?? 0) > 0) {
-      return jsonError('Cannot like — user is blocked', 403);
+      return jsonError('Cannot like - user is blocked', 403);
     }
 
     const { data, error } = await supabase
@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
 
     const isMatch = !!reciprocal;
 
-    // Activity log + notification — fire in parallel, don't block the response
+    // Activity log + notification - fire in parallel, don't block the response
     Promise.all([
       supabase.from('activity_log').insert({
         event_id: session.eid,

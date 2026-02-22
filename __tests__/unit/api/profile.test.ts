@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/api/profile.ts — updateProfile, getParticipant
+ * Unit tests for lib/api/profile.ts - updateProfile, getParticipant
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 

@@ -1,7 +1,7 @@
 /**
  * Admin authentication via signed JWT stored in httpOnly cookie.
  *
- * Stateless — no in-memory token store needed.
+ * Stateless - no in-memory token store needed.
  * Works perfectly on serverless (Vercel) with zero cold-start issues.
  */
 import crypto from 'crypto';
@@ -64,7 +64,7 @@ export function verifyAdminToken(token: string | null | undefined): boolean {
     if (payload.role !== 'admin') return false;
     if (payload.exp < Math.floor(Date.now() / 1000)) return false;
 
-    // Soft-verify iss/aud — reject if present but wrong
+    // Soft-verify iss/aud - reject if present but wrong
     if (payload.iss && payload.iss !== JWT_ISSUER) return false;
     if (payload.aud && payload.aud !== JWT_AUDIENCE) return false;
 
@@ -77,7 +77,7 @@ export function verifyAdminToken(token: string | null | undefined): boolean {
 /** Build Set-Cookie header for admin JWT */
 export function adminCookieHeader(token: string): string {
   const secure = process.env.NODE_ENV === 'production' ? '; Secure; Partitioned' : '';
-  // SameSite=Strict — admin panel never needs cross-site cookie sending
+  // SameSite=Strict - admin panel never needs cross-site cookie sending
   return `${ADMIN_COOKIE}=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${ADMIN_MAX_AGE_S}${secure}`;
 }
 
@@ -103,9 +103,9 @@ export function getAdminTokenFromRequest(req: Request): string | null {
   return match ? match[1] : null;
 }
 
-/** Verify admin from request — cookie-only, no header fallback */
+/** Verify admin from request - cookie-only, no header fallback */
 export function verifyAdminFromRequest(req: Request): boolean {
-  // Only accept httpOnly cookie — no Authorization header fallback.
+  // Only accept httpOnly cookie - no Authorization header fallback.
   // This eliminates token-in-header attack surface and ensures
   // SameSite=Strict protection is always enforced.
   const cookieToken = getAdminTokenFromRequest(req);

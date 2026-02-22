@@ -71,10 +71,10 @@ export default function ParticipantsTable({ eventId, isArchived }: ParticipantsT
 
   const handleBanClick = (p: AdminParticipant) => {
     if (p.is_banned) {
-      // Unban — no confirmation needed
+      // Unban - no confirmation needed
       executeBan(p.id, true);
     } else {
-      // Ban — show confirmation
+      // Ban - show confirmation
       setConfirmTarget(p);
     }
   };
@@ -266,7 +266,7 @@ export default function ParticipantsTable({ eventId, isArchived }: ParticipantsT
                         {genderLabel(p.gender)}
                       </td>
                       <td className="pt-td">
-                        {p.age ?? '—'}
+                        {p.age ?? '-'}
                       </td>
                       <td className="pt-td pt-td--date">
                         {shortDate(p.created_at)}

@@ -1,5 +1,5 @@
 /**
- * Unit tests for stores/notifications.ts — Notifications Zustand store
+ * Unit tests for stores/notifications.ts - Notifications Zustand store
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useNotificationStore } from '@/lib/stores/notifications';

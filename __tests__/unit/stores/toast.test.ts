@@ -1,5 +1,5 @@
 /**
- * Unit tests for stores/toast.ts — Toast Zustand store
+ * Unit tests for stores/toast.ts - Toast Zustand store
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { useToastStore } from '@/lib/stores/toast';

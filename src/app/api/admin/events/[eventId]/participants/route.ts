@@ -92,7 +92,7 @@ export async function PATCH(
 
     adminAuditLog(is_banned ? 'PARTICIPANT_BAN' : 'PARTICIPANT_UNBAN', { eventId, participantId }, req);
 
-    // Sync banned_devices table — ban BOTH fingerprints for stronger enforcement
+    // Sync banned_devices table - ban BOTH fingerprints for stronger enforcement
     const { data: participant } = await supabase
       .from('participants')
       .select('device_fingerprint, hardware_fingerprint')

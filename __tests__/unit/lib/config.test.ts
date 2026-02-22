@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/config.ts — Application configuration constants
+ * Unit tests for lib/config.ts - Application configuration constants
  * Tests: U-CFG-01 through U-CFG-07+
  *
  * @vitest-environment node

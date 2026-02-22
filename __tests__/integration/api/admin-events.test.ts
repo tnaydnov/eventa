@@ -109,7 +109,7 @@ describe('GET /api/admin/events', () => {
 
 describe('POST /api/admin/events', () => {
   it('creates event with auto-generated slug', async () => {
-    // Slug check — no collision
+    // Slug check - no collision
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -151,7 +151,7 @@ describe('POST /api/admin/events', () => {
   });
 
   it('handles slug collision by appending suffix', async () => {
-    // Slug check — collision found
+    // Slug check - collision found
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),

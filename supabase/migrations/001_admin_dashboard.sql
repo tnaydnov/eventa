@@ -26,7 +26,7 @@ CREATE INDEX IF NOT EXISTS idx_activity_log_event_time ON activity_log(event_id,
 CREATE INDEX IF NOT EXISTS idx_activity_log_participant ON activity_log(participant_id);
 
 ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY;
--- No SELECT policy for anon — service_role only
+-- No SELECT policy for anon - service_role only
 
 -- 3. Event Analytics Snapshots (preserved after archiving/purging user data)
 CREATE TABLE IF NOT EXISTS event_analytics_snapshots (
@@ -38,4 +38,4 @@ CREATE TABLE IF NOT EXISTS event_analytics_snapshots (
 );
 
 ALTER TABLE event_analytics_snapshots ENABLE ROW LEVEL SECURITY;
--- No SELECT policy for anon — service_role only
+-- No SELECT policy for anon - service_role only

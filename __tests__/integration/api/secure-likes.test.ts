@@ -88,7 +88,7 @@ describe('POST /api/secure/likes', () => {
 
   it('returns 403 when blocked', async () => {
     vi.mocked(isValidUUID).mockReturnValue(true);
-    // Block check — blocked
+    // Block check - blocked
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -106,7 +106,7 @@ describe('POST /api/secure/likes', () => {
 
   it('creates like and checks for match', async () => {
     vi.mocked(isValidUUID).mockReturnValue(true);
-    // Block check — not blocked
+    // Block check - not blocked
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -121,7 +121,7 @@ describe('POST /api/secure/likes', () => {
         error: null,
       }),
     });
-    // Reciprocal check — it's a match!
+    // Reciprocal check - it's a match!
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -145,13 +145,13 @@ describe('POST /api/secure/likes', () => {
 
   it('handles duplicate like (23505 code) gracefully', async () => {
     vi.mocked(isValidUUID).mockReturnValue(true);
-    // Block check — not blocked
+    // Block check - not blocked
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       or: vi.fn().mockResolvedValue({ count: 0, error: null }),
     });
-    // Like insert — unique constraint violation
+    // Like insert - unique constraint violation
     mockFrom.mockReturnValueOnce({
       insert: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),

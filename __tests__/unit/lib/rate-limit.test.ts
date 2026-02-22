@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/rate-limit.ts — Rate limiter
+ * Unit tests for lib/rate-limit.ts - Rate limiter
  * Tests: U-RAT-01 through U-RAT-10+
  *
  * @vitest-environment node

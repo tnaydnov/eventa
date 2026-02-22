@@ -19,7 +19,7 @@ export const useBlocksStore = create<BlocksState>((set) => ({
       ids.add(b.blocker_id);
       ids.add(b.blocked_id);
     });
-    // Remove self from blockedIds — current user's ID gets added
+    // Remove self from blockedIds - current user's ID gets added
     // because they appear in blocks they created. Components should
     // only filter OTHER users via blockedIds.
     const session = useSessionStore.getState().session;

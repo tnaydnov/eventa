@@ -2,7 +2,7 @@
 
 /**
  * Skeleton placeholder components for perceived-instant loading.
- * Uses CSS shimmer animation defined in base.css — no JS dependencies.
+ * Uses CSS shimmer animation defined in base.css - no JS dependencies.
  */
 
 const shimmerStyle: React.CSSProperties = {

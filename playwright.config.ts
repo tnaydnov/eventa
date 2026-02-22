@@ -4,7 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
  * Playwright configuration for Eventa E2E tests.
  *
  * Tests run against a local dev server on port 3000.
- * All API calls are intercepted via Playwright route mocking —
+ * All API calls are intercepted via Playwright route mocking -
  * no real Supabase connection is used during E2E tests.
  */
 export default defineConfig({

@@ -103,7 +103,7 @@ beforeEach(async () => {
 });
 
 /* ═══════════════════════════════════════════════════════════════════
-   _helpers.ts — adminGuard + validateEventId
+   _helpers.ts - adminGuard + validateEventId
    ═══════════════════════════════════════════════════════════════════ */
 describe('adminGuard (_helpers.ts)', () => {
   let adminGuard: typeof import('@/app/api/admin/_helpers').adminGuard;
@@ -814,7 +814,7 @@ describe('background image management', () => {
     const { validateImageMagicBytes } = await import('@/lib/validations');
     vi.mocked(validateImageMagicBytes).mockReturnValue(true);
 
-    // Storage: remove old backgrounds (returns empty list — no old files)
+    // Storage: remove old backgrounds (returns empty list - no old files)
     mockStorageFrom.mockReturnValue({
       upload: mockStorageUpload,
       getPublicUrl: mockStorageGetPublicUrl,

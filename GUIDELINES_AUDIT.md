@@ -1,4 +1,4 @@
-# Eventa — Comprehensive Guidelines Audit
+# Eventa - Comprehensive Guidelines Audit
 
 > **Date:** June 2025  
 > **Codebase commit:** `96b3127` (main)  
@@ -21,9 +21,9 @@
 ## Table of Contents
 
 1. [Production-Readiness & Deployment](#1-production-readiness--deployment)
-2. [Security — Authentication & Sessions](#2-security--authentication--sessions)
-3. [Security — API & Input](#3-security--api--input)
-4. [Security — Data & Storage](#4-security--data--storage)
+2. [Security - Authentication & Sessions](#2-security--authentication--sessions)
+3. [Security - API & Input](#3-security--api--input)
+4. [Security - Data & Storage](#4-security--data--storage)
 5. [Database & Schema](#5-database--schema)
 6. [Realtime & WebSockets](#6-realtime--websockets)
 7. [Performance & Caching](#7-performance--caching)
@@ -39,22 +39,22 @@
 
 ## 1. Production-Readiness & Deployment
 
-### ✅ 1.1 Environment Variables — Fail-Closed on Missing Secrets
+### ✅ 1.1 Environment Variables - Fail-Closed on Missing Secrets
 
 **Status: IMPLEMENTED**
 
-- **Where:** [`src/app/api/admin/login/route.ts`](src/app/api/admin/login/route.ts#L95) — `ADMIN_PASSWORD` check; if missing → 500 "Server configuration error".
-- **Where:** [`src/app/api/cleanup/route.ts`](src/app/api/cleanup/route.ts#L39) — `CRON_SECRET` check; if missing → 500.
-- **Where:** [`src/app/api/admin/_helpers.ts`](src/app/api/admin/_helpers.ts#L24) — `hasCronAuth()` returns false if `CRON_SECRET` is not set.
-- **Where:** [`src/lib/session.ts`](src/lib/session.ts) — `SESSION_SECRET` read from env; used in HMAC — if missing, signing/verification will fail (crypto throws).
-- **Where:** [`src/lib/admin-auth.ts`](src/lib/admin-auth.ts) — `ADMIN_JWT_SECRET` read from env; same fail-closed behavior.
+- **Where:** [`src/app/api/admin/login/route.ts`](src/app/api/admin/login/route.ts#L95) - `ADMIN_PASSWORD` check; if missing → 500 "Server configuration error".
+- **Where:** [`src/app/api/cleanup/route.ts`](src/app/api/cleanup/route.ts#L39) - `CRON_SECRET` check; if missing → 500.
+- **Where:** [`src/app/api/admin/_helpers.ts`](src/app/api/admin/_helpers.ts#L24) - `hasCronAuth()` returns false if `CRON_SECRET` is not set.
+- **Where:** [`src/lib/session.ts`](src/lib/session.ts) - `SESSION_SECRET` read from env; used in HMAC - if missing, signing/verification will fail (crypto throws).
+- **Where:** [`src/lib/admin-auth.ts`](src/lib/admin-auth.ts) - `ADMIN_JWT_SECRET` read from env; same fail-closed behavior.
 - **How:** Every route that needs a secret checks for its existence before using it. If the env var is missing, the route returns 500 with a generic error, never falling through.
 
 ### ✅ 1.2 Vercel Region Pinning
 
 **Status: IMPLEMENTED**
 
-- **Where:** [`vercel.json`](vercel.json) — `"regions": ["fra1"]` (Frankfurt).
+- **Where:** [`vercel.json`](vercel.json) - `"regions": ["fra1"]` (Frankfurt).
 - **Why:** Co-locates serverless functions with Supabase's EU region for minimal latency.
 - **Also:** `maxDuration: 15` seconds for all functions.
 
@@ -62,7 +62,7 @@
 
 **Status: IMPLEMENTED**
 
-- **Where:** [`vercel.json`](vercel.json) — two cron entries:
+- **Where:** [`vercel.json`](vercel.json) - two cron entries:
   - `auto-archive` runs at 03:00 UTC daily (`/api/admin/auto-archive`).
   - `cleanup` runs at 04:00 UTC daily (`/api/cleanup`).
 - **How:** Both endpoints accept GET (Vercel Cron sends GET) and POST. Auth via `CRON_SECRET` bearer token with timing-safe SHA-256 comparison.
@@ -71,18 +71,18 @@
 
 **Status: IMPLEMENTED**
 
-- **Where:** [`next.config.js`](next.config.js) — `reactStrictMode: true`, `optimizePackageImports` for `framer-motion`, `recharts`, `zod`, `@supabase/supabase-js`.
+- **Where:** [`next.config.js`](next.config.js) - `reactStrictMode: true`, `optimizePackageImports` for `framer-motion`, `recharts`, `zod`, `@supabase/supabase-js`.
 - **Why:** Tree-shakes heavy dependencies, reduces bundle size.
 
 ### ✅ 1.5 Node Version Constraint
 
 **Status: IMPLEMENTED**
 
-- **Where:** [`package.json`](package.json) — `"engines": { "node": ">=20" }`.
+- **Where:** [`package.json`](package.json) - `"engines": { "node": ">=20" }`.
 
 ---
 
-## 2. Security — Authentication & Sessions
+## 2. Security - Authentication & Sessions
 
 ### ✅ 2.1 Custom JWT Sessions (HMAC-SHA256)
 
@@ -93,7 +93,7 @@
   - `signSessionToken()` builds a JWT with `{ typ: 'session', sub, eid, esl, enm, iss, aud, iat, exp }`.
   - HMAC-SHA256 signature using `SESSION_SECRET`.
   - `verifySessionToken()` uses `crypto.timingSafeEqual` for signature comparison.
-  - Discriminator check: rejects tokens where `typ !== 'session'` — prevents admin tokens from being used as session tokens and vice versa.
+  - Discriminator check: rejects tokens where `typ !== 'session'` - prevents admin tokens from being used as session tokens and vice versa.
   - Validates `iss` (issuer) and `aud` (audience) claims against config values.
   - Expiry check: `exp < now` → rejected.
 - **Cookie flags:** `HttpOnly`, `Secure`, `SameSite=Lax`, `Path=/`, `Max-Age` from `SESSION_MAX_AGE_S` (30 days).
@@ -114,13 +114,13 @@
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`src/lib/session.ts`](src/lib/session.ts) — `checkCsrf()`.
+- **Where:** [`src/lib/session.ts`](src/lib/session.ts) - `checkCsrf()`.
 - **How:** Compares `Origin` header against `Host` header. Rejects if they don't match.
 - **Applied at:**
   - All `secureGuard()` protected routes (CSRF is step 1 of the guard pipeline).
   - Auth join route (`/api/auth/join`).
   - Order form route (`/api/order`).
-  - Admin cookie-auth routes (via `adminGuard()` — only for cookie-based auth, not cron).
+  - Admin cookie-auth routes (via `adminGuard()` - only for cookie-based auth, not cron).
 - **Defense-in-depth:** Even the public order form checks CSRF despite not requiring a session.
 
 ### ✅ 2.4 Timing-Safe Password Comparison (Admin Login)
@@ -151,7 +151,7 @@
   - On mount: calls `GET /api/auth/verify` to validate the cookie server-side.
   - On app resume (`visibilitychange`): re-verifies via `useAppResume` hook.
   - Handles 403 (banned) → redirect to event page.
-  - Handles 410 (event inactive — paused/archived/deleted) → redirect with reason.
+  - Handles 410 (event inactive - paused/archived/deleted) → redirect with reason.
   - Falls back to localStorage session data if cookie verify fails initially.
 
 ### ✅ 2.7 Ban Enforcement on Verify
@@ -179,13 +179,13 @@
 
 ---
 
-## 3. Security — API & Input
+## 3. Security - API & Input
 
 ### ✅ 3.1 Centralized Route Guard (`secureGuard`)
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`src/lib/route-helpers.ts`](src/lib/route-helpers.ts) — `secureGuard()`.
+- **Where:** [`src/lib/route-helpers.ts`](src/lib/route-helpers.ts) - `secureGuard()`.
 - **Pipeline:** CSRF → session verification → rate limit → ban check (cached) → event status check.
 - **Used by:** ALL `/api/secure/*` routes (profile, messages, photos, upload-url, blocks, heartbeat, likes, conversations, likes/seen, conversations/read).
 - **Cached ban check:** Bounded Map (`MAX_CACHE_SIZE=5000`), TTL: 5 min for non-banned, 10s for banned. Eviction on size overflow.
@@ -209,17 +209,17 @@
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`src/lib/validations.ts`](src/lib/validations.ts) — Comprehensive Zod schemas.
+- **Where:** [`src/lib/validations.ts`](src/lib/validations.ts) - Comprehensive Zod schemas.
 - **Schemas defined:**
-  - `joinEventSchema` — event slug + join code.
-  - `profileSetupSchema` — display_name, gender, attracted_to, bio, age, city, looking_for.
-  - `adminLoginSchema` — password.
-  - `createEventSchema` — name, slug, event_type, description, starts_at, ends_at.
-  - `updateEventSchema` — partial of create + status/is_active/background.
-  - `sendMessageSchema` — conversationId (UUID), text, type, mediaPath.
-  - `photoReorderSchema` — array of {id, order_index}.
-  - `likeSeenSchema` — fromParticipantId or all flag.
-  - `envSchema` — validates all required env vars.
+  - `joinEventSchema` - event slug + join code.
+  - `profileSetupSchema` - display_name, gender, attracted_to, bio, age, city, looking_for.
+  - `adminLoginSchema` - password.
+  - `createEventSchema` - name, slug, event_type, description, starts_at, ends_at.
+  - `updateEventSchema` - partial of create + status/is_active/background.
+  - `sendMessageSchema` - conversationId (UUID), text, type, mediaPath.
+  - `photoReorderSchema` - array of {id, order_index}.
+  - `likeSeenSchema` - fromParticipantId or all flag.
+  - `envSchema` - validates all required env vars.
   - Image file validation: type allowlist (no SVG), 20MB limit, extension-to-MIME fallback for Android, magic byte validation.
 - **Applied at:** Every route that accepts user input validates with the appropriate Zod schema before processing.
 
@@ -232,13 +232,13 @@
   - **Server-side:** Double-pass tag stripping (`<[^>]*>` regex twice) + HTML entity decoding (`&amp;` → `&`, etc.).
   - **Client-side:** DOMPurify with `ALLOWED_TAGS=[]`, `ALLOWED_ATTR=[]` (strips everything).
   - `sanitizeWithLimit(text, maxLength)` combines sanitization with length truncation.
-- **Applied to:** Profile fields (display_name, bio, city), message text — all go through `sanitizeWithLimit()` before DB insertion.
+- **Applied to:** Profile fields (display_name, bio, city), message text - all go through `sanitizeWithLimit()` before DB insertion.
 
 ### ✅ 3.5 Path Traversal Protection
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`src/lib/route-helpers.ts`](src/lib/route-helpers.ts) — `isSafePath()`.
+- **Where:** [`src/lib/route-helpers.ts`](src/lib/route-helpers.ts) - `isSafePath()`.
 - **How:** URL-decodes (to catch `%2e%2e` encoding), then rejects paths containing `..`, `//`, or leading `/`. Handles double-encoding.
 - **Applied to:** Photo storage paths (POST photos, DELETE photos), upload URL generation, message media paths.
 
@@ -246,7 +246,7 @@
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`src/lib/session.ts`](src/lib/session.ts) — `isValidUUID()`.
+- **Where:** [`src/lib/session.ts`](src/lib/session.ts) - `isValidUUID()`.
 - **How:** Regex: `/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i`.
 - **Applied to:** All routes that accept IDs (photoId, messageId, participantId, eventId, conversationId, blockedId, toId).
 
@@ -263,7 +263,7 @@ Every data mutation verifies the authenticated user owns the resource:
 - **Messages PATCH (delete):** Verifies `sender_participant_id === session.sub`.
 - **Upload URL:** Path must start with `{session.eid}/{session.sub}/` or `chat/{session.eid}/`.
 - **Profile PATCH:** Updates with `.eq('id', session.sub).eq('event_id', session.eid)`.
-- **Conversations read:** Parallel a/b update — only the correct side matches.
+- **Conversations read:** Parallel a/b update - only the correct side matches.
 
 ### ✅ 3.8 Block Enforcement on Actions
 
@@ -288,13 +288,13 @@ Every data mutation verifies the authenticated user owns the resource:
 **Status: FULLY IMPLEMENTED**
 
 - **Where:** [`src/app/api/auth/join/route.ts`](src/app/api/auth/join/route.ts#L47-L58)
-- **How:** `FP_PATTERN = /^[a-f0-9-]+$/i` — only hex chars and hyphens allowed. Truncated to 64 chars (device) / 128 chars (hardware). Non-matching fingerprints are set to null.
+- **How:** `FP_PATTERN = /^[a-f0-9-]+$/i` - only hex chars and hyphens allowed. Truncated to 64 chars (device) / 128 chars (hardware). Non-matching fingerprints are set to null.
 
 ### ✅ 3.11 Magic Byte Validation (File Uploads)
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`src/lib/validations.ts`](src/lib/validations.ts) — `validateImageMagicBytes()`.
+- **Where:** [`src/lib/validations.ts`](src/lib/validations.ts) - `validateImageMagicBytes()`.
 - **How:** Checks first bytes against known signatures (JPEG: `FF D8 FF`, PNG: `89 50 4E 47`, WebP: `52 49 46 46`, GIF: `47 49 46`, HEIC: `66 74 79 70`).
 - **Applied at:**
   - Background image upload (`/api/admin/events/[eventId]/background`).
@@ -317,7 +317,7 @@ Every data mutation verifies the authenticated user owns the resource:
 
 ---
 
-## 4. Security — Data & Storage
+## 4. Security - Data & Storage
 
 ### ✅ 4.1 Row-Level Security (RLS) on All Tables
 
@@ -373,15 +373,15 @@ Every data mutation verifies the authenticated user owns the resource:
 
 - **Where:** [`src/app/api/auth/join/route.ts`](src/app/api/auth/join/route.ts#L231-L235)
 - **How:** When returning reconnected participant data, fingerprints are stripped: `({ device_fingerprint, hardware_fingerprint, ...safe }) => safe`.
-- **Client helpers:** `PARTICIPANT_COLUMNS` constant in [`src/lib/api/helpers.ts`](src/lib/api/helpers.ts) explicitly lists only safe columns — never includes fingerprints.
-- **Admin participants:** GET returns only `id, display_name, gender, age, is_banned, created_at` — no fingerprints.
+- **Client helpers:** `PARTICIPANT_COLUMNS` constant in [`src/lib/api/helpers.ts`](src/lib/api/helpers.ts) explicitly lists only safe columns - never includes fingerprints.
+- **Admin participants:** GET returns only `id, display_name, gender, age, is_banned, created_at` - no fingerprints.
 
 ### ✅ 4.7 PublicParticipant Type (No Fingerprints)
 
 **Status: FULLY IMPLEMENTED**
 
 - **Where:** [`src/lib/database.types.ts`](src/lib/database.types.ts)
-- **How:** `PublicParticipant` type uses `Omit<Participant, 'device_fingerprint' | 'hardware_fingerprint'>` — TypeScript-level enforcement that fingerprints never leak to clients.
+- **How:** `PublicParticipant` type uses `Omit<Participant, 'device_fingerprint' | 'hardware_fingerprint'>` - TypeScript-level enforcement that fingerprints never leak to clients.
 
 ---
 
@@ -425,7 +425,7 @@ Every data mutation verifies the authenticated user owns the resource:
 
 - **Where:** Schema table `activity_log` with `(event_id, participant_id, action, created_at)`.
 - **Logged actions:** join, like, message, block, heartbeat.
-- **Method:** Fire-and-forget `Promise.resolve()` — doesn't block the response.
+- **Method:** Fire-and-forget `Promise.resolve()` - doesn't block the response.
 - **Consumer:** Analytics endpoints use activity_log for usage timelines.
 
 ### ✅ 5.4 Analytics Snapshots (Permanent)
@@ -433,7 +433,7 @@ Every data mutation verifies the authenticated user owns the resource:
 **Status: FULLY IMPLEMENTED**
 
 - **Where:** Schema table `event_analytics_snapshots` with `(event_id PK, snapshot JSONB, created_at)`.
-- **How:** Before archiving an event, the full `EventAnalytics` object (60+ metrics) is computed and stored. The snapshot is NEVER deleted by cleanup — it's permanent history.
+- **How:** Before archiving an event, the full `EventAnalytics` object (60+ metrics) is computed and stored. The snapshot is NEVER deleted by cleanup - it's permanent history.
 - **Fallback:** If full analytics computation fails, basic counts are stored with `_partial: true` flag.
 
 ### ✅ 5.5 Data Retention & Cleanup
@@ -443,7 +443,7 @@ Every data mutation verifies the authenticated user owns the resource:
 - **Where:** [`src/app/api/cleanup/route.ts`](src/app/api/cleanup/route.ts), [`src/app/api/admin/auto-archive/route.ts`](src/app/api/admin/auto-archive/route.ts)
 - **Flow:**
   1. `auto-archive` (3am daily): Auto-ends events past `ends_at`. Archives events past `ends_at + RETENTION_DAYS`.
-  2. `cleanup` (4am daily): Safety net — archives anything `auto-archive` missed. Purges all user data for archived events.
+  2. `cleanup` (4am daily): Safety net - archives anything `auto-archive` missed. Purges all user data for archived events.
 - **Retention:** `RETENTION_DAYS = 7` (configurable in constants).
 - **Dry-run mode:** Both endpoints support `?dry_run=true` for preview.
 
@@ -589,14 +589,14 @@ This prevents non-critical logging from blocking the API response.
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`src/lib/api/conversations.ts`](src/lib/api/conversations.ts) — `getMessagesBefore()`.
+- **Where:** [`src/lib/api/conversations.ts`](src/lib/api/conversations.ts) - `getMessagesBefore()`.
 - **How:** Uses `created_at < cursor` ordering instead of OFFSET-based pagination. Efficient for large message histories.
 
 ### ✅ 7.8 Batched Photo Queries
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`src/lib/api/helpers.ts`](src/lib/api/helpers.ts) — `buildParticipantPhotoMaps()`.
+- **Where:** [`src/lib/api/helpers.ts`](src/lib/api/helpers.ts) - `buildParticipantPhotoMaps()`.
 - **How:** Uses `.in()` queries with `BATCH_SIZE=50` chunks, run in parallel. Builds a Map of participant ID → photo URLs for efficient grid rendering.
 
 ### ⚠️ 7.9 Service Worker Caching Strategy
@@ -606,7 +606,7 @@ This prevents non-critical logging from blocking the API response.
 - **Where:** [`src/app/sw.ts`](src/app/sw.ts)
 - **Implemented:**
   - Precaching of build assets (via Serwist).
-  - NetworkOnly for all `/api/` routes (correct — no stale API responses).
+  - NetworkOnly for all `/api/` routes (correct - no stale API responses).
   - CacheFirst for Supabase Storage images (photos/backgrounds).
   - StaleWhileRevalidate for Google Fonts.
   - Cache-Control: `no-cache, no-store` for `sw.js` itself ([vercel.json](vercel.json)).
@@ -632,7 +632,7 @@ This prevents non-critical logging from blocking the API response.
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`src/lib/route-helpers.ts`](src/lib/route-helpers.ts) — `jsonError()`.
+- **Where:** [`src/lib/route-helpers.ts`](src/lib/route-helpers.ts) - `jsonError()`.
 - **How:** All API routes return errors via `jsonError(message, status)` or `NextResponse.json({ error }, { status })`. Never leaks stack traces. Always includes a human-readable error message.
 - **Pattern:** Generic errors to clients ("Server error"), detailed errors to logs.
 
@@ -668,14 +668,14 @@ This prevents non-critical logging from blocking the API response.
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`src/lib/route-helpers.ts`](src/lib/route-helpers.ts) — `generateRequestId()`.
+- **Where:** [`src/lib/route-helpers.ts`](src/lib/route-helpers.ts) - `generateRequestId()`.
 - **How:** UUID v4 via `crypto.randomUUID()`. Available for correlation but not yet attached to all log entries.
 
 ### ⚠️ 8.8 Admin Audit Logging
 
 **Status: IMPLEMENTED but fire-and-forget**
 
-- **Where:** [`src/lib/admin-auth.ts`](src/lib/admin-auth.ts) — `adminAuditLog()`.
+- **Where:** [`src/lib/admin-auth.ts`](src/lib/admin-auth.ts) - `adminAuditLog()`.
 - **How:** Logs admin actions with structured metadata. All destructive admin operations (create, update, delete, archive, ban/unban, rotate code, background upload) are logged.
 - **Events logged:** `LOGIN_SUCCESS`, `LOGIN_FAILED`, `LOGIN_LOCKED_OUT`, `EVENT_CREATE`, `EVENT_UPDATE`, `EVENT_DELETE`, `EVENT_ARCHIVE`, `PARTICIPANT_BAN`, `PARTICIPANT_UNBAN`, `JOIN_CODE_ROTATE`, `BACKGROUND_UPLOAD`, `BACKGROUND_REMOVE`, `AUTO_ARCHIVE`.
 - **⚠️ Gap:** Audit logs go to `logger.info()` (stdout/Vercel logs) only. Not persisted to a dedicated audit table in the database. Vercel logs have limited retention.
@@ -710,21 +710,21 @@ This prevents non-critical logging from blocking the API response.
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`vercel.json`](vercel.json) — Custom header: `Cache-Control: no-cache, no-store, must-revalidate` for `/sw.js`.
+- **Where:** [`vercel.json`](vercel.json) - Custom header: `Cache-Control: no-cache, no-store, must-revalidate` for `/sw.js`.
 - **Why:** Ensures browsers always fetch the latest service worker, preventing stale SW from serving outdated caches.
 
 ### ✅ 9.4 API Routes Excluded from SW Cache
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`src/app/sw.ts`](src/app/sw.ts) — `NetworkOnly` for all `/api/` routes.
+- **Where:** [`src/app/sw.ts`](src/app/sw.ts) - `NetworkOnly` for all `/api/` routes.
 - **Why:** API responses must never be served from cache (stale session data, stale bans, etc.).
 
 ### ❌ 9.5 Push Notifications
 
 **Status: REMOVED (by design)**
 
-- **Commit:** `96b3127` — Full removal of Web Push / VAPID system.
+- **Commit:** `96b3127` - Full removal of Web Push / VAPID system.
 - **Why:** User decision. 14 files modified, 3 deleted, 695 lines removed.
 - **Pending user action:** Run `DROP TABLE IF EXISTS push_subscriptions CASCADE;` in Supabase SQL editor. Remove VAPID env vars from Vercel.
 
@@ -736,23 +736,23 @@ This prevents non-critical logging from blocking the API response.
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`src/lib/stores/`](src/lib/stores/) — 9 stores.
+- **Where:** [`src/lib/stores/`](src/lib/stores/) - 9 stores.
 - **Stores:**
-  - `session` — localStorage persistence, `clearSession()` cascade-resets ALL other stores.
-  - `grid` — participants array + gender filter.
-  - `chats` — conversations + messages.
-  - `likes` — received/sent likes.
-  - `matches` — pending match popup + matches array.
-  - `notifications` — unread counts, grid highlights.
-  - `blocks` — blocked IDs Set.
-  - `swipe` — view mode toggle, dismissed/liked IDs.
-  - `toast` — single message with auto-clear timer.
+  - `session` - localStorage persistence, `clearSession()` cascade-resets ALL other stores.
+  - `grid` - participants array + gender filter.
+  - `chats` - conversations + messages.
+  - `likes` - received/sent likes.
+  - `matches` - pending match popup + matches array.
+  - `notifications` - unread counts, grid highlights.
+  - `blocks` - blocked IDs Set.
+  - `swipe` - view mode toggle, dismissed/liked IDs.
+  - `toast` - single message with auto-clear timer.
 
 ### ✅ 10.2 Session Cascade Reset
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`src/lib/stores/session.ts`](src/lib/stores/session.ts) — `clearSession()`.
+- **Where:** [`src/lib/stores/session.ts`](src/lib/stores/session.ts) - `clearSession()`.
 - **How:** Dynamically imports and resets ALL other stores when session is cleared. Prevents stale data from surviving logout/event-switch.
 
 ### ✅ 10.3 Mobile-Only Guard
@@ -833,7 +833,7 @@ This prevents non-critical logging from blocking the API response.
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`src/app/api/admin/events/[eventId]/analytics/route.ts`](src/app/api/admin/events/[eventId]/analytics/route.ts) — 684 lines.
+- **Where:** [`src/app/api/admin/events/[eventId]/analytics/route.ts`](src/app/api/admin/events/[eventId]/analytics/route.ts) - 684 lines.
 - **Metrics (60+):** Demographics, age distribution, attraction breakdown, likes/matches/conversations/messages/blocks, funnel (6-stage), timing metrics, usage timeline (5-min buckets), peak activity, response rate, ghost rate, photo impact, mutual attraction heatmap, block-after-match rate, most popular participants (anonymized).
 - **Archived events:** Served from `event_analytics_snapshots` table.
 
@@ -841,7 +841,7 @@ This prevents non-critical logging from blocking the API response.
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`src/app/api/admin/global-analytics/route.ts`](src/app/api/admin/global-analytics/route.ts) — 541 lines.
+- **Where:** [`src/app/api/admin/global-analytics/route.ts`](src/app/api/admin/global-analytics/route.ts) - 541 lines.
 - **Metrics:** All per-event metrics aggregated across all events (live + archived). Growth timelines (monthly). Top event rankings (5 categories). Event comparison table.
 
 ### ✅ 11.7 Event Archiving with Snapshot
@@ -855,7 +855,7 @@ This prevents non-critical logging from blocking the API response.
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`src/app/api/admin/_helpers.ts`](src/app/api/admin/_helpers.ts) — `adminGuard()`.
+- **Where:** [`src/app/api/admin/_helpers.ts`](src/app/api/admin/_helpers.ts) - `adminGuard()`.
 - **How:** Accepts either `ws_admin` cookie (browser dashboard) or `Authorization: Bearer CRON_SECRET` (Vercel Cron). CSRF check only for cookie auth (cron doesn't have Origin header).
 
 ### ✅ 11.9 Admin Search with Injection Prevention
@@ -873,16 +873,16 @@ This prevents non-critical logging from blocking the API response.
 
 **Status: FULLY IMPLEMENTED**
 
-- **Where:** [`next.config.js`](next.config.js) — `headers()`.
+- **Where:** [`next.config.js`](next.config.js) - `headers()`.
 - **Headers set:**
-  - `X-Frame-Options: DENY` — prevents clickjacking.
-  - `X-Content-Type-Options: nosniff` — prevents MIME sniffing.
-  - `X-XSS-Protection: 1; mode=block` — legacy XSS protection.
+  - `X-Frame-Options: DENY` - prevents clickjacking.
+  - `X-Content-Type-Options: nosniff` - prevents MIME sniffing.
+  - `X-XSS-Protection: 1; mode=block` - legacy XSS protection.
   - `Referrer-Policy: strict-origin-when-cross-origin`.
-  - `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload` — HSTS 2 years.
-  - `Content-Security-Policy: frame-ancestors 'none'` — CSP frame protection.
-  - `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()` — disables unused browser APIs.
-  - `Cross-Origin-Opener-Policy: same-origin` — isolation against Spectre-class attacks.
+  - `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload` - HSTS 2 years.
+  - `Content-Security-Policy: frame-ancestors 'none'` - CSP frame protection.
+  - `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()` - disables unused browser APIs.
+  - `Cross-Origin-Opener-Policy: same-origin` - isolation against Spectre-class attacks.
 
 ### ✅ 12.2 Fail-Closed Security Pattern
 
@@ -911,7 +911,7 @@ Every security check in the codebase follows fail-closed:
 **Status: FULLY IMPLEMENTED**
 
 - **Where:** [`src/lib/device-fingerprint.ts`](src/lib/device-fingerprint.ts)
-- **Fingerprint 1 (`device_fingerprint`):** localStorage UUID — persists across sessions but wiped in incognito.
+- **Fingerprint 1 (`device_fingerprint`):** localStorage UUID - persists across sessions but wiped in incognito.
 - **Fingerprint 2 (`hardware_fingerprint`):** Canvas + WebGL + screen + navigator properties → SHA-256. Survives incognito mode.
 - **Ban enforcement:** Both fingerprints checked in `banned_devices` table. Both stored when banning.
 - **Reconnection:** Tries localStorage UUID first, then hardware fingerprint (catches incognito re-visits).
@@ -989,7 +989,7 @@ Every security check in the codebase follows fail-closed:
 
 - **User directive:** "LEAVE the languages support and i18n for last."
 - **Current state:** All user-facing text is hardcoded in Hebrew throughout components, pages, and label constants.
-- **Where labels live:** [`src/lib/constants.ts`](src/lib/constants.ts) — Hebrew labels for `looking_for`, `event_type`, `event_status`.
+- **Where labels live:** [`src/lib/constants.ts`](src/lib/constants.ts) - Hebrew labels for `looking_for`, `event_type`, `event_status`.
 - **RTL:** Properly set via `dir="rtl"` on `<html>` tag in root layout.
 - **Admin dashboard:** Hebrew.
 - **Legal pages:** Hebrew.
@@ -1047,26 +1047,26 @@ Every security check in the codebase follows fail-closed:
 
 ### Minor Gaps (⚠️)
 
-1. **SW image cache unbounded** — Add max entries / expiry to the CacheFirst strategy for Supabase Storage images in `sw.ts`. Low risk (mobile storage is typically sufficient).
+1. **SW image cache unbounded** - Add max entries / expiry to the CacheFirst strategy for Supabase Storage images in `sw.ts`. Low risk (mobile storage is typically sufficient).
 
-2. **Audit logs not persisted to DB** — `adminAuditLog()` writes to stdout only. For regulatory needs or long-term audit trails, consider an `admin_audit_log` table. Currently Vercel log retention is limited.
+2. **Audit logs not persisted to DB** - `adminAuditLog()` writes to stdout only. For regulatory needs or long-term audit trails, consider an `admin_audit_log` table. Currently Vercel log retention is limited.
 
-3. **Hebrew-only UI** — All user-facing text is hardcoded Hebrew. Deferred per user directive.
+3. **Hebrew-only UI** - All user-facing text is hardcoded Hebrew. Deferred per user directive.
 
 ### Deferred by Design (🔜)
 
-4. **Refresh token rotation** — Single 30-day JWT. Acceptable for event-scoped app. Revisit if sessions need to survive longer than events.
+4. **Refresh token rotation** - Single 30-day JWT. Acceptable for event-scoped app. Revisit if sessions need to survive longer than events.
 
-5. **Bot detection / behavioral signals** — No CAPTCHA or behavioral analysis. Rate limiting + fingerprinting provides baseline. Revisit at scale.
+5. **Bot detection / behavioral signals** - No CAPTCHA or behavioral analysis. Rate limiting + fingerprinting provides baseline. Revisit at scale.
 
-6. **TLS tuning** — Handled by Vercel. HSTS preload already configured.
+6. **TLS tuning** - Handled by Vercel. HSTS preload already configured.
 
-7. **External APM / monitoring** — No Sentry or equivalent. Health endpoint exists. Add when scale warrants.
+7. **External APM / monitoring** - No Sentry or equivalent. Health endpoint exists. Add when scale warrants.
 
 ### Missing (❌)
 
-8. **Testing** — No unit, integration, or E2E tests. The codebase is well-structured for testing (pure functions in lib/, clear API boundaries). Vitest + Playwright would be the natural choices for Next.js.
+8. **Testing** - No unit, integration, or E2E tests. The codebase is well-structured for testing (pure functions in lib/, clear API boundaries). Vitest + Playwright would be the natural choices for Next.js.
 
-9. **i18n framework** — Deferred to last. RTL already working.
+9. **i18n framework** - Deferred to last. RTL already working.
 
-10. **Push notifications** — Deliberately removed. Table cleanup pending.
+10. **Push notifications** - Deliberately removed. Table cleanup pending.

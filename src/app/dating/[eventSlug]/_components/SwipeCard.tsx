@@ -324,7 +324,7 @@ export default function SwipeCard({
             )}
           </div>
 
-          {/* Action buttons — on the card (X left, profile center, heart right) */}
+          {/* Action buttons - on the card (X left, profile center, heart right) */}
           {isTop && (
             <div
               dir="ltr"

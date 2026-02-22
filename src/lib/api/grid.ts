@@ -30,7 +30,7 @@ export async function getGridParticipants(
   eventId: string,
   myId: string
 ): Promise<GridParticipant[]> {
-  // Fire independent queries in parallel — join photos in the same query
+  // Fire independent queries in parallel - join photos in the same query
   const [blockedIds, myProfileRes, participantsRes] = await Promise.all([
     getBlockedIds(eventId, myId),
     supabase

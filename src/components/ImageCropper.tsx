@@ -7,7 +7,7 @@ import type { Area, Point } from 'react-easy-crop';
 interface ImageCropperProps {
   /** Object URL or data URL of the image to crop */
   imageSrc: string;
-  /** Aspect ratio — e.g. 3/4 for profile, 9/16 for background */
+  /** Aspect ratio - e.g. 3/4 for profile, 9/16 for background */
   aspect?: number;
   /** Called with the cropped File */
   onCropDone: (croppedFile: File, originalFileName: string) => void;
@@ -28,7 +28,7 @@ async function getCroppedImg(
   fileName: string
 ): Promise<File> {
   const image = new Image();
-  // Only set crossOrigin for remote URLs — blob: and data: URLs are always
+  // Only set crossOrigin for remote URLs - blob: and data: URLs are always
   // same-origin, and setting crossOrigin on them can break canvas.toBlob()
   // on some Android Chrome versions.
   if (!imageSrc.startsWith('blob:') && !imageSrc.startsWith('data:')) {
@@ -62,12 +62,12 @@ async function getCroppedImg(
     canvas.toBlob(
       (blob) => {
         if (blob && blob.size > 0 && blob.type === 'image/webp') {
-          // WebP supported — use it
+          // WebP supported - use it
           const outName = fileName.replace(/\.[^.]+$/, '.webp');
           resolve(new File([blob], outName, { type: 'image/webp' }));
           return;
         }
-        // WebP not supported, empty blob, or empty type — fall back to JPEG
+        // WebP not supported, empty blob, or empty type - fall back to JPEG
         canvas.toBlob(
           (jpegBlob) => {
             if (!jpegBlob || jpegBlob.size === 0) {

@@ -20,5 +20,5 @@ if (fs.existsSync(swPath)) {
     console.log('✓ No backslash paths found in public/sw.js (already clean)');
   }
 } else {
-  console.log('⚠ public/sw.js not found — skipping path fix');
+  console.log('⚠ public/sw.js not found - skipping path fix');
 }

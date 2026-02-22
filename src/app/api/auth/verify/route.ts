@@ -8,7 +8,7 @@ import { logger } from '@/lib/logger';
 /**
  * GET /api/auth/verify
  * Verifies the session cookie and returns session data.
- * Also checks if the participant is banned — if so, clears the cookie
+ * Also checks if the participant is banned - if so, clears the cookie
  * so the session is not restored on the client.
  */
 export async function GET(req: NextRequest) {
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     return jsonError('Not authenticated', 401);
   }
 
-  // Check if participant is banned — reject and clear cookie if so
+  // Check if participant is banned - reject and clear cookie if so
   // Fail-closed: if DB errors, treat as banned to prevent bypass
   const supabase = getServiceClient();
   const { data: participant, error: participantError } = await supabase
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
     return response;
   }
 
-  // Check event status — kick users from paused/archived/deleted events
+  // Check event status - kick users from paused/archived/deleted events
   const { data: event, error: eventError } = await supabase
     .from('events')
     .select('status, is_active')

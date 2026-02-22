@@ -31,7 +31,7 @@ export function setEventContext(eventId: string | null) {
   _currentEventId = eventId;
 }
 
-/** Anon client — safe for client-side / read-only operations */
+/** Anon client - safe for client-side / read-only operations */
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
     fetch: (url, options = {}) => {
@@ -45,7 +45,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-/** Service-role client — server-side only, full DB access (cached singleton) */
+/** Service-role client - server-side only, full DB access (cached singleton) */
 let _serviceClient: SupabaseClient | null = null;
 export function getServiceClient(): SupabaseClient {
   if (_serviceClient) return _serviceClient;

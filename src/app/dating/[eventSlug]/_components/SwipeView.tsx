@@ -22,7 +22,7 @@ interface SwipeViewProps {
  *
  * Renders a stack of `SwipeCard`s drawn from the grid participants.
  * - Swipe right → `sendLike` (same API the profile page uses).
- * - Swipe left → dismiss (skip) — restorable via "reset pool".
+ * - Swipe left → dismiss (skip) - restorable via "reset pool".
  * - Liked participants are excluded even after a reset.
  * - New participants from realtime updates appear automatically
  *   because the source is the same `useGridStore.participants`.
@@ -82,7 +82,7 @@ export default function SwipeView({ participants, eventSlug }: SwipeViewProps) {
           toast('💗 לייק נשלח!');
         }
       } else {
-        toast('שגיאה בשליחת הלייק — נסו שוב');
+        toast('שגיאה בשליחת הלייק - נסו שוב');
       }
     },
     [addLiked, toast, participants],
@@ -104,7 +104,7 @@ export default function SwipeView({ participants, eventSlug }: SwipeViewProps) {
 
   const handleReset = useCallback(() => {
     resetPool();
-    toast('הרשימה אופסה — כולם חזרו (חוץ מאלו שכבר עשית להם לייק!)');
+    toast('הרשימה אופסה - כולם חזרו (חוץ מאלו שכבר עשית להם לייק!)');
   }, [resetPool, toast]);
 
   /* ── Empty state ───────────────────────────────────────────── */
@@ -144,7 +144,7 @@ export default function SwipeView({ participants, eventSlug }: SwipeViewProps) {
         </p>
         <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
           {allDismissed
-            ? 'כשמישהו חדש יצטרף — הוא יופיע כאן אוטומטית'
+            ? 'כשמישהו חדש יצטרף - הוא יופיע כאן אוטומטית'
             : 'ברגע שמישהו חדש יצטרף לאירוע, הוא יופיע כאן'}
         </p>
         {allDismissed && (
@@ -182,7 +182,7 @@ export default function SwipeView({ participants, eventSlug }: SwipeViewProps) {
         overflow: 'hidden',
       }}
     >
-      {/* Card stack area — stretches to fill remaining space */}
+      {/* Card stack area - stretches to fill remaining space */}
       <div
         style={{
           position: 'relative',

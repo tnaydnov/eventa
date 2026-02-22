@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------ */
-/*  Database types — mirrors the Supabase Postgres schema              */
+/*  Database types - mirrors the Supabase Postgres schema              */
 /* ------------------------------------------------------------------ */
 
 export type Gender = 'male' | 'female' | 'other';
@@ -45,7 +45,7 @@ export interface Participant {
   created_at: string;
 }
 
-/** Participant without internal fingerprint fields — safe for client-side use. */
+/** Participant without internal fingerprint fields - safe for client-side use. */
 export type PublicParticipant = Omit<Participant, 'device_fingerprint' | 'hardware_fingerprint'>;
 
 export interface ParticipantPhoto {

@@ -20,7 +20,7 @@ import {
  */
 
 test.describe('Cross-Cutting', () => {
-  test('E-CC-01: Full user journey — join → profile → grid → like → chat', async ({ page }) => {
+  test('E-CC-01: Full user journey - join → profile → grid → like → chat', async ({ page }) => {
     await setupAuthenticatedMocks(page);
 
     // 1. Navigate to event page

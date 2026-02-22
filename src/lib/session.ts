@@ -8,7 +8,7 @@ import { SESSION_MAX_AGE_S, JWT_ISSUER, JWT_AUDIENCE } from '@/lib/config';
 const COOKIE_NAME = 'ws_session';
 
 export interface SessionPayload {
-  typ: 'session'; // discriminator — prevents admin tokens from passing session verification
+  typ: 'session'; // discriminator - prevents admin tokens from passing session verification
   iss?: string;   // issuer
   aud?: string;   // audience
   sub: string;    // participantId
@@ -72,12 +72,12 @@ export function verifySessionToken(token: string): SessionPayload | null {
 
     const payload: SessionPayload = JSON.parse(Buffer.from(body, 'base64url').toString());
 
-    // Validate discriminator — reject admin tokens and malformed payloads
+    // Validate discriminator - reject admin tokens and malformed payloads
     if (payload.typ !== 'session') return null;
     if (!payload.sub || !payload.eid || !payload.esl) return null;
     if (payload.exp < Math.floor(Date.now() / 1000)) return null;
 
-    // Soft-verify iss/aud — reject if present but wrong (accepts old tokens without them)
+    // Soft-verify iss/aud - reject if present but wrong (accepts old tokens without them)
     if (payload.iss && payload.iss !== JWT_ISSUER) return null;
     if (payload.aud && payload.aud !== JWT_AUDIENCE) return null;
 

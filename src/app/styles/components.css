@@ -2,7 +2,7 @@
    Components
    ═══════════════════════════════════════════ */
 
-/* ── Cards — Glass ── */
+/* ── Cards - Glass ── */
 .card {
   background: var(--glass-bg);
   backdrop-filter: blur(16px);
@@ -148,7 +148,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── Toast — Glass ── */
+/* ── Toast - Glass ── */
 .toast {
   position: fixed;
   top: calc(20px + env(safe-area-inset-top));
@@ -221,7 +221,7 @@
   font-weight: 500;
 }
 
-/* ── Modal / Dialog — Glass ── */
+/* ── Modal / Dialog - Glass ── */
 .modal-overlay {
   position: fixed;
   inset: 0;

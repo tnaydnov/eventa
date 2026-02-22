@@ -1,5 +1,5 @@
 /**
- * useAppResume — fires a callback when the user returns to the app.
+ * useAppResume - fires a callback when the user returns to the app.
  *
  * On mobile, users constantly jump between apps, lock/unlock the phone,
  * pull down notification shade, etc. The `visibilitychange` event is the

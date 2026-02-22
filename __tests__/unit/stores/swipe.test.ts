@@ -1,5 +1,5 @@
 /**
- * Unit tests for stores/swipe.ts — Swipe Zustand store
+ * Unit tests for stores/swipe.ts - Swipe Zustand store
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useSwipeStore } from '@/lib/stores/swipe';

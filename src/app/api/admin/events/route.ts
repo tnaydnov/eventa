@@ -20,11 +20,11 @@ function randomSuffix(): string {
  * Returns events with optional filtering, sorting, and search.
  *
  * Query params:
- *   status   — filter by status (active | paused | ended | archived | draft)
- *   type     — filter by event_type (wedding | party | ...)
- *   search   — case-insensitive search in name or slug
- *   sort     — sort field (created_at | starts_at | name) — default: created_at
- *   order    — asc | desc — default: desc
+ *   status   - filter by status (active | paused | ended | archived | draft)
+ *   type     - filter by event_type (wedding | party | ...)
+ *   search   - case-insensitive search in name or slug
+ *   sort     - sort field (created_at | starts_at | name) - default: created_at
+ *   order    - asc | desc - default: desc
  */
 export async function GET(req: NextRequest) {
   const denied = adminGuard(req, 'admin-events-get', RATE_LIMITS.standard);
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Sorting — whitelist fields to prevent injection
+    // Sorting - whitelist fields to prevent injection
     const allowedSorts = ['created_at', 'starts_at', 'ends_at', 'name'];
     const sortField = allowedSorts.includes(sort) ? sort : 'created_at';
     query = query.order(sortField, { ascending: order === 'asc' });
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
 
     const supabase = getServiceClient();
 
-    // Ensure slug uniqueness — if collision, append extra suffix
+    // Ensure slug uniqueness - if collision, append extra suffix
     let slug = parsed.data.slug;
     const { data: existing, error: slugErr } = await supabase
       .from('events')

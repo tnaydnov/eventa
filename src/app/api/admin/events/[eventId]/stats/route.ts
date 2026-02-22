@@ -35,7 +35,7 @@ export async function GET(
       countByEvent('blocks'),
     ]);
 
-    // Check for query errors — don't silently show 0 stats
+    // Check for query errors - don't silently show 0 stats
     const countErrors = [
       participants.error && `participants: ${participants.error.message}`,
       conversations.error && `conversations: ${conversations.error.message}`,

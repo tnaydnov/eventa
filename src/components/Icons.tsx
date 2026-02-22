@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Minimal SVG icons — replaces emoji usage throughout the app.
+ * Minimal SVG icons - replaces emoji usage throughout the app.
  * Consistent stroke-based style, 1.5px weight.
  */
 

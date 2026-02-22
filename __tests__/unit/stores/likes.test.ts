@@ -1,5 +1,5 @@
 /**
- * Unit tests for stores/likes.ts — Likes Zustand store
+ * Unit tests for stores/likes.ts - Likes Zustand store
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useLikesStore } from '@/lib/stores/likes';

@@ -1,5 +1,5 @@
 /**
- * Device fingerprinting — generates a semi-persistent identifier
+ * Device fingerprinting - generates a semi-persistent identifier
  * that survives incognito mode, localStorage clears, and browser restarts.
  *
  * Uses canvas, screen, WebGL, and navigator properties to create
@@ -131,7 +131,7 @@ export async function generateDeviceFingerprint(): Promise<string> {
 }
 
 /**
- * Get the combined device identifier — localStorage UUID + hardware fingerprint.
+ * Get the combined device identifier - localStorage UUID + hardware fingerprint.
  * Used for ban enforcement. Returns both so the server can check either.
  */
 export async function getDeviceIdentifiers(): Promise<{

@@ -31,7 +31,7 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;');
 }
 
-/** Zod schema for order form — validates and sanitizes all inputs. */
+/** Zod schema for order form - validates and sanitizes all inputs. */
 const orderSchema = z.object({
   eventType: z.string().min(1).max(50),
   eventDate: z.string().min(1).max(20),
@@ -45,7 +45,7 @@ const orderSchema = z.object({
 /**
  * POST /api/order
  * Receives a new order form submission and sends an email notification.
- * Protected by CSRF + rate limiting (no session required — public form).
+ * Protected by CSRF + rate limiting (no session required - public form).
  */
 export async function POST(request: NextRequest) {
   // CSRF check (defense-in-depth for public forms)
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  // Rate limit by IP — use strict config (3/min) to prevent spam
+  // Rate limit by IP - use strict config (3/min) to prevent spam
   const ip = getClientIp(request.headers);
   const rl = checkRateLimit(`order:${ip}`, RATE_LIMITS.strict);
   if (!rl.allowed) {
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     await transporter.sendMail({
       from: `"Eventa" <${process.env.SMTP_USER}>`,
       to: 'contact@eventa.productions',
-      subject: `🎉 הזמנה חדשה — ${safeEventLabel} | ${safeName}`,
+      subject: `🎉 הזמנה חדשה - ${safeEventLabel} | ${safeName}`,
       html: `
         <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
           <h1 style="color: #d4a59a; font-size: 24px; margin-bottom: 24px;">📋 הזמנה חדשה מהאתר</h1>

@@ -60,7 +60,7 @@ export default function RealtimeNotificationListener() {
   // Helper: check if current user is a member of a conversation (cache-first, single-row fallback)
   const isMyConversation = async (conversationId: string): Promise<boolean> => {
     if (myConvoIdsRef.current.has(conversationId)) return true;
-    // Could be a brand-new conversation — do a targeted lookup
+    // Could be a brand-new conversation - do a targeted lookup
     const s = sessionRef.current;
     if (!s) return false;
     const { data } = await supabase
@@ -125,7 +125,7 @@ export default function RealtimeNotificationListener() {
     })();
   }, [session]);
 
-  // Stable name cache with TTL (5 min) — prevents stale names + unbounded growth
+  // Stable name cache with TTL (5 min) - prevents stale names + unbounded growth
   const nameCache = useRef(new Map<string, { name: string; ts: number }>());
   const NAME_CACHE_TTL = 5 * 60 * 1000;
   const NAME_CACHE_MAX = 200;

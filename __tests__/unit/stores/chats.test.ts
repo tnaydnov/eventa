@@ -1,5 +1,5 @@
 /**
- * Unit tests for stores/chats.ts — Chats Zustand store
+ * Unit tests for stores/chats.ts - Chats Zustand store
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useChatsStore } from '@/lib/stores/chats';

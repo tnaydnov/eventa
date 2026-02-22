@@ -20,7 +20,7 @@ export async function PATCH(req: NextRequest) {
   try {
     const data = await req.json();
 
-    // Validate with Zod (partial — all fields optional on update)
+    // Validate with Zod (partial - all fields optional on update)
     const parsed = profileSetupSchema.partial().safeParse(data);
     if (!parsed.success) {
       const firstError = parsed.error.issues[0]?.message || 'Invalid input';
@@ -71,7 +71,7 @@ export async function PATCH(req: NextRequest) {
       return jsonError(`Failed to update profile: ${error.message}`, 400);
     }
     if (!rows || rows.length === 0) {
-      logger.error('[PROFILE] update matched 0 rows — sub=' + session.sub + ' eid=' + session.eid);
+      logger.error('[PROFILE] update matched 0 rows - sub=' + session.sub + ' eid=' + session.eid);
       return jsonError('Participant not found', 404);
     }
     return NextResponse.json(rows[0]);

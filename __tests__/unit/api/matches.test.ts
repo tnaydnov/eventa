@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/api/matches.ts — getMatches
+ * Unit tests for lib/api/matches.ts - getMatches
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 

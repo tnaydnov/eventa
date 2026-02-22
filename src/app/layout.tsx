@@ -19,10 +19,10 @@ const greatVibes = Great_Vibes({
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.eventa.productions'),
   title: {
-    default: 'Eventa — Turn Any Event Into an Experience',
+    default: 'Eventa - Turn Any Event Into an Experience',
     template: '%s | Eventa',
   },
-  description: 'Eventa מוסיפה שכבות חברתיות חכמות לאירועים — היכרויות, נטוורקינג, ומעורבות קהל.',
+  description: 'Eventa מוסיפה שכבות חברתיות חכמות לאירועים - היכרויות, נטוורקינג, ומעורבות קהל.',
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -42,13 +42,13 @@ export const metadata: Metadata = {
     locale: 'he_IL',
     url: 'https://www.eventa.productions',
     siteName: 'Eventa',
-    title: 'Eventa — Turn Any Event Into an Experience',
-    description: 'Eventa מוסיפה שכבות חברתיות חכמות לאירועים — היכרויות, נטוורקינג, ומעורבות קהל.',
+    title: 'Eventa - Turn Any Event Into an Experience',
+    description: 'Eventa מוסיפה שכבות חברתיות חכמות לאירועים - היכרויות, נטוורקינג, ומעורבות קהל.',
     images: [{ url: '/og-image.png', width: 1536, height: 1024, alt: 'Eventa' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Eventa — Turn Any Event Into an Experience',
+    title: 'Eventa - Turn Any Event Into an Experience',
     description: 'Eventa מוסיפה שכבות חברתיות חכמות לאירועים.',
     images: ['/og-image.png'],
   },
@@ -85,7 +85,7 @@ export default function RootLayout({
               name: 'Eventa',
               url: 'https://www.eventa.productions',
               logo: 'https://www.eventa.productions/icons/icon-512x512.png',
-              description: 'Eventa adds smart social layers to events — dating, networking, and audience engagement.',
+              description: 'Eventa adds smart social layers to events - dating, networking, and audience engagement.',
               sameAs: [],
             }),
           }}

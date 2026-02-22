@@ -1,5 +1,5 @@
 /**
- * Unit tests for stores/grid.ts — Grid Zustand store
+ * Unit tests for stores/grid.ts - Grid Zustand store
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useGridStore } from '@/lib/stores/grid';

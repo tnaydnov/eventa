@@ -25,7 +25,7 @@ test.describe('Mobile & Responsive', () => {
     expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 5);
   });
 
-  test('E-MOB-03: OLED dark theme — dark background', async ({ page }) => {
+  test('E-MOB-03: OLED dark theme - dark background', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/');
     // Verify background is dark
@@ -49,7 +49,7 @@ test.describe('Mobile & Responsive', () => {
     }
   });
 
-  test('E-MOB-05: Touch gestures — swipe card has drag capability', async ({ page }) => {
+  test('E-MOB-05: Touch gestures - swipe card has drag capability', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await setupAuthenticatedMocks(page);
 

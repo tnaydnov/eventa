@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/image-compression.ts — Image compression utilities
+ * Unit tests for lib/image-compression.ts - Image compression utilities
  * Tests: U-IMG-01 through U-IMG-08+
  *
  * Uses jsdom environment for Image elements.

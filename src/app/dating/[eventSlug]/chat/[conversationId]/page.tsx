@@ -88,7 +88,7 @@ export default function ChatRoomPage({
     if (messages.length > prevMsgCountRef.current && prevMsgCountRef.current > 0) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     } else if (prevMsgCountRef.current === 0 && messages.length > 0) {
-      // Initial load — scroll to bottom immediately
+      // Initial load - scroll to bottom immediately
       messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
     }
     prevMsgCountRef.current = messages.length;
@@ -100,7 +100,7 @@ export default function ChatRoomPage({
       if (!session) return;
       if (!cachedOther) setLoading(true);
 
-      // If we have cached other user, skip the conversation query — just fetch messages
+      // If we have cached other user, skip the conversation query - just fetch messages
       let otherId: string | null = cachedOther?.id ?? null;
 
       if (!otherId) {
@@ -236,7 +236,7 @@ export default function ChatRoomPage({
       setMessages((prev) => prev.map((m) => (m.id === tempId ? msg : m)));
     } else {
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      toast('שגיאה בשליחת ההודעה — נסו שוב');
+      toast('שגיאה בשליחת ההודעה - נסו שוב');
     }
     setSending(false);
   };
@@ -269,7 +269,7 @@ export default function ChatRoomPage({
         });
       }
     } else {
-      toast('שגיאה בהעלאת התמונה — נסו שוב');
+      toast('שגיאה בהעלאת התמונה - נסו שוב');
     }
     setSending(false);
     setUploadingImage(false);
@@ -283,7 +283,7 @@ export default function ChatRoomPage({
       toast('המשתמש נחסם');
       router.back();
     } else {
-      toast('שגיאה בחסימה — נסו שוב');
+      toast('שגיאה בחסימה - נסו שוב');
     }
   };
 
@@ -295,7 +295,7 @@ export default function ChatRoomPage({
       );
       toast('ההודעה נמחקה');
     } else {
-      toast('שגיאה במחיקת ההודעה — נסו שוב');
+      toast('שגיאה במחיקת ההודעה - נסו שוב');
     }
     setDeleteMenuMsgId(null);
   };

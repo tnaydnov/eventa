@@ -12,7 +12,7 @@ import { logger } from '@/lib/logger';
 const ALLOWED_TYPES = new Set<string>(messageTypeValues);
 
 /**
- * POST /api/secure/messages — Send a message.
+ * POST /api/secure/messages - Send a message.
  * Guards: conversation membership, block check, Zod validation.
  */
 export async function POST(req: NextRequest) {
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       return jsonError('Forbidden', 403);
     }
 
-    // Block check — refuse message if either party blocked the other
+    // Block check - refuse message if either party blocked the other
     const recipientId =
       conv.a_participant_id === session.sub ? conv.b_participant_id : conv.a_participant_id;
 
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     }
 
     if ((blockCount ?? 0) > 0) {
-      return jsonError('Cannot send message — user is blocked', 403);
+      return jsonError('Cannot send message - user is blocked', 403);
     }
 
     // Guard: text-type messages must have non-empty text
@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * PATCH /api/secure/messages — Soft-delete a message (sender only).
+ * PATCH /api/secure/messages - Soft-delete a message (sender only).
  * Clears text and media_path, sets is_deleted flag.
  */
 export async function PATCH(req: NextRequest) {
@@ -182,7 +182,7 @@ export async function PATCH(req: NextRequest) {
 
     if (!msg) return jsonError('Message not found', 404);
     if (msg.sender_participant_id !== session.sub) {
-      return jsonError('Forbidden — can only delete your own messages', 403);
+      return jsonError('Forbidden - can only delete your own messages', 403);
     }
 
     // Soft delete

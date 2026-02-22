@@ -176,7 +176,7 @@ describe('POST /api/auth/join', () => {
         error: null,
       }),
     });
-    // Ban check — device is banned
+    // Ban check - device is banned
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -197,13 +197,13 @@ describe('POST /api/auth/join', () => {
         error: null,
       }),
     });
-    // Ban check — not banned at device level
+    // Ban check - not banned at device level
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
     });
-    // Reconnect by fingerprint — but participant is banned
+    // Reconnect by fingerprint - but participant is banned
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -231,7 +231,7 @@ describe('POST /api/auth/join', () => {
         error: null,
       }),
     });
-    // New participant insert — fails
+    // New participant insert - fails
     mockFrom.mockReturnValueOnce({
       insert: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),

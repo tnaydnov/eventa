@@ -1,5 +1,5 @@
 /**
- * Unit tests for stores/session.ts — Session Zustand store
+ * Unit tests for stores/session.ts - Session Zustand store
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { useSessionStore } from '@/lib/stores/session';

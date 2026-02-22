@@ -50,7 +50,7 @@ export default function SessionProvider({
             return;
           }
         } else if (res.status === 403) {
-          // User is banned — clear everything and redirect
+          // User is banned - clear everything and redirect
           useSessionStore.getState().clearSession();
           localStorage.removeItem('wedding_local_id');
           window.location.href = `/dating/${eventSlug}/banned`;
@@ -60,7 +60,7 @@ export default function SessionProvider({
           const body = await res.json().catch(() => ({}));
           const reason = body.reason || 'deleted';
           // Only redirect to unavailable if the cookie belonged to THIS event.
-          // Otherwise the cookie was for a different (now-inactive) event —
+          // Otherwise the cookie was for a different (now-inactive) event -
           // just clear it and fall through so the page can handle QR join etc.
           if (body.eventSlug === eventSlug) {
             useSessionStore.getState().clearSession();
@@ -68,7 +68,7 @@ export default function SessionProvider({
             window.location.href = `/dating/${eventSlug}/unavailable?reason=${reason}`;
             return;
           }
-          // Stale cookie for another event — clear local state and continue
+          // Stale cookie for another event - clear local state and continue
           useSessionStore.getState().clearSession();
         }
       } catch {
@@ -88,7 +88,7 @@ export default function SessionProvider({
             return;
           }
         } catch {
-          // corrupt data — remove it
+          // corrupt data - remove it
           localStorage.removeItem('eventa_session');
         }
       }
@@ -108,7 +108,7 @@ export default function SessionProvider({
       if (res.ok) {
         const data = await res.json();
         if (data.eventSlug === eventSlug) {
-          // Session is still valid — refresh store in case anything changed
+          // Session is still valid - refresh store in case anything changed
           const current = useSessionStore.getState().session;
           if (!current || current.participantId !== data.participantId) {
             useSessionStore.getState().setSession({
@@ -120,7 +120,7 @@ export default function SessionProvider({
           }
         }
       } else if (res.status === 403) {
-        // User was banned while in background — kick them
+        // User was banned while in background - kick them
         useSessionStore.getState().clearSession();
         localStorage.removeItem('wedding_local_id');
         window.location.href = `/dating/${eventSlug}/banned`;
@@ -140,7 +140,7 @@ export default function SessionProvider({
       // If verify fails for other reasons, the existing localStorage session still works
       // (JWT cookies are complementary to localStorage sessions)
     } catch {
-      // Network error — keep existing session
+      // Network error - keep existing session
     } finally {
       verifyingRef.current = false;
     }
@@ -219,7 +219,7 @@ export default function SessionProvider({
           const current = useSessionStore.getState().session;
           if (!current) return;
 
-          // If event became paused/archived — kick user immediately
+          // If event became paused/archived - kick user immediately
           if (
             updated.status === 'paused' ||
             updated.status === 'archived'

@@ -1,5 +1,5 @@
 /**
- * Unit tests for stores/blocks.ts — Blocks Zustand store
+ * Unit tests for stores/blocks.ts - Blocks Zustand store
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 

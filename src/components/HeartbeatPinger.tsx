@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useSessionStore } from '@/lib/store';
 
 /**
- * HeartbeatPinger — sends a POST to /api/secure/heartbeat every 60 seconds
+ * HeartbeatPinger - sends a POST to /api/secure/heartbeat every 60 seconds
  * while the user has an active session and the tab is visible.
  *
  * Also sends an immediate heartbeat on mount and when returning from background.
@@ -35,7 +35,7 @@ export default function HeartbeatPinger() {
       })
         .then(async (res) => {
           if (res.status === 403) {
-            // User has been banned — clear session and redirect
+            // User has been banned - clear session and redirect
             useSessionStore.getState().clearSession();
             localStorage.removeItem('wedding_local_id');
             if (eventSlug) {
@@ -44,7 +44,7 @@ export default function HeartbeatPinger() {
               window.location.href = '/dating';
             }
           } else if (res.status === 410) {
-            // Event is inactive (paused/archived/deleted) — kick user
+            // Event is inactive (paused/archived/deleted) - kick user
             const body = await res.json().catch(() => ({}));
             const reason = body.reason || 'deleted';
             useSessionStore.getState().clearSession();

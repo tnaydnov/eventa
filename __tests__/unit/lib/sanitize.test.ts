@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/sanitize.ts — HTML sanitization
+ * Unit tests for lib/sanitize.ts - HTML sanitization
  * Tests: U-SAN-01 through U-SAN-11+
  *
  * NOTE: Runs in jsdom environment to test client-side DOMPurify path.

@@ -16,16 +16,16 @@ function isInAppBrowser(): boolean {
   // Social-media & messaging in-app browsers
   if (/FBAN|FBAV|Instagram|Snapchat|Line\/|Twitter|MicroMessenger|QQBrowser|BytedanceWebview|musical_ly|TikTok/i.test(ua)) return true;
 
-  // iOS WebView — real Safari always includes "Safari/" in UA
+  // iOS WebView - real Safari always includes "Safari/" in UA
   if (/iPhone|iPad|iPod/.test(ua) && !/Safari\//i.test(ua)) return true;
 
-  // Android WebView — the "; wv)" token is the official flag
+  // Android WebView - the "; wv)" token is the official flag
   if (/Android/.test(ua) && /;\s*wv[);]/i.test(ua)) return true;
 
   // Samsung Internet's in-app mode / Samsung Browser custom tabs
   if (/SamsungBrowser\/.*CrossApp/i.test(ua)) return true;
 
-  // Generic "standalone" detection — not maximally reliable but catches
+  // Generic "standalone" detection - not maximally reliable but catches
   // many QR-scanner apps that open Chrome Custom Tabs without full browser UI
   if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>).__gCrWeb) return true; // iOS WKWebView injected object
 
@@ -49,7 +49,7 @@ export default function JoinPage({
   const [inAppBrowser, setInAppBrowser] = useState(false);
   const [statusChecked, setStatusChecked] = useState(false);
 
-  // Check event status BEFORE showing terms — redirect if not active
+  // Check event status BEFORE showing terms - redirect if not active
   useEffect(() => {
     async function checkEventStatus() {
       try {
@@ -57,13 +57,13 @@ export default function JoinPage({
         if (res.ok) {
           const data = await res.json();
           if (data.status && data.status !== 'active' && data.status !== 'draft') {
-            // Event is not active — redirect to marketing page
+            // Event is not active - redirect to marketing page
             const reason = data.status === 'ended' || data.status === 'archived' ? data.status : 'ended';
             router.replace(`/dating/event-over?reason=${reason}`);
             return;
           }
           if (data.status === 'not_found') {
-            setError('האירוע לא נמצא — ודאו שהקישור תקין');
+            setError('האירוע לא נמצא - ודאו שהקישור תקין');
           }
         }
       } catch {
@@ -104,7 +104,7 @@ export default function JoinPage({
   const handleJoin = async () => {
     const joinCode = searchParams.get('k');
     if (!joinCode) {
-      setError('קוד כניסה חסר — סרקו שוב את ה-QR');
+      setError('קוד כניסה חסר - סרקו שוב את ה-QR');
       return;
     }
 
@@ -142,7 +142,7 @@ export default function JoinPage({
       if (err instanceof Error && err.message === 'DEVICE_BANNED') {
         setError('המכשיר הזה חסום מלהיכנס לאירוע זה');
       } else {
-        setError('שגיאה בהתחברות — נסו שוב');
+        setError('שגיאה בהתחברות - נסו שוב');
       }
     }
 

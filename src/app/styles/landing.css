@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   EVENTA — Landing Page
+   EVENTA - Landing Page
    Rose Gold Luxe · Glassmorphism · Responsive
    ═══════════════════════════════════════════ */
 
@@ -391,7 +391,7 @@
   margin-bottom: 20px;
 }
 
-/* ── Demo Phone Wrapper — glow + hint ── */
+/* ── Demo Phone Wrapper - glow + hint ── */
 .demo-phone-wrapper {
   position: relative;
   display: flex;
@@ -505,7 +505,7 @@
   content-visibility: visible;
 }
 
-/* ── Demo grid card image fix — fill the card ── */
+/* ── Demo grid card image fix - fill the card ── */
 .phone-frame__screen .grid-card img {
   width: 100%;
   height: 100%;
@@ -515,7 +515,7 @@
 }
 
 /* ═══════════════════════════════════════════
-   INTERACTIVE DEMO — Pixel-Perfect Replica
+   INTERACTIVE DEMO - Pixel-Perfect Replica
    ═══════════════════════════════════════════ */
 
 /* ── App Header (matches real .app-header) ── */
@@ -529,7 +529,7 @@
 .demo-header h1 { font-size: 17px; font-weight: 600; margin: 0; flex: 1; text-align: center; }
 .demo-header-btn { border: none; background: none; color: var(--text-muted); cursor: pointer; padding: 4px; display: flex; align-items: center; }
 
-/* ── Tab Bar (matches real .tab-bar — 3 buttons, flex-col, 10px label, 22px icon) ── */
+/* ── Tab Bar (matches real .tab-bar - 3 buttons, flex-col, 10px label, 22px icon) ── */
 .demo-tabbar {
   position: sticky; bottom: 0; z-index: 5;
   display: flex; align-items: stretch; justify-content: space-around;
@@ -637,7 +637,7 @@
 .demo-ua--block { color: #f87171; border-color: rgba(248,113,113,0.25); }
 .demo-ua--like { background: var(--primary); color: #1a1a1a; border-color: var(--primary); }
 
-/* ═══ CHAT LIST — reuses real app .chat-list-item etc ═══ */
+/* ═══ CHAT LIST - reuses real app .chat-list-item etc ═══ */
 .phone-frame__screen .chat-list-item { cursor: pointer; transition: background 0.15s; }
 .phone-frame__screen .chat-list-item:hover { background: rgba(255,255,255,0.06); }
 .demo-unread-badge {
@@ -660,12 +660,12 @@
 .demo-chat-hdr-av { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: rgba(255,255,255,0.08); }
 .demo-chat-hdr-name { font-size: 15px; font-weight: 600; }
 
-/* Messages area — reuses real .chat-messages, .message-bubble, .sent, .received */
+/* Messages area - reuses real .chat-messages, .message-bubble, .sent, .received */
 .demo-msgs { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 6px; scrollbar-width: none; }
 .demo-msgs::-webkit-scrollbar { display: none; }
 .demo-sys-msg { text-align: center; font-size: 12px; color: var(--text-muted); background: rgba(255,255,255,0.08); border-radius: 8px; padding: 6px 12px; align-self: center; max-width: none; }
 
-/* Chat input bar — fully standalone, no .message-input-bar inheritance */
+/* Chat input bar - fully standalone, no .message-input-bar inheritance */
 .demo-input-bar {
   display: flex;
   flex-direction: row;

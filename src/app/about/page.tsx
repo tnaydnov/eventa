@@ -3,7 +3,7 @@ import LegalPageLayout from '@/components/LegalPageLayout';
 
 export const metadata: Metadata = {
   title: 'אודות | Eventa',
-  description: 'אודות Eventa — שירות עצמאי להיכרויות באירועים.',
+  description: 'אודות Eventa - שירות עצמאי להיכרויות באירועים.',
   alternates: { canonical: 'https://www.eventa.productions/about' },
 };
 
@@ -24,7 +24,7 @@ export default function AboutPage() {
     <LegalPageLayout title="אודות Eventa">
 
       <p style={highlightStyle}>
-        Eventa הוא שירות עצמאי שנועד להפוך אירועים לחוויה חברתית יותר —
+        Eventa הוא שירות עצמאי שנועד להפוך אירועים לחוויה חברתית יותר -
         היכרות, שיחות ולייקים בין משתתפים באותו אירוע, בצורה זמנית וממוקדת לאירוע.
       </p>
 
@@ -33,7 +33,7 @@ export default function AboutPage() {
       </p>
 
       <p style={textStyle}>
-        ליצירת קשר — השתמשו באמצעי הקשר המופיעים בשירות, או שלחו מייל ל-<span style={linkColor}>contact@eventa.productions</span>.
+        ליצירת קשר - השתמשו באמצעי הקשר המופיעים בשירות, או שלחו מייל ל-<span style={linkColor}>contact@eventa.productions</span>.
       </p>
 
     </LegalPageLayout>

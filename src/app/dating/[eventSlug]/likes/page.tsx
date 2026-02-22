@@ -93,7 +93,7 @@ export default function LikesPage({
   // Reload likes when user returns from background
   useAppResume(() => loadLikes(), !!session);
 
-  // Realtime via Hub — local updates where possible
+  // Realtime via Hub - local updates where possible
   useRealtimeHub({
     channelKey: `likes:${session?.eventId}`,
     postgres: [
@@ -107,7 +107,7 @@ export default function LikesPage({
       },
       {
         binding: { event: 'DELETE', schema: 'public', table: 'likes', filter: `event_id=eq.${session?.eventId}` },
-        handler: () => loadLikes(), // DELETE payload lacks old row — must reload
+        handler: () => loadLikes(), // DELETE payload lacks old row - must reload
       },
       {
         binding: { event: 'INSERT', schema: 'public', table: 'blocks', filter: `event_id=eq.${session?.eventId}` },
@@ -115,7 +115,7 @@ export default function LikesPage({
           const block = payload.new as { blocker_id: string; blocked_id: string };
           if (block.blocker_id === session?.participantId || block.blocked_id === session?.participantId) {
             const otherId = block.blocker_id === session?.participantId ? block.blocked_id : block.blocker_id;
-            // Remove locally — no network round-trip needed
+            // Remove locally - no network round-trip needed
             useLikesStore.getState().removeParticipantLikes(otherId);
             useMatchStore.getState().removeMatch(otherId);
           }
@@ -178,7 +178,7 @@ export default function LikesPage({
                       <div style={{ marginBottom: '16px', opacity: 0.8, fontSize: '48px' }}>💞</div>
                       <p style={{ fontSize: '16px', fontWeight: 500 }}>עדיין אין התאמות</p>
                       <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '8px' }}>
-                        כששני אנשים עושים לייק אחד לשני — זו התאמה!
+                        כששני אנשים עושים לייק אחד לשני - זו התאמה!
                       </p>
                     </div>
                   ) : (

@@ -268,7 +268,7 @@ export async function GET(req: NextRequest) {
       if (d.likePairs > 0) { mRateSum += d.matchRate; mRateN++; }
     }
 
-    // Live funnel — "joined" uses ALL participants (including incomplete) for full drop-off
+    // Live funnel - "joined" uses ALL participants (including incomplete) for full drop-off
     gFunnel.joined = allParticipants.length;
     gFunnel.setupProfile = participants.length; // complete profiles only
     gFunnel.sentFirstLike = likeSenderSet.size;

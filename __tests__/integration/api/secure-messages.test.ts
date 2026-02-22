@@ -79,7 +79,7 @@ describe('POST /api/secure/messages', () => {
   });
 
   it('returns 403 when sender is not in conversation', async () => {
-    // Conversation lookup — user NOT a participant
+    // Conversation lookup - user NOT a participant
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -103,7 +103,7 @@ describe('POST /api/secure/messages', () => {
   });
 
   it('returns 403 when blocked', async () => {
-    // Conversation lookup — user IS a participant
+    // Conversation lookup - user IS a participant
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -112,7 +112,7 @@ describe('POST /api/secure/messages', () => {
         error: null,
       }),
     });
-    // Block check — blocked
+    // Block check - blocked
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -142,7 +142,7 @@ describe('POST /api/secure/messages', () => {
         error: null,
       }),
     });
-    // Block check — not blocked
+    // Block check - not blocked
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -172,7 +172,7 @@ describe('POST /api/secure/messages', () => {
         error: null,
       }),
     });
-    // Block check — not blocked
+    // Block check - not blocked
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -334,7 +334,7 @@ describe('PATCH /api/secure/messages (soft delete)', () => {
 
   it('soft deletes own message', async () => {
     vi.mocked(isValidUUID).mockReturnValue(true);
-    // Message lookup — sender matches
+    // Message lookup - sender matches
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),

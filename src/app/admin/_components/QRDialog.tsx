@@ -15,7 +15,7 @@ export default function QRDialog({ event, dataUrl, onClose, onDownload, onCopyUr
     <div className="admin-overlay" onClick={onClose}>
       <div className="admin-dialog" style={{ textAlign: 'center' }} onClick={e => e.stopPropagation()}>
         <h3 className="admin-dialog__title" style={{ color: 'var(--admin-accent)' }}>
-          📱 QR — {event.name}
+          📱 QR - {event.name}
         </h3>
         <p className="admin-text-muted" style={{ marginBottom: '16px' }}>
           שיתפו את ה-QR הזה כדי לאפשר לאורחים להצטרף

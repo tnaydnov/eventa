@@ -1,5 +1,5 @@
 /**
- * useRealtimeHub — React hook wrapper for the RealtimeHub singleton.
+ * useRealtimeHub - React hook wrapper for the RealtimeHub singleton.
  *
  * Components use this hook to subscribe to postgres_changes events.
  * The Hub manages the actual WebSocket lifecycle outside React,
@@ -15,7 +15,7 @@ import {
 } from '@/lib/realtimeHub';
 
 interface UseRealtimeOptions {
-  /** Unique channel key — same key = same underlying channel */
+  /** Unique channel key - same key = same underlying channel */
   channelKey: string;
   /** postgres_changes listeners */
   postgres?: Array<{

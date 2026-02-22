@@ -16,7 +16,7 @@ import { logger } from '@/lib/logger';
  *  3. Cascade-deletes all user data from DB.
  *  4. Marks the event as 'archived' (event row + snapshot kept forever).
  *
- * Events already archived are skipped — their data was purged during archival.
+ * Events already archived are skipped - their data was purged during archival.
  * The event row and analytics snapshot are NEVER deleted by this route.
  *
  * Intended to run after auto-archive (cron safety net for any missed events).
@@ -70,9 +70,9 @@ async function handler(req: NextRequest) {
 
     if (dryRun) {
       const names = oldEvents.map((e) => e.name);
-      logger.info('[CLEANUP] DRY RUN — would archive', { count: oldEvents.length, events: names });
+      logger.info('[CLEANUP] DRY RUN - would archive', { count: oldEvents.length, events: names });
       return NextResponse.json({
-        message: 'Dry run — no changes made',
+        message: 'Dry run - no changes made',
         dryRun: true,
         wouldArchive: oldEvents.length,
         events: names,
@@ -141,7 +141,7 @@ async function handler(req: NextRequest) {
 
         if (snapErr) {
           logger.error(`[CLEANUP] snapshot error for ${eventId}:`, snapErr.message);
-          // Continue anyway — don't block data purge for snapshot failure
+          // Continue anyway - don't block data purge for snapshot failure
         }
       }
 
@@ -189,7 +189,7 @@ async function handler(req: NextRequest) {
         supabase.from('blocks').delete().eq('event_id', eventId),
         supabase.from('banned_devices').delete().eq('event_id', eventId),
         supabase.from('activity_log').delete().eq('event_id', eventId),
-        // NOTE: event_analytics_snapshots is NEVER deleted — kept permanently
+        // NOTE: event_analytics_snapshots is NEVER deleted - kept permanently
       ]);
 
       if (notifsRes.error) logger.error(`[CLEANUP] notifications delete error for ${eventId}:`, notifsRes.error.message);
@@ -245,5 +245,5 @@ async function handler(req: NextRequest) {
   }
 }
 
-// Vercel Cron sends GET requests — expose both methods
+// Vercel Cron sends GET requests - expose both methods
 export { handler as GET, handler as POST };

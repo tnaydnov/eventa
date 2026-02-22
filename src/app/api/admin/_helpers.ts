@@ -39,7 +39,7 @@ export function adminGuard(
   limit: RateLimitConfig,
   options?: { maxBodyBytes?: number }
 ): NextResponse | null {
-  // Body size guard — reject oversized payloads early
+  // Body size guard - reject oversized payloads early
   const maxBody = options?.maxBodyBytes ?? ADMIN_MAX_BODY_BYTES;
   const cl = req.headers.get('content-length');
   if (cl && parseInt(cl, 10) > maxBody) {

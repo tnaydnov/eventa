@@ -1,5 +1,5 @@
 /**
- * Unit tests for stores/matches.ts — Matches Zustand store
+ * Unit tests for stores/matches.ts - Matches Zustand store
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useMatchStore } from '@/lib/stores/matches';

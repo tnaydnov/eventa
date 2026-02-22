@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/api/account.ts — deleteAccount
+ * Unit tests for lib/api/account.ts - deleteAccount
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { deleteAccount } from '@/lib/api/account';

@@ -8,12 +8,12 @@ const CACHE_TTL_MS = 5_000;
 
 /**
  * GET /api/health
- * Lightweight health check — verifies the app is running and Supabase is reachable.
+ * Lightweight health check - verifies the app is running and Supabase is reachable.
  * Used by monitoring, load balancers, and uptime checks.
  * Rate-limited and response-cached to prevent DB amplification abuse.
  */
 export async function GET(req: NextRequest) {
-  // Rate limit per IP — 20 requests per 60 seconds
+  // Rate limit per IP - 20 requests per 60 seconds
   const ip = getClientIp(req.headers);
   const rl = checkRateLimit(`health:${ip}`, { maxRequests: 20, windowMs: 60_000 });
   if (!rl.allowed) {
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
   const start = Date.now();
 
   try {
-    // Lightweight DB ping — count(events) is a trivial query
+    // Lightweight DB ping - count(events) is a trivial query
     const supabase = getServiceClient();
     const { error } = await supabase.from('events').select('id', { count: 'exact', head: true });
 

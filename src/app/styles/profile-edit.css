@@ -63,7 +63,7 @@
   overflow: hidden;
 }
 
-/* ── Section cards — Glass ── */
+/* ── Section cards - Glass ── */
 .profile-edit-section {
   background: var(--glass-bg);
   backdrop-filter: blur(16px);

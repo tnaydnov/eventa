@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/validations.ts — Zod schemas & image validation
+ * Unit tests for lib/validations.ts - Zod schemas & image validation
  * Tests: U-VAL-01 through U-VAL-47+
  *
  * @vitest-environment node

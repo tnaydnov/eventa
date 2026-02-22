@@ -85,7 +85,7 @@ describe('POST /api/secure/conversations', () => {
 
   it('returns 403 when blocked', async () => {
     vi.mocked(isValidUUID).mockReturnValue(true);
-    // Block check — blocked  AND existing conversation check
+    // Block check - blocked  AND existing conversation check
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -111,7 +111,7 @@ describe('POST /api/secure/conversations', () => {
     vi.mocked(isValidUUID).mockReturnValue(true);
     const existingConv = { id: 'conv1', event_id: 'e1', a_participant_id: 'p1', b_participant_id: 'p2' };
 
-    // Block check — not blocked
+    // Block check - not blocked
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -138,7 +138,7 @@ describe('POST /api/secure/conversations', () => {
 
   it('creates new conversation if none exists', async () => {
     vi.mocked(isValidUUID).mockReturnValue(true);
-    // Block check — not blocked
+    // Block check - not blocked
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),

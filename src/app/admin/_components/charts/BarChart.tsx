@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * BarChart — Lightweight SVG horizontal bar chart.
+ * BarChart - Lightweight SVG horizontal bar chart.
  * Used for age distribution, looking-for breakdown, etc.
  */
 

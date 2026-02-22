@@ -15,7 +15,7 @@ export default function EventBackground() {
 
   return (
     <>
-      {/* Activate event-background overrides via data attribute — CSS in event-bg.css */}
+      {/* Activate event-background overrides via data attribute - CSS in event-bg.css */}
       <div data-event-bg />
       <div
         aria-hidden

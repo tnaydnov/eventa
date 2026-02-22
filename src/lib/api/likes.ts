@@ -2,7 +2,7 @@ import { supabase } from '../supabase';
 import type { Like } from '../database.types';
 import { getBlockedIds, buildParticipantPhotoMaps, LIKE_COLUMNS } from './helpers';
 
-/** Result of sending a like — includes match detection. */
+/** Result of sending a like - includes match detection. */
 export interface SendLikeResult extends Like {
   match: boolean;
 }

@@ -39,7 +39,7 @@ describe('POST /api/admin/logout', () => {
   });
 
   it('I-ADM-LGT-02: succeeds even without existing cookie', async () => {
-    // Logout is idempotent — always returns success & sets clearing cookie
+    // Logout is idempotent - always returns success & sets clearing cookie
     const req = new NextRequest('http://localhost/api/admin/logout', { method: 'POST' });
     const res = await POST(req);
     expect(res.status).toBe(200);
