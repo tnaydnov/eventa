@@ -69,8 +69,8 @@ function fmtTime(iso: string): string {
 function row(label: string, value: string, isLast = false): string {
   const bb = isLast ? '' : `border-bottom:1px solid ${C.border};`;
   return `<tr>
-    <td dir="rtl" style="text-align:right;padding:10px 0 10px 12px;${bb}color:${C.muted};font-size:13px;width:90px;vertical-align:top;">${label}</td>
-    <td dir="rtl" style="text-align:right;padding:10px 12px 10px 0;${bb}color:${C.text};font-size:14px;">${value}</td>
+    <td dir="rtl" style="text-align:right;padding:10px 0 10px 12px;${bb}background-color:${C.card};color:${C.muted};font-size:13px;width:90px;vertical-align:top;">${label}</td>
+    <td dir="rtl" style="text-align:right;padding:10px 12px 10px 0;${bb}background-color:${C.card};color:${C.text};font-size:14px;">${value}</td>
   </tr>`;
 }
 
@@ -100,20 +100,34 @@ function shell(title: string, inner: string, subtitle?: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <meta name="supported-color-schemes" content="light only">
   <title>${escapeHtml(title)}</title>
+  <style>
+    :root { color-scheme: light only; }
+    @media (prefers-color-scheme: dark) {
+      body, table, td, div, p, a, span { background-color: ${C.bg} !important; color: ${C.text} !important; }
+      .em-card { background-color: ${C.card} !important; }
+      .em-header { background-color: ${C.text} !important; }
+      .em-row-alt { background-color: #fafaf8 !important; }
+      .em-paybox { background-color: ${C.paybox} !important; }
+      .em-bit { background-color: ${C.bit} !important; }
+      .em-warn { background-color: ${C.warnBg} !important; }
+    }
+  </style>
 </head>
-<body dir="rtl" style="margin:0;padding:0;direction:rtl;text-align:right;background-color:${C.bg};font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+<body dir="rtl" style="margin:0;padding:0;direction:rtl;text-align:right;background-color:${C.bg};color:${C.text};font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
 
   <!-- Outer wrapper -->
   <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;background-color:${C.bg};">
     <tr><td align="center" style="padding:32px 16px;">
 
       <!-- Main card -->
-      <table dir="rtl" role="presentation" width="560" cellpadding="0" cellspacing="0" style="direction:rtl;max-width:560px;width:100%;background-color:${C.card};border-radius:12px;overflow:hidden;border:1px solid ${C.border};">
+      <table dir="rtl" role="presentation" width="560" cellpadding="0" cellspacing="0" class="em-card" style="direction:rtl;max-width:560px;width:100%;background-color:${C.card};border-radius:12px;overflow:hidden;border:1px solid ${C.border};">
 
         <!-- Logo header -->
         <tr>
-          <td style="background-color:${C.text};padding:24px 32px;text-align:center;">
+          <td class="em-header" style="background-color:${C.text};padding:24px 32px;text-align:center;">
             <img src="${LOGO_URL}" alt="Eventa" width="140" height="auto" style="display:inline-block;max-width:140px;height:auto;border:0;" />
             ${subtitle ? `<div dir="rtl" style="direction:rtl;text-align:center;font-size:12px;color:${C.dim};margin-top:8px;letter-spacing:1px;">${subtitle}</div>` : ''}
           </td>
@@ -155,7 +169,7 @@ function eventDetailsBlock(data: OrderData): string {
   return `
         <!-- Event info section -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:28px 32px 0;">
+          <td ${RTL} style="text-align:right;padding:28px 32px 0;background-color:${C.card};">
             <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">פרטי האירוע</div>
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
               ${row('סוג אירוע', `<strong>${s.eventLabel}</strong>`)}
@@ -168,7 +182,7 @@ function eventDetailsBlock(data: OrderData): string {
 
         <!-- Options section -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px 0;">
+          <td ${RTL} style="text-align:right;padding:24px 32px 0;background-color:${C.card};">
             <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">אפשרויות</div>
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
               ${row('רקע', data.wantsCustomBackground ? `רקע מותאם אישית${data.hasBgImage ? ' (תמונה מצורפת)' : ''}` : 'ברירת מחדל')}
@@ -181,7 +195,7 @@ function eventDetailsBlock(data: OrderData): string {
         ${s.specialReqs ? `
         <!-- Special requests -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px 0;">
+          <td ${RTL} style="text-align:right;padding:24px 32px 0;background-color:${C.card};">
             <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:10px;">בקשות מיוחדות</div>
             <div dir="rtl" style="direction:rtl;text-align:right;background-color:${C.accentBg};border-right:3px solid ${C.accent};border-radius:6px;padding:14px 16px;font-size:14px;color:${C.text};line-height:1.7;">
               ${s.specialReqs}
@@ -213,7 +227,7 @@ export function buildAdminNotificationEmail(data: OrderData): { subject: string;
   const inner = `
         <!-- Contact preference banner -->
         <tr>
-          <td ${RTL} style="text-align:right;background-color:${data.contactPreference === 'send-link' ? '#eef4ff' : C.accentBg};padding:14px 32px;border-bottom:1px solid ${C.border};font-size:14px;font-weight:600;color:${data.contactPreference === 'send-link' ? C.paybox : C.accent};">
+          <td ${RTL} style="text-align:right;background-color:${data.contactPreference === 'send-link' ? '#eef4ff' : C.accentBg} !important;padding:14px 32px;border-bottom:1px solid ${C.border};font-size:14px;font-weight:600;color:${data.contactPreference === 'send-link' ? C.paybox : C.accent};">
             ${data.contactPreference === 'send-link' ? 'הלקוח ביקש לקבל לינק לתשלום' : 'הלקוח מבקש שנחזור אליו'}
           </td>
         </tr>
@@ -222,7 +236,7 @@ export function buildAdminNotificationEmail(data: OrderData): { subject: string;
 
         <!-- Contact preference row -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:0 32px 4px;">
+          <td ${RTL} style="text-align:right;padding:0 32px 4px;background-color:${C.card};">
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
               ${row('העדפת קשר', `<strong>${contactPrefLabel}</strong>`, true)}
             </table>
@@ -231,22 +245,22 @@ export function buildAdminNotificationEmail(data: OrderData): { subject: string;
 
         <!-- Contact section -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px 28px;">
+          <td ${RTL} style="text-align:right;padding:24px 32px 28px;background-color:${C.card};">
             <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">פרטי לקוח</div>
-            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;background-color:#fafaf8;border-radius:8px;overflow:hidden;">
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" class="em-row-alt" style="direction:rtl;border-collapse:collapse;background-color:#fafaf8;border-radius:8px;overflow:hidden;">
               <tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};color:${C.muted};font-size:13px;width:70px;">שם</td>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};color:${C.text};font-size:15px;font-weight:600;">${s.name}</td>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:#fafaf8;color:${C.muted};font-size:13px;width:70px;">שם</td>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:#fafaf8;color:${C.text};font-size:15px;font-weight:600;">${s.name}</td>
               </tr>
               <tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;${s.email ? `border-bottom:1px solid ${C.border};` : ''}color:${C.muted};font-size:13px;">טלפון</td>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;${s.email ? `border-bottom:1px solid ${C.border};` : ''}">
+                <td dir="rtl" style="text-align:right;padding:12px 16px;${s.email ? `border-bottom:1px solid ${C.border};` : ''}background-color:#fafaf8;color:${C.muted};font-size:13px;">טלפון</td>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;${s.email ? `border-bottom:1px solid ${C.border};` : ''}background-color:#fafaf8;">
                   <a href="tel:${s.phone}" style="color:${C.accent};font-size:15px;font-weight:600;text-decoration:none;" dir="ltr">${s.phone}</a>
                 </td>
               </tr>
               ${s.email ? `<tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;color:${C.muted};font-size:13px;">אימייל</td>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;">
+                <td dir="rtl" style="text-align:right;padding:12px 16px;background-color:#fafaf8;color:${C.muted};font-size:13px;">אימייל</td>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;background-color:#fafaf8;">
                   <a href="mailto:${s.email}" style="color:${C.accent};font-size:14px;text-decoration:none;" dir="ltr">${s.email}</a>
                 </td>
               </tr>` : ''}
@@ -308,7 +322,7 @@ export function buildClientPaymentEmail(data: {
   const inner = `
         <!-- Greeting -->
         <tr>
-          <td dir="rtl" style="direction:rtl;text-align:right;padding:28px 32px 4px;border-bottom:1px solid ${C.border};">
+          <td dir="rtl" style="direction:rtl;text-align:right;padding:28px 32px 4px;border-bottom:1px solid ${C.border};background-color:${C.card};">
             <div dir="rtl" style="direction:rtl;text-align:right;font-size:16px;color:${C.text};font-weight:500;line-height:1.6;">שלום ${safeName}&rlm;,</div>
             <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};margin-top:6px;line-height:1.6;">הבקשה שלך התקבלה בהצלחה.</div>
             <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};line-height:1.6;padding-bottom:20px;">ניתן להשלים את התשלום באחת הדרכים הבאות&rlm;:</div>
@@ -317,7 +331,7 @@ export function buildClientPaymentEmail(data: {
 
         <!-- Payment buttons -->
         <tr>
-          <td style="padding:28px 32px 24px;text-align:center;">
+          <td style="padding:28px 32px 24px;text-align:center;background-color:${C.card};">
             <!-- PayBox -->
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
               <tr>
@@ -325,7 +339,7 @@ export function buildClientPaymentEmail(data: {
                   <a href="#" style="display:block;text-decoration:none;" target="_blank">
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                       <tr>
-                        <td align="center" style="background-color:${C.paybox};border-radius:10px;padding:18px 24px;">
+                        <td align="center" class="em-paybox" style="background-color:${C.paybox} !important;border-radius:10px;padding:18px 24px;">
                           <div style="font-size:18px;font-weight:700;color:#ffffff;letter-spacing:0.5px;">${ltr('PayBox')}</div>
                           <div dir="rtl" style="direction:rtl;font-size:12px;color:rgba(255,255,255,0.75);margin-top:4px;">תשלום מאובטח</div>
                         </td>
@@ -342,7 +356,7 @@ export function buildClientPaymentEmail(data: {
                   <a href="#" style="display:block;text-decoration:none;" target="_blank">
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                       <tr>
-                        <td align="center" style="background-color:${C.bit};border-radius:10px;padding:18px 24px;">
+                        <td align="center" class="em-bit" style="background-color:${C.bit} !important;border-radius:10px;padding:18px 24px;">
                           <div style="font-size:18px;font-weight:700;color:#ffffff;letter-spacing:0.5px;">${ltr('Bit')}</div>
                           <div dir="rtl" style="direction:rtl;font-size:12px;color:rgba(255,255,255,0.75);margin-top:4px;">תשלום מאובטח</div>
                         </td>
@@ -377,10 +391,10 @@ export function buildClientPaymentEmail(data: {
 
         <!-- Contact me instead -->
         <tr>
-          <td dir="rtl" style="direction:rtl;text-align:center;padding:24px 32px 32px;">
+          <td dir="rtl" style="direction:rtl;text-align:center;padding:24px 32px 32px;background-color:${C.card};">
             <div dir="rtl" style="direction:rtl;text-align:center;font-size:13px;color:${C.muted};margin-bottom:14px;">מעדיפים שניצור איתכם קשר&rlm;?</div>
             <a href="${contactMeUrl}" style="display:inline-block;text-decoration:none;border:1px solid ${C.accent};border-radius:8px;padding:12px 28px;color:${C.accent};font-size:14px;font-weight:600;" target="_blank">
-              העדפתי שתצרו איתי קשר
+              צרו איתי קשר
             </a>
             <div dir="rtl" style="direction:rtl;text-align:center;font-size:12px;color:${C.dim};margin-top:10px;">נחזור אליכם תוך 24 שעות</div>
           </td>
@@ -388,7 +402,7 @@ export function buildClientPaymentEmail(data: {
 
         <!-- Support footer row -->
         <tr>
-          <td dir="rtl" style="direction:rtl;text-align:center;padding:0 32px 24px;">
+          <td dir="rtl" style="direction:rtl;text-align:center;padding:0 32px 24px;background-color:${C.card};">
             <div dir="rtl" style="direction:rtl;text-align:center;font-size:12px;color:${C.dim};">
               לשאלות ניתן לפנות אלינו&rlm;: <a href="mailto:contact@eventa.productions" style="color:${C.accent};text-decoration:none;" dir="ltr">contact@eventa.productions</a>
             </div>
@@ -426,7 +440,7 @@ export function buildContactMeInsteadEmail(data: {
   const inner = `
         <!-- Alert banner -->
         <tr>
-          <td ${RTL} style="text-align:right;background-color:${C.warnBg};padding:16px 32px;border-bottom:1px solid ${C.border};">
+          <td ${RTL} class="em-warn" style="text-align:right;background-color:${C.warnBg} !important;padding:16px 32px;border-bottom:1px solid ${C.border};">
             <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;font-weight:600;color:${C.warn};">לקוח שינה העדפה \u2014 מבקש שניצור קשר</div>
             <div dir="rtl" style="direction:rtl;text-align:right;font-size:13px;color:${C.muted};margin-top:4px;">
               הלקוח קיבל לינק לתשלום אבל בחר לבקש שנחזור אליו.
@@ -436,25 +450,25 @@ export function buildContactMeInsteadEmail(data: {
 
         <!-- Details -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px;">
+          <td ${RTL} style="text-align:right;padding:24px 32px;background-color:${C.card};">
             <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.text};line-height:1.7;margin-bottom:20px;">
               <strong>${s.name}</strong> ביקש/ה ליצור קשר טלפוני במקום תשלום אונליין עבור ${s.eventLabel}${s.eventName ? ` (${s.eventName})` : ''}.
             </div>
 
-            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;background-color:#fafaf8;border-radius:8px;overflow:hidden;">
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" class="em-row-alt" style="direction:rtl;border-collapse:collapse;background-color:#fafaf8;border-radius:8px;overflow:hidden;">
               <tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};color:${C.muted};font-size:13px;width:70px;">שם</td>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};color:${C.text};font-size:14px;font-weight:600;">${s.name}</td>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:#fafaf8;color:${C.muted};font-size:13px;width:70px;">שם</td>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:#fafaf8;color:${C.text};font-size:14px;font-weight:600;">${s.name}</td>
               </tr>
               <tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;${s.email ? `border-bottom:1px solid ${C.border};` : ''}color:${C.muted};font-size:13px;">טלפון</td>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;${s.email ? `border-bottom:1px solid ${C.border};` : ''}">
+                <td dir="rtl" style="text-align:right;padding:12px 16px;${s.email ? `border-bottom:1px solid ${C.border};` : ''}background-color:#fafaf8;color:${C.muted};font-size:13px;">טלפון</td>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;${s.email ? `border-bottom:1px solid ${C.border};` : ''}background-color:#fafaf8;">
                   <a href="tel:${s.phone}" style="color:${C.accent};font-size:15px;font-weight:600;text-decoration:none;" dir="ltr">${s.phone}</a>
                 </td>
               </tr>
               ${s.email ? `<tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;color:${C.muted};font-size:13px;">אימייל</td>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;">
+                <td dir="rtl" style="text-align:right;padding:12px 16px;background-color:#fafaf8;color:${C.muted};font-size:13px;">אימייל</td>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;background-color:#fafaf8;">
                   <a href="mailto:${s.email}" style="color:${C.accent};font-size:14px;text-decoration:none;" dir="ltr">${s.email}</a>
                 </td>
               </tr>` : ''}

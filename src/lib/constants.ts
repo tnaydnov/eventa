@@ -54,8 +54,6 @@ export const STORAGE_BATCH_SIZE = 100;
 export const EVENT_TYPE_LABELS: Record<string, string> = {
   wedding: 'חתונה',
   party: 'מסיבה',
-  brit: 'ברית',
-  bar_mitzvah: 'בר/בת מצווה',
   corporate: 'אירוע חברה',
   meetup: 'מיטאפ',
   other: 'אחר',
@@ -68,8 +66,6 @@ export const EVENT_TYPE_OPTIONS = Object.entries(EVENT_TYPE_LABELS).map(
 export const EVENT_TYPE_ICONS: Record<string, string> = {
   wedding: '💒',
   party: '🎉',
-  brit: '👶',
-  bar_mitzvah: '🎓',
   corporate: '🏢',
   meetup: '🤝',
   other: '📌',

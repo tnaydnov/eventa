@@ -67,8 +67,6 @@ describe('label maps', () => {
     expect(Object.keys(EVENT_TYPE_LABELS)).toHaveLength(7);
     expect(EVENT_TYPE_LABELS).toHaveProperty('wedding');
     expect(EVENT_TYPE_LABELS).toHaveProperty('party');
-    expect(EVENT_TYPE_LABELS).toHaveProperty('brit');
-    expect(EVENT_TYPE_LABELS).toHaveProperty('bar_mitzvah');
     expect(EVENT_TYPE_LABELS).toHaveProperty('corporate');
     expect(EVENT_TYPE_LABELS).toHaveProperty('meetup');
     expect(EVENT_TYPE_LABELS).toHaveProperty('other');

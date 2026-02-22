@@ -36,20 +36,6 @@
       "hasNameSlot": false
     },
     {
-      "id": "bar-mitzvah-classic",
-      "file": "bar_mitzvah/classic.jpg",
-      "label": "Classic",
-      "types": ["bar_mitzvah"],
-      "hasNameSlot": true
-    },
-    {
-      "id": "brit-soft",
-      "file": "brit/soft.jpg",
-      "label": "Soft Pastels",
-      "types": ["brit"],
-      "hasNameSlot": true
-    },
-    {
       "id": "corporate-sleek",
       "file": "corporate/sleek.jpg",
       "label": "Sleek",
