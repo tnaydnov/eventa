@@ -9,7 +9,7 @@
 -- Enforce valid event_type values at DB level
 ALTER TABLE events
   ADD CONSTRAINT chk_event_type
-  CHECK (event_type IN ('wedding','party','brit','bar_mitzvah','corporate','meetup','other'));
+  CHECK (event_type IN ('wedding','party','corporate','meetup','other'));
 
 -- Enforce valid event status values at DB level
 ALTER TABLE events

@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS event_analytics_snapshots (
 
 DO $$ BEGIN
   ALTER TABLE events ADD CONSTRAINT chk_event_type
-    CHECK (event_type IN ('wedding','party','brit','bar_mitzvah','corporate','meetup','other'));
+    CHECK (event_type IN ('wedding','party','corporate','meetup','other'));
 EXCEPTION WHEN duplicate_object THEN null;
 END $$;
 

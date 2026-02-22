@@ -153,25 +153,25 @@ export async function POST(req: NextRequest) {
       try {
         const base64Data = (request.background_base64 as string).replace(/^data:image\/\w+;base64,/, '');
         const buffer = Buffer.from(base64Data, 'base64');
-        const storagePath = `backgrounds/${newEvent.id}.jpg`;
+        const storagePath = `${newEvent.id}/bg.jpg`;
 
         const { error: uploadErr } = await supabase.storage
-          .from('event-assets')
+          .from('backgrounds')
           .upload(storagePath, buffer, {
             contentType: 'image/jpeg',
             upsert: true,
           });
 
         if (!uploadErr) {
-          // Get public URL and update event
+          // Get public URL with cache-bust and update event
           const { data: urlData } = supabase.storage
-            .from('event-assets')
+            .from('backgrounds')
             .getPublicUrl(storagePath);
 
           if (urlData?.publicUrl) {
             await supabase
               .from('events')
-              .update({ background_image: urlData.publicUrl })
+              .update({ background_image: `${urlData.publicUrl}?t=${Date.now()}` })
               .eq('id', newEvent.id);
           }
         } else {

@@ -5,7 +5,7 @@
 export type Gender = 'male' | 'female' | 'other';
 export type AttractedTo = 'men' | 'women' | 'all';
 export type LookingFor = 'serious' | 'casual' | 'friends' | 'figuring_out';
-export type EventType = 'wedding' | 'party' | 'brit' | 'bar_mitzvah' | 'corporate' | 'meetup' | 'other';
+export type EventType = 'wedding' | 'party' | 'corporate' | 'meetup' | 'other';
 export type EventStatus = 'draft' | 'active' | 'paused' | 'ended' | 'archived';
 export type MessageType = 'text' | 'image' | 'system';
 export type NotificationType = 'like_received' | 'new_message';
