@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   Home Page — Platform overview
+   Home Page - Platform overview
    Eventa as a multi-service platform
    ═══════════════════════════════════════════ */
 
@@ -132,7 +132,7 @@
   margin: 0 0 24px;
 }
 
-/* ═══ Service card — base ═══ */
+/* ═══ Service card - base ═══ */
 .hp__card {
   display: flex;
   flex-direction: column;

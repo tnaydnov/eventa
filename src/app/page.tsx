@@ -3,9 +3,9 @@ import Image from 'next/image';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Eventa — הפכו כל אירוע לחוויה',
+  title: 'Eventa - הפכו כל אירוע לחוויה',
   description:
-    'Eventa מוסיפה שכבות חכמות לאירועים — היכרויות, נטוורקינג ועוד. הכל בדפדפן, בלי להוריד כלום.',
+    'Eventa מוסיפה שכבות חכמות לאירועים - היכרויות, נטוורקינג ועוד. הכל בדפדפן, בלי להוריד כלום.',
   alternates: { canonical: 'https://www.eventa.productions' },
 };
 
@@ -35,7 +35,7 @@ export default function HomePage() {
           <span className="hp__title-line2">חוויה אחרת.</span>
         </h1>
         <p className="hp__sub">
-          Eventa מוסיפה שכבות חכמות לכל אירוע — היכרויות, מעורבות קהל ועוד.
+          Eventa מוסיפה שכבות חכמות לכל אירוע - היכרויות, מעורבות קהל ועוד.
           <br />
           הכל ישר מהדפדפן, בלי להוריד כלום.
         </p>
@@ -45,7 +45,7 @@ export default function HomePage() {
       <section className="hp__services">
         <p className="hp__services-label">השירותים שלנו</p>
 
-        {/* Dating — LIVE */}
+        {/* Dating - LIVE */}
         <Link href="/dating" className="hp__card hp__card--live">
           <div className="hp__card-status">
             <span className="hp__card-dot" />
@@ -58,7 +58,7 @@ export default function HomePage() {
           </div>
           <h2 className="hp__card-title">Eventa Dating</h2>
           <p className="hp__card-desc">
-            שכבת היכרויות חכמה לכל אירוע. האורחים סורקים QR, בונים פרופיל, ומגלים אחד את השנייה עם לייקים, מאצ׳ים וצ׳אט — בזמן אמת.
+            שכבת היכרויות חכמה לכל אירוע. האורחים סורקים QR, בונים פרופיל, ומגלים אחד את השנייה עם לייקים, מאצ׳ים וצ׳אט - בזמן אמת.
           </p>
           <span className="hp__card-cta">
             <span>גלו עוד</span>
@@ -68,7 +68,7 @@ export default function HomePage() {
           </span>
         </Link>
 
-        {/* Teaser — more coming */}
+        {/* Teaser - more coming */}
         <div className="hp__coming">
           <div className="hp__coming-header">
             <div className="hp__coming-line" />
