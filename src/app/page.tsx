@@ -68,54 +68,12 @@ export default function HomePage() {
           </span>
         </Link>
 
-        {/* Coming Soon cards — teaser grid */}
+        {/* Teaser — more coming */}
         <div className="hp__coming">
           <div className="hp__coming-header">
             <div className="hp__coming-line" />
-            <span className="hp__coming-tag">בקרוב</span>
+            <span className="hp__coming-tag">ויש עוד בדרך...</span>
             <div className="hp__coming-line" />
-          </div>
-
-          <div className="hp__coming-grid">
-            {/* Networking */}
-            <div className="hp__card hp__card--soon">
-              <div className="hp__card-icon hp__card-icon--muted">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-              </div>
-              <h3 className="hp__card-title hp__card-title--sm">Eventa Network</h3>
-              <p className="hp__card-desc hp__card-desc--sm">
-                נטוורקינג חכם בכנסים ואירועי חברה. חיבור בין אנשים עם תחומי עניין משותפים.
-              </p>
-              <span className="hp__card-soon-badge">Coming Soon</span>
-            </div>
-
-            {/* Engage */}
-            <div className="hp__card hp__card--soon">
-              <div className="hp__card-icon hp__card-icon--muted">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                  <line x1="9" y1="10" x2="15" y2="10" />
-                </svg>
-              </div>
-              <h3 className="hp__card-title hp__card-title--sm">Eventa Engage</h3>
-              <p className="hp__card-desc hp__card-desc--sm">
-                סקרים, Q&A חי, והצבעות בזמן אמת. דרך מעולה לשמור את האורחים מעורבים.
-              </p>
-              <span className="hp__card-soon-badge">Coming Soon</span>
-            </div>
-
-            {/* Mystery slot */}
-            <div className="hp__card hp__card--mystery">
-              <span className="hp__mystery-q">?</span>
-              <p className="hp__card-desc hp__card-desc--sm">
-                ויש עוד...<br />הישארו מעודכנים.
-              </p>
-            </div>
           </div>
         </div>
       </section>
@@ -123,10 +81,10 @@ export default function HomePage() {
       {/* ── Bottom CTA ── */}
       <section className="hp__bottom-cta">
         <h2 className="hp__bottom-title">
-          רוצים להיות הראשונים לדעת?
+          זה רק ההתחלה
         </h2>
         <p className="hp__bottom-sub">
-          יש לנו עוד הרבה בדרך. בינתיים, גלו את Eventa Dating ותנו לאורחים חוויה שלא ישכחו.
+          אנחנו עובדים על עוד שירותים שישנו את חוויית האירועים שלכם. בינתיים, גלו את Eventa Dating.
         </p>
         <Link href="/dating" className="hp__bottom-btn">
           <span>לEventa Dating</span>
