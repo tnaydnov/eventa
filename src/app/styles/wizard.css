@@ -1,0 +1,1078 @@
+/* ═══════════════════════════════════════════
+   Order Wizard — Cinematic Multi-Step Experience
+   Ambient particles · Glassmorphism · Micro-interactions
+   ═══════════════════════════════════════════ */
+
+/* ── Page Shell ── */
+.wiz-page {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #080808;
+  color: var(--foreground);
+  font-family: var(--font-rubik, 'Rubik', sans-serif);
+  overflow: hidden;
+}
+
+/* ── Ambient background layer ── */
+.wiz-ambient {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wiz-ambient::before,
+.wiz-ambient::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+}
+
+.wiz-ambient::before {
+  width: 60vw;
+  height: 60vw;
+  max-width: 600px;
+  max-height: 600px;
+  background: radial-gradient(circle, rgba(212, 165, 154, 0.10), transparent 70%);
+  top: -15%;
+  right: -20%;
+  animation: wiz-drift-a 22s ease-in-out infinite;
+}
+
+.wiz-ambient::after {
+  width: 50vw;
+  height: 50vw;
+  max-width: 450px;
+  max-height: 450px;
+  background: radial-gradient(circle, rgba(140, 110, 160, 0.08), transparent 70%);
+  bottom: -10%;
+  left: -15%;
+  animation: wiz-drift-b 26s ease-in-out infinite;
+}
+
+@keyframes wiz-drift-a {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(-25px, 35px) scale(1.05); }
+  66%      { transform: translate(20px, -20px) scale(0.95); }
+}
+
+@keyframes wiz-drift-b {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  40%      { transform: translate(30px, -25px) scale(1.05); }
+  70%      { transform: translate(-15px, 30px) scale(0.95); }
+}
+
+/* ── Floating particles ── */
+.wiz-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wiz-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(212, 165, 154, 0.3);
+  animation: wiz-particle-float linear infinite;
+}
+
+@keyframes wiz-particle-float {
+  0%   { transform: translateY(0) scale(1); opacity: 0; }
+  10%  { opacity: 0.6; }
+  50%  { opacity: 0.2; }
+  90%  { opacity: 0.5; }
+  100% { transform: translateY(-80px) scale(0.4); opacity: 0; }
+}
+
+/* ── Header ── */
+.wiz-header {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 680px;
+  padding: 24px 24px 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.wiz-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.wiz-back:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(212, 165, 154, 0.3);
+  color: var(--primary);
+}
+
+.wiz-header__logo {
+  opacity: 0.6;
+  transition: opacity 0.3s;
+}
+
+.wiz-header__logo:hover {
+  opacity: 0.9;
+}
+
+/* ── Progress Rail ── */
+.wiz-progress {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 680px;
+  padding: 20px 24px 8px;
+}
+
+.wiz-progress__track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Connecting line behind nodes */
+.wiz-progress__line {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  right: 20px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-50%);
+  z-index: 0;
+  border-radius: 1px;
+}
+
+.wiz-progress__fill {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(212, 165, 154, 0.5), var(--primary));
+  border-radius: 1px;
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Step node */
+.wiz-progress__node {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: default;
+}
+
+.wiz-progress__dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 10, 10, 0.9);
+  color: var(--text-muted);
+  transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+.wiz-progress__node--done .wiz-progress__dot {
+  border-color: var(--primary);
+  background: rgba(212, 165, 154, 0.15);
+  color: var(--primary);
+}
+
+.wiz-progress__node--active .wiz-progress__dot {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #1a1a1a;
+  box-shadow:
+    0 0 20px rgba(212, 165, 154, 0.3),
+    0 0 40px rgba(212, 165, 154, 0.1);
+  transform: scale(1.1);
+}
+
+/* Pulse ring on active dot */
+.wiz-progress__node--active .wiz-progress__dot::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 165, 154, 0.3);
+  animation: wiz-pulse 2s ease-in-out infinite;
+}
+
+@keyframes wiz-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50%      { transform: scale(1.2); opacity: 0; }
+}
+
+.wiz-progress__label {
+  font-size: 11px;
+  color: rgba(176, 176, 176, 0.4);
+  transition: color 0.3s;
+  white-space: nowrap;
+}
+
+.wiz-progress__node--active .wiz-progress__label,
+.wiz-progress__node--done .wiz-progress__label {
+  color: rgba(212, 165, 154, 0.7);
+}
+
+/* ── Card container ── */
+.wiz-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 680px;
+  padding: 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Step transition wrapper ── */
+.wiz-step {
+  animation: wiz-step-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes wiz-step-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.wiz-step--exit {
+  animation: wiz-step-exit 0.3s ease-in forwards;
+}
+
+@keyframes wiz-step-exit {
+  to {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+/* ── Step header ── */
+.wiz-step__header {
+  margin-bottom: 28px;
+}
+
+.wiz-step__title {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0 0 8px;
+  line-height: 1.2;
+  background: linear-gradient(135deg, var(--foreground) 40%, var(--primary-light));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.wiz-step__subtitle {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ═══ Step 1: Event Type Grid ═══ */
+.wiz-types {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.wiz-type-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+}
+
+.wiz-type-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: radial-gradient(circle at 50% 0%, rgba(212, 165, 154, 0.08), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.wiz-type-card:hover {
+  border-color: rgba(212, 165, 154, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+.wiz-type-card:hover::before {
+  opacity: 1;
+}
+
+.wiz-type-card--selected {
+  border-color: rgba(212, 165, 154, 0.5) !important;
+  background: rgba(212, 165, 154, 0.08) !important;
+  box-shadow:
+    0 0 24px rgba(212, 165, 154, 0.12),
+    inset 0 1px 0 rgba(212, 165, 154, 0.15);
+}
+
+.wiz-type-card--selected::before {
+  opacity: 1;
+}
+
+.wiz-type-card--selected .wiz-type-card__icon {
+  transform: scale(1.15);
+}
+
+.wiz-type-card__icon {
+  font-size: 32px;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  z-index: 1;
+  line-height: 1;
+}
+
+.wiz-type-card__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground);
+  position: relative;
+  z-index: 1;
+}
+
+.wiz-type-card__desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.4;
+  position: relative;
+  z-index: 1;
+}
+
+/* Checkmark badge on selected */
+.wiz-type-card__check {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: scale(0);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.wiz-type-card--selected .wiz-type-card__check {
+  transform: scale(1);
+}
+
+/* ═══ Step 2: Event Details ═══ */
+.wiz-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.wiz-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wiz-field__label {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(240, 237, 232, 0.85);
+}
+
+.wiz-field__hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: -2px;
+}
+
+.wiz-field__input,
+.wiz-field__textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--foreground);
+  font-family: inherit;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.wiz-field__input::placeholder,
+.wiz-field__textarea::placeholder {
+  color: rgba(176, 176, 176, 0.35);
+}
+
+.wiz-field__input:focus,
+.wiz-field__textarea:focus {
+  border-color: rgba(212, 165, 154, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 3px rgba(212, 165, 154, 0.08);
+}
+
+.wiz-field__textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.wiz-field__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* Date/time inputs color-scheme fix for dark mode */
+.wiz-field__input[type="date"],
+.wiz-field__input[type="time"],
+.wiz-field__input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
+/* ═══ Step 3: Background ═══ */
+.wiz-toggle-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.wiz-toggle {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.wiz-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.wiz-toggle--active {
+  border-color: rgba(212, 165, 154, 0.4);
+  background: rgba(212, 165, 154, 0.06);
+}
+
+.wiz-toggle__icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.wiz-toggle__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.wiz-toggle__title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--foreground);
+  margin: 0 0 2px;
+}
+
+.wiz-toggle__desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.wiz-toggle__switch {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.3s ease;
+}
+
+.wiz-toggle--active .wiz-toggle__switch {
+  background: var(--primary);
+}
+
+.wiz-toggle__switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.wiz-toggle--active .wiz-toggle__switch::after {
+  transform: translateX(-20px);
+}
+
+/* Upload zone */
+.wiz-upload {
+  margin-top: 16px;
+  border: 2px dashed rgba(212, 165, 154, 0.2);
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  animation: wiz-step-enter 0.4s ease forwards;
+}
+
+.wiz-upload:hover {
+  border-color: rgba(212, 165, 154, 0.4);
+  background: rgba(212, 165, 154, 0.04);
+}
+
+.wiz-upload--active {
+  border-color: var(--primary);
+  background: rgba(212, 165, 154, 0.06);
+}
+
+.wiz-upload__icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+
+.wiz-upload__text {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin: 0 0 4px;
+}
+
+.wiz-upload__hint {
+  font-size: 12px;
+  color: rgba(176, 176, 176, 0.5);
+}
+
+/* Background preview */
+.wiz-upload__preview {
+  position: relative;
+  margin-top: 16px;
+  border-radius: 14px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  animation: wiz-step-enter 0.4s ease forwards;
+}
+
+.wiz-upload__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wiz-upload__remove {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.wiz-upload__remove:hover {
+  background: rgba(239, 68, 68, 0.7);
+}
+
+/* ═══ Step 4: Poster grid ═══ */
+.wiz-posters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.wiz-poster {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  border: 2px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.wiz-poster:hover {
+  border-color: rgba(212, 165, 154, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.wiz-poster--selected {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 24px rgba(212, 165, 154, 0.2) !important;
+}
+
+.wiz-poster__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wiz-poster__label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 8px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  text-align: center;
+}
+
+.wiz-poster__check {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: scale(0);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.wiz-poster--selected .wiz-poster__check {
+  transform: scale(1);
+}
+
+/* QR-only option card */
+.wiz-poster--qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.wiz-poster--qr .wiz-poster__qr-icon {
+  font-size: 32px;
+  opacity: 0.5;
+  transition: opacity 0.3s;
+}
+
+.wiz-poster--qr:hover .wiz-poster__qr-icon {
+  opacity: 0.8;
+}
+
+.wiz-poster--qr .wiz-poster__qr-text {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ═══ Step 5: Messages ═══ */
+.wiz-msg-info {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(212, 165, 154, 0.06);
+  border: 1px solid rgba(212, 165, 154, 0.12);
+  animation: wiz-step-enter 0.4s ease forwards;
+}
+
+.wiz-msg-info__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary-light);
+  margin: 0 0 8px;
+}
+
+.wiz-msg-info__text {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ═══ Step 6: Summary ═══ */
+.wiz-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.wiz-summary__card {
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.wiz-summary__card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.wiz-summary__card-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.wiz-summary__card-value {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.wiz-summary__card-edit {
+  font-size: 13px;
+  color: var(--primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.wiz-summary__card-edit:hover {
+  background: rgba(212, 165, 154, 0.1);
+}
+
+/* Contact preference buttons */
+.wiz-contact-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.wiz-contact-opt {
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.wiz-contact-opt:hover {
+  border-color: rgba(212, 165, 154, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.wiz-contact-opt--selected {
+  border-color: rgba(212, 165, 154, 0.5);
+  background: rgba(212, 165, 154, 0.08);
+  box-shadow: 0 0 16px rgba(212, 165, 154, 0.08);
+}
+
+.wiz-contact-opt__icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.wiz-contact-opt__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 4px;
+}
+
+.wiz-contact-opt__desc {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ═══ Navigation Buttons ═══ */
+.wiz-nav {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 680px;
+  padding: 16px 24px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.wiz-nav__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: none;
+}
+
+.wiz-nav__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none !important;
+}
+
+.wiz-nav__btn--back {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.wiz-nav__btn--back:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--foreground);
+}
+
+.wiz-nav__btn--next {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #1a1a1a;
+  box-shadow: 0 4px 16px rgba(212, 165, 154, 0.2);
+}
+
+.wiz-nav__btn--next:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(212, 165, 154, 0.3);
+}
+
+.wiz-nav__btn--next:not(:disabled):active {
+  transform: translateY(0);
+}
+
+/* Submit variant */
+.wiz-nav__btn--submit {
+  background: linear-gradient(135deg, #34d399, #059669);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(52, 211, 153, 0.2);
+}
+
+.wiz-nav__btn--submit:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(52, 211, 153, 0.3);
+}
+
+/* ═══ Success State ═══ */
+.wiz-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 60dvh;
+  padding: 40px 24px;
+  animation: wiz-step-enter 0.6s ease forwards;
+}
+
+.wiz-success__ring {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 3px solid var(--success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  animation: wiz-success-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  box-shadow:
+    0 0 30px rgba(52, 211, 153, 0.2),
+    0 0 60px rgba(52, 211, 153, 0.08);
+}
+
+@keyframes wiz-success-pop {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.wiz-success__check {
+  width: 40px;
+  height: 40px;
+  color: var(--success);
+}
+
+.wiz-success__check path {
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  animation: wiz-check-draw 0.5s ease 0.3s forwards;
+}
+
+@keyframes wiz-check-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.wiz-success__title {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  background: linear-gradient(135deg, var(--foreground), var(--primary-light));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.wiz-success__text {
+  font-size: 15px;
+  color: var(--text-muted);
+  max-width: 360px;
+  line-height: 1.6;
+  margin: 0 0 32px;
+}
+
+.wiz-success__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: 100px;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--foreground);
+  background: transparent;
+  border: 1px solid rgba(212, 165, 154, 0.3);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.wiz-success__btn:hover {
+  background: rgba(212, 165, 154, 0.1);
+  border-color: rgba(212, 165, 154, 0.5);
+}
+
+/* ═══ Validation error ═══ */
+.wiz-error {
+  font-size: 13px;
+  color: var(--danger);
+  margin-top: 6px;
+  animation: wiz-shake 0.4s ease;
+}
+
+@keyframes wiz-shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-4px); }
+  40%      { transform: translateX(4px); }
+  60%      { transform: translateX(-3px); }
+  80%      { transform: translateX(2px); }
+}
+
+/* ═══ Responsive ═══ */
+@media (max-width: 480px) {
+  .wiz-types {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .wiz-field__row {
+    grid-template-columns: 1fr;
+  }
+
+  .wiz-posters {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .wiz-contact-options {
+    grid-template-columns: 1fr;
+  }
+
+  .wiz-step__title {
+    font-size: 24px;
+  }
+
+  .wiz-progress__label {
+    font-size: 10px;
+  }
+
+  .wiz-progress__dot {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+
+  .wiz-nav__btn {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .wiz-types {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .wiz-type-card {
+    padding: 16px 8px;
+  }
+
+  .wiz-card {
+    padding: 20px 16px;
+  }
+}

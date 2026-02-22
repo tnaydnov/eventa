@@ -1,0 +1,237 @@
+/**
+ * Wizard Configuration — Single source of truth for the order wizard.
+ *
+ * To add/remove an event type → add/remove one entry in WIZARD_TYPES.
+ * Everything (labels, fields, templates, validation) cascades from here.
+ */
+
+// ─── Event Type Config ──────────────────────────────────────
+
+export interface NameFieldConfig {
+  /** Whether the name field is required for this event type */
+  required: boolean;
+  /** Hebrew label shown above the input */
+  label: string;
+  /** Placeholder text inside the input */
+  placeholder: string;
+  /** Optional hint shown below the input */
+  hint?: string;
+}
+
+export interface WizardTypeConfig {
+  /** DB key — e.g. 'wedding' */
+  key: string;
+  /** Hebrew label — e.g. 'חתונה' */
+  label: string;
+  /** Icon for the type card */
+  icon: string;
+  /** Short description for the card */
+  description: string;
+  /** Name field configuration (dynamic per type) */
+  nameField: NameFieldConfig;
+  /** Poster catalog folder key — maps to manifest.json types */
+  posterCatalog: string;
+  /** Default event duration in hours */
+  defaultDurationHours: number;
+  /** Whether guest messaging is supported for this type */
+  supportsGuestMessages: boolean;
+}
+
+export const WIZARD_TYPES: WizardTypeConfig[] = [
+  {
+    key: 'wedding',
+    label: 'חתונה',
+    icon: '💒',
+    description: 'שכבת היכרויות לרווקים והרווקות באירוע',
+    nameField: {
+      required: true,
+      label: 'שמות הזוג באנגלית',
+      placeholder: 'Maya & Daniel',
+      hint: 'יופיע בראש האפליקציה ובפוסטר הכניסה',
+    },
+    posterCatalog: 'wedding',
+    defaultDurationHours: 6,
+    supportsGuestMessages: true,
+  },
+  {
+    key: 'party',
+    label: 'מסיבה',
+    icon: '🎉',
+    description: 'מסיבה פרטית, מועדון, אירוע חברתי',
+    nameField: {
+      required: false,
+      label: 'שם המסיבה (לא חובה)',
+      placeholder: 'Summer Vibes 2026',
+    },
+    posterCatalog: 'party',
+    defaultDurationHours: 5,
+    supportsGuestMessages: true,
+  },
+  {
+    key: 'bar_mitzvah',
+    label: 'בר / בת מצווה',
+    icon: '🎓',
+    description: 'אירוע בר או בת מצווה',
+    nameField: {
+      required: true,
+      label: 'שם החוגג/ת',
+      placeholder: 'נועם',
+    },
+    posterCatalog: 'bar_mitzvah',
+    defaultDurationHours: 5,
+    supportsGuestMessages: true,
+  },
+  {
+    key: 'brit',
+    label: 'ברית',
+    icon: '👶',
+    description: 'ברית מילה או ברית בת',
+    nameField: {
+      required: false,
+      label: 'שם התינוק/ת (לא חובה)',
+      placeholder: 'יונתן',
+    },
+    posterCatalog: 'brit',
+    defaultDurationHours: 4,
+    supportsGuestMessages: true,
+  },
+  {
+    key: 'corporate',
+    label: 'אירוע חברה',
+    icon: '🏢',
+    description: 'כנס, גיבוש, אירוע חברה',
+    nameField: {
+      required: false,
+      label: 'שם האירוע (לא חובה)',
+      placeholder: 'TechDay 2026',
+    },
+    posterCatalog: 'corporate',
+    defaultDurationHours: 4,
+    supportsGuestMessages: true,
+  },
+  {
+    key: 'meetup',
+    label: 'מיטאפ',
+    icon: '🤝',
+    description: 'מפגש נטוורקינג, קהילה, מיטאפ',
+    nameField: {
+      required: false,
+      label: 'שם המיטאפ (לא חובה)',
+      placeholder: 'React Meetup TLV',
+    },
+    posterCatalog: 'meetup',
+    defaultDurationHours: 3,
+    supportsGuestMessages: true,
+  },
+  {
+    key: 'other',
+    label: 'אחר',
+    icon: '✨',
+    description: 'סוג אירוע אחר - ספרו לנו!',
+    nameField: {
+      required: false,
+      label: 'שם האירוע (לא חובה)',
+      placeholder: '',
+    },
+    posterCatalog: 'other',
+    defaultDurationHours: 4,
+    supportsGuestMessages: true,
+  },
+];
+
+/** Quick lookup map by key */
+export const WIZARD_TYPE_MAP = Object.fromEntries(
+  WIZARD_TYPES.map(t => [t.key, t])
+) as Record<string, WizardTypeConfig>;
+
+// ─── Wizard Steps ───────────────────────────────────────────
+
+export interface WizardStepMeta {
+  id: string;
+  label: string;
+  icon: string;
+}
+
+export const WIZARD_STEPS: WizardStepMeta[] = [
+  { id: 'type',       label: 'סוג אירוע',   icon: '🎯' },
+  { id: 'details',    label: 'פרטים',       icon: '📅' },
+  { id: 'background', label: 'רקע',         icon: '🎨' },
+  { id: 'poster',     label: 'פוסטר',       icon: '🖼️' },
+  { id: 'messages',   label: 'הודעות',      icon: '💬' },
+  { id: 'summary',    label: 'סיכום',       icon: '✅' },
+];
+
+// ─── Wizard Form State ──────────────────────────────────────
+
+export interface WizardFormState {
+  // Step 1 - Type
+  eventType: string;
+
+  // Step 2 - Details
+  eventName: string;
+  startsAt: string;
+  endsAt: string;
+
+  // Step 3 - Background
+  wantsCustomBackground: boolean;
+  backgroundPreview: string | null;
+  backgroundBase64: string | null;
+
+  // Step 4 - Poster
+  posterChoice: 'template' | 'qr-only';
+  selectedTemplateId: string | null;
+  specialRequests: string;
+
+  // Step 5 - Messages
+  wantsGuestMessages: boolean;
+
+  // Step 6 - Summary / Contact
+  contactPreference: 'call-me' | 'send-link';
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+}
+
+export const INITIAL_WIZARD_STATE: WizardFormState = {
+  eventType: '',
+  eventName: '',
+  startsAt: '',
+  endsAt: '',
+  wantsCustomBackground: false,
+  backgroundPreview: null,
+  backgroundBase64: null,
+  posterChoice: 'qr-only',
+  selectedTemplateId: null,
+  specialRequests: '',
+  wantsGuestMessages: false,
+  contactPreference: 'call-me',
+  contactName: '',
+  contactPhone: '',
+  contactEmail: '',
+};
+
+// ─── Poster Template Manifest Types ─────────────────────────
+
+export interface PosterTemplate {
+  id: string;
+  file: string;
+  label: string;
+  /** Event types this template applies to. ['*'] = all types. */
+  types: string[];
+  /** Whether the poster has a name slot (requires event name) */
+  hasNameSlot: boolean;
+}
+
+export interface PosterManifest {
+  templates: PosterTemplate[];
+}
+
+/** Filter templates for a given event type */
+export function getTemplatesForType(
+  templates: PosterTemplate[],
+  eventType: string
+): PosterTemplate[] {
+  return templates.filter(
+    t => t.types.includes('*') || t.types.includes(eventType)
+  );
+}

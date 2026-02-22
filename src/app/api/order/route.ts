@@ -40,6 +40,18 @@ const orderSchema = z.object({
     .regex(/^[\d\s+\-()]+$/, 'Invalid phone format'),
   contactEmail: z.string().max(ORDER_EMAIL_MAX_LENGTH).email().optional()
     .or(z.literal('')),
+  // Extended wizard fields (optional — absent for simple OrderForm submissions)
+  source: z.enum(['wizard', 'form']).optional(),
+  eventName: z.string().max(100).optional(),
+  startsAt: z.string().max(30).optional(),
+  endsAt: z.string().max(30).optional(),
+  wantsCustomBackground: z.boolean().optional(),
+  backgroundBase64: z.string().optional().nullable(),
+  posterChoice: z.enum(['template', 'qr-only']).optional(),
+  selectedTemplateId: z.string().max(100).optional().nullable(),
+  specialRequests: z.string().max(500).optional(),
+  wantsGuestMessages: z.boolean().optional(),
+  contactPreference: z.enum(['call-me', 'send-link']).optional(),
 });
 
 /**
@@ -72,26 +84,71 @@ export async function POST(request: NextRequest) {
 
     const { eventType, eventDate, contactName, contactPhone, contactEmail } = parsed.data;
 
+    // Extended wizard fields (may be undefined for simple form submissions)
+    const isWizard = parsed.data.source === 'wizard';
+    const eventName = parsed.data.eventName || '';
+    const startsAt = parsed.data.startsAt || '';
+    const endsAt = parsed.data.endsAt || '';
+    const wantsCustomBg = parsed.data.wantsCustomBackground ?? false;
+    const posterChoice = parsed.data.posterChoice || 'qr-only';
+    const selectedTemplate = parsed.data.selectedTemplateId || '';
+    const specialReqs = parsed.data.specialRequests || '';
+    const wantsMessages = parsed.data.wantsGuestMessages ?? false;
+    const contactPref = parsed.data.contactPreference || 'call-me';
+    const hasBgImage = wantsCustomBg && !!parsed.data.backgroundBase64;
+
     // Escape ALL user input before interpolating into HTML template
     const safeEventLabel = escapeHtml(EVENT_TYPE_LABELS[eventType] || eventType);
     const safeDate = escapeHtml(eventDate);
     const safeName = escapeHtml(contactName);
     const safePhone = escapeHtml(contactPhone);
     const safeEmail = contactEmail ? escapeHtml(contactEmail) : '';
+    const safeEventName = escapeHtml(eventName);
+    const safeStartsAt = escapeHtml(startsAt);
+    const safeEndsAt = escapeHtml(endsAt);
+    const safeTemplate = escapeHtml(selectedTemplate);
+    const safeSpecialReqs = escapeHtml(specialReqs);
+
+    // Build wizard-specific sections
+    const wizardSections = isWizard ? `
+          <div style="background: #f0f7ff; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+            <h2 style="font-size: 18px; color: #333; margin: 0 0 12px;">⚙️ פרטים מורחבים (Wizard)</h2>
+            ${safeEventName ? `<p style="margin: 4px 0; color: #555;"><strong>שם האירוע:</strong> ${safeEventName}</p>` : ''}
+            ${safeStartsAt ? `<p style="margin: 4px 0; color: #555;"><strong>התחלה:</strong> ${safeStartsAt}</p>` : ''}
+            ${safeEndsAt ? `<p style="margin: 4px 0; color: #555;"><strong>סיום:</strong> ${safeEndsAt}</p>` : ''}
+            <p style="margin: 4px 0; color: #555;"><strong>רקע מותאם:</strong> ${wantsCustomBg ? '✅ כן' : '❌ לא'}${hasBgImage ? ' (תמונה מצורפת)' : ''}</p>
+            <p style="margin: 4px 0; color: #555;"><strong>פוסטר:</strong> ${posterChoice === 'qr-only' ? 'QR בלבד' : `תבנית: ${safeTemplate}`}</p>
+            ${safeSpecialReqs ? `<p style="margin: 4px 0; color: #555;"><strong>בקשות מיוחדות:</strong> ${safeSpecialReqs}</p>` : ''}
+            <p style="margin: 4px 0; color: #555;"><strong>הודעות לאורחים:</strong> ${wantsMessages ? '✅ כן' : '❌ לא'}</p>
+            <p style="margin: 4px 0; color: #555;"><strong>העדפת קשר:</strong> ${contactPref === 'call-me' ? '📞 צרו איתי קשר' : '🔗 שלחו לינק לתשלום'}</p>
+          </div>` : '';
+
+    // If wizard submission includes a background image, attach it
+    const attachments: Array<{ filename: string; content: Buffer; cid: string }> = [];
+    if (hasBgImage && parsed.data.backgroundBase64) {
+      const base64Data = parsed.data.backgroundBase64.replace(/^data:image\/\w+;base64,/, '');
+      attachments.push({
+        filename: 'background.jpg',
+        content: Buffer.from(base64Data, 'base64'),
+        cid: 'bg-image',
+      });
+    }
 
     await transporter.sendMail({
       from: `"Eventa" <${process.env.SMTP_USER}>`,
       to: 'contact@eventa.productions',
-      subject: `🎉 הזמנה חדשה - ${safeEventLabel} | ${safeName}`,
+      subject: `🎉 הזמנה חדשה${isWizard ? ' (Wizard)' : ''} - ${safeEventLabel} | ${safeName}`,
       html: `
         <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
-          <h1 style="color: #d4a59a; font-size: 24px; margin-bottom: 24px;">📋 הזמנה חדשה מהאתר</h1>
+          <h1 style="color: #d4a59a; font-size: 24px; margin-bottom: 24px;">📋 הזמנה חדשה מהאתר${isWizard ? ' (Wizard)' : ''}</h1>
           
           <div style="background: #f9f9f9; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
             <h2 style="font-size: 18px; color: #333; margin: 0 0 12px;">פרטי האירוע</h2>
             <p style="margin: 4px 0; color: #555;"><strong>סוג:</strong> ${safeEventLabel}</p>
             <p style="margin: 4px 0; color: #555;"><strong>תאריך:</strong> ${safeDate}</p>
           </div>
+
+          ${wizardSections}
 
           <div style="background: #f9f9f9; border-radius: 12px; padding: 20px;">
             <h2 style="font-size: 18px; color: #333; margin: 0 0 12px;">פרטי יצירת קשר</h2>
@@ -101,12 +158,13 @@ export async function POST(request: NextRequest) {
           </div>
 
           <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
-          <p style="font-size: 12px; color: #999;">נשלח מטופס ההזמנה באתר eventa.productions</p>
+          <p style="font-size: 12px; color: #999;">נשלח מ${isWizard ? 'ויזארד ההזמנות' : 'טופס ההזמנה'} באתר eventa.productions</p>
         </div>
       `,
+      ...(attachments.length > 0 ? { attachments } : {}),
     });
 
-    logger.info('Order email sent', { eventType, contactName: safeName });
+    logger.info('Order email sent', { eventType, contactName: safeName, source: isWizard ? 'wizard' : 'form' });
     return NextResponse.json({ success: true });
   } catch (error) {
     logger.error('Order email error', { error: error instanceof Error ? error.message : String(error) });

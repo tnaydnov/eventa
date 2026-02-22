@@ -83,7 +83,7 @@ export default function LandingPage() {
           <button className="landing-nav__link" onClick={() => scrollTo('demo')}>דמו חי</button>
           <button className="landing-nav__link" onClick={() => scrollTo('how')}>איך זה עובד</button>
         </div>
-        <button className="landing-nav__cta" onClick={() => scrollTo('order')}>הזמינו עכשיו</button>
+        <a className="landing-nav__cta" href="/dating/order">הזמינו עכשיו</a>
       </nav>
 
       {/* ═══ Hero ═══ */}
@@ -99,12 +99,12 @@ export default function LandingPage() {
             Eventa מוסיפה שכבת היכרויות חכמה לכל אירוע - חתונות, מסיבות, בר/בת מצוות, אירועי חברה ועוד. האורחים סורקים QR, בונים פרופיל, ומתחילים לגלות אחד את השנייה. הכל בדפדפן, בלי להוריד כלום.
           </p>
           <div className="landing-hero__actions">
-            <button className="landing-btn landing-btn--primary" onClick={() => scrollTo('order')}>
-              בואו נתחיל
+            <a className="landing-btn landing-btn--primary" href="/dating/order">
+              הזמינו עכשיו
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M7 4l-6 6 6 6" />
               </svg>
-            </button>
+            </a>
             <button className="landing-btn landing-btn--ghost" onClick={() => scrollTo('demo')}>
               ראו דמו חי
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
