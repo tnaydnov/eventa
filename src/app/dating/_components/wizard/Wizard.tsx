@@ -220,7 +220,7 @@ export default function Wizard() {
           <p className="wiz-success__text">
             קיבלנו את כל הפרטים ונחזור אליכם בהקדם.
             {state.contactPreference === 'call-me'
-              ? ' נפנה אליכם תוך 24 שעות.'
+              ? ' נפנה אליכם תוך 48 שעות.'
               : ' נשלח לכם לינק לתשלום בהקדם.'}
           </p>
           <Link href="/dating" className="wiz-success__btn">

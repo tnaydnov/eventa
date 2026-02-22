@@ -21,7 +21,7 @@ const STAGES: {
   {
     num: '01',
     title: 'פנו אלינו',
-    desc: 'ספרו לנו על האירוע - סוג, תאריך, כמות מוזמנים ומה שחשוב לכם. נחזור תוך 24 שעות עם הצעה מותאמת.',
+    desc: 'ספרו לנו על האירוע - סוג, תאריך, כמות מוזמנים ומה שחשוב לכם. נחזור תוך 48 שעות עם הצעה מותאמת.',
     accent: 'var(--primary, #D4A59A)',
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

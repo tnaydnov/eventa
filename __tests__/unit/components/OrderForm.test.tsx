@@ -21,7 +21,7 @@ describe('OrderForm', () => {
     expect(screen.getByText('שם מלא *')).toBeInTheDocument();
     expect(screen.getByText('טלפון *')).toBeInTheDocument();
     expect(screen.getByText('אימייל')).toBeInTheDocument();
-    expect(screen.getByText(/שלחו בקשה/)).toBeInTheDocument();
+    expect(screen.getByText(/שלחו פרטים/)).toBeInTheDocument();
   });
 
   it('U-DAT-03: valid submission sends fetch call with form data', async () => {

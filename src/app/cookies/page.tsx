@@ -62,7 +62,7 @@ export default function CookiesPage() {
             <tr>
               <td style={tdStyle}><code style={{ color: '#d4a59a' }}>ws_admin</code></td>
               <td style={tdStyle}>גישה לממשק ניהול (אדמין)</td>
-              <td style={tdStyle}>24 שעות</td>
+              <td style={tdStyle}>48 שעות</td>
               <td style={tdStyle}>חיונית / פונקציונלית</td>
             </tr>
           </tbody>

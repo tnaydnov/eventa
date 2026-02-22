@@ -132,7 +132,7 @@ export default function OrderForm() {
         disabled={submitted || sending}
         style={submitted ? { background: '#22c55e', boxShadow: 'none' } : undefined}
       >
-        {submitted ? '✓ הבקשה נשלחה בהצלחה!' : sending ? 'שולח...' : 'שלחו בקשה ✨'}
+        {submitted ? '✓ הפרטים נשלחו בהצלחה!' : sending ? 'שולח...' : 'שלחו פרטים'}
       </button>
 
       {error && (

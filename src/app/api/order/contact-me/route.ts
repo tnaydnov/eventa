@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
 
     return buildConfirmationPage(
       'קיבלנו! נחזור אליכם בהקדם',
-      `תודה ${req.contact_name}, צוות Eventa יצור איתכם קשר תוך 24 שעות.`
+      `תודה ${req.contact_name}, צוות Eventa יצור איתכם קשר תוך 48 שעות.`
     );
   } catch (err) {
     logger.error('Contact-me error', { error: err instanceof Error ? err.message : String(err) });

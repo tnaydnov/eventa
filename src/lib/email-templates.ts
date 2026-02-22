@@ -396,7 +396,7 @@ export function buildClientPaymentEmail(data: {
             <a href="${contactMeUrl}" style="display:inline-block;text-decoration:none;border:1px solid ${C.accent};border-radius:8px;padding:12px 28px;color:${C.accent};font-size:14px;font-weight:600;" target="_blank">
               צרו איתי קשר
             </a>
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:12px;color:${C.dim};margin-top:10px;">נחזור אליכם תוך 24 שעות</div>
+            <div dir="rtl" style="direction:rtl;text-align:center;font-size:12px;color:${C.dim};margin-top:10px;">נחזור אליכם תוך 48 שעות</div>
           </td>
         </tr>
 

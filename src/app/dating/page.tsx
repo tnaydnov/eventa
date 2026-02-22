@@ -42,7 +42,7 @@ const FEATURES = [
 ];
 
 const STEPS = [
-  { num: '1', title: 'פונים אלינו', desc: 'שולחים את פרטי האירוע - סוג, תאריך ופרטים שלכם. אנחנו חוזרים תוך 24 שעות עם הצעה מותאמת.' },
+  { num: '1', title: 'פונים אלינו', desc: 'שולחים את פרטי האירוע - סוג, תאריך ופרטים שלכם. אנחנו חוזרים תוך 48 שעות עם הצעה מותאמת.' },
   { num: '2', title: 'מפיצים QR', desc: 'מקבלים QR ייחודי לאירוע ושמים אותו בכניסה, על הבר, בסטורי - איפה שתרצו.' },
   { num: '3', title: 'האורחים סורקים', desc: 'סריקת QR, בניית פרופיל תוך דקה, ומיד אפשר לגלול בין הרווקים והרווקות באירוע.' },
   { num: '4', title: 'הקסם קורה', desc: 'לייקים, מאצ׳ים ושיחות - האורחים נהנים והחיבורים נוצרים מעצמם.' },
@@ -208,16 +208,49 @@ export default function LandingPage() {
 
       <div className="landing-accent-line" />
 
-      {/* ═══ Order Form ═══ */}
+      {/* ═══ Order / Contact ═══ */}
       <section id="order" className="landing-section landing-order reveal">
         <span className="landing-badge">📋 בואו נתחיל</span>
         <h2 className="landing-heading" style={{ fontSize: 'clamp(26px, 4vw, 42px)' }}>
           הזמינו <span className="gradient-text">Eventa</span> לאירוע שלכם
         </h2>
         <p className="landing-subheading" style={{ margin: '0 auto' }}>
-          מלאו את הפרטים ונחזור אליכם תוך 24 שעות עם הצעה מותאמת אישית.
+          בחרו את הדרך שנוחה לכם — הזמנה מלאה עם בחירת עיצוב, או השארת פרטים ואנחנו נחזור אליכם.
         </p>
-        <OrderForm />
+
+        <div className="order-split">
+          {/* ── Order Now card ── */}
+          <a href="/dating/order" className="order-split__cta">
+            <div className="order-split__cta-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                <rect x="9" y="3" width="6" height="4" rx="1" />
+                <path d="m9 14 2 2 4-4" />
+              </svg>
+            </div>
+            <h3 className="order-split__cta-title">הזמנה מלאה</h3>
+            <p className="order-split__cta-desc">
+              בחרו סוג אירוע, עיצוב פוסטר, רקע מותאם אישית ועוד — ושלמו אונליין.
+            </p>
+            <span className="order-split__cta-btn">
+              להזמנה &larr;
+            </span>
+          </a>
+
+          {/* ── Or divider ── */}
+          <div className="order-split__divider">
+            <span>או</span>
+          </div>
+
+          {/* ── Contact form card ── */}
+          <div className="order-split__form-wrap">
+            <h3 className="order-split__form-title">רוצים לשמוע עוד?</h3>
+            <p className="order-split__form-desc">
+              השאירו פרטים ונחזור אליכם תוך 24 שעות עם הצעה מותאמת אישית.
+            </p>
+            <OrderForm />
+          </div>
+        </div>
       </section>
 
       {/* ═══ Footer ═══ */}

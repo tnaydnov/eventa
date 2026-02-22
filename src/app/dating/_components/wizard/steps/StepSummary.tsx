@@ -126,7 +126,7 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
         >
           <div className="wiz-contact-opt__icon"><WizardIcon name="phone" size={22} /></div>
           <div className="wiz-contact-opt__label">צרו איתי קשר</div>
-          <div className="wiz-contact-opt__desc">נחזור אליכם תוך 24 שעות</div>
+          <div className="wiz-contact-opt__desc">נחזור אליכם תוך 48 שעות</div>
         </button>
 
         <button
