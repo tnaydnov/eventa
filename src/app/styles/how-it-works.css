@@ -7,7 +7,7 @@
 .hiw {
   position: relative;
   min-height: 100dvh;
-  background: #060606;
+  background: #141212;
   color: #f0ede8;
   font-family: var(--font-rubik, 'Rubik', 'Segoe UI', sans-serif);
   overflow-x: hidden;
@@ -281,6 +281,19 @@
   font-size: 14px;
   line-height: 1.8;
   color: rgba(176, 176, 176, 0.8);
+  max-width: 380px;
+}
+
+.hiw-stage__note {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--accent-gold, #C9A580);
+  font-weight: 500;
+  padding: 8px 12px;
+  background: rgba(201, 165, 128, 0.08);
+  border-radius: 8px;
+  border-right: 3px solid rgba(201, 165, 128, 0.4);
   max-width: 380px;
 }
 

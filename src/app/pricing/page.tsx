@@ -15,14 +15,13 @@ const BASE_FEATURES = [
   'אפליקציית היכרויות מלאה לאירוע',
   'QR ייחודי + לינק הצטרפות',
   'גריד / סוויפ, לייקים, מאצ׳ים וצ׳אט',
-  'פוסטר מעוצב לכניסה לאירוע',
+  'פוסטר מעוצב עם QR (קובץ דיגיטלי, תוך 24 שעות)',
   'רקע מותאם אישית (אופציונלי)',
-  'לוח בקרה מלא למארגן',
   'מחיקה אוטומטית של מידע אישי',
 ];
 
 const MSG_FEATURES = [
-  'שליחת הודעות SMS / WhatsApp לאורחים',
+  'שליחת הודעות WhatsApp לאורחים',
   'קישור אישי להצטרפות — ללא צורך ב-QR',
   'העלאת רשימת טלפונים מ-Excel',
 ];
@@ -43,6 +42,11 @@ export default function PricingPage() {
             height={37}
             style={{ objectFit: 'contain' as const }}
           />
+        </a>
+        <a href="/dating" className="pricing-header__back" aria-label="חזרה">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
         </a>
       </header>
 

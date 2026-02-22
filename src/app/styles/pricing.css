@@ -65,6 +65,28 @@
   opacity: 1;
 }
 
+.pricing-header__back {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--primary, #d4a59a);
+  transition: background 0.25s, border-color 0.25s;
+}
+
+.pricing-header__back:hover {
+  background: rgba(212, 165, 154, 0.15);
+  border-color: rgba(212, 165, 154, 0.3);
+}
+
 /* ── Content ── */
 .pricing-content {
   position: relative;

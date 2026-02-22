@@ -26,12 +26,36 @@ export default function LegalPageLayout({
     }}>
       {/* Header */}
       <header style={{
+        position: 'relative',
         padding: '48px 24px 32px',
         textAlign: 'center',
         borderBottom: '1px solid rgba(212, 165, 154, 0.15)',
         background: 'linear-gradient(180deg, rgba(212, 165, 154, 0.08) 0%, transparent 100%)',
       }}>
-        <Link href="/" style={{ textDecoration: 'none', display: 'inline-block' }}>
+        <Link
+          href="/dating"
+          aria-label="חזרה"
+          style={{
+            position: 'absolute',
+            left: '20px',
+            top: '48px',
+            width: '36px',
+            height: '36px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            color: '#d4a59a',
+            textDecoration: 'none',
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </Link>
+        <Link href="/dating" style={{ textDecoration: 'none', display: 'inline-block' }}>
           <Image
             src="/icons/Eventa_Logo.png"
             alt="Eventa"
