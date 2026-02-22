@@ -47,6 +47,32 @@ export default function JoinPage({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [inAppBrowser, setInAppBrowser] = useState(false);
+  const [statusChecked, setStatusChecked] = useState(false);
+
+  // Check event status BEFORE showing terms — redirect if not active
+  useEffect(() => {
+    async function checkEventStatus() {
+      try {
+        const res = await fetch(`/api/auth/event-status?slug=${encodeURIComponent(eventSlug)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status && data.status !== 'active' && data.status !== 'draft') {
+            // Event is not active — redirect to marketing page
+            const reason = data.status === 'ended' || data.status === 'archived' ? data.status : 'ended';
+            router.replace(`/dating/event-over?reason=${reason}`);
+            return;
+          }
+          if (data.status === 'not_found') {
+            setError('האירוע לא נמצא — ודאו שהקישור תקין');
+          }
+        }
+      } catch {
+        // If status check fails, let them proceed normally
+      }
+      setStatusChecked(true);
+    }
+    checkEventStatus();
+  }, [eventSlug, router]);
 
   // Detect in-app browser on mount
   useEffect(() => {
@@ -126,6 +152,19 @@ export default function JoinPage({
   return (
     <MobileGuard>
       <PageTransition>
+        {!statusChecked ? (
+          <div
+            className="app-container"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '100dvh',
+            }}
+          >
+            <img src="/icons/Eventa_Logo.png" alt="Eventa" width={100} height={100} style={{ objectFit: 'contain', opacity: 0.6, animation: 'pulse 1.5s ease-in-out infinite' }} />
+          </div>
+        ) : (
         <div
           className="app-container"
           style={{
@@ -259,6 +298,7 @@ export default function JoinPage({
           {loading ? 'מתחבר...' : 'המשך'}
         </button>
       </div>
+        )}
       </PageTransition>
     </MobileGuard>
   );
