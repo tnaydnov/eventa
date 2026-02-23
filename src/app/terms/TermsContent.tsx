@@ -269,7 +269,9 @@ export default function TermsContent() {
       <div style={{ ...sectionStyle, marginBottom: 0 }}>
         <h2 style={headingStyle}>20. מדיניות ביטולים והחזרים</h2>
         <p style={textStyle}>
-          השירות מסופק בתשלום חד-פעמי לאירוע. להלן מדיניות הביטול:
+          השירות מסופק בתשלום חד-פעמי לאירוע.
+          לביטול הזמנה יש לפנות למפעיל בדוא&quot;ל: <span style={linkColor}>contact@eventa.productions</span>.
+          להלן מדיניות הביטול:
         </p>
         <ul style={listStyle}>
           <li style={liStyle}>
@@ -286,7 +288,6 @@ export default function TermsContent() {
           </li>
         </ul>
         <p style={textStyle}>
-          לביטול יש לפנות בדוא&quot;ל: <span style={linkColor}>contact@eventa.productions</span>.
           ההחזר יבוצע באותו אמצעי תשלום בו שולם, תוך 14 ימי עסקים.
         </p>
       </div>
