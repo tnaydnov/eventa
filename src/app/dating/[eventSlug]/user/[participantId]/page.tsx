@@ -154,6 +154,7 @@ export default function UserProfilePage({
     <MobileGuard>
       <PageTransition>
         <div className="profile-view">
+        <h1 className="sr-only">פרופיל {user.display_name}</h1>
         {/* Back button */}
         <button
           onClick={() => router.back()}
@@ -327,7 +328,7 @@ export default function UserProfilePage({
             {messagePending ? (
               <span style={{ width: '24px', height: '24px', border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite', display: 'inline-block' }} />
             ) : (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
               </svg>
             )}
@@ -339,7 +340,7 @@ export default function UserProfilePage({
             onClick={() => setShowBlockConfirm(true)}
             style={{ color: 'var(--danger)' }}
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
               <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
             </svg>

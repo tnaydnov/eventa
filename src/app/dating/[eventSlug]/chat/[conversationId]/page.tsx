@@ -336,6 +336,7 @@ export default function ChatRoomPage({
           onUserClick={() => otherUser && router.push(`/dating/${eventSlug}/user/${otherUser.id}`)}
           onMenuToggle={() => setShowMenu(!showMenu)}
         />
+        <h1 className="sr-only">שיחה עם {otherUser?.display_name || 'משתמש'}</h1>
 
         {/* Menu dropdown */}
         {showMenu && (

@@ -249,6 +249,10 @@ export default function JoinPage({
         </p>
 
         <div
+          role="checkbox"
+          aria-checked={agreed}
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setAgreed(!agreed); } }}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -275,9 +279,10 @@ export default function JoinPage({
               flexShrink: 0,
               transition: 'all 0.2s',
             }}
+            aria-hidden="true"
           >
             {agreed && (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" aria-hidden="true" focusable="false">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             )}

@@ -138,7 +138,7 @@ export default function ProfileEditPage({
         <div className="profile-edit-page">
           {/* ─── Header ─── */}
           <div className="profile-edit-header">
-            <button type="button" onClick={() => router.back()} className="profile-edit-back">←</button>
+            <button type="button" onClick={() => router.back()} className="profile-edit-back" aria-label="חזרה">←</button>
             <h1>עריכת פרופיל</h1>
             <div style={{ width: '32px' }} />
           </div>
@@ -163,45 +163,53 @@ export default function ProfileEditPage({
               </div>
 
               <div className="profile-edit-field">
-                <label>שם / כינוי</label>
-                <input className="input" {...register('display_name')} maxLength={30} />
+                <label htmlFor="profile-name">שם / כינוי</label>
+                <input id="profile-name" className="input" autoComplete="nickname" aria-invalid={!!errors.display_name} aria-describedby={errors.display_name ? 'profile-name-error' : undefined} {...register('display_name')} maxLength={30} />
                 {errors.display_name && (
-                  <p className="profile-edit-error">{errors.display_name.message}</p>
+                  <p id="profile-name-error" className="profile-edit-error" role="alert">{errors.display_name.message}</p>
                 )}
               </div>
 
               <div className="profile-edit-field">
-                <label>גיל</label>
+                <label htmlFor="profile-age">גיל</label>
                 <input
+                  id="profile-age"
                   className="input"
                   type="number"
                   inputMode="numeric"
                   min={18}
                   max={120}
                   placeholder="הזינו גיל"
+                  autoComplete="off"
+                  aria-invalid={!!errors.age}
+                  aria-describedby={errors.age ? 'profile-age-error' : undefined}
                   {...register('age', { 
                     setValueAs: (v: string) => v === '' ? undefined : Number(v),
                   })}
                 />
-                {errors.age && <p className="profile-edit-error">{errors.age.message}</p>}
+                {errors.age && <p id="profile-age-error" className="profile-edit-error" role="alert">{errors.age.message}</p>}
               </div>
 
               <div className="profile-edit-field">
-                <label>עיר</label>
-                <input className="input" placeholder="מאיפה אתם?" {...register('city')} maxLength={50} />
-                {errors.city && <p className="profile-edit-error">{errors.city.message}</p>}
+                <label htmlFor="profile-city">עיר</label>
+                <input id="profile-city" className="input" placeholder="מאיפה אתם?" autoComplete="address-level2" aria-invalid={!!errors.city} aria-describedby={errors.city ? 'profile-city-error' : undefined} {...register('city')} maxLength={50} />
+                {errors.city && <p id="profile-city-error" className="profile-edit-error" role="alert">{errors.city.message}</p>}
               </div>
 
               <div className="profile-edit-field">
-                <label>קצת עליי</label>
+                <label htmlFor="profile-bio">קצת עליי</label>
                 <textarea
+                  id="profile-bio"
                   className="input"
                   style={{ minHeight: '80px', resize: 'vertical' }}
                   placeholder="ספרו משהו על עצמכם..."
+                  autoComplete="off"
+                  aria-invalid={!!errors.bio}
+                  aria-describedby={errors.bio ? 'profile-bio-error' : undefined}
                   {...register('bio')}
                   maxLength={200}
                 />
-                {errors.bio && <p className="profile-edit-error">{errors.bio.message}</p>}
+                {errors.bio && <p id="profile-bio-error" className="profile-edit-error" role="alert">{errors.bio.message}</p>}
               </div>
             </div>
 
@@ -213,8 +221,8 @@ export default function ProfileEditPage({
               </div>
 
               <div className="profile-edit-field">
-                <label>אני</label>
-                <div className="profile-edit-pills">
+                <label id="profile-gender-label">אני</label>
+                <div className="profile-edit-pills" role="radiogroup" aria-labelledby="profile-gender-label">
                   {([
                     { value: 'male' as Gender, label: 'גבר' },
                     { value: 'female' as Gender, label: 'אישה' },
@@ -223,6 +231,8 @@ export default function ProfileEditPage({
                     <button
                       key={g.value}
                       type="button"
+                      role="radio"
+                      aria-checked={gender === g.value}
                       className={`profile-edit-pill${gender === g.value ? ' active' : ''}`}
                       onClick={() => setValue('gender', g.value, { shouldValidate: true })}
                     >
@@ -230,12 +240,12 @@ export default function ProfileEditPage({
                     </button>
                   ))}
                 </div>
-                {errors.gender && <p className="profile-edit-error">{errors.gender.message}</p>}
+                {errors.gender && <p className="profile-edit-error" role="alert">{errors.gender.message}</p>}
               </div>
 
               <div className="profile-edit-field">
-                <label>מעוניין/ת ב</label>
-                <div className="profile-edit-pills">
+                <label id="profile-attracted-label">מעוניין/ת ב</label>
+                <div className="profile-edit-pills" role="radiogroup" aria-labelledby="profile-attracted-label">
                   {([
                     { value: 'men' as AttractedTo, label: 'גברים' },
                     { value: 'women' as AttractedTo, label: 'נשים' },
@@ -244,6 +254,8 @@ export default function ProfileEditPage({
                     <button
                       key={a.value}
                       type="button"
+                      role="radio"
+                      aria-checked={attractedTo === a.value}
                       className={`profile-edit-pill${attractedTo === a.value ? ' active' : ''}`}
                       onClick={() => setValue('attracted_to', a.value, { shouldValidate: true })}
                     >
@@ -254,12 +266,12 @@ export default function ProfileEditPage({
                 <p className="profile-edit-hint">
                   זה ישפיע על מי שתראו ומי יראה אתכם
                 </p>
-                {errors.attracted_to && <p className="profile-edit-error">{errors.attracted_to.message}</p>}
+                {errors.attracted_to && <p className="profile-edit-error" role="alert">{errors.attracted_to.message}</p>}
               </div>
 
               <div className="profile-edit-field">
-                <label>מחפש/ת</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <label id="profile-looking-label">מחפש/ת</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }} role="radiogroup" aria-labelledby="profile-looking-label">
                   {LOOKING_FOR_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}

@@ -25,7 +25,7 @@ export default function MobileGuard({ children }: { children: ReactNode }) {
   if (!isMobile) {
     return (
       <div className="desktop-block">
-        <div style={{ fontSize: '72px' }}>📱</div>
+        <div style={{ fontSize: '72px' }} aria-hidden="true">📱</div>
         <h1>האפליקציה זמינה לנייד בלבד</h1>
         <p>סרקו את קוד ה-QR מהטלפון הנייד שלכם כדי להיכנס</p>
       </div>

@@ -55,25 +55,33 @@ const AUTO_REPLIES = ['😊 נעים מאוד!', 'כן! אירוע מדהים', 
    ═══════════════════════════════════════════ */
 
 const I = {
-  grid: (c = 'currentColor') => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
-  swipe: (c = 'currentColor') => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 21h8"/></svg>,
-  chatTab: (c = 'currentColor') => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>,
-  chatLg: (c = 'currentColor') => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>,
-  heartTab: (c = 'currentColor') => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>,
-  heartFill: (c = 'currentColor', s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill={c} stroke="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>,
-  person: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
-  personSm: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
-  back: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l7-7-7-7"/></svg>,
-  close: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>,
-  send: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>,
-  block: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>,
-  dots: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>,
-  camera: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>,
+  grid: (c = 'currentColor') => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
+  swipe: (c = 'currentColor') => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" aria-hidden="true" focusable="false"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 21h8"/></svg>,
+  chatTab: (c = 'currentColor') => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" aria-hidden="true" focusable="false"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>,
+  chatLg: (c = 'currentColor') => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" aria-hidden="true" focusable="false"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>,
+  heartTab: (c = 'currentColor') => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" aria-hidden="true" focusable="false"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>,
+  heartFill: (c = 'currentColor', s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill={c} stroke="none" aria-hidden="true" focusable="false"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>,
+  person: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+  personSm: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+  back: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false"><path d="M19 12H5M12 19l7-7-7-7"/></svg>,
+  close: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true" focusable="false"><path d="M18 6L6 18M6 6l12 12"/></svg>,
+  send: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>,
+  block: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>,
+  dots: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>,
+  camera: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>,
 };
 
 /* ═══════════════════════════════════════════
    COMPONENT
    ═══════════════════════════════════════════ */
+
+// Helper: makes a div act like a button for keyboard users (WCAG 2.1.1)
+const kbClick = (handler: () => void) => ({
+  role: 'button' as const,
+  tabIndex: 0,
+  onClick: handler,
+  onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handler(); } },
+});
 
 export default function DemoPhone() {
   const [screen, setScreen] = useState<Screen>('grid');
@@ -231,7 +239,7 @@ export default function DemoPhone() {
       {renderViewToggle()}
       <div className="profile-grid">
         {USERS.map(u => (
-          <div key={u.seed} className="grid-card" onClick={() => openUser(u)}>
+          <div key={u.seed} className="grid-card" {...kbClick(() => openUser(u))}>
             <img src={u.photo} alt={u.name} draggable={false} />
             <div className="card-overlay"><div className="name">{u.name}</div></div>
           </div>
@@ -310,7 +318,7 @@ export default function DemoPhone() {
           <p className="demo-empty-s">לחצו על פרופיל כדי לשלוח הודעה ראשונה</p>
         </div>
       ) : chatListData.map(c => (
-        <div key={c.user.seed} className="chat-list-item" onClick={() => openChat(c.user)}>
+        <div key={c.user.seed} className="chat-list-item" {...kbClick(() => openChat(c.user))}>
           <img src={c.user.photo} alt={c.user.name} className="chat-avatar" />
           <div className="chat-info">
             <div className="chat-name" style={c.unread ? { fontWeight: 700 } : undefined}>{c.user.name}</div>
@@ -364,7 +372,7 @@ export default function DemoPhone() {
           ) : (
             <div className="profile-grid" style={{ padding: '12px' }}>
               {matchList.map(u => (
-                <div key={u.seed} className="grid-card" onClick={() => openUser(u)} style={{ position: 'relative' }}>
+                <div key={u.seed} className="grid-card" {...kbClick(() => openUser(u))} style={{ position: 'relative' }}>
                   <img src={u.photo} alt={u.name} draggable={false}/>
                   <div className="card-overlay"><div className="name">{u.name}</div></div>
                   <div className="demo-match-label">💞 Match</div>
@@ -378,7 +386,7 @@ export default function DemoPhone() {
           ) : (
             <div className="profile-grid" style={{ padding: '12px' }}>
               {receivedLikeUsers.map(u => (
-                <div key={u.seed} className="grid-card" onClick={() => openUser(u)}>
+                <div key={u.seed} className="grid-card" {...kbClick(() => openUser(u))}>
                   <img src={u.photo} alt={u.name} draggable={false}/>
                   <div className="card-overlay"><div className="name">{u.name}</div></div>
                 </div>
@@ -391,7 +399,7 @@ export default function DemoPhone() {
           ) : (
             <div className="profile-grid" style={{ padding: '12px' }}>
               {sentLikeUsers.map(u => (
-                <div key={u.seed} className="grid-card" onClick={() => openUser(u)}>
+                <div key={u.seed} className="grid-card" {...kbClick(() => openUser(u))}>
                   <img src={u.photo} alt={u.name} draggable={false}/>
                   <div className="card-overlay"><div className="name">{u.name}</div></div>
                 </div>
@@ -413,7 +421,7 @@ export default function DemoPhone() {
       <div className="demo-scroll" style={{ padding: '0 12px 24px' }}>
         <div className="demo-pe-sec">
           <div className="demo-pe-head"><span>📷 תמונות</span><span className="demo-pe-cnt">0/10</span></div>
-          <div className="demo-pe-add"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>הוספה</span></div>
+          <div className="demo-pe-add"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" aria-hidden="true" focusable="false"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>הוספה</span></div>
         </div>
         <div className="demo-pe-sec">
           <div className="demo-pe-head">✏️ פרטים בסיסיים</div>

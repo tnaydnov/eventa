@@ -218,7 +218,14 @@ export default function ProfilePhotoGrid({
             </div>
           ))}
           {photos.length < 10 && (
-            <div className={`profile-edit-photo-item add${uploading ? ' photo-loading' : ''}`} onClick={() => !uploading && fileInputRef.current?.click()}>
+            <div
+              className={`profile-edit-photo-item add${uploading ? ' photo-loading' : ''}`}
+              role="button"
+              tabIndex={0}
+              aria-label="הוספת תמונה"
+              onClick={() => !uploading && fileInputRef.current?.click()}
+              onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !uploading) { e.preventDefault(); fileInputRef.current?.click(); } }}
+            >
               {uploading ? (
                 <div className="photo-upload-overlay photo-upload-overlay--add">
                   <div className="photo-upload-spinner" />

@@ -32,7 +32,7 @@ export default function ParticipantsDialog({ event, participants, onClose, onBan
 
   return (
     <div className="admin-overlay" onClick={onClose}>
-      <div className="admin-dialog admin-dialog--lg" onClick={e => e.stopPropagation()}>
+      <div className="admin-dialog admin-dialog--lg" role="dialog" aria-modal="true" aria-label="רשימת משתתפים" onClick={e => e.stopPropagation()}>
         <h3 className="admin-dialog__title">
           👥 {event.name} - {participants.length} משתתפים
         </h3>
@@ -78,7 +78,7 @@ export default function ParticipantsDialog({ event, participants, onClose, onBan
       {/* ── Ban confirmation popup ── */}
       {confirmTarget && (
         <div className="admin-overlay" style={{ zIndex: 1001 }} onClick={(e) => { e.stopPropagation(); setConfirmTarget(null); }}>
-          <div className="admin-dialog" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', textAlign: 'center' }}>
+          <div className="admin-dialog" role="dialog" aria-modal="true" aria-label="אישור חסימת משתתף" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', textAlign: 'center' }}>
             <div style={{ fontSize: '40px', marginBottom: '12px' }}>🚫</div>
             <h3 className="admin-dialog__title" style={{ marginBottom: '8px' }}>
               חסימת {confirmTarget.display_name || 'משתתף/ת'}

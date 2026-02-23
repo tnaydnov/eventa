@@ -148,6 +148,9 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
       <div className="admin-overlay" onClick={handleClose}>
         <div
           className="admin-dialog admin-dialog--lg admin-animate-in"
+          role="dialog"
+          aria-modal="true"
+          aria-label="יצירת אירוע חדש - בחירת סוג"
           onClick={(e) => e.stopPropagation()}
         >
           <h3 className="admin-dialog__title">✨ אירוע חדש - בחרו סוג</h3>
@@ -183,6 +186,9 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
     <div className="admin-overlay" onClick={handleClose}>
       <div
         className="admin-dialog admin-dialog--lg admin-animate-in"
+        role="dialog"
+        aria-modal="true"
+        aria-label="יצירת אירוע חדש"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Title */}
@@ -236,7 +242,7 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
               min={startsAt}
             />
             {endsAt && startsAt && new Date(endsAt) <= new Date(startsAt) && (
-              <span className="ced-field-error">תאריך הסיום חייב להיות אחרי ההתחלה</span>
+              <span className="ced-field-error" role="alert">תאריך הסיום חייב להיות אחרי ההתחלה</span>
             )}
           </div>
         </div>
@@ -258,7 +264,7 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
         </div>
 
         {/* Error message */}
-        {error && <div className="ced-error">{error}</div>}
+        {error && <div className="ced-error" role="alert">{error}</div>}
 
         {/* Actions */}
         <div className="admin-dialog__actions">

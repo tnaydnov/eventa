@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import type { ReactNode } from 'react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 const pageVariants: Variants = {
   initial: {
@@ -94,7 +95,7 @@ export function LikeAnimation({ liked }: { liked: boolean }) {
       animate={liked ? { scale: [1, 1.3, 1] } : { scale: 1 }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
     >
-      <svg viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+      <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
         <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
       </svg>
     </motion.div>
@@ -106,7 +107,7 @@ export function AnimatedToast({ message }: { message: string }) {
   return (
     <motion.div
       className="toast"
-      role="alert"
+      role="status"
       aria-live="polite"
       initial={{ opacity: 0, y: 50, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -119,7 +120,9 @@ export function AnimatedToast({ message }: { message: string }) {
 }
 
 /* ---- Modal overlay animation ---- */
-export function AnimatedOverlay({ children, isOpen, onClose }: { children: ReactNode; isOpen: boolean; onClose: () => void }) {
+export function AnimatedOverlay({ children, isOpen, onClose, ariaLabel }: { children: ReactNode; isOpen: boolean; onClose: () => void; ariaLabel?: string }) {
+  const focusTrapRef = useFocusTrap(isOpen, onClose);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -130,8 +133,12 @@ export function AnimatedOverlay({ children, isOpen, onClose }: { children: React
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           onClick={onClose}
+          role="dialog"
+          aria-modal="true"
+          aria-label={ariaLabel}
         >
           <motion.div
+            ref={focusTrapRef}
             className="modal-content"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}

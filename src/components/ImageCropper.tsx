@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
 import type { Area, Point } from 'react-easy-crop';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface ImageCropperProps {
   /** Object URL or data URL of the image to crop */
@@ -99,6 +100,7 @@ export default function ImageCropper({
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [saving, setSaving] = useState(false);
+  const focusTrapRef = useFocusTrap(true, onCancel);
 
   const onCropComplete = useCallback((_: Area, croppedPixels: Area) => {
     setCroppedAreaPixels(croppedPixels);
@@ -118,8 +120,8 @@ export default function ImageCropper({
   };
 
   return (
-    <div style={styles.overlay}>
-      <div style={styles.container}>
+    <div style={styles.overlay} role="dialog" aria-modal="true" aria-label="חיתוך תמונה">
+      <div style={styles.container} ref={focusTrapRef}>
         {/* Crop area */}
         <div style={styles.cropArea}>
           <Cropper
@@ -149,6 +151,7 @@ export default function ImageCropper({
             value={zoom}
             onChange={(e) => setZoom(Number(e.target.value))}
             style={styles.slider}
+            aria-label="זום"
           />
           <span style={styles.zoomLabel}>+</span>
         </div>

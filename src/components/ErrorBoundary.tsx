@@ -46,7 +46,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             direction: 'rtl',
           }}
         >
-          <div style={{ fontSize: '48px' }}>😵</div>
+          <div style={{ fontSize: '48px' }} aria-hidden="true">😵</div>
           <h2 style={{ fontSize: '20px', color: '#e91e63', margin: 0 }}>
             אופס, משהו השתבש
           </h2>

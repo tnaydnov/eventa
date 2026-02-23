@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMatchStore, useSessionStore } from '@/lib/store';
 import { getOrCreateConversation, getPhotoUrl } from '@/lib/api';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 /**
  * Fullscreen "It's a Match!" popup.
@@ -25,6 +26,12 @@ export default function MatchPopup() {
   const pendingMatch = useMatchStore((s) => s.pendingMatch);
   const clearPendingMatch = useMatchStore((s) => s.clearPendingMatch);
   const [navigating, setNavigating] = useState(false);
+
+  const handleDismiss = useCallback(() => {
+    clearPendingMatch();
+  }, [clearPendingMatch]);
+
+  const focusTrapRef = useFocusTrap(!!pendingMatch, handleDismiss);
 
   // Derive my photo from session store photos (user's own uploaded photos)
   const myPhotos = useSessionStore((s) => s.photos);
@@ -51,10 +58,6 @@ export default function MatchPopup() {
     }
   }, [session, pendingMatch, navigating, clearPendingMatch, router]);
 
-  const handleDismiss = useCallback(() => {
-    clearPendingMatch();
-  }, [clearPendingMatch]);
-
   // Don't show popup if no pending match
   if (!pendingMatch) return null;
 
@@ -80,6 +83,9 @@ export default function MatchPopup() {
             WebkitBackdropFilter: 'blur(12px)',
             padding: '24px',
           }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="התאמה חדשה"
           onClick={handleDismiss}
         >
           {/* Hearts rain background */}
@@ -87,6 +93,7 @@ export default function MatchPopup() {
 
           {/* Content - prevent click-through to backdrop dismiss */}
           <motion.div
+            ref={focusTrapRef}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
@@ -168,7 +175,7 @@ export default function MatchPopup() {
                     fontSize: '40px',
                     color: 'var(--text-muted)',
                   }}>
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true" focusable="false">
                       <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
                       <circle cx="12" cy="7" r="4" />
                     </svg>
@@ -193,6 +200,7 @@ export default function MatchPopup() {
                   fontSize: '20px',
                   boxShadow: '0 0 20px rgba(225, 180, 180, 0.5)',
                 }}
+                aria-hidden="true"
               >
                 💗
               </motion.div>
@@ -224,7 +232,7 @@ export default function MatchPopup() {
                     justifyContent: 'center',
                     color: 'var(--text-muted)',
                   }}>
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true" focusable="false">
                       <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
                       <circle cx="12" cy="7" r="4" />
                     </svg>
@@ -267,7 +275,7 @@ export default function MatchPopup() {
                   gap: '8px',
                 }}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
                   <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
                 </svg>
                 שלח/י הודעה
@@ -340,7 +348,7 @@ function HeartsRain() {
             fontSize: `${h.size}px`,
           }}
         >
-          💗
+          <span aria-hidden="true">💗</span>
         </motion.div>
       ))}
     </div>

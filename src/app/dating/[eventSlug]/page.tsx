@@ -44,6 +44,10 @@ const GridCard = memo(function GridCard({
           : '0 0 0 2px rgba(255,255,255,0.3), 0 0 12px rgba(255,255,255,0.1)',
       } : undefined}
       onClick={onCardClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCardClick(); } }}
+      role="button"
+      tabIndex={0}
+      aria-label={p.display_name}
     >
       {p.photos.length > 0 ? (
         <img
@@ -311,7 +315,7 @@ export default function EventPage({
                     transition: 'all 0.2s',
                   }}
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="3" width="7" height="7" rx="1" />
                     <rect x="14" y="3" width="7" height="7" rx="1" />
                     <rect x="3" y="14" width="7" height="7" rx="1" />
@@ -332,7 +336,7 @@ export default function EventPage({
                     transition: 'all 0.2s',
                   }}
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="4" y="3" width="16" height="18" rx="3" />
                     <path d="M8 21h8" />
                   </svg>

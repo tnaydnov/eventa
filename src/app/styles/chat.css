@@ -18,6 +18,11 @@
   background: var(--surface-light);
 }
 
+.chat-list-item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
 .chat-avatar {
   width: 48px;
   height: 48px;
@@ -122,6 +127,11 @@
   direction: rtl;
 }
 
+.message-input-bar input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .message-input-bar button {
   background: var(--primary);
   border: none;
@@ -134,6 +144,11 @@
   color: #1a1a1a;
   cursor: pointer;
   flex-shrink: 0;
+}
+
+.message-input-bar button:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
 }
 
 /* ═══════════════════════════════════════════

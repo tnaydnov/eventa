@@ -13,7 +13,7 @@ interface QRDialogProps {
 export default function QRDialog({ event, dataUrl, onClose, onDownload, onCopyUrl }: QRDialogProps) {
   return (
     <div className="admin-overlay" onClick={onClose}>
-      <div className="admin-dialog" style={{ textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+      <div className="admin-dialog" role="dialog" aria-modal="true" aria-label="QR code" style={{ textAlign: 'center' }} onClick={e => e.stopPropagation()}>
         <h3 className="admin-dialog__title" style={{ color: 'var(--admin-accent)' }}>
           📱 QR - {event.name}
         </h3>

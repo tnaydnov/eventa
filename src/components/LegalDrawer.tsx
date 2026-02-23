@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import TermsContent from '@/app/terms/TermsContent';
 import PrivacyContent from '@/app/privacy/PrivacyContent';
 import CookiesContent from '@/app/cookies/CookiesContent';
@@ -30,6 +31,7 @@ export default function LegalDrawer({
   onClose: () => void;
 }) {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const focusTrapRef = useFocusTrap(!!page, onClose);
 
   /* Lock body scroll while open */
   useEffect(() => {
@@ -38,13 +40,7 @@ export default function LegalDrawer({
     return () => { document.body.style.overflow = ''; };
   }, [page]);
 
-  /* Close on Escape */
-  useEffect(() => {
-    if (!page) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [page, onClose]);
+  /* Close on Escape — handled by useFocusTrap */
 
   if (!page) return null;
 
@@ -55,8 +51,11 @@ export default function LegalDrawer({
       ref={overlayRef}
       className="legal-drawer__overlay"
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={PAGES[page]}
     >
-      <div className="legal-drawer">
+      <div className="legal-drawer" ref={focusTrapRef}>
         {/* Header bar */}
         <div className="legal-drawer__header">
           <span className="legal-drawer__title">{PAGES[page]}</span>
@@ -65,7 +64,7 @@ export default function LegalDrawer({
             onClick={onClose}
             aria-label="סגירה"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>

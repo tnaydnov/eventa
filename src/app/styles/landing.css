@@ -124,6 +124,11 @@
   white-space: nowrap;
 }
 
+.landing-nav__link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .landing-nav__link:hover {
   color: var(--foreground);
   background: rgba(255, 255, 255, 0.08);
@@ -140,6 +145,11 @@
   cursor: pointer;
   transition: all 0.25s ease;
   white-space: nowrap;
+}
+
+.landing-nav__cta:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .landing-nav__cta:hover {
@@ -161,6 +171,11 @@
   border-radius: 8px;
   cursor: pointer;
   padding: 0;
+}
+
+.landing-nav__burger:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .landing-nav__burger span {
@@ -209,6 +224,11 @@
   border-radius: 10px;
   transition: all 0.2s ease;
   text-decoration: none;
+}
+
+.landing-nav__mobile-menu a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .landing-nav__mobile-menu a:hover {
@@ -772,6 +792,10 @@
   direction: rtl;
   font-family: inherit;
 }
+.demo-input-bar input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
 .demo-send-btn {
   background: var(--primary);
   border: none;
@@ -830,6 +854,7 @@
 .demo-pe-add:hover { border-color: rgba(212,165,154,0.3); }
 .demo-pe-lbl { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; margin-top: 10px; }
 .demo-pe-inp { width: 100%; padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.13); background: rgba(255,255,255,0.08); color: var(--foreground); font-size: 13px; font-family: inherit; outline: none; box-sizing: border-box; direction: rtl; }
+.demo-pe-inp:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .demo-pe-inp:focus { border-color: var(--primary); }
 .demo-pe-ta { min-height: 56px; resize: none; display: block; }
 .demo-pe-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
@@ -1212,6 +1237,13 @@
   box-sizing: border-box;
   direction: rtl;
   color-scheme: dark;
+}
+
+.order-form__input:focus-visible,
+.order-form__select:focus-visible,
+.order-form__textarea:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .order-form__input:focus,

@@ -27,7 +27,7 @@ const ParticipantCard = memo(function ParticipantCard({
   badge?: React.ReactNode;
 }) {
   return (
-    <div className="grid-card" onClick={onClick} style={badge ? { position: 'relative' } : undefined}>
+    <div className="grid-card" onClick={onClick} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }} role="button" tabIndex={0} aria-label={participant.display_name} style={badge ? { position: 'relative' } : undefined}>
       {participant.photos.length > 0 ? (
         <img src={getPhotoUrl(participant.photos[0].storage_path)} alt={participant.display_name} loading="lazy" />
       ) : (
@@ -132,9 +132,12 @@ export default function LikesPage({
           <AppHeader />
           <div className="main-content">
             {/* Sub-tabs */}
-            <div style={{ display: 'flex', borderBottom: '1px solid var(--card-border)' }}>
+            <div style={{ display: 'flex', borderBottom: '1px solid var(--card-border)' }} role="tablist" aria-label="סוגי לייקים">
               <button
                 onClick={() => setTab('matches')}
+                role="tab"
+                aria-selected={tab === 'matches'}
+                aria-controls="tabpanel-likes"
                 style={{
                   flex: 1, padding: '12px', background: 'none', border: 'none',
                   borderBottom: tab === 'matches' ? '2px solid var(--primary)' : '2px solid transparent',
@@ -146,6 +149,9 @@ export default function LikesPage({
               </button>
               <button
                 onClick={() => setTab('received')}
+                role="tab"
+                aria-selected={tab === 'received'}
+                aria-controls="tabpanel-likes"
                 style={{
                   flex: 1, padding: '12px', background: 'none', border: 'none',
                   borderBottom: tab === 'received' ? '2px solid var(--primary)' : '2px solid transparent',
@@ -157,6 +163,9 @@ export default function LikesPage({
               </button>
               <button
                 onClick={() => setTab('sent')}
+                role="tab"
+                aria-selected={tab === 'sent'}
+                aria-controls="tabpanel-likes"
                 style={{
                   flex: 1, padding: '12px', background: 'none', border: 'none',
                   borderBottom: tab === 'sent' ? '2px solid var(--primary)' : '2px solid transparent',
@@ -171,11 +180,11 @@ export default function LikesPage({
             {loading ? (
               <LikesSkeleton />
             ) : (
-              <div className="likes-section">
+              <div className="likes-section" id="tabpanel-likes" role="tabpanel">
                 {tab === 'matches' ? (
                   matches.length === 0 ? (
                     <div style={{ textAlign: 'center', color: 'var(--foreground)', padding: '40px' }}>
-                      <div style={{ marginBottom: '16px', opacity: 0.8, fontSize: '48px' }}>💞</div>
+                      <div style={{ marginBottom: '16px', opacity: 0.8, fontSize: '48px' }} aria-hidden="true">💞</div>
                       <p style={{ fontSize: '16px', fontWeight: 500 }}>עדיין אין התאמות</p>
                       <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '8px' }}>
                         כששני אנשים עושים לייק אחד לשני - זו התאמה!

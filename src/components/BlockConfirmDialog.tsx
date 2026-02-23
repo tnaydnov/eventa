@@ -20,9 +20,9 @@ export default function BlockConfirmDialog({
   onClose,
 }: BlockConfirmDialogProps) {
   return (
-    <AnimatedOverlay isOpen={isOpen} onClose={onClose}>
+    <AnimatedOverlay isOpen={isOpen} onClose={onClose} ariaLabel={`חסימת ${displayName}`}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '40px', marginBottom: '12px' }}>🚫</div>
+        <div style={{ fontSize: '40px', marginBottom: '12px' }} aria-hidden="true">🚫</div>
         <h3 style={{ color: 'var(--danger)', marginBottom: '8px' }}>
           חסימת {displayName}?
         </h3>

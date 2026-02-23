@@ -61,8 +61,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: 'cover',
   themeColor: '#0A0A0A',
   colorScheme: 'dark',
@@ -76,6 +74,7 @@ export default function RootLayout({
   return (
     <html lang="he" dir="rtl" className={`${rubik.variable} ${greatVibes.variable}`}>
       <body className={rubik.className}>
+        <a href="#main-content" className="skip-to-content">דלג לתוכן</a>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -91,7 +90,9 @@ export default function RootLayout({
           }}
         />
         <ErrorBoundary>
-          {children}
+          <main id="main-content">
+            {children}
+          </main>
         </ErrorBoundary>
       </body>
     </html>

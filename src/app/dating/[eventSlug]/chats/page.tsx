@@ -38,7 +38,7 @@ const ChatListItem = memo(function ChatListItem({
   const photoUrl = other.photos.length > 0 ? getPhotoUrl(other.photos[0].storage_path) : null;
   const hasUnread = conv.unreadCount > 0;
   return (
-    <div className="chat-list-item" onClick={onClick}>
+    <div className="chat-list-item" onClick={onClick} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }} role="button" tabIndex={0} aria-label={`שיחה עם ${other.display_name}`}>
       {photoUrl ? (
         <img src={photoUrl} alt={other.display_name} className="chat-avatar" />
       ) : (

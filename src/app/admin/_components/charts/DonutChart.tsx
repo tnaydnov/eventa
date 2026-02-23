@@ -55,7 +55,7 @@ export default function DonutChart({
 
   return (
     <div className="donut-chart">
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="donut-chart__svg">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="donut-chart__svg" role="img" aria-label="תרשים עוגה">
         {/* Background ring */}
         <circle
           cx={cx} cy={cy} r={r}

@@ -58,6 +58,8 @@ export default function PricingPage() {
               {BASE_FEATURES.map((f) => (
                 <li key={f}>
                   <svg
+                    aria-hidden="true"
+                    focusable="false"
                     className="pricing-check"
                     width="18"
                     height="18"
@@ -87,6 +89,8 @@ export default function PricingPage() {
             <a href="/dating/order" className="pricing-card__cta">
               להזמנה
               <svg
+                aria-hidden="true"
+                focusable="false"
                 width="16"
                 height="16"
                 viewBox="0 0 20 20"
@@ -115,6 +119,8 @@ export default function PricingPage() {
               {MSG_FEATURES.map((f) => (
                 <li key={f}>
                   <svg
+                    aria-hidden="true"
+                    focusable="false"
                     className="pricing-check pricing-check--addon"
                     width="18"
                     height="18"

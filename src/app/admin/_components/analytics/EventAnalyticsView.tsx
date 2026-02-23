@@ -125,7 +125,7 @@ export default function EventAnalyticsView({
         </div>
       )}
 
-      {error && <div className="ced-error">{error}</div>}
+      {error && <div className="ced-error" role="alert">{error}</div>}
 
       {/* ═══ TAB: Overview ═══ */}
       {activeTab === 'overview' && (

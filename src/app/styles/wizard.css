@@ -454,6 +454,12 @@
   -webkit-appearance: none;
 }
 
+.wiz-field__input:focus-visible,
+.wiz-field__textarea:focus-visible {
+  outline: 2px solid rgba(212, 165, 154, 0.6);
+  outline-offset: 2px;
+}
+
 .wiz-field__input::placeholder,
 .wiz-field__textarea::placeholder {
   color: rgba(176, 176, 176, 0.35);
@@ -1097,6 +1103,9 @@
   color: var(--danger);
   margin-top: 6px;
   animation: wiz-shake 0.4s ease;
+}
+.wiz-error::before {
+  content: '\26A0\FE0E ';
 }
 
 @keyframes wiz-shake {

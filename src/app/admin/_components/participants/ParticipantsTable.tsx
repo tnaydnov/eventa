@@ -224,7 +224,7 @@ export default function ParticipantsTable({ eventId, isArchived }: ParticipantsT
       )}
 
       {/* ─── Error ─── */}
-      {error && <div className="ced-error">{error}</div>}
+      {error && <div className="ced-error" role="alert">{error}</div>}
 
       {/* ─── Table ─── */}
       {!loading && !error && (
@@ -307,7 +307,7 @@ export default function ParticipantsTable({ eventId, isArchived }: ParticipantsT
       {/* ── Ban confirmation popup ── */}
       {confirmTarget && (
         <div className="admin-overlay" onClick={() => setConfirmTarget(null)}>
-          <div className="admin-dialog" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', textAlign: 'center' }}>
+          <div className="admin-dialog" role="dialog" aria-modal="true" aria-label="אישור חסימת משתתף" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', textAlign: 'center' }}>
             <div style={{ fontSize: '40px', marginBottom: '12px' }}>🚫</div>
             <h3 className="admin-dialog__title" style={{ marginBottom: '8px' }}>
               חסימת {confirmTarget.display_name || 'משתתף/ת'}

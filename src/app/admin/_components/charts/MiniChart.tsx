@@ -67,6 +67,8 @@ export default function MiniChart({
       viewBox={`0 0 ${W} ${H}`}
       className="chart-svg"
       preserveAspectRatio="none"
+      role="img"
+      aria-label="גרף נתונים"
     >
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">

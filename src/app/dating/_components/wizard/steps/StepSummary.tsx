@@ -165,11 +165,13 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
       {/* Contact fields */}
       <div className="wiz-fields">
         <div className="wiz-field">
-          <label className="wiz-field__label">שם מלא *</label>
+          <label className="wiz-field__label" htmlFor="wiz-contact-name">שם מלא *</label>
           <input
+            id="wiz-contact-name"
             className="wiz-field__input"
             type="text"
             placeholder="השם שלכם"
+            autoComplete="name"
             value={state.contactName}
             onChange={e => onChange({ contactName: e.target.value })}
             maxLength={100}
@@ -179,11 +181,13 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
 
         <div className="wiz-field__row">
           <div className="wiz-field">
-            <label className="wiz-field__label">טלפון *</label>
+            <label className="wiz-field__label" htmlFor="wiz-contact-phone">טלפון *</label>
             <input
+              id="wiz-contact-phone"
               className="wiz-field__input"
               type="tel"
               placeholder="050-0000000"
+              autoComplete="tel"
               value={state.contactPhone}
               onChange={e => onChange({ contactPhone: e.target.value })}
               maxLength={30}
@@ -193,11 +197,13 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
           </div>
 
           <div className="wiz-field">
-            <label className="wiz-field__label">אימייל</label>
+            <label className="wiz-field__label" htmlFor="wiz-contact-email">אימייל</label>
             <input
+              id="wiz-contact-email"
               className="wiz-field__input"
               type="email"
               placeholder="mail@example.com"
+              autoComplete="email"
               value={state.contactEmail}
               onChange={e => onChange({ contactEmail: e.target.value })}
               maxLength={254}

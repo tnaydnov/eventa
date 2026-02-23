@@ -42,6 +42,8 @@ export default function NetworkStatus() {
 
   return (
     <div
+      role="alert"
+      aria-live="assertive"
       style={{
         position: 'fixed',
         top: 'env(safe-area-inset-top, 0px)',

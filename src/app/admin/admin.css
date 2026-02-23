@@ -13,7 +13,7 @@
   --admin-border-light: #3b4255;
   --admin-text: #e5e7eb;
   --admin-text-muted: #8b92a5;
-  --admin-text-dim: #5e6579;
+  --admin-text-dim: #8b93ab;
   --admin-accent: #6366f1;
   --admin-accent-hover: #818cf8;
   --admin-accent-dim: rgba(99, 102, 241, 0.12);
@@ -577,6 +577,11 @@
   border-color: var(--admin-accent);
 }
 
+.admin-input:focus-visible {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: 2px;
+}
+
 .admin-input::placeholder {
   color: var(--admin-text-muted);
   opacity: 0.6;
@@ -614,6 +619,11 @@
 
 .admin-select:focus {
   border-color: var(--admin-accent);
+}
+
+.admin-select:focus-visible {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: 2px;
 }
 
 /* ═══════════════════════════════
