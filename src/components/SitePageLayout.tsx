@@ -77,6 +77,7 @@ export default function SitePageLayout({
           <Link href="/privacy">מדיניות פרטיות</Link>
           <Link href="/terms">תנאי שימוש</Link>
           <Link href="/cookies">מדיניות עוגיות</Link>
+          <Link href="/accessibility">הצהרת נגישות</Link>
         </div>
         <p className="site-page__footer-copy">
           © {new Date().getFullYear()} Eventa. כל הזכויות שמורות.

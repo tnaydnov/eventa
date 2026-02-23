@@ -102,6 +102,7 @@ export default function HomePage() {
           <Link href="/privacy">מדיניות פרטיות</Link>
           <Link href="/terms">תנאי שימוש</Link>
           <Link href="/cookies">מדיניות עוגיות</Link>
+          <Link href="/accessibility">הצהרת נגישות</Link>
         </div>
         <div className="hp__footer-copy">
           <span>© {new Date().getFullYear()}</span>

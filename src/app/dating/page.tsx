@@ -307,6 +307,7 @@ export default function LandingPage() {
           <a href="/privacy">מדיניות פרטיות</a>
           <a href="/terms">תנאי שימוש</a>
           <a href="/cookies">מדיניות עוגיות</a>
+          <a href="/accessibility">הצהרת נגישות</a>
         </div>
         <p className="landing-footer__copy">
           © {new Date().getFullYear()} Eventa. כל הזכויות שמורות.
