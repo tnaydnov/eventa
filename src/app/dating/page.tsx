@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 
@@ -43,6 +43,7 @@ const FEATURES = [
 
 export default function LandingPage() {
   const revealRef = useRef<HTMLDivElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   /* ── Scroll-reveal observer ── */
   useEffect(() => {
@@ -72,11 +73,30 @@ export default function LandingPage() {
           />
         </div>
         <div className="landing-nav__links">
-          <button className="landing-nav__link" onClick={() => scrollTo('features')}>מה זה?</button>
-          <button className="landing-nav__link" onClick={() => scrollTo('demo')}>דמו חי</button>
+          <a className="landing-nav__link" href="/how-it-works">איך זה עובד</a>
+          <a className="landing-nav__link" href="/faq">שאלות נפוצות</a>
           <a className="landing-nav__link" href="/pricing">מחירון</a>
         </div>
         <a className="landing-nav__cta" href="/dating/order">הזמינו עכשיו</a>
+
+        {/* Mobile hamburger */}
+        <button
+          className={`landing-nav__burger${menuOpen ? ' open' : ''}`}
+          onClick={() => setMenuOpen(o => !o)}
+          aria-label="תפריט"
+          aria-expanded={menuOpen}
+        >
+          <span /><span /><span />
+        </button>
+
+        {menuOpen && (
+          <div className="landing-nav__mobile-menu">
+            <a href="/how-it-works" onClick={() => setMenuOpen(false)}>איך זה עובד</a>
+            <a href="/faq" onClick={() => setMenuOpen(false)}>שאלות נפוצות</a>
+            <a href="/pricing" onClick={() => setMenuOpen(false)}>מחירון</a>
+            <a href="/dating/order" className="landing-nav__mobile-cta" onClick={() => setMenuOpen(false)}>הזמינו עכשיו</a>
+          </div>
+        )}
       </nav>
 
       {/* ═══ Hero ═══ */}

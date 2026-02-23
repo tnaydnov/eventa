@@ -281,7 +281,7 @@ export default function JoinPage({
             )}
           </div>
           <span style={{ fontSize: '14px', textAlign: 'start' }}>
-            אני מסכים/ה ל<a href="/terms" target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }} onClick={(e) => e.stopPropagation()}>תנאי השימוש</a> ו<a href="/privacy" target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }} onClick={(e) => e.stopPropagation()}>מדיניות הפרטיות</a>
+            אני מסכים/ה ל<a href="/terms" target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }} onClick={(e) => e.stopPropagation()}>תנאי השימוש</a>, <a href="/privacy" target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }} onClick={(e) => e.stopPropagation()}>מדיניות הפרטיות</a> ו<a href="/cookies" target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }} onClick={(e) => e.stopPropagation()}>מדיניות העוגיות</a>
           </span>
         </div>
 

@@ -23,14 +23,6 @@ test.describe('Landing & Static Pages', () => {
     await expect(orderSection).toBeAttached();
   });
 
-  test('E-LP-03: About page renders', async ({ page }) => {
-    await page.goto('/about');
-    await expect(page).toHaveURL(/about/);
-    await expect(page.locator('main')).toBeVisible();
-    const text = await page.textContent('body');
-    expect(text?.length).toBeGreaterThan(50);
-  });
-
   test('E-LP-04: FAQ page renders with questions', async ({ page }) => {
     await page.goto('/faq');
     await expect(page).toHaveURL(/faq/);
@@ -54,18 +46,6 @@ test.describe('Landing & Static Pages', () => {
   test('E-LP-07: Cookies page renders', async ({ page }) => {
     await page.goto('/cookies');
     await expect(page).toHaveURL(/cookies/);
-    await expect(page.locator('main')).toBeVisible();
-  });
-
-  test('E-LP-08: Safety page renders', async ({ page }) => {
-    await page.goto('/safety');
-    await expect(page).toHaveURL(/safety/);
-    await expect(page.locator('main')).toBeVisible();
-  });
-
-  test('E-LP-09: Community page renders', async ({ page }) => {
-    await page.goto('/community');
-    await expect(page).toHaveURL(/community/);
     await expect(page.locator('main')).toBeVisible();
   });
 

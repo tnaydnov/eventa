@@ -278,6 +278,15 @@ export default function ProfileEditPage({
               {isSubmitting ? 'שומר...' : 'שמירת שינויים'}
             </button>
 
+            {/* ─── Legal Links ─── */}
+            <div className="profile-edit-legal">
+              <a href="/terms" target="_blank" rel="noopener noreferrer">תנאי שימוש</a>
+              <span className="profile-edit-legal__sep">·</span>
+              <a href="/privacy" target="_blank" rel="noopener noreferrer">מדיניות פרטיות</a>
+              <span className="profile-edit-legal__sep">·</span>
+              <a href="/cookies" target="_blank" rel="noopener noreferrer">עוגיות</a>
+            </div>
+
             {/* ─── Danger Zone ─── */}
             <div className="profile-edit-danger-zone">
               <button

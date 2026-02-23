@@ -1020,13 +1020,10 @@ __tests__/
 |----|------|-------|----------|
 | E-LP-01 | Landing page loads | Navigate to `/` | Hero section visible, CTA button present |
 | E-LP-02 | Order form | Navigate to `/` → fill form → submit | Success toast, email sent |
-| E-LP-03 | About page | Navigate to `/about` | Content renders |
 | E-LP-04 | FAQ page | Navigate to `/faq` | Questions visible |
 | E-LP-05 | Privacy page | Navigate to `/privacy` | Legal text renders |
 | E-LP-06 | Terms page | Navigate to `/terms` | Legal text renders |
 | E-LP-07 | Cookies page | Navigate to `/cookies` | Policy renders |
-| E-LP-08 | Safety page | Navigate to `/safety` | Content renders |
-| E-LP-09 | Community page | Navigate to `/community` | Content renders |
 | E-LP-10 | 404 page | Navigate to `/nonexistent` | Custom 404 shown |
 | E-LP-11 | Sitemap | Fetch `/sitemap.xml` | Valid XML with all routes |
 

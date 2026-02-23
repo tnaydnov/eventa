@@ -67,13 +67,10 @@ Everything lives in one Next.js repository:
 /dating/[eventSlug]/banned           → Client: ban screen
 /dating/[eventSlug]/unavailable      → Client: event ended screen
 /admin                               → Client: admin dashboard (SPA)
-/about                               → SSR: about page
 /faq                                 → SSR: FAQ page
 /privacy                             → SSR: privacy policy
 /terms                               → SSR: terms of service
-/safety                              → SSR: safety tips
 /cookies                             → SSR: cookie policy
-/community                           → SSR: community guidelines
 ```
 
 ### 3.3 The Event-Scoped Layout Shell
