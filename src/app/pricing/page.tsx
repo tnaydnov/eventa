@@ -160,6 +160,29 @@ export default function PricingPage() {
           {' '}או{' '}
           <a href="/dating#order">צרו איתנו קשר</a>
         </div>
+
+        {/* Legal disclosure */}
+        <div className="pricing-disclosure">
+          <h2 className="pricing-disclosure__title">פרטי תשלום ומדיניות</h2>
+          <ul className="pricing-disclosure__list">
+            <li>
+              <strong>מחירים:</strong> המחירים המוצגים הם המחירים הסופיים. אין חיוב במע&quot;מ (המפעיל אינו עוסק מורשה בשלב זה).
+            </li>
+            <li>
+              <strong>אין עלויות נוספות</strong> מעבר למחירים המוצגים בעמוד זה.
+            </li>
+            <li>
+              <strong>מה כלול:</strong> תשלום חד-פעמי לאירוע הכולל אפליקציית היכרויות מותאמת, פוסטר דיגיטלי מעוצב עם QR, ומחיקה אוטומטית בתום האירוע.
+            </li>
+            <li>
+              <strong>אופן התשלום:</strong> התשלום מתבצע לאחר יצירת קשר עם המפעיל, באמצעות BIT או PayBox. אין סליקה באתר.
+            </li>
+            <li>
+              <strong>ביטולים:</strong> ניתן לבטל ללא חיוב עד 24 שעות לפני האירוע.
+              לפרטים מלאים ראו <a href="/terms">תנאי שימוש</a> סעיף 20.
+            </li>
+          </ul>
+        </div>
       </div>
     </SitePageLayout>
   );

@@ -173,6 +173,10 @@ export default function TermsContent() {
           המפעיל עושה מאמץ לספק שירות תקין, אך השירות מסופק <strong>&quot;כמות שהוא&quot; (AS IS)</strong> וללא
           התחייבות לזמינות רציפה, תמיכה בזמן אמת, או חוויית שימוש ללא תקלות - במיוחד בעומסים.
         </p>
+        <p style={textStyle}>
+          השירות הוא זמני מטבעו ואינו מבטיח שמירת מידע לצמיתות.
+          ייתכן שמידע יימחק אוטומטית או עקב תחזוקה, תקלה או שינוי במערכת.
+        </p>
       </div>
 
       {/* 12 */}
@@ -238,13 +242,52 @@ export default function TermsContent() {
       </div>
 
       {/* 18 */}
-      <div style={{ ...sectionStyle, marginBottom: 0 }}>
+      <div style={sectionStyle}>
         <h2 style={headingStyle}>18. יצירת קשר</h2>
         <p style={textStyle}>
           לשאלות בנוגע לתנאים או לשירות, ניתן לפנות למפעיל השירות באמצעי הקשר המופיעים בשירות.
         </p>
         <p style={textStyle}>
           דוא&quot;ל: <span style={linkColor}>contact@eventa.productions</span>
+        </p>
+      </div>
+
+      {/* 19 */}
+      <div style={sectionStyle}>
+        <h2 style={headingStyle}>19. הצהרת נגישות</h2>
+        <p style={textStyle}>
+          אנו פועלים להנגיש את השירות בהתאם לתקנות הנגישות החלות בישראל
+          (תקן 5568 מבוסס WCAG 2.0 AA), במידת סבירות ביחס לאופי השירות הזמני.
+        </p>
+        <p style={textStyle}>
+          בכל שאלה, בקשה או דיווח על ליקוי נגישות ניתן לפנות אלינו
+          בדוא&quot;ל: <span style={linkColor}>contact@eventa.productions</span>.
+        </p>
+      </div>
+
+      {/* 20 */}
+      <div style={{ ...sectionStyle, marginBottom: 0 }}>
+        <h2 style={headingStyle}>20. מדיניות ביטולים והחזרים</h2>
+        <p style={textStyle}>
+          השירות מסופק בתשלום חד-פעמי לאירוע. להלן מדיניות הביטול:
+        </p>
+        <ul style={listStyle}>
+          <li style={liStyle}>
+            <strong>ביטול עד 24 שעות לפני האירוע</strong> — ניתן לבטל ללא חיוב. יינתן החזר מלא.
+          </li>
+          <li style={liStyle}>
+            <strong>ביטול בתוך 24 השעות שלפני האירוע</strong> — ייתכנו דמי ביטול בגובה 50% מהתשלום, בהתאם לשיקול דעת המפעיל.
+          </li>
+          <li style={liStyle}>
+            <strong>לאחר תחילת האירוע</strong> — לא יינתן החזר כספי.
+          </li>
+          <li style={liStyle}>
+            <strong>ביטול אירוע על-ידי המפעיל</strong> — במקרה שהמפעיל מבטל את השירות, יינתן החזר מלא.
+          </li>
+        </ul>
+        <p style={textStyle}>
+          לביטול יש לפנות בדוא&quot;ל: <span style={linkColor}>contact@eventa.productions</span>.
+          ההחזר יבוצע באותו אמצעי תשלום בו שולם, תוך 14 ימי עסקים.
         </p>
       </div>
     </>
