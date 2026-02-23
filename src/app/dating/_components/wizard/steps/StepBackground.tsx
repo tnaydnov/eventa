@@ -3,6 +3,7 @@
 import { useRef, useCallback } from 'react';
 import type { WizardFormState } from '../wizard-config';
 import WizardIcon from '../WizardIcons';
+import BackgroundPreview from './BackgroundPreview';
 
 interface Props {
   state: WizardFormState;
@@ -145,6 +146,12 @@ export default function StepBackground({ state, onChange }: Props) {
           </button>
         </div>
       )}
+
+      {/* Phone mockup preview */}
+      <BackgroundPreview
+        backgroundPreview={state.backgroundPreview ?? null}
+        wantsCustomBackground={!!state.wantsCustomBackground}
+      />
     </div>
   );
 }
