@@ -7,6 +7,7 @@ import { joinEvent } from '@/lib/api';
 import { getDeviceIdentifiers } from '@/lib/device-fingerprint';
 import { PageTransition } from '@/components/Animations';
 import MobileGuard from '@/components/MobileGuard';
+import LegalDrawer from '@/components/LegalDrawer';
 
 /** Detect in-app browsers / QR scanner WebViews that don't persist cookies */
 function isInAppBrowser(): boolean {
@@ -44,6 +45,7 @@ export default function JoinPage({
   const setParticipant = useSessionStore((s) => s.setParticipant);
 
   const [agreed, setAgreed] = useState(false);
+  const [legalPage, setLegalPage] = useState<'terms' | 'privacy' | 'cookies' | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [inAppBrowser, setInAppBrowser] = useState(false);
@@ -281,7 +283,7 @@ export default function JoinPage({
             )}
           </div>
           <span style={{ fontSize: '14px', textAlign: 'start' }}>
-            אני מסכים/ה ל<a href="/terms" target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }} onClick={(e) => e.stopPropagation()}>תנאי השימוש</a>, <a href="/privacy" target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }} onClick={(e) => e.stopPropagation()}>מדיניות הפרטיות</a> ו<a href="/cookies" target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }} onClick={(e) => e.stopPropagation()}>מדיניות העוגיות</a>
+            אני מסכים/ה ל<button type="button" style={{ color: 'var(--primary)', textDecoration: 'underline', background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); setLegalPage('terms'); }}>תנאי השימוש</button>, <button type="button" style={{ color: 'var(--primary)', textDecoration: 'underline', background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); setLegalPage('privacy'); }}>מדיניות הפרטיות</button> ו<button type="button" style={{ color: 'var(--primary)', textDecoration: 'underline', background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); setLegalPage('cookies'); }}>מדיניות העוגיות</button>
           </span>
         </div>
 
@@ -300,6 +302,8 @@ export default function JoinPage({
       </div>
         )}
       </PageTransition>
+
+      <LegalDrawer page={legalPage} onClose={() => setLegalPage(null)} />
     </MobileGuard>
   );
 }

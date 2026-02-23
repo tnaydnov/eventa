@@ -10,6 +10,7 @@ import { profileSetupSchema, type ProfileSetupData } from '@/lib/validations';
 import { PageTransition } from '@/components/Animations';
 import MobileGuard from '@/components/MobileGuard';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import LegalDrawer from '@/components/LegalDrawer';
 import { EditIcon, HeartIcon } from '@/components/Icons';
 import ProfilePhotoGrid from './_components/ProfilePhotoGrid';
 import DeleteAccountDialog from './_components/DeleteAccountDialog';
@@ -29,6 +30,7 @@ export default function ProfileEditPage({
   const setStorePhotos = useSessionStore((s) => s.setPhotos);
   const toast = useToastStore((s) => s.show);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [legalPage, setLegalPage] = useState<'terms' | 'privacy' | 'cookies' | null>(null);
 
   // Track original gender/attraction to detect changes
   const [originalGender, setOriginalGender] = useState<Gender | null>(null);
@@ -280,11 +282,11 @@ export default function ProfileEditPage({
 
             {/* ─── Legal Links ─── */}
             <div className="profile-edit-legal">
-              <a href="/terms" target="_blank" rel="noopener noreferrer">תנאי שימוש</a>
+              <button type="button" onClick={() => setLegalPage('terms')}>תנאי שימוש</button>
               <span className="profile-edit-legal__sep">·</span>
-              <a href="/privacy" target="_blank" rel="noopener noreferrer">מדיניות פרטיות</a>
+              <button type="button" onClick={() => setLegalPage('privacy')}>מדיניות פרטיות</button>
               <span className="profile-edit-legal__sep">·</span>
-              <a href="/cookies" target="_blank" rel="noopener noreferrer">עוגיות</a>
+              <button type="button" onClick={() => setLegalPage('cookies')}>עוגיות</button>
             </div>
 
             {/* ─── Danger Zone ─── */}
@@ -309,6 +311,8 @@ export default function ProfileEditPage({
           onDeleted={handleAccountDeleted}
         />
       )}
+
+      <LegalDrawer page={legalPage} onClose={() => setLegalPage(null)} />
     </MobileGuard>
   );
 }

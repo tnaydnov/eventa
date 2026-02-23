@@ -24,9 +24,14 @@ const liStyle: React.CSSProperties = { marginBottom: '8px' };
 const boldText: React.CSSProperties = { ...textStyle, fontWeight: 600, marginTop: '14px' };
 const linkColor: React.CSSProperties = { color: '#d4a59a', fontWeight: 500 };
 
-export default function PrivacyPage() {
+export default async function PrivacyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ embed?: string }>;
+}) {
+  const { embed } = await searchParams;
   return (
-    <SitePageLayout title="מדיניות פרטיות" updatedAt="פברואר 2026">
+    <SitePageLayout title="מדיניות פרטיות" updatedAt="פברואר 2026" minimal={embed === '1'}>
 
       {/* מבוא */}
       <div style={sectionStyle}>

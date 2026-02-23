@@ -28,9 +28,14 @@ const tdStyle: React.CSSProperties = {
 };
 const boldText: React.CSSProperties = { ...textStyle, fontWeight: 600, marginTop: '14px' };
 
-export default function CookiesPage() {
+export default async function CookiesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ embed?: string }>;
+}) {
+  const { embed } = await searchParams;
   return (
-    <SitePageLayout title="מדיניות עוגיות" updatedAt="פברואר 2026">
+    <SitePageLayout title="מדיניות עוגיות" updatedAt="פברואר 2026" minimal={embed === '1'}>
 
       {/* Intro */}
       <div style={sectionStyle}>
