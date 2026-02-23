@@ -1,9 +1,10 @@
 'use client';
 
-import { useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import type { WizardFormState } from '../wizard-config';
 import WizardIcon from '../WizardIcons';
 import BackgroundPreview from './BackgroundPreview';
+import ImageCropper from '@/components/ImageCropper';
 
 interface Props {
   state: WizardFormState;
@@ -15,6 +16,8 @@ const MAX_BG_SIZE = 5 * 1024 * 1024;
 
 export default function StepBackground({ state, onChange }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [cropFileName, setCropFileName] = useState('background.jpg');
 
   const handleFile = useCallback(
     (file: File) => {
@@ -27,18 +30,15 @@ export default function StepBackground({ state, onChange }: Props) {
         return;
       }
 
+      // Open the cropper instead of auto-cropping
       const reader = new FileReader();
       reader.onload = () => {
-        const base64 = reader.result as string;
-        onChange({
-          wantsCustomBackground: true,
-          backgroundPreview: base64,
-          backgroundBase64: base64,
-        });
+        setCropSrc(reader.result as string);
+        setCropFileName(file.name);
       };
       reader.readAsDataURL(file);
     },
-    [onChange]
+    []
   );
 
   const handleDrop = useCallback(
@@ -147,10 +147,35 @@ export default function StepBackground({ state, onChange }: Props) {
         </div>
       )}
 
+      {/* Image Cropper */}
+      {cropSrc && (
+        <ImageCropper
+          imageSrc={cropSrc}
+          aspect={9 / 16}
+          cropShape="rect"
+          fileName={cropFileName}
+          onCropDone={(croppedFile) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const base64 = reader.result as string;
+              onChange({
+                wantsCustomBackground: true,
+                backgroundPreview: base64,
+                backgroundBase64: base64,
+              });
+            };
+            reader.readAsDataURL(croppedFile);
+            setCropSrc(null);
+          }}
+          onCancel={() => setCropSrc(null)}
+        />
+      )}
+
       {/* Phone mockup preview */}
       <BackgroundPreview
         backgroundPreview={state.backgroundPreview ?? null}
         wantsCustomBackground={!!state.wantsCustomBackground}
+        eventName={state.eventName}
       />
     </div>
   );
