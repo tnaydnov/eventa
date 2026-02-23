@@ -15,7 +15,6 @@ export default function SitePageLayout({
   title,
   updatedAt,
   wide = false,
-  minimal = false,
   className,
 }: {
   children: ReactNode;
@@ -24,23 +23,9 @@ export default function SitePageLayout({
   updatedAt?: string;
   /** Use wider container (e.g. for pricing / how-it-works). Default: 640px. */
   wide?: boolean;
-  /** Embed mode — title + content only, no header/footer (used in LegalDrawer). */
-  minimal?: boolean;
   /** Extra className on the outermost div (for page-specific selectors). */
   className?: string;
 }) {
-  if (minimal) {
-    return (
-      <div dir="rtl" className={`site-page site-page--minimal${className ? ` ${className}` : ''}`}>
-        {title && <h1 className="site-page__title">{title}</h1>}
-        {updatedAt && <p className="site-page__updated">עודכן לאחרונה: {updatedAt}</p>}
-        <main className={`site-page__content${wide ? ' site-page__content--wide' : ''}`}>
-          {children}
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div dir="rtl" className={`site-page${className ? ` ${className}` : ''}`}>
       {/* Header */}

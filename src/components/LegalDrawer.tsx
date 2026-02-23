@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import TermsContent from '@/app/terms/TermsContent';
+import PrivacyContent from '@/app/privacy/PrivacyContent';
+import CookiesContent from '@/app/cookies/CookiesContent';
 
 const PAGES: Record<string, string> = {
   terms: 'תנאי שימוש',
@@ -8,9 +11,15 @@ const PAGES: Record<string, string> = {
   cookies: 'מדיניות עוגיות',
 };
 
+const CONTENT: Record<string, React.FC> = {
+  terms: TermsContent,
+  privacy: PrivacyContent,
+  cookies: CookiesContent,
+};
+
 /**
- * Full-screen overlay that embeds a legal page (terms / privacy / cookies)
- * via iframe in ?embed=1 mode (no header/footer).
+ * Full-screen slide-up overlay that renders legal page content
+ * (terms / privacy / cookies) directly inside a scrollable drawer.
  * Used inside the event app so users can read and close without leaving.
  */
 export default function LegalDrawer({
@@ -39,6 +48,8 @@ export default function LegalDrawer({
 
   if (!page) return null;
 
+  const ContentComponent = CONTENT[page];
+
   return (
     <div
       ref={overlayRef}
@@ -61,12 +72,10 @@ export default function LegalDrawer({
           </button>
         </div>
 
-        {/* Iframe content */}
-        <iframe
-          className="legal-drawer__iframe"
-          src={`/${page}?embed=1`}
-          title={PAGES[page]}
-        />
+        {/* Scrollable content */}
+        <div className="legal-drawer__body" dir="rtl">
+          <ContentComponent />
+        </div>
       </div>
     </div>
   );
