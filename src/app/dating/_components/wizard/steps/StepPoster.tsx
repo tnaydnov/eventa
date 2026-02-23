@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import type { WizardFormState, PosterTemplate } from '../wizard-config';
 import { getTemplatesForType } from '../wizard-config';
 import WizardIcon from '../WizardIcons';
@@ -152,8 +153,8 @@ export default function StepPoster({ state, onChange }: Props) {
         />
       </div>
 
-      {/* Full-screen preview modal */}
-      {previewSrc && (
+      {/* Full-screen preview modal — portaled to body to bypass parent transforms */}
+      {previewSrc && createPortal(
         <div className="wiz-poster-modal" onClick={closePreview}>
           <button type="button" className="wiz-poster-modal__close" onClick={closePreview} aria-label="סגור תצוגה מקדימה">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -165,7 +166,8 @@ export default function StepPoster({ state, onChange }: Props) {
             <img src={previewSrc} alt={previewLabel} className="wiz-poster-modal__img" />
             <span className="wiz-poster-modal__label">{previewLabel}</span>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

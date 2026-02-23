@@ -62,13 +62,6 @@
       "label": "Sleek",
       "types": ["corporate"],
       "hasNameSlot": false
-    },
-    {
-      "id": "shared-universal",
-      "file": "shared/universal.jpg",
-      "label": "Universal",
-      "types": ["*"],
-      "hasNameSlot": true
     }
   ]
 }
