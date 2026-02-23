@@ -628,7 +628,7 @@
   background: rgba(10,10,10,0.75); backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(255,255,255,0.10);
 }
-.demo-header h1 { font-size: 17px; font-weight: 600; margin: 0; flex: 1; text-align: center; }
+.demo-header h1 { font-family: var(--font-script, 'Great Vibes', cursive); font-size: 24px; font-weight: 400; margin: 0; flex: 1; text-align: center; letter-spacing: 0.5px; direction: ltr; }
 .demo-header-btn { border: none; background: none; color: var(--text-muted); cursor: pointer; padding: 4px; display: flex; align-items: center; }
 
 /* ── Tab Bar (matches real .tab-bar - 3 buttons, flex-col, 10px label, 22px icon) ── */

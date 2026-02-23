@@ -194,7 +194,7 @@ export default function DemoPhone() {
   // ── Header (exact match of AppHeader.tsx) ──
   const renderHeader = () => (
     <header className="demo-header">
-      <h1>החתונה של דנה ואיתי 💍</h1>
+      <h1>Dana & Itai</h1>
       <button className="demo-header-btn" onClick={() => setScreen('profile')}>{I.person}</button>
     </header>
   );
