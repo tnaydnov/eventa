@@ -216,7 +216,7 @@ export default function LandingPage() {
               </svg>
             </div>
             <h3 className="quicklink-card__title">מחירון</h3>
-            <p className="quicklink-card__desc">תמחור שקוף — ₪250 לאירוע</p>
+            <p className="quicklink-card__desc">תמחור שקוף - ₪250 לאירוע</p>
             <span className="quicklink-card__arrow">&larr;</span>
           </a>
         </div>

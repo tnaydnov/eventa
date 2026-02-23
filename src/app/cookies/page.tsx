@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import LegalPageLayout from '@/components/LegalPageLayout';
+import SitePageLayout from '@/components/SitePageLayout';
 
 export const metadata: Metadata = {
   title: 'מדיניות עוגיות | Eventa',
@@ -30,7 +30,7 @@ const boldText: React.CSSProperties = { ...textStyle, fontWeight: 600, marginTop
 
 export default function CookiesPage() {
   return (
-    <LegalPageLayout title="מדיניות עוגיות" updatedAt="פברואר 2026">
+    <SitePageLayout title="מדיניות עוגיות" updatedAt="פברואר 2026">
 
       {/* Intro */}
       <div style={sectionStyle}>
@@ -90,6 +90,6 @@ export default function CookiesPage() {
         </p>
       </div>
 
-    </LegalPageLayout>
+    </SitePageLayout>
   );
 }

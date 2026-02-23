@@ -3,15 +3,10 @@
    Vertical timeline with scroll-reveal stages
    ═══════════════════════════════════════════ */
 
-/* ── Page shell ── */
+/* ── Page shell (className on SitePageLayout) ── */
 .hiw {
   position: relative;
-  min-height: 100dvh;
-  background: #141212;
-  color: #f0ede8;
-  font-family: var(--font-rubik, 'Rubik', 'Segoe UI', sans-serif);
   overflow-x: hidden;
-  direction: rtl;
 }
 
 /* ── Ambient background ── */
@@ -62,42 +57,15 @@
   50% { transform: translate(20px, -30px); }
 }
 
-/* ═══ Hero ═══ */
-.hiw__hero {
+/* ═══ Hero intro ═══ */
+.hiw__hero-intro {
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 64px 24px 40px;
-}
-
-.hiw__back {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(240, 237, 232, 0.6);
-  text-decoration: none;
-  transition: all 0.25s ease;
-}
-
-.hiw__back:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #f0ede8;
-}
-
-.hiw__hero-logo {
-  margin-bottom: 24px;
-  opacity: 0.8;
+  padding: 32px 24px 40px;
 }
 
 .hiw__hero-title {
@@ -370,25 +338,10 @@
   transform: translateY(0);
 }
 
-/* ═══ Footer ═══ */
-.hiw__footer {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  padding: 24px;
-  font-size: 12px;
-  color: rgba(176, 176, 176, 0.4);
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.hiw__footer p {
-  margin: 0;
-}
-
 /* ═══ Responsive ═══ */
 @media (max-width: 480px) {
-  .hiw__hero {
-    padding: 48px 20px 32px;
+  .hiw__hero-intro {
+    padding: 24px 20px 32px;
   }
 
   .hiw__hero-title {

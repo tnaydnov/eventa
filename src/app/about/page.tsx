@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import LegalPageLayout from '@/components/LegalPageLayout';
+import SitePageLayout from '@/components/SitePageLayout';
 
 export const metadata: Metadata = {
   title: 'אודות | Eventa',
@@ -21,7 +21,7 @@ const linkColor: React.CSSProperties = { color: '#d4a59a', fontWeight: 500 };
 
 export default function AboutPage() {
   return (
-    <LegalPageLayout title="אודות Eventa">
+    <SitePageLayout title="אודות Eventa">
 
       <p style={highlightStyle}>
         Eventa הוא שירות עצמאי שנועד להפוך אירועים לחוויה חברתית יותר -
@@ -36,6 +36,6 @@ export default function AboutPage() {
         ליצירת קשר - השתמשו באמצעי הקשר המופיעים בשירות, או שלחו מייל ל-<span style={linkColor}>contact@eventa.productions</span>.
       </p>
 
-    </LegalPageLayout>
+    </SitePageLayout>
   );
 }

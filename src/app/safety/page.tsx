@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import LegalPageLayout from '@/components/LegalPageLayout';
+import SitePageLayout from '@/components/SitePageLayout';
 
 export const metadata: Metadata = {
   title: 'טיפים לבטיחות | Eventa',
@@ -31,7 +31,7 @@ const tips = [
 
 export default function SafetyPage() {
   return (
-    <LegalPageLayout title="טיפים לבטיחות">
+    <SitePageLayout title="טיפים לבטיחות">
 
       {tips.map((tip, i) => (
         <div key={i} style={tipStyle}>
@@ -40,6 +40,6 @@ export default function SafetyPage() {
         </div>
       ))}
 
-    </LegalPageLayout>
+    </SitePageLayout>
   );
 }

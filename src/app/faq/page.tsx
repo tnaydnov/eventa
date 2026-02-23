@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import LegalPageLayout from '@/components/LegalPageLayout';
+import SitePageLayout from '@/components/SitePageLayout';
 
 export const metadata: Metadata = {
   title: 'שאלות נפוצות | Eventa',
@@ -42,7 +42,7 @@ const faqs = [
   },
   {
     q: 'מה קורה עם הפוסטר / ה-QR?',
-    a: 'לאחר אישור ההזמנה, אנחנו שולחים לכם פוסטר מעוצב עם קוד QR + לינק הצטרפות כקובץ דיגיטלי. ההדפסה והמיקום באירוע באחריותכם — שימו בכניסה, על הבר, במסך, בסטורי, איפה שבא לכם.',
+    a: 'לאחר אישור ההזמנה, אנחנו שולחים לכם פוסטר מעוצב עם קוד QR + לינק הצטרפות כקובץ דיגיטלי. ההדפסה והמיקום באירוע באחריותכם - שימו בכניסה, על הבר, במסך, בסטורי, איפה שבא לכם.',
   },
   {
     q: 'אפשר להתאים את העיצוב לאירוע?',
@@ -85,7 +85,7 @@ export default function FaqPage() {
   };
 
   return (
-    <LegalPageLayout title="שאלות נפוצות">
+    <SitePageLayout title="שאלות נפוצות">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -98,6 +98,6 @@ export default function FaqPage() {
         </div>
       ))}
 
-    </LegalPageLayout>
+    </SitePageLayout>
   );
 }

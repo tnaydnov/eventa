@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import LegalPageLayout from '@/components/LegalPageLayout';
+import SitePageLayout from '@/components/SitePageLayout';
 
 export const metadata: Metadata = {
   title: 'מדיניות פרטיות | Eventa',
@@ -26,7 +26,7 @@ const linkColor: React.CSSProperties = { color: '#d4a59a', fontWeight: 500 };
 
 export default function PrivacyPage() {
   return (
-    <LegalPageLayout title="מדיניות פרטיות" updatedAt="פברואר 2026">
+    <SitePageLayout title="מדיניות פרטיות" updatedAt="פברואר 2026">
 
       {/* מבוא */}
       <div style={sectionStyle}>
@@ -239,6 +239,6 @@ export default function PrivacyPage() {
         </p>
       </div>
 
-    </LegalPageLayout>
+    </SitePageLayout>
   );
 }

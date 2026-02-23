@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
+import SitePageLayout from '@/components/SitePageLayout';
 
 export const metadata: Metadata = {
   title: 'מחירון | Eventa',
   description:
-    'מחירון שירותי Eventa — חבילת אירוע בסיסית וסרוויסים נוספים. תמחור פשוט ושקוף.',
+    'מחירון שירותי Eventa - חבילת אירוע בסיסית וסרוויסים נוספים. תמחור פשוט ושקוף.',
   alternates: { canonical: 'https://www.eventa.productions/pricing' },
 };
 
@@ -22,40 +23,22 @@ const BASE_FEATURES = [
 
 const MSG_FEATURES = [
   'שליחת הודעות WhatsApp לאורחים',
-  'קישור אישי להצטרפות — ללא צורך ב-QR',
+  'קישור אישי להצטרפות - ללא צורך ב-QR',
   'העלאת רשימת טלפונים מ-Excel',
 ];
 
 export default function PricingPage() {
   return (
-    <div className="pricing-page" dir="rtl">
+    <SitePageLayout wide className="pricing-page">
       {/* Background glow */}
       <div className="pricing-glow" />
-
-      {/* Header */}
-      <header className="pricing-header">
-        <a href="/dating" className="pricing-header__logo" aria-label="חזרה לדף הראשי">
-          <img
-            src="/icons/Eventa_Logo.png"
-            alt="Eventa"
-            width={110}
-            height={37}
-            style={{ objectFit: 'contain' as const }}
-          />
-        </a>
-        <a href="/dating" className="pricing-header__back" aria-label="חזרה">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 18l6-6-6-6" />
-          </svg>
-        </a>
-      </header>
 
       <div className="pricing-content">
         <h1 className="pricing-title">
           תמחור <span className="pricing-title__accent">פשוט ושקוף</span>
         </h1>
         <p className="pricing-subtitle">
-          בלי הפתעות, בלי עלויות נסתרות. חבילה אחת שכוללת הכל — ותוספת אופציונלית למי
+          בלי הפתעות, בלי עלויות נסתרות. חבילה אחת שכוללת הכל - ותוספת אופציונלית למי
           שרוצה עוד.
         </p>
 
@@ -178,11 +161,6 @@ export default function PricingPage() {
           <a href="/dating#order">צרו איתנו קשר</a>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="pricing-footer">
-        <p>© {new Date().getFullYear()} Eventa. כל הזכויות שמורות.</p>
-      </footer>
-    </div>
+    </SitePageLayout>
   );
 }

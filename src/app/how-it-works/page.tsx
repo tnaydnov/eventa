@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import Image from 'next/image';
+import SitePageLayout from '@/components/SitePageLayout';
 
 /**
  * /how-it-works
@@ -22,7 +22,7 @@ const STAGES: {
   {
     num: '01',
     title: 'הזמינו דרך האתר',
-    desc: 'מלאו את טופס ההזמנה - סוג אירוע, תאריך, כמות מוזמנים, רקע לאפליקציה, ואם תרצו — תוספת הודעות WhatsApp לאורחים.',
+    desc: 'מלאו את טופס ההזמנה - סוג אירוע, תאריך, רקע לאפליקציה, ואם תרצו - תוספת הודעות WhatsApp לאורחים.',
     accent: 'var(--primary, #D4A59A)',
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -37,7 +37,7 @@ const STAGES: {
   {
     num: '02',
     title: 'שלמו ואשרו',
-    desc: 'לאחר שליחת ההזמנה, תקבלו מייל עם פרטי תשלום. ברגע שהתשלום מאושר — ההזמנה נכנסת לעבודה.',
+    desc: 'לאחר שליחת ההזמנה, תקבלו מייל עם פרטי תשלום. ברגע שהתשלום מאושר - ההזמנה נכנסת לעבודה.',
     accent: 'var(--primary-light, #E8C4BB)',
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -50,7 +50,7 @@ const STAGES: {
     num: '03',
     title: 'קבלו את הפוסטר',
     desc: 'תוך 24 שעות מאישור התשלום, נשלח לכם פוסטר מעוצב עם קוד QR + קישור הצטרפות כקובץ דיגיטלי.',
-    note: 'ההדפסה והמיקום באירוע — באחריותכם. שימו בכניסה, על הבר, במסך, בסטורי — איפה שבא לכם.',
+    note: 'ההדפסה והמיקום באירוע - באחריותכם. שימו בכניסה, על הבר, במסך, בסטורי - איפה שבא לכם.',
     accent: 'var(--accent-gold, #C9A580)',
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -67,7 +67,7 @@ const STAGES: {
   {
     num: '04',
     title: 'האורחים סורקים ונכנסים',
-    desc: 'האורחים סורקים את ה-QR או לוחצים על הקישור, בונים פרופיל תוך דקה (שם, תמונה, ביו קצר) — והם בפנים. בלי הורדה, ישר מהדפדפן.',
+    desc: 'האורחים סורקים את ה-QR או לוחצים על הקישור, בונים פרופיל תוך דקה (שם, תמונה, ביו קצר) - והם בפנים. בלי הורדה, ישר מהדפדפן.',
     accent: 'var(--primary, #D4A59A)',
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -79,7 +79,7 @@ const STAGES: {
   {
     num: '05',
     title: 'הקסם קורה',
-    desc: 'לייקים, מאצ\'ים, וצ\'אט בין הרווקים והרווקות — הכל קורה בזמן אמת, במהלך האירוע. חוויה שיוצרת באזז אמיתי.',
+    desc: 'לייקים, מאצ\'ים, וצ\'אט בין הרווקים והרווקות - הכל קורה בזמן אמת, במהלך האירוע. חוויה שיוצרת באזז אמיתי.',
     accent: 'var(--primary-light, #E8C4BB)',
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -89,7 +89,7 @@ const STAGES: {
   },
   {
     num: '06',
-    title: 'הכל נמחק — פרטיות מלאה',
+    title: 'הכל נמחק - פרטיות מלאה',
     desc: 'תוך 7 ימים מסיום האירוע, כל המידע האישי נמחק אוטומטית. בלי מעקב, בלי פרסומות, בלי שיתוף עם צד שלישי.',
     accent: 'var(--accent-gold, #C9A580)',
     icon: (
@@ -136,29 +136,12 @@ export default function HowItWorksPage() {
   }, []);
 
   return (
-    <div className="hiw">
+    <SitePageLayout wide className="hiw">
       {/* ── Ambient background ── */}
       <div className="hiw__ambient" />
 
-      {/* ── Hero ── */}
-      <header className="hiw__hero">
-        <a href="/dating" className="hiw__back" aria-label="חזרה">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 18l6-6-6-6" />
-          </svg>
-        </a>
-
-        <div className="hiw__hero-logo">
-          <Image
-            src="/icons/Eventa_Logo.png"
-            alt="Eventa"
-            width={80}
-            height={80}
-            style={{ objectFit: 'contain' }}
-            priority
-          />
-        </div>
-
+      {/* ── Hero heading ── */}
+      <div className="hiw__hero-intro">
         <h1 className="hiw__hero-title">
           <span className="hiw__hero-line1">איך</span>
           <span className="hiw__hero-line2">Eventa עובדת?</span>
@@ -168,7 +151,7 @@ export default function HowItWorksPage() {
           מהרגע שהזמנתם ועד הלילה של האירוע —<br />
           ככה נראית החוויה, צעד אחרי צעד.
         </p>
-      </header>
+      </div>
 
       {/* ── Event types ribbon ── */}
       <section className="hiw__types">
@@ -225,11 +208,6 @@ export default function HowItWorksPage() {
           </svg>
         </a>
       </section>
-
-      {/* ── Footer ── */}
-      <footer className="hiw__footer">
-        <p>© {new Date().getFullYear()} Eventa. כל הזכויות שמורות.</p>
-      </footer>
-    </div>
+    </SitePageLayout>
   );
 }

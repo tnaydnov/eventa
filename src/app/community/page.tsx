@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import LegalPageLayout from '@/components/LegalPageLayout';
+import SitePageLayout from '@/components/SitePageLayout';
 
 export const metadata: Metadata = {
   title: 'כללי קהילה | Eventa',
@@ -25,7 +25,7 @@ const introStyle: React.CSSProperties = {
 
 export default function CommunityPage() {
   return (
-    <LegalPageLayout title="כללי קהילה">
+    <SitePageLayout title="כללי קהילה">
 
       <p style={introStyle}>
         המטרה שלנו היא לאפשר היכרות נעימה ובטוחה באירועים.
@@ -56,6 +56,6 @@ export default function CommunityPage() {
         </ul>
       </div>
 
-    </LegalPageLayout>
+    </SitePageLayout>
   );
 }

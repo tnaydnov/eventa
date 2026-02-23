@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import LegalPageLayout from '@/components/LegalPageLayout';
+import SitePageLayout from '@/components/SitePageLayout';
 
 export const metadata: Metadata = {
   title: 'תנאי שימוש | Eventa',
@@ -22,7 +22,7 @@ const linkColor: React.CSSProperties = { color: '#d4a59a', fontWeight: 500, text
 
 export default function TermsPage() {
   return (
-    <LegalPageLayout title="תנאי שימוש" updatedAt="פברואר 2026">
+    <SitePageLayout title="תנאי שימוש" updatedAt="פברואר 2026">
 
       {/* מבוא */}
       <div style={sectionStyle}>
@@ -257,6 +257,6 @@ export default function TermsPage() {
         </p>
       </div>
 
-    </LegalPageLayout>
+    </SitePageLayout>
   );
 }
