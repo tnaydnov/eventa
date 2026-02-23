@@ -1,23 +1,44 @@
 {
   "templates": [
     {
-      "id": "wedding-elegant-gold",
-      "file": "wedding/elegant-gold.jpg",
-      "label": "Elegant Gold",
+      "id": "wedding-golden-floral",
+      "file": "wedding/golden-floral.jpg",
+      "label": "Golden Floral",
       "types": ["wedding"],
       "hasNameSlot": true
     },
     {
-      "id": "wedding-minimal-blush",
-      "file": "wedding/minimal-blush.jpg",
-      "label": "Minimal Blush",
+      "id": "wedding-golden-botanical",
+      "file": "wedding/golden-botanical.jpg",
+      "label": "Golden Botanical",
       "types": ["wedding"],
       "hasNameSlot": true
     },
     {
-      "id": "wedding-floral",
-      "file": "wedding/floral.jpg",
-      "label": "Floral",
+      "id": "wedding-rings-and-roses",
+      "file": "wedding/rings-and-roses.jpg",
+      "label": "Rings & Roses",
+      "types": ["wedding"],
+      "hasNameSlot": true
+    },
+    {
+      "id": "wedding-pearl-lace",
+      "file": "wedding/pearl-lace.jpg",
+      "label": "Pearl Lace",
+      "types": ["wedding"],
+      "hasNameSlot": true
+    },
+    {
+      "id": "wedding-silver-bokeh",
+      "file": "wedding/silver-bokeh.jpg",
+      "label": "Silver Bokeh",
+      "types": ["wedding"],
+      "hasNameSlot": true
+    },
+    {
+      "id": "wedding-satin-elegance",
+      "file": "wedding/satin-elegance.jpg",
+      "label": "Satin Elegance",
       "types": ["wedding"],
       "hasNameSlot": true
     },

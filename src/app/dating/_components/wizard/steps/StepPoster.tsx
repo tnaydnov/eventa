@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { WizardFormState, PosterTemplate } from '../wizard-config';
 import { getTemplatesForType } from '../wizard-config';
 import WizardIcon from '../WizardIcons';
@@ -13,6 +13,8 @@ interface Props {
 export default function StepPoster({ state, onChange }: Props) {
   const [templates, setTemplates] = useState<PosterTemplate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
+  const [previewLabel, setPreviewLabel] = useState('');
 
   // Load poster manifest
   useEffect(() => {
@@ -33,6 +35,24 @@ export default function StepPoster({ state, onChange }: Props) {
   const selectQrOnly = () => {
     onChange({ posterChoice: 'qr-only', selectedTemplateId: null });
   };
+
+  const openPreview = (src: string, label: string) => {
+    setPreviewSrc(src);
+    setPreviewLabel(label);
+  };
+
+  const closePreview = useCallback(() => {
+    setPreviewSrc(null);
+    setPreviewLabel('');
+  }, []);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!previewSrc) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closePreview(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [previewSrc, closePreview]);
 
   return (
     <div className="wiz-step">
@@ -65,30 +85,59 @@ export default function StepPoster({ state, onChange }: Props) {
           </button>
 
           {/* Template options */}
-          {templates.map(t => (
-            <button
-              key={t.id}
-              type="button"
-              className={`wiz-poster${state.selectedTemplateId === t.id ? ' wiz-poster--selected' : ''}`}
-              onClick={() => selectTemplate(t.id)}
-            >
-              <span className="wiz-poster__check" aria-hidden="true">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M2 6l3 3 5-5" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </span>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                className="wiz-poster__img"
-                src={`/templates/${t.file}`}
-                alt={t.label}
-                loading="lazy"
-              />
-              <span className="wiz-poster__label">{t.label}</span>
-            </button>
-          ))}
+          {templates.map(t => {
+            const imgSrc = `/templates/${t.file}`;
+            return (
+              <div key={t.id} className="wiz-poster-wrap">
+                <button
+                  type="button"
+                  className={`wiz-poster${state.selectedTemplateId === t.id ? ' wiz-poster--selected' : ''}`}
+                  onClick={() => selectTemplate(t.id)}
+                >
+                  <span className="wiz-poster__check" aria-hidden="true">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6l3 3 5-5" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    className="wiz-poster__img"
+                    src={imgSrc}
+                    alt={t.label}
+                    loading="lazy"
+                  />
+                  <span className="wiz-poster__label">{t.label}</span>
+                </button>
+                <button
+                  type="button"
+                  className="wiz-poster__zoom"
+                  aria-label={`הגדל תבנית ${t.label}`}
+                  onClick={() => openPreview(imgSrc, t.label)}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /><path d="M11 8v6" /><path d="M8 11h6" />
+                  </svg>
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
+
+      {/* Template disclaimer */}
+      <div className="wiz-poster-note">
+        <svg className="wiz-poster-note__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
+        </svg>
+        <div>
+          <p className="wiz-poster-note__text">
+            <strong>התבניות מוצגות כדוגמה בלבד</strong> — שמות בני הזוג/האירוע וקוד ה-QR המעודכן ישולבו בפוסטר הסופי, שיישלח אליכם כחלק מהסדר.
+          </p>
+          <p className="wiz-poster-note__text">
+            בנוסף, תקבלו בנפרד את קוד ה-QR עצמו וגם את הקישור (URL) לצורך שיתוף דיגיטלי.
+          </p>
+        </div>
+      </div>
 
       {/* Special requests */}
       <div className="wiz-field" style={{ marginTop: 24 }}>
@@ -102,6 +151,22 @@ export default function StepPoster({ state, onChange }: Props) {
           maxLength={500}
         />
       </div>
+
+      {/* Full-screen preview modal */}
+      {previewSrc && (
+        <div className="wiz-poster-modal" onClick={closePreview}>
+          <button type="button" className="wiz-poster-modal__close" onClick={closePreview} aria-label="סגור תצוגה מקדימה">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+            </svg>
+          </button>
+          <div className="wiz-poster-modal__body" onClick={e => e.stopPropagation()}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={previewSrc} alt={previewLabel} className="wiz-poster-modal__img" />
+            <span className="wiz-poster-modal__label">{previewLabel}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

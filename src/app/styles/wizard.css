@@ -922,6 +922,137 @@
   text-align: center;
 }
 
+/* Poster card wrapper (for zoom button positioning) */
+.wiz-poster-wrap {
+  position: relative;
+}
+
+/* Zoom / enlarge button */
+.wiz-poster__zoom {
+  position: absolute;
+  bottom: 32px;
+  left: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.25s, background 0.25s, transform 0.25s;
+  z-index: 3;
+  backdrop-filter: blur(4px);
+}
+
+.wiz-poster__zoom:hover {
+  opacity: 1;
+  background: rgba(212, 165, 154, 0.45);
+  transform: scale(1.1);
+}
+
+/* Disclaimer / info note */
+.wiz-poster-note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(212, 165, 154, 0.06);
+  border: 1px solid rgba(212, 165, 154, 0.12);
+}
+
+.wiz-poster-note__icon {
+  flex-shrink: 0;
+  color: var(--primary);
+  margin-top: 2px;
+  opacity: 0.8;
+}
+
+.wiz-poster-note__text {
+  margin: 0 0 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.wiz-poster-note__text:last-child {
+  margin-bottom: 0;
+}
+
+.wiz-poster-note__text strong {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+/* Full-screen poster preview modal */
+.wiz-poster-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  animation: wiz-modal-in 0.25s ease;
+  padding: 24px;
+}
+
+@keyframes wiz-modal-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.wiz-poster-modal__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  z-index: 1;
+}
+
+.wiz-poster-modal__close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.wiz-poster-modal__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 420px;
+  max-height: 90vh;
+}
+
+.wiz-poster-modal__img {
+  max-width: 100%;
+  max-height: 80vh;
+  border-radius: 14px;
+  object-fit: contain;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+}
+
+.wiz-poster-modal__label {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+}
+
 /* ═══ Step 5: Messages ═══ */
 .wiz-msg-info {
   margin-top: 16px;
