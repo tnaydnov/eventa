@@ -214,6 +214,25 @@
   padding-top: 4px;
 }
 
+/* ── Coming Soon overlay ── */
+.pricing-card--coming-soon {
+  position: relative;
+  opacity: 0.55;
+  pointer-events: none;
+  border-style: dashed;
+}
+
+.pricing-coming-soon-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  background: rgba(212, 165, 154, 0.15);
+  color: var(--primary, #D4A59A);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
 /* ── Total strip ── */
 .pricing-total {
   display: flex;

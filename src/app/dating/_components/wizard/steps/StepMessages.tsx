@@ -1,72 +1,37 @@
 'use client';
 
-import type { WizardFormState } from '../wizard-config';
-import { WIZARD_TYPE_MAP } from '../wizard-config';
 import WizardIcon from '../WizardIcons';
 
-interface Props {
-  state: WizardFormState;
-  onChange: (patch: Partial<WizardFormState>) => void;
-}
-
-export default function StepMessages({ state, onChange }: Props) {
-  const typeConfig = WIZARD_TYPE_MAP[state.eventType];
-  const supported = typeConfig?.supportsGuestMessages !== false;
-
-  if (!supported) {
-    // Auto-skip: this step shouldn't show for unsupported types.
-    // The wizard orchestrator handles skipping; this is a fallback.
-    return null;
-  }
-
+export default function StepMessages() {
   return (
     <div className="wiz-step">
       <div className="wiz-step__header">
         <h2 className="wiz-step__title">הודעות לאורחים</h2>
         <p className="wiz-step__subtitle">
-          רוצים שנשלח הודעה לאורחים ביום האירוע עם קישור להצטרפות?
+          שליחת הודעות WhatsApp לאורחים עם קישור אישי להצטרפות.
         </p>
       </div>
 
-      <div className="wiz-toggle-group">
-        <button
-          type="button"
-          className={`wiz-toggle${!state.wantsGuestMessages ? ' wiz-toggle--active' : ''}`}
-          onClick={() => onChange({ wantsGuestMessages: false })}
-        >
-          <span className="wiz-toggle__icon"><WizardIcon name="x-circle" size={22} /></span>
-          <div className="wiz-toggle__content">
-            <p className="wiz-toggle__title">לא, תודה</p>
-            <p className="wiz-toggle__desc">אסתפק ב-QR בכניסה לאירוע</p>
-          </div>
-          <span className="wiz-toggle__switch" />
-        </button>
-
-        <button
-          type="button"
-          className={`wiz-toggle${state.wantsGuestMessages ? ' wiz-toggle--active' : ''}`}
-          onClick={() => onChange({ wantsGuestMessages: true })}
-        >
-          <span className="wiz-toggle__icon"><WizardIcon name="chat" size={22} /></span>
-          <div className="wiz-toggle__content">
-            <p className="wiz-toggle__title">כן, שלחו הודעות</p>
-            <p className="wiz-toggle__desc">WhatsApp לאורחים ביום האירוע</p>
-          </div>
-          <span className="wiz-toggle__price">+₪50</span>
-          <span className="wiz-toggle__switch" />
-        </button>
-      </div>
-
-      {/* Info box when messages enabled */}
-      {state.wantsGuestMessages && (
-        <div className="wiz-msg-info">
-          <p className="wiz-msg-info__title">איך זה עובד?</p>
-          <p className="wiz-msg-info__text">
-            לקראת האירוע נשלח לכם קישור להעלאת רשימת מספרי טלפון (קובץ Excel).
-            ביום האירוע, כל אורח יקבל הודעה עם קישור אישי להצטרפות - בלי צורך לסרוק QR.
-          </p>
+      {/* Coming soon notice */}
+      <div className="wiz-coming-soon">
+        <div className="wiz-coming-soon__badge">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+          </svg>
+          בקרוב
         </div>
-      )}
+        <p className="wiz-coming-soon__text">
+          שירות הודעות WhatsApp לאורחים נמצא בפיתוח ויהיה זמין בקרוב.
+        </p>
+        <div className="wiz-coming-soon__features">
+          <p className="wiz-coming-soon__features-title">מה יכלול השירות:</p>
+          <ul>
+            <li><WizardIcon name="chat" size={14} /> שליחת הודעות WhatsApp לאורחים עם קישור אישי</li>
+            <li><WizardIcon name="check" size={14} /> העלאת רשימת טלפונים מקובץ Excel</li>
+            <li><WizardIcon name="check" size={14} /> הצטרפות ללא צורך בסריקת QR</li>
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }

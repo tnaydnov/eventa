@@ -94,19 +94,13 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
           </button>
         </div>
 
-        <div className="wiz-summary__card">
+        <div className="wiz-summary__card wiz-summary__card--disabled">
           <div className="wiz-summary__card-content">
             <div className="wiz-summary__card-label">הודעות לאורחים</div>
-            <div className="wiz-summary__card-value">
-              {state.wantsGuestMessages
-                ? <><WizardIcon name="chat" size={14} className="wiz-summary__inline-icon" /> כן, שלחו הודעות</>
-                : <><WizardIcon name="x-circle" size={14} className="wiz-summary__inline-icon" /> לא</>
-              }
+            <div className="wiz-summary__card-value wiz-summary__card-value--muted">
+              <WizardIcon name="chat" size={14} className="wiz-summary__inline-icon" /> בקרוב
             </div>
           </div>
-          <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(4)}>
-            שנה
-          </button>
         </div>
       </div>
 
@@ -116,16 +110,10 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
           <span>חבילת אירוע בסיסית</span>
           <span>₪250</span>
         </div>
-        {state.wantsGuestMessages && (
-          <div className="wiz-price__row">
-            <span>הודעות לאורחים (WhatsApp)</span>
-            <span>₪50</span>
-          </div>
-        )}
         <div className="wiz-price__divider" />
         <div className="wiz-price__row wiz-price__row--total">
           <span>סה״כ</span>
-          <span>₪{250 + (state.wantsGuestMessages ? 50 : 0)}</span>
+          <span>₪250</span>
         </div>
       </div>
 

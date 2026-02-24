@@ -22,7 +22,7 @@ const STAGES: {
   {
     num: '01',
     title: 'הזמינו דרך האתר',
-    desc: 'מלאו את טופס ההזמנה - סוג אירוע, תאריך, רקע לאפליקציה, ואם תרצו - תוספת הודעות WhatsApp לאורחים.',
+    desc: 'מלאו את טופס ההזמנה - סוג אירוע, תאריך, רקע לאפליקציה ופוסטר כניסה מעוצב.',
     accent: 'var(--primary, #D4A59A)',
     icon: (
       <svg aria-hidden="true" focusable="false" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

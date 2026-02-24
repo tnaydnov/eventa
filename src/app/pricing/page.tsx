@@ -103,11 +103,12 @@ export default function PricingPage() {
             </a>
           </div>
 
-          {/* ── Messages add-on ── */}
-          <div className="pricing-card pricing-card--addon">
+          {/* ── Messages add-on (coming soon) ── */}
+          <div className="pricing-card pricing-card--addon pricing-card--coming-soon">
             <div className="pricing-card__badge pricing-card__badge--addon">
               תוספת
             </div>
+            <span className="pricing-coming-soon-badge">בקרוב</span>
             <div className="pricing-card__price pricing-card__price--addon">
               <span className="pricing-card__plus">+</span>
               <span className="pricing-card__currency">₪</span>
@@ -148,15 +149,15 @@ export default function PricingPage() {
             </ul>
 
             <div className="pricing-card__note">
-              ניתן להוסיף בזמן ההזמנה או מאוחר יותר
+              שירות זה נמצא בפיתוח ויהיה זמין בקרוב
             </div>
           </div>
         </div>
 
         {/* Bottom total strip */}
         <div className="pricing-total">
-          <div className="pricing-total__label">סה״כ עם הודעות</div>
-          <div className="pricing-total__value">₪{BASE_PRICE + MSG_ADDON}</div>
+          <div className="pricing-total__label">חבילת אירוע</div>
+          <div className="pricing-total__value">₪{BASE_PRICE}</div>
         </div>
 
         {/* FAQ teaser */}

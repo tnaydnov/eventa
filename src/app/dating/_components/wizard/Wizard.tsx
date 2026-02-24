@@ -151,7 +151,7 @@ export default function Wizard() {
         posterChoice: state.posterChoice,
         selectedTemplateId: state.selectedTemplateId,
         specialRequests: state.specialRequests,
-        wantsGuestMessages: state.wantsGuestMessages,
+        wantsGuestMessages: false,
         contactPreference: state.contactPreference,
         source: 'wizard',
       };
@@ -327,7 +327,7 @@ export default function Wizard() {
         {step === 1 && <StepEventDetails state={state} onChange={onChange} />}
         {step === 2 && <StepBackground state={state} onChange={onChange} />}
         {step === 3 && <StepPoster state={state} onChange={onChange} />}
-        {step === 4 && <StepMessages state={state} onChange={onChange} />}
+        {step === 4 && <StepMessages />}
         {step === 5 && <StepSummary state={state} onChange={onChange} onGoToStep={goToStep} />}
 
         {error && <p className="wiz-error" role="alert">{error}</p>}
