@@ -1056,32 +1056,45 @@
 /* ═══ Step 5: Messages (Coming Soon) ═══ */
 .wiz-coming-soon {
   margin-top: 16px;
-  padding: 24px 20px;
+  padding: 28px 20px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px dashed rgba(212, 165, 154, 0.25);
+  background: rgba(255, 255, 255, 0.02);
+  border: 2px dashed rgba(255, 255, 255, 0.08);
   text-align: center;
   animation: wiz-step-enter 0.4s ease forwards;
 }
 
-.wiz-coming-soon__badge {
-  display: inline-flex;
+.wiz-coming-soon__lock {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 16px;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.wiz-coming-soon__badge {
+  display: inline-block;
+  padding: 6px 20px;
   border-radius: 20px;
-  background: rgba(212, 165, 154, 0.12);
-  color: var(--primary);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 14px;
+  letter-spacing: 0.3px;
 }
 
 .wiz-coming-soon__text {
   font-size: 14px;
-  color: var(--text-muted);
-  line-height: 1.6;
-  margin: 0 0 18px;
+  color: rgba(176, 176, 176, 0.7);
+  line-height: 1.7;
+  margin: 0 0 20px;
 }
 
 .wiz-coming-soon__features {
@@ -1089,13 +1102,14 @@
   padding: 14px 16px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  opacity: 0.45;
 }
 
 .wiz-coming-soon__features-title {
   font-size: 13px;
   font-weight: 600;
-  color: var(--foreground);
+  color: var(--text-muted);
   margin: 0 0 10px;
 }
 
