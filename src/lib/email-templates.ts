@@ -251,7 +251,7 @@ function shell(title: string, inner: string, subtitle?: string): string {
         <!-- Accent top strip -->
         <tr><td style="background-color:${C.accent};height:4px;font-size:0;line-height:0;">&nbsp;</td></tr>
 
-        <!-- Header row: subtitle + logo -->
+        <!-- Header row: subtitle + logo on one line -->
         <tr>
           <td style="background-color:${C.card};padding:0;border-bottom:1px solid ${C.border};">
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;">
@@ -262,10 +262,10 @@ function shell(title: string, inner: string, subtitle?: string): string {
                     ? `<div dir="rtl" style="direction:rtl;text-align:right;font-size:20px;font-weight:700;color:${C.accent};line-height:1.3;">${subtitle}</div>`
                     : `<div style="font-size:14px;color:${C.dim};letter-spacing:0.5px;">${ltr('EVENTA')}</div>`}
                 </td>
-                <!-- Logo (RTL end = left) -->
-                <td style="text-align:left;padding:12px 28px 12px 0;vertical-align:middle;width:84px;">
-                  <img class="em-logo-dark" src="${LOGO_DARK}" alt="Eventa" width="80" height="auto" style="display:inline-block;max-width:80px;height:auto;border:0;vertical-align:middle;" />
-                  <img class="em-logo-light" src="${LOGO_LIGHT}" alt="Eventa" width="80" height="auto" style="display:none;max-width:80px;height:auto;border:0;vertical-align:middle;" />
+                <!-- Logo (RTL end = left), sized to fill row height -->
+                <td style="text-align:left;padding:8px 28px 8px 0;vertical-align:middle;width:140px;">
+                  <img class="em-logo-dark" src="${LOGO_DARK}" alt="Eventa" width="130" height="auto" style="display:inline-block;max-width:130px;height:auto;border:0;vertical-align:middle;" />
+                  <img class="em-logo-light" src="${LOGO_LIGHT}" alt="Eventa" width="130" height="auto" style="display:none;max-width:130px;height:auto;border:0;vertical-align:middle;" />
                 </td>
               </tr>
             </table>
