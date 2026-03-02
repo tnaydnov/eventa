@@ -11,7 +11,6 @@ import type {
 import MessagingControls from './MessagingControls';
 import GuestListManager from './GuestListManager';
 import MessageLog from './MessageLog';
-import CrossReferenceTable from './CrossReferenceTable';
 
 interface MessagingTabProps {
   event: Event;
@@ -79,9 +78,6 @@ export default function MessagingTab({
         onUpdateConfig={updateMessagingConfig}
         isArchived={isArchived}
       />
-
-      {/* Cross-reference summary */}
-      <CrossReferenceTable eventId={event.id} />
 
       {/* Guest list management */}
       <GuestListManager
