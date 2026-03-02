@@ -331,8 +331,19 @@ export function useAdminData() {
     try {
       const res = await authedFetch(`/api/admin/events/${eventId}/guests`);
       if (res.ok) {
-        const data = await res.json();
-        setGuestPhones(data.guests || []);
+        const raw = await res.json();
+        // Map snake_case API response → camelCase GuestPhoneAdmin
+        const mapped = (raw.guests || []).map((g: Record<string, unknown>) => ({
+          id: g.id as string,
+          phone: g.phone as string,
+          name: (g.guest_name as string) || null,
+          source: (g.source as string) || 'manual',
+          normalizedPhone: (g.phone as string) || '',
+          waPreEventSent: g.wa_pre_event_sent === true,
+          waFeedbackSent: g.wa_feedback_sent === true,
+          createdAt: (g.created_at as string) || '',
+        }));
+        setGuestPhones(mapped);
       }
     } catch (err) {
       console.warn('[useAdminData] loadGuestPhones failed:', err);
