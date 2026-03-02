@@ -16,7 +16,10 @@
 
 import { EVENT_TYPE_LABELS } from '@/lib/constants';
 
-const LOGO_URL = 'https://www.eventa.productions/icons/Eventa_Logo.png';
+/** Light logo (shown on dark backgrounds / dark mode). */
+const LOGO_LIGHT = 'https://www.eventa.productions/icons/Eventa_Logo.png';
+/** Dark logo (shown on light backgrounds / light mode). */
+const LOGO_DARK  = 'https://www.eventa.productions/icons/Eventa_Logo_Dark.png';
 
 /* ─── Shared palette ─── */
 const C = {
@@ -226,6 +229,8 @@ function shell(title: string, inner: string, subtitle?: string): string {
       .em-paybox { background-color: ${C.paybox} !important; }
       .em-bit { background-color: ${C.bit} !important; }
       .em-warn { background-color: ${C.warnBg} !important; }
+      .em-logo-light { display: none !important; }
+      .em-logo-dark  { display: inline-block !important; }
     }
     @media only screen and (max-width: 620px) {
       .em-card { width: 100% !important; border-radius: 0 !important; }
@@ -258,10 +263,9 @@ function shell(title: string, inner: string, subtitle?: string): string {
                     : `<div style="font-size:14px;color:${C.dim};letter-spacing:0.5px;">${ltr('EVENTA')}</div>`}
                 </td>
                 <!-- Logo (RTL end = left) -->
-                <td style="text-align:left;padding:20px 28px 20px 0;vertical-align:middle;width:52px;">
-                  <div style="width:44px;height:44px;border-radius:50%;background-color:#1e1e1e;text-align:center;line-height:44px;">
-                    <img src="${LOGO_URL}" alt="Eventa" width="30" height="auto" style="display:inline-block;max-width:30px;height:auto;border:0;vertical-align:middle;" />
-                  </div>
+                <td style="text-align:left;padding:16px 28px 16px 0;vertical-align:middle;width:56px;">
+                  <img class="em-logo-light" src="${LOGO_LIGHT}" alt="Eventa" width="52" height="auto" style="display:none;max-width:52px;height:auto;border:0;vertical-align:middle;" />
+                  <img class="em-logo-dark" src="${LOGO_DARK}" alt="Eventa" width="52" height="auto" style="display:inline-block;max-width:52px;height:auto;border:0;vertical-align:middle;" />
                 </td>
               </tr>
             </table>
