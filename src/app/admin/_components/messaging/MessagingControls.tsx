@@ -67,21 +67,6 @@ const CLIENT_ACTIONS: ActionDef[] = [
     dangerLevel: 'safe',
   },
   {
-    id: 'invoice',
-    label: 'חשבונית ₪50',
-    icon: '🧾',
-    target: 'client',
-    channel: 'email',
-    description: 'שולח ללקוח חשבונית עבור תוסף הודעות WhatsApp (₪50).',
-    preview: [
-      '📧 מייל אל: הלקוח שהזמין את השירות',
-      '📝 נושא: "חשבונית — שירות הודעות WhatsApp"',
-      '📎 כולל: פירוט השירות, סכום ₪50, קישורי תשלום (Bit / PayBox)',
-    ],
-    confirmLabel: 'שלח חשבונית',
-    dangerLevel: 'warning',
-  },
-  {
     id: 'summary',
     label: 'סיכום אירוע',
     icon: '📊',
@@ -249,23 +234,6 @@ function generateEmailPreview(actionId: string, eventName: string, eventDate: st
         <a href="${uploadLink}" style="display:inline-block;background:${PE.accent};border-radius:10px;padding:14px 28px;color:#fff;font-size:15px;font-weight:700;text-decoration:none;">העלו את הרשימה עכשיו</a>
         <div style="font-size:11px;color:${PE.dim};margin-top:10px;">ההודעות נשלחות 2–3 שעות לפני האירוע. ככל שתעלו מוקדם יותר, כך יותר טוב!</div>
       </td></tr>`, 'תזכורת ידידותית');
-
-    case 'invoice': return emailShell('חשבונית הודעות', `
-      <tr><td dir="rtl" style="text-align:right;padding:20px 24px 4px;border-bottom:1px solid ${PE.border};background:${PE.card};">
-        <div style="font-size:15px;font-weight:500;">שלום [שם הלקוח],</div>
-        <div style="font-size:13px;color:${PE.muted};margin-top:6px;line-height:1.6;padding-bottom:16px;">הוספנו את שירות ההודעות לאורחים לאירוע <strong>${safeName}</strong>.</div>
-      </td></tr>
-      <tr><td dir="rtl" style="text-align:right;padding:16px 24px 0;background:${PE.card};">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${PE.accent};margin-bottom:10px;">פרטי חשבון</div>
-        <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-          ${peRow('שירות', 'הודעות WhatsApp לאורחים')}
-          <tr><td dir="rtl" style="text-align:right;padding:10px 0 10px 10px;color:${PE.accent};font-size:14px;font-weight:700;width:80px;border-top:2px solid ${PE.accent};">סה"כ</td><td dir="rtl" style="text-align:right;padding:10px 10px 10px 0;color:${PE.text};font-size:16px;font-weight:700;border-top:2px solid ${PE.accent};"><span dir="ltr">₪50</span></td></tr>
-        </table>
-      </td></tr>
-      <tr><td style="padding:20px 24px;text-align:center;background:${PE.card};">
-        <a href="#" style="display:block;background:${PE.paybox};border-radius:10px;padding:16px 20px;color:#fff;font-size:16px;font-weight:700;text-decoration:none;margin-bottom:10px;">שלמו עכשיו (PayBox)</a>
-        <div style="font-size:13px;color:${PE.muted};">או העבירו ₪50 ב-Bit</div>
-      </td></tr>`, 'חשבון שירות הודעות');
 
     case 'summary': return emailShell('סיכום אירוע', `
       <tr><td dir="rtl" style="text-align:right;padding:20px 24px 4px;border-bottom:1px solid ${PE.border};background:${PE.card};">
