@@ -217,11 +217,11 @@ function shell(title: string, inner: string, subtitle?: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <meta name="color-scheme" content="light only">
-  <meta name="supported-color-schemes" content="light only">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
   <title>${escapeHtml(title)}</title>
   <style>
-    :root { color-scheme: light only; }
+    :root { color-scheme: light dark; }
     @media (prefers-color-scheme: dark) {
       body, table, td, div, p, a, span { background-color: ${C.bg} !important; color: ${C.text} !important; }
       .em-card { background-color: ${C.card} !important; }
@@ -229,8 +229,8 @@ function shell(title: string, inner: string, subtitle?: string): string {
       .em-paybox { background-color: ${C.paybox} !important; }
       .em-bit { background-color: ${C.bit} !important; }
       .em-warn { background-color: ${C.warnBg} !important; }
-      .em-logo-light { display: none !important; }
-      .em-logo-dark  { display: inline-block !important; }
+      .em-logo-dark  { display: none !important; }
+      .em-logo-light { display: inline-block !important; }
     }
     @media only screen and (max-width: 620px) {
       .em-card { width: 100% !important; border-radius: 0 !important; }
@@ -263,9 +263,9 @@ function shell(title: string, inner: string, subtitle?: string): string {
                     : `<div style="font-size:14px;color:${C.dim};letter-spacing:0.5px;">${ltr('EVENTA')}</div>`}
                 </td>
                 <!-- Logo (RTL end = left) -->
-                <td style="text-align:left;padding:16px 28px 16px 0;vertical-align:middle;width:56px;">
-                  <img class="em-logo-light" src="${LOGO_LIGHT}" alt="Eventa" width="52" height="auto" style="display:none;max-width:52px;height:auto;border:0;vertical-align:middle;" />
-                  <img class="em-logo-dark" src="${LOGO_DARK}" alt="Eventa" width="52" height="auto" style="display:inline-block;max-width:52px;height:auto;border:0;vertical-align:middle;" />
+                <td style="text-align:left;padding:12px 28px 12px 0;vertical-align:middle;width:84px;">
+                  <img class="em-logo-dark" src="${LOGO_DARK}" alt="Eventa" width="80" height="auto" style="display:inline-block;max-width:80px;height:auto;border:0;vertical-align:middle;" />
+                  <img class="em-logo-light" src="${LOGO_LIGHT}" alt="Eventa" width="80" height="auto" style="display:none;max-width:80px;height:auto;border:0;vertical-align:middle;" />
                 </td>
               </tr>
             </table>
