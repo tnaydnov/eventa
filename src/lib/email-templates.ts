@@ -257,13 +257,13 @@ function shell(title: string, inner: string, subtitle?: string): string {
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;">
               <tr>
                 <!-- Subtitle (RTL start = right) -->
-                <td dir="rtl" style="text-align:right;padding:24px 28px 24px 0;vertical-align:middle;">
+                <td dir="rtl" style="text-align:right;padding:24px 28px 24px 12px;vertical-align:middle;">
                   ${subtitle
                     ? `<div dir="rtl" style="direction:rtl;text-align:right;font-size:20px;font-weight:700;color:${C.accent};line-height:1.3;">${subtitle}</div>`
                     : `<div style="font-size:14px;color:${C.dim};letter-spacing:0.5px;">${ltr('EVENTA')}</div>`}
                 </td>
                 <!-- Logo (RTL end = left), sized to fill row height -->
-                <td style="text-align:left;padding:4px 28px 4px 0;vertical-align:middle;width:160px;">
+                <td style="text-align:left;padding:4px 12px 4px 28px;vertical-align:middle;width:160px;">
                   <img class="em-logo-dark" src="${LOGO_DARK}" alt="Eventa" width="150" height="auto" style="display:inline-block;max-width:150px;height:auto;border:0;vertical-align:middle;" />
                   <img class="em-logo-light" src="${LOGO_LIGHT}" alt="Eventa" width="150" height="auto" style="display:none;max-width:150px;height:auto;border:0;vertical-align:middle;" />
                 </td>
