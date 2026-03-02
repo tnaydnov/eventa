@@ -246,7 +246,7 @@ function shell(title: string, inner: string, subtitle?: string): string {
     <tr><td align="center" class="em-body-pad" style="padding:32px 16px;">
 
       <!-- Main card -->
-      <table dir="rtl" role="presentation" width="600" cellpadding="0" cellspacing="0" class="em-card" style="direction:rtl;max-width:600px;width:100%;background-color:${C.card};border-radius:12px;overflow:hidden;border:1px solid ${C.border};box-shadow:0 3px 12px rgba(0,0,0,0.08);">
+      <table dir="rtl" role="presentation" cellpadding="0" cellspacing="0" class="em-card" style="direction:rtl;max-width:600px;width:100%;background-color:${C.card};border-radius:12px;overflow:hidden;border:1px solid ${C.border};box-shadow:0 3px 12px rgba(0,0,0,0.08);">
 
         <!-- Accent top strip -->
         <tr><td style="background-color:${C.accent};height:4px;font-size:0;line-height:0;">&nbsp;</td></tr>
@@ -263,7 +263,7 @@ function shell(title: string, inner: string, subtitle?: string): string {
                     : `<div style="font-size:14px;color:${C.dim};letter-spacing:0.5px;">${ltr('EVENTA')}</div>`}
                 </td>
                 <!-- Logo (RTL end = left), sized to fill row height -->
-                <td style="text-align:left;padding:4px 28px 4px 0;vertical-align:middle;width:160px;">
+                <td style="text-align:left;padding:4px 28px 4px 0;vertical-align:middle;">
                   <img class="em-logo-dark" src="${LOGO_DARK}" alt="Eventa" width="150" height="auto" style="display:inline-block;max-width:150px;height:auto;border:0;vertical-align:middle;" />
                   <img class="em-logo-light" src="${LOGO_LIGHT}" alt="Eventa" width="150" height="auto" style="display:none;max-width:150px;height:auto;border:0;vertical-align:middle;" />
                 </td>
@@ -278,7 +278,7 @@ function shell(title: string, inner: string, subtitle?: string): string {
       <!-- /Main card -->
 
       <!-- Footer -->
-      <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="em-card" style="max-width:600px;width:100%;">
+      <table role="presentation" cellpadding="0" cellspacing="0" class="em-card" style="max-width:600px;width:100%;">
         <tr>
           <td style="padding:20px 32px 8px;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
