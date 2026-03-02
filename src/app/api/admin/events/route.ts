@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { createEventSchema } from '@/lib/validations';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient, generateJoinCode } from '@/lib/supabase';
-import { generatePrettySlug } from '@/lib/slug';
 import { adminGuard, jsonError } from '../_helpers';
 import { logger } from '@/lib/logger';
 
 /** Default event duration when no end date is provided (24 hours). */
 const DEFAULT_DURATION_MS = 86_400_000;
+
+/** Generate a 4-char random hex suffix for unique slugs. */
+function randomSuffix(): string {
+  return crypto.randomBytes(2).toString('hex');
+}
 
 /**
  * GET /api/admin/events
@@ -90,16 +95,15 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const supabase = getServiceClient();
-
-    // Auto-generate a pretty slug if not provided
+    // Auto-generate slug if not provided
     if (!body.slug && body.name) {
-      body.slug = await generatePrettySlug(
-        body.name,
-        body.event_type || 'wedding',
-        body.starts_at || new Date().toISOString(),
-        supabase,
-      );
+      const base = body.name
+        .toLowerCase()
+        .replace(/[^a-z0-9\u0590-\u05ff]+/g, '-')
+        .replace(/[\u0590-\u05ff]+/g, '')  // strip Hebrew chars from slug
+        .replace(/(^-|-$)/g, '')
+        .replace(/-{2,}/g, '-');
+      body.slug = `${base || 'event'}-${randomSuffix()}`;
     }
 
     const parsed = createEventSchema.safeParse(body);
@@ -111,8 +115,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Slug already verified unique by generatePrettySlug
-    const slug = parsed.data.slug;
+    const supabase = getServiceClient();
+
+    // Ensure slug uniqueness - if collision, append extra suffix
+    let slug = parsed.data.slug;
+    const { data: existing, error: slugErr } = await supabase
+      .from('events')
+      .select('id')
+      .eq('slug', slug)
+      .maybeSingle();
+
+    if (slugErr) {
+      logger.error('[ADMIN_EVENTS_POST] slug check error:', slugErr.message);
+      return jsonError('Failed to create event', 500);
+    }
+
+    if (existing) {
+      slug = `${slug}-${randomSuffix()}`;
+    }
 
     const { data, error } = await supabase
       .from('events')
