@@ -263,9 +263,9 @@ function shell(title: string, inner: string, subtitle?: string): string {
                     : `<div style="font-size:14px;color:${C.dim};letter-spacing:0.5px;">${ltr('EVENTA')}</div>`}
                 </td>
                 <!-- Logo (RTL end = left), sized to fill row height -->
-                <td style="text-align:left;padding:8px 28px 8px 0;vertical-align:middle;width:140px;">
-                  <img class="em-logo-dark" src="${LOGO_DARK}" alt="Eventa" width="130" height="auto" style="display:inline-block;max-width:130px;height:auto;border:0;vertical-align:middle;" />
-                  <img class="em-logo-light" src="${LOGO_LIGHT}" alt="Eventa" width="130" height="auto" style="display:none;max-width:130px;height:auto;border:0;vertical-align:middle;" />
+                <td style="text-align:left;padding:4px 28px 4px 0;vertical-align:middle;width:160px;">
+                  <img class="em-logo-dark" src="${LOGO_DARK}" alt="Eventa" width="150" height="auto" style="display:inline-block;max-width:150px;height:auto;border:0;vertical-align:middle;" />
+                  <img class="em-logo-light" src="${LOGO_LIGHT}" alt="Eventa" width="150" height="auto" style="display:none;max-width:150px;height:auto;border:0;vertical-align:middle;" />
                 </td>
               </tr>
             </table>
