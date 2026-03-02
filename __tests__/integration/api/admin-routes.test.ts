@@ -21,6 +21,7 @@ const mockStorageFrom = vi.hoisted(() => vi.fn().mockReturnValue({
 vi.mock('@/lib/supabase', () => ({
   getServiceClient: () => ({ from: mockFrom, storage: { from: mockStorageFrom } }),
   generateJoinCode: vi.fn().mockReturnValue('NEWCODE'),
+  generateShortCode: vi.fn().mockReturnValue('abc123'),
 }));
 
 vi.mock('@/lib/rate-limit', () => ({

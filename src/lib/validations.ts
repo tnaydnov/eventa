@@ -130,7 +130,7 @@ export const prettySlugSchema = z
 export const sendOtpSchema = z.object({
   phone: phoneSchema,
   eventSlug: z.string().min(1),
-  joinCode: z.string().min(12).max(32),
+  joinCode: z.string().min(6).max(32),
 });
 
 /* ---- Verify OTP schema ---- */
@@ -138,7 +138,7 @@ export const verifyOtpSchema = z.object({
   phone: phoneSchema,
   code: z.string().min(4).max(8),
   eventSlug: z.string().min(1),
-  joinCode: z.string().min(12).max(32),
+  joinCode: z.string().min(6).max(32),
   fingerprint: z.string().max(64).optional(),
   hardwareFingerprint: z.string().max(128).optional(),
   smsConsent: z.boolean(),
@@ -225,7 +225,7 @@ export const sendMessageSchema = z.object({
 /* ---- Join event schema ---- */
 export const joinEventSchema = z.object({
   eventSlug: z.string().min(1),
-  joinCode: z.string().min(12).max(32),
+  joinCode: z.string().min(6).max(32),
 });
 
 /* ---- Photo reorder schema ---- */

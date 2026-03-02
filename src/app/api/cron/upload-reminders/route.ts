@@ -151,7 +151,7 @@ async function handler(req: NextRequest) {
         .maybeSingle();
 
       const uploadUrl = portalToken
-        ? `${APP_BASE_URL}/guest-upload/${event.slug}?token=${portalToken.token}`
+        ? `${APP_BASE_URL}/guest-upload/${event.slug}?k=${portalToken.token}`
         : `${APP_BASE_URL}/guest-upload/${event.slug}`;
 
       const eventDate = new Date(event.starts_at).toLocaleDateString('he-IL', {

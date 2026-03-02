@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { RATE_LIMITS } from '@/lib/rate-limit';
-import { getServiceClient, generateJoinCode } from '@/lib/supabase';
+import { getServiceClient, generateJoinCode, generateShortCode } from '@/lib/supabase';
 import { adminGuard, jsonError } from '../_helpers';
 import { logger } from '@/lib/logger';
 import { adminAuditLog } from '@/lib/admin-auth';
@@ -276,8 +276,8 @@ export async function POST(req: NextRequest) {
           })
           .eq('id', newEvent.id);
 
-        // 5b. Generate portal token
-        const portalToken = crypto.randomUUID();
+        // 5b. Generate portal token (short code)
+        const portalToken = generateShortCode(6);
         await supabase
           .from('client_portal_tokens')
           .insert({ event_id: newEvent.id, token: portalToken, is_active: true });
@@ -286,7 +286,7 @@ export async function POST(req: NextRequest) {
         if (request.contact_email) {
           const eventDate = formatDate(request.starts_at);
           const eventTime = formatTime(request.starts_at);
-          const portalUrl = `${APP_BASE_URL}/guest-upload/${newEvent.slug}?token=${portalToken}`;
+          const portalUrl = `${APP_BASE_URL}/guest-upload/${newEvent.slug}?k=${portalToken}`;
           const templateUrl = `${APP_BASE_URL}/templates/guest-upload-template.xlsx`;
 
           const email = buildUploadInstructionsEmail({

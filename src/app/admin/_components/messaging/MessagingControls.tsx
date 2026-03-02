@@ -448,7 +448,7 @@ export default function MessagingControls({
   const [customBody, setCustomBody] = useState('');
 
   const portalUrl = status.portalToken
-    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/guest-upload/${eventSlug}?token=${status.portalToken}`
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/guest-upload/${eventSlug}?k=${status.portalToken}`
     : null;
 
   const handleAction = useCallback(async (actionId: string) => {

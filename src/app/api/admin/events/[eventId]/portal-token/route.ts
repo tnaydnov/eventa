@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
-import { getServiceClient } from '@/lib/supabase';
+import { getServiceClient, generateShortCode } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
 import { logger } from '@/lib/logger';
 import { APP_BASE_URL } from '@/lib/config';
@@ -11,7 +11,7 @@ import { APP_BASE_URL } from '@/lib/config';
  * Build the full guest-upload portal URL for a given event slug/token.
  */
 function buildPortalUrl(slug: string, token: string): string {
-  return `${APP_BASE_URL}/guest-upload/${slug}?token=${token}`;
+  return `${APP_BASE_URL}/guest-upload/${slug}?k=${token}`;
 }
 
 /**
@@ -101,8 +101,8 @@ export async function POST(
       .eq('event_id', eventId)
       .eq('is_active', true);
 
-    // Generate new token
-    const token = crypto.randomUUID();
+    // Generate new token (short code)
+    const token = generateShortCode(6);
 
     const { error: insertErr } = await supabase
       .from('client_portal_tokens')

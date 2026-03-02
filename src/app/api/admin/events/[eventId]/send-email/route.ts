@@ -83,7 +83,7 @@ export async function POST(
       .maybeSingle();
 
     const portalUrl = tokenData?.token
-      ? `${APP_BASE_URL}/guest-upload/${event.slug}?token=${tokenData.token}`
+      ? `${APP_BASE_URL}/guest-upload/${event.slug}?k=${tokenData.token}`
       : null;
     const templateUrl = `${APP_BASE_URL}/templates/guest-upload-template.xlsx`;
 

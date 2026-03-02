@@ -419,11 +419,11 @@ describe('sendMessageSchema', () => {
 
 describe('joinEventSchema', () => {
   it('U-VAL-38: accepts valid join', () => {
-    expect(joinEventSchema.safeParse({ eventSlug: 'my-event', joinCode: '1234567890ab' }).success).toBe(true);
+    expect(joinEventSchema.safeParse({ eventSlug: 'my-event', joinCode: 'abc123' }).success).toBe(true);
   });
 
   it('U-VAL-39: rejects short joinCode', () => {
-    expect(joinEventSchema.safeParse({ eventSlug: 'my-event', joinCode: 'short' }).success).toBe(false);
+    expect(joinEventSchema.safeParse({ eventSlug: 'my-event', joinCode: 'ab' }).success).toBe(false);
   });
 
   it('rejects joinCode over 32 chars', () => {
@@ -431,7 +431,7 @@ describe('joinEventSchema', () => {
   });
 
   it('rejects empty eventSlug', () => {
-    expect(joinEventSchema.safeParse({ eventSlug: '', joinCode: '1234567890ab' }).success).toBe(false);
+    expect(joinEventSchema.safeParse({ eventSlug: '', joinCode: 'abc123' }).success).toBe(false);
   });
 });
 

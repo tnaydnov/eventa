@@ -55,7 +55,20 @@ export function getServiceClient(): SupabaseClient {
   return _serviceClient;
 }
 
-/** Generate a random 16-char hex join code */
+/** Alphanumeric charset for short codes (no confusing chars like 0/O, 1/l). */
+const SHORT_CODE_CHARS = 'abcdefghjkmnpqrstuvwxyz23456789';
+
+/** Generate a random short alphanumeric code (default 6 chars). */
+export function generateShortCode(len = 6): string {
+  const bytes = crypto.randomBytes(len);
+  let code = '';
+  for (let i = 0; i < len; i++) {
+    code += SHORT_CODE_CHARS[bytes[i] % SHORT_CODE_CHARS.length];
+  }
+  return code;
+}
+
+/** Generate a random 6-char join code */
 export function generateJoinCode(): string {
-  return crypto.randomBytes(8).toString('hex');
+  return generateShortCode(6);
 }

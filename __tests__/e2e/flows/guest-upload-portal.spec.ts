@@ -14,7 +14,7 @@ import {
  */
 
 test.describe('Guest Upload Portal', () => {
-  const portalUrl = `/guest-upload/${TEST_EVENT_SLUG}?token=${TEST_PORTAL_TOKEN}`;
+  const portalUrl = `/guest-upload/${TEST_EVENT_SLUG}?k=${TEST_PORTAL_TOKEN}`;
 
   test.beforeEach(async ({ page }) => {
     await page.route('**/realtime/**', (route) => route.abort());
@@ -104,7 +104,7 @@ test.describe('Guest Upload Portal', () => {
       });
     });
 
-    await page.goto(`/guest-upload/${TEST_EVENT_SLUG}?token=bad-token`);
+    await page.goto(`/guest-upload/${TEST_EVENT_SLUG}?k=badtkn`);
 
     // Should show error state
     await page.waitForTimeout(3000);

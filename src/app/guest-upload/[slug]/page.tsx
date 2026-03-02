@@ -51,7 +51,7 @@ export default function GuestUploadPage({
 }) {
   const { slug } = use(params);
   const searchParams = useSearchParams();
-  const token = searchParams.get('token') ?? '';
+  const token = searchParams.get('k') ?? searchParams.get('token') ?? '';
 
   // State
   const [data, setData] = useState<PortalData | null>(null);

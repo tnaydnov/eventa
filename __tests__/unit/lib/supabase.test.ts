@@ -24,10 +24,10 @@ describe('generateJoinCode', () => {
     generateJoinCode = mod.generateJoinCode;
   });
 
-  it('U-SUP-01: returns a 16-character hex string', () => {
+  it('U-SUP-01: returns a 6-character alphanumeric string', () => {
     const code = generateJoinCode();
-    expect(code).toMatch(/^[a-f0-9]{16}$/);
-    expect(code.length).toBe(16);
+    expect(code).toMatch(/^[a-z0-9]{6}$/);
+    expect(code.length).toBe(6);
   });
 
   it('U-SUP-02: generates unique codes', () => {
@@ -35,10 +35,10 @@ describe('generateJoinCode', () => {
     expect(codes.size).toBe(100);
   });
 
-  it('U-SUP-03: contains only lowercase hex chars', () => {
+  it('U-SUP-03: contains only lowercase alphanumeric chars', () => {
     const code = generateJoinCode();
-    expect(code).toMatch(/^[0-9a-f]+$/);
-    expect(code).not.toMatch(/[A-F]/);
+    expect(code).toMatch(/^[a-z0-9]+$/);
+    expect(code).not.toMatch(/[A-Z]/);
   });
 });
 

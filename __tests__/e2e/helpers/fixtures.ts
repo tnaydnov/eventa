@@ -10,7 +10,7 @@ export const TEST_MESSAGE_ID = '10000000-1000-4000-8000-500000000001';
 export const TEST_LIKE_ID = '10000000-1000-4000-8000-600000000001';
 export const TEST_EVENT_SLUG = 'test-wedding-e2e';
 export const TEST_EVENT_NAME = 'חתונה - טסט';
-export const TEST_JOIN_CODE = 'ABCD1234EFGH';
+export const TEST_JOIN_CODE = 'abc123';
 
 /* ─────── Session cookie value (fake JWT) ─────── */
 export const FAKE_SESSION_COOKIE = 'ws_session=eyJ0eXAiOiJzZXNzaW9uIiwiYWxnIjoiSFMyNTYifQ.test.test';
@@ -192,7 +192,7 @@ export const mockMatch = {
 };
 
 /* ─────── Phone & messaging mock data ─────── */
-export const TEST_PORTAL_TOKEN = 'portal-test-token-abc123';
+export const TEST_PORTAL_TOKEN = 'ptk456';
 export const TEST_GUEST_PHONE_ID = '10000000-1000-4000-8000-700000000001';
 
 export const mockGuestPhone = {
