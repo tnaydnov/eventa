@@ -282,8 +282,18 @@ export function useAdminData() {
     try {
       const res = await authedFetch(`/api/admin/events/${eventId}/messaging`);
       if (res.ok) {
-        const data = await res.json();
-        setMessagingStatus(data);
+        const raw = await res.json();
+        // Map snake_case API response → camelCase EventMessagingStatus
+        setMessagingStatus({
+          waMessagesEnabled: raw.wa_messages_enabled ?? false,
+          preEventSendAt: raw.pre_event_send_at ?? null,
+          feedbackSendAt: raw.feedback_send_at ?? null,
+          preEventSentCount: raw.pre_event_sent_count ?? 0,
+          feedbackSentCount: raw.feedback_sent_count ?? 0,
+          totalGuestPhones: raw.guest_list_count ?? 0,
+          portalTokenActive: !!raw.portal_token,
+          portalToken: raw.portal_token ?? null,
+        });
       }
     } catch (err) {
       console.warn('[useAdminData] loadMessagingStatus failed:', err);

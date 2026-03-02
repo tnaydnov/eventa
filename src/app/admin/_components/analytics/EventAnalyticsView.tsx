@@ -7,6 +7,7 @@ import { EVENT_TYPE_ICONS, EVENT_TYPE_LABELS, EVENT_STATUS_LABELS } from '@/lib/
 import { adminFetch, type EventAnalytics, type EventMessagingStatus, type GuestPhoneAdmin, type MessageLogEntry, type MessagingConfig } from '../shared';
 import StatCard from './StatCard';
 import ParticipantsTable from '../participants/ParticipantsTable';
+import EventServicesInfo from '../messaging/EventServicesInfo';
 
 const AnalyticsDashboard = dynamic(() => import('./AnalyticsDashboard'), { ssr: false });
 const MessagingTab = dynamic(() => import('../messaging/MessagingTab'), { ssr: false });
@@ -173,6 +174,9 @@ export default function EventAnalyticsView({
           </div>
 
           {event.description && <p className="ea-description">{event.description}</p>}
+
+          {/* Services & pricing + contact details */}
+          <EventServicesInfo eventId={event.id} />
 
           {!isArchived && (
             <div className="ea-quick-actions">

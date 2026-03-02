@@ -12,7 +12,6 @@ import MessagingControls from './MessagingControls';
 import GuestListManager from './GuestListManager';
 import MessageLog from './MessageLog';
 import CrossReferenceTable from './CrossReferenceTable';
-import EventServicesInfo from './EventServicesInfo';
 
 interface MessagingTabProps {
   event: Event;
@@ -67,9 +66,6 @@ export default function MessagingTab({
 
   return (
     <div className="msg-tab">
-      {/* Services & pricing */}
-      <EventServicesInfo eventId={event.id} />
-
       {/* Controls: status, portal, manual actions */}
       <MessagingControls
         eventId={event.id}
