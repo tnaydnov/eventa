@@ -56,20 +56,7 @@ export default function AdminPage() {
     [admin.requests],
   );
 
-  /** Events with WA enabled but no guest list uploaded and not yet ended/archived */
-  const pendingMessagingCount = useMemo(
-    () => admin.events.filter(e =>
-      e.wa_messages_enabled && !e.guest_list_uploaded &&
-      e.status !== 'ended' && e.status !== 'archived'
-    ).length,
-    [admin.events],
-  );
 
-  /** Events filtered for the messaging view */
-  const messagingEvents = useMemo(
-    () => admin.events.filter(e => e.wa_messages_enabled),
-    [admin.events],
-  );
 
   /* ─── QR helpers ─── */
   const generateQR = async (event: Event) => {
@@ -177,7 +164,6 @@ export default function AdminPage() {
           eventCounts={statusCounts}
           totalEvents={admin.events.length}
           pendingRequestsCount={pendingRequestsCount}
-          pendingMessagingCount={pendingMessagingCount}
           onLogout={admin.logout}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
@@ -202,25 +188,7 @@ export default function AdminPage() {
               />
             )}
 
-            {activeView === 'messaging' && !detailEvent && (
-              <EventsView
-                events={messagingEvents}
-                loading={admin.loading}
-                onRotate={admin.rotateJoinCode}
-                onDelete={admin.deleteEvent}
-                onGenerateQR={generateQR}
-                onCopyUrl={copyJoinUrl}
-                onUploadBg={triggerBgUpload}
-                onRemoveBg={admin.removeBackground}
-                onViewDetails={handleViewDetails}
-                onUpdateStatus={admin.updateStatus}
-                onCreateEvent={handleCreateEvent}
-                title="📱 אירועים עם הודעות"
-                subtitle={pendingMessagingCount > 0 ? `${pendingMessagingCount} אירועים ממתינים להעלאת רשימת אורחים` : 'כל האירועים עם שירות הודעות'}
-              />
-            )}
-
-            {(activeView === 'events' || activeView === 'messaging') && detailEvent && (
+            {activeView === 'events' && detailEvent && (
               <EventAnalyticsView
                 event={detailEvent}
                 onBack={handleBackFromDetails}
