@@ -3,7 +3,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { guestPhoneSchema } from '@/lib/validations';
-import { normalizePhone, isValidIsraeliMobile, maskPhone } from '@/lib/messaging/phone-utils';
+import { normalizePhone, isValidIsraeliMobile, formatPhoneDisplay } from '@/lib/messaging/phone-utils';
 import { sanitizeWithLimit } from '@/lib/sanitize';
 import { MAX_GUEST_NAME_LENGTH, MAX_GUEST_PHONES_PER_EVENT } from '@/lib/config';
 import {
@@ -129,10 +129,14 @@ export async function GET(
       .eq('event_id', eventId);
 
     if (search) {
-      // Search by guest name (ilike) or phone (contains digits)
+      // Normalize local phone input (0505752650 → +972505752650) for DB match
+      const normalized = normalizePhone(search);
       const digits = search.replace(/[^\d]/g, '');
-      if (digits.length >= 3) {
-        // Search by phone digits or name
+      if (normalized) {
+        // Exact E.164 match or name search
+        guestQuery = guestQuery.or(`guest_name.ilike.%${search}%,phone.eq.${normalized}`);
+      } else if (digits.length >= 3) {
+        // Partial digit search or name search
         guestQuery = guestQuery.or(`guest_name.ilike.%${search}%,phone.like.%${digits}%`);
       } else {
         // Name-only search
@@ -147,8 +151,8 @@ export async function GET(
     const total = count ?? 0;
     const totalPages = Math.ceil(total / PAGE_SIZE);
 
-    // Mask phone numbers for display
-    const maskedGuests = (guests || []).map(
+    // Format phone numbers for display (no masking — client uploaded these)
+    const formattedGuests = (guests || []).map(
       (g: {
         id: string;
         phone: string;
@@ -157,7 +161,7 @@ export async function GET(
         created_at: string;
       }) => ({
         id: g.id,
-        maskedPhone: maskPhone(g.phone),
+        phone: formatPhoneDisplay(g.phone),
         name: g.guest_name || null,
         sent: g.wa_pre_event_sent,
         createdAt: g.created_at,
@@ -187,7 +191,7 @@ export async function GET(
         status: event.status,
         waMessagesEnabled: event.wa_messages_enabled,
       },
-      guests: maskedGuests,
+      guests: formattedGuests,
       total,
       page,
       totalPages,

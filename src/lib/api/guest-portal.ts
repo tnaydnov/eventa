@@ -4,7 +4,7 @@ import type { UploadRowError } from '@/lib/guest-upload';
 
 export interface PortalGuest {
   id: string;
-  maskedPhone: string;
+  phone: string;
   name: string | null;
   sent: boolean;
   createdAt: string;

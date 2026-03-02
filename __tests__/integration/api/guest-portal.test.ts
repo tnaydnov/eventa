@@ -44,7 +44,11 @@ vi.mock('@/lib/messaging/phone-utils', () => ({
     const n = p.startsWith('+972') ? p : `+972${p.slice(1)}`;
     return /^\+9725\d{8}$/.test(n);
   }),
-  maskPhone: vi.fn((p: string) => `+972-5X-***-${p.slice(-4)}`),
+  formatPhoneDisplay: vi.fn((p: string) => {
+    if (!p.startsWith('+972') || p.length !== 13) return p;
+    const local = p.slice(4);
+    return `+972-${local.slice(0, 2)}-${local.slice(2, 5)}-${local.slice(5)}`;
+  }),
 }));
 
 import { GET, POST } from '@/app/api/guest-portal/[token]/route';
@@ -136,7 +140,7 @@ describe('GET /api/guest-portal/[token]', () => {
     const data = await res.json();
     expect(data.event.name).toBe('Summer');
     expect(data.guests).toHaveLength(1);
-    expect(data.guests[0].maskedPhone).toBeDefined();
+    expect(data.guests[0].phone).toBeDefined();
     expect(data.isReadOnly).toBe(false);
   });
 });

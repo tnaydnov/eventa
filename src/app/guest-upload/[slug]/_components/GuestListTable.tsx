@@ -98,7 +98,7 @@ export default function GuestListTable({
                 <span className="portal-guest-name">
                   {guest.name || '—'}
                 </span>
-                <span className="portal-guest-phone">{guest.maskedPhone}</span>
+                <span className="portal-guest-phone">{guest.phone}</span>
                 <span
                   className={`portal-guest-status ${
                     guest.sent
