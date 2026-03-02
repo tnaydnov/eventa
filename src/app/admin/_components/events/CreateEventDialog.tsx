@@ -12,6 +12,7 @@ export interface CreateEventData {
   description: string;
   starts_at: string;
   ends_at: string;
+  wa_messages_enabled: boolean;
 }
 
 interface CreateEventDialogProps {
@@ -60,6 +61,7 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
   const [endsAt, setEndsAt] = useState(() => defaultEnd(defaultStart()));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [waEnabled, setWaEnabled] = useState(false);
 
   /* ─── Derived slug preview ─── */
   const slugPreview = useMemo(() => {
@@ -86,6 +88,7 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
     setEndsAt(defaultEnd(defaultStart()));
     setSubmitting(false);
     setError('');
+    setWaEnabled(false);
   }, []);
 
   /* ─── Handlers ─── */
@@ -116,6 +119,7 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
         description: description.trim(),
         starts_at: new Date(startsAt).toISOString(),
         ends_at: new Date(endsAt).toISOString(),
+        wa_messages_enabled: waEnabled,
       });
 
       if (result.ok) {
@@ -261,6 +265,24 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
           {description.length > 0 && (
             <span className="ced-char-count">{description.length}/500</span>
           )}
+        </div>
+
+        {/* WhatsApp messaging toggle */}
+        <div className="ced-field">
+          <button
+            type="button"
+            className={`ced-wa-toggle ${waEnabled ? 'ced-wa-toggle--active' : ''}`}
+            onClick={() => setWaEnabled(!waEnabled)}
+          >
+            <span className="ced-wa-toggle__icon">📱</span>
+            <span className="ced-wa-toggle__text">
+              <span className="ced-wa-toggle__label">שירות הודעות WhatsApp</span>
+              <span className="ced-wa-toggle__desc">{waEnabled ? 'מופעל — +₪50' : 'כבוי'}</span>
+            </span>
+            <span className={`ced-wa-toggle__switch ${waEnabled ? 'ced-wa-toggle__switch--on' : ''}`}>
+              <span className="ced-wa-toggle__switch-thumb" />
+            </span>
+          </button>
         </div>
 
         {/* Error message */}

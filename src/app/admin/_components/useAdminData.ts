@@ -101,6 +101,7 @@ export function useAdminData() {
     description?: string;
     starts_at?: string;
     ends_at?: string;
+    wa_messages_enabled?: boolean;
   }): Promise<{ ok: boolean; error?: string }> => {
     const res = await authedFetch('/api/admin/events', {
       method: 'POST',

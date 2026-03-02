@@ -197,6 +197,7 @@ export const createEventSchema = z.object({
   description: z.string().max(500).nullable().optional(),
   starts_at: z.string().datetime().optional(),
   ends_at: z.string().datetime().optional(),
+  wa_messages_enabled: z.boolean().optional(),
 });
 
 /* ---- Admin update event schema ---- */

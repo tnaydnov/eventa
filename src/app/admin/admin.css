@@ -1060,6 +1060,83 @@
   margin-top: 4px;
 }
 
+/* WhatsApp messaging toggle */
+.ced-wa-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  cursor: pointer;
+  text-align: right;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.ced-wa-toggle:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ced-wa-toggle--active {
+  border-color: #25d366;
+  background: rgba(37, 211, 102, 0.06);
+}
+
+.ced-wa-toggle__icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.ced-wa-toggle__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ced-wa-toggle__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.ced-wa-toggle__desc {
+  font-size: 12px;
+  color: var(--admin-text-muted);
+}
+
+.ced-wa-toggle__switch {
+  flex-shrink: 0;
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.12);
+  position: relative;
+  transition: background 0.2s ease;
+}
+
+.ced-wa-toggle__switch--on {
+  background: #25d366;
+}
+
+.ced-wa-toggle__switch-thumb {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s ease;
+}
+
+.ced-wa-toggle__switch--on .ced-wa-toggle__switch-thumb {
+  transform: translateX(-18px);
+}
+
 /* Error banner */
 .ced-error {
   background: rgba(244, 67, 54, 0.12);

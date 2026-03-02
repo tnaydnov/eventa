@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     const order = url.searchParams.get('order') || 'desc';
 
     const supabase = getServiceClient();
-    let query = supabase.from('events').select('id, slug, name, join_code, event_type, status, description, starts_at, ends_at, is_active, background_image, archived_at, created_at');
+    let query = supabase.from('events').select('id, slug, name, join_code, event_type, status, description, starts_at, ends_at, is_active, background_image, archived_at, created_at, wa_messages_enabled, guest_list_uploaded, guest_list_uploaded_at, guest_list_count');
 
     // Status filter
     if (status) {
@@ -146,6 +146,7 @@ export async function POST(req: NextRequest) {
         starts_at: parsed.data.starts_at || new Date().toISOString(),
         ends_at: parsed.data.ends_at || new Date(Date.now() + DEFAULT_DURATION_MS).toISOString(),
         is_active: true,
+        wa_messages_enabled: parsed.data.wa_messages_enabled || false,
       })
       .select()
       .single();
