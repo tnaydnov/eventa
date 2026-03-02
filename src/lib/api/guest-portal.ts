@@ -14,6 +14,7 @@ export interface PortalData {
   event: {
     id: string;
     name: string;
+    slug: string;
     startsAt: string;
     endsAt: string;
     status: string;

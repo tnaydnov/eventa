@@ -210,6 +210,7 @@ export const mockPortalData = {
   event: {
     id: TEST_EVENT_ID,
     name: TEST_EVENT_NAME,
+    slug: TEST_EVENT_SLUG,
     starts_at: '2025-06-01T10:00:00Z',
     ends_at: '2025-06-01T22:00:00Z',
     status: 'active',

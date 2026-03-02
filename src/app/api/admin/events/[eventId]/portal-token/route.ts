@@ -8,10 +8,10 @@ import { logger } from '@/lib/logger';
 import { APP_BASE_URL } from '@/lib/config';
 
 /**
- * Build the full guest-upload portal URL for a given event/token.
+ * Build the full guest-upload portal URL for a given event slug/token.
  */
-function buildPortalUrl(eventId: string, token: string): string {
-  return `${APP_BASE_URL}/guest-upload/${eventId}?token=${token}`;
+function buildPortalUrl(slug: string, token: string): string {
+  return `${APP_BASE_URL}/guest-upload/${slug}?token=${token}`;
 }
 
 /**
@@ -48,9 +48,16 @@ export async function GET(
       return NextResponse.json({ token: null, portalUrl: null });
     }
 
+    // Fetch event slug for pretty URL
+    const { data: event } = await supabase
+      .from('events')
+      .select('slug')
+      .eq('id', eventId)
+      .single();
+
     return NextResponse.json({
       token: data.token,
-      portalUrl: buildPortalUrl(eventId, data.token),
+      portalUrl: buildPortalUrl(event?.slug ?? eventId, data.token),
       createdAt: data.created_at,
       lastUsedAt: data.last_used_at,
     });
@@ -81,7 +88,7 @@ export async function POST(
     // Verify event exists
     const { data: event, error: evErr } = await supabase
       .from('events')
-      .select('id')
+      .select('id, slug')
       .eq('id', eventId)
       .single();
 
@@ -114,7 +121,7 @@ export async function POST(
 
     return NextResponse.json({
       token,
-      portalUrl: buildPortalUrl(eventId, token),
+      portalUrl: buildPortalUrl(event.slug, token),
     });
   } catch (err) {
     logger.error('[ADMIN_PORTAL_TOKEN_POST] error:', err);

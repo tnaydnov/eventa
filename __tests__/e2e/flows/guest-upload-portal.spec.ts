@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import {
   TEST_EVENT_ID,
+  TEST_EVENT_SLUG,
   TEST_PORTAL_TOKEN,
   mockPortalData,
   mockGuestPhone,
@@ -13,7 +14,7 @@ import {
  */
 
 test.describe('Guest Upload Portal', () => {
-  const portalUrl = `/guest-upload/${TEST_EVENT_ID}?token=${TEST_PORTAL_TOKEN}`;
+  const portalUrl = `/guest-upload/${TEST_EVENT_SLUG}?token=${TEST_PORTAL_TOKEN}`;
 
   test.beforeEach(async ({ page }) => {
     await page.route('**/realtime/**', (route) => route.abort());
@@ -103,7 +104,7 @@ test.describe('Guest Upload Portal', () => {
       });
     });
 
-    await page.goto(`/guest-upload/${TEST_EVENT_ID}?token=bad-token`);
+    await page.goto(`/guest-upload/${TEST_EVENT_SLUG}?token=bad-token`);
 
     // Should show error state
     await page.waitForTimeout(3000);

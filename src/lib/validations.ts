@@ -116,13 +116,13 @@ export const israeliPhoneSchema = z
     'מספר טלפון ישראלי לא תקין (05X-XXXXXXX)',
   );
 
-/** Pretty slug validation (3-30 chars, alphanumeric + hyphens). */
+/** Pretty slug validation (3-60 chars, alphanumeric + hyphens). */
 export const prettySlugSchema = z
   .string()
   .min(3, 'slug חייב להכיל לפחות 3 תווים')
-  .max(30, 'slug חייב להכיל עד 30 תווים')
+  .max(60, 'slug חייב להכיל עד 60 תווים')
   .regex(
-    /^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$/,
+    /^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$/,
     'slug חייב להכיל רק אותיות קטנות, מספרים ומקפים, ללא מקף בתחילה/סוף',
   );
 

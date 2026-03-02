@@ -47,9 +47,9 @@ function formatDate(iso: string): string {
 export default function GuestUploadPage({
   params,
 }: {
-  params: Promise<{ eventId: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { eventId } = use(params);
+  const { slug } = use(params);
   const searchParams = useSearchParams();
   const token = searchParams.get('token') ?? '';
 
@@ -70,8 +70,8 @@ export default function GuestUploadPage({
       }
       try {
         const result = await getPortalData(token, p);
-        // Verify event ID matches
-        if (result.event.id !== eventId) {
+        // Verify event slug matches URL
+        if (result.event.slug !== slug) {
           setError('הקישור אינו תואם את האירוע');
           setLoading(false);
           return;
@@ -85,13 +85,13 @@ export default function GuestUploadPage({
         setLoading(false);
       }
     },
-    [token, eventId, page]
+    [token, slug, page]
   );
 
   useEffect(() => {
     loadData(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, eventId]);
+  }, [token, slug]);
 
   // ── Upload handler ──
   const handleUpload = useCallback(

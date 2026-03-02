@@ -75,7 +75,7 @@ async function handler(req: NextRequest) {
     // Find events with messaging enabled but no guest list uploaded
     const { data: events, error: eventError } = await supabase
       .from('events')
-      .select('id, name, starts_at')
+      .select('id, name, slug, starts_at')
       .eq('wa_messages_enabled', true)
       .eq('guest_list_uploaded', false)
       .in('status', ['active', 'draft'])
@@ -151,8 +151,8 @@ async function handler(req: NextRequest) {
         .maybeSingle();
 
       const uploadUrl = portalToken
-        ? `${APP_BASE_URL}/guest-upload/${event.id}?token=${portalToken.token}`
-        : `${APP_BASE_URL}/guest-upload/${event.id}`;
+        ? `${APP_BASE_URL}/guest-upload/${event.slug}?token=${portalToken.token}`
+        : `${APP_BASE_URL}/guest-upload/${event.slug}`;
 
       const eventDate = new Date(event.starts_at).toLocaleDateString('he-IL', {
         weekday: 'long',

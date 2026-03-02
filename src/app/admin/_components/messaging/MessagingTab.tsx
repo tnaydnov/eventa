@@ -68,6 +68,7 @@ export default function MessagingTab({
       {/* Controls: status, portal, manual actions */}
       <MessagingControls
         eventId={event.id}
+        eventSlug={event.slug}
         eventName={event.name}
         eventDate={event.starts_at}
         status={messagingStatus}

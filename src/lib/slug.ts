@@ -1,11 +1,18 @@
 /**
  * Pretty slug generation for events.
- * Per design doc §28.5 — human-readable, SEO-friendly event URLs.
  *
- * Format: {type}-{city}-{mmdd}-{rand}
- * Example: wedding-tlv-0315-x7k
+ * Primary strategy: derive a human-readable slug from the event name
+ *   "Tomer & Eden"        → tomer-and-eden
+ *   "Wedding Lior & Noa"  → lior-and-noa
+ *   "Party in TLV"        → party-in-tlv
  *
- * Slug validation regex: /^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$/
+ * On collision (another active event has the same slug):
+ *   tomer-and-eden-2, tomer-and-eden-3, …
+ *
+ * Fallback (if the name produces no usable slug):
+ *   {type}-{mmdd}-{rand}  (e.g. wedding-0303-x7k)
+ *
+ * Slug validation regex: /^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$/
  */
 import crypto from 'crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -63,8 +70,8 @@ export const TYPE_CODES: Record<string, string> = {
 
 // ─── Slug validation ────────────────────────────────────────
 
-/** Regex for valid pretty slugs: 3-30 chars, alphanumeric + hyphens, no leading/trailing hyphens. */
-export const SLUG_REGEX = /^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$/;
+/** Regex for valid pretty slugs: 3-60 chars, alphanumeric + hyphens, no leading/trailing hyphens. */
+export const SLUG_REGEX = /^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$/;
 
 /**
  * Validate a slug string.
@@ -76,12 +83,84 @@ export function isValidSlug(slug: string): boolean {
 // ─── Helpers ────────────────────────────────────────────────
 
 /**
+ * Hebrew-to-English transliteration map (common names / words).
+ * Not exhaustive — just enough for event names.
+ */
+const HE_TRANSLIT: Record<string, string> = {
+  'א': 'a', 'ב': 'b', 'ג': 'g', 'ד': 'd', 'ה': 'h',
+  'ו': 'v', 'ז': 'z', 'ח': 'ch', 'ט': 't', 'י': 'y',
+  'כ': 'k', 'ך': 'k', 'ל': 'l', 'מ': 'm', 'ם': 'm',
+  'נ': 'n', 'ן': 'n', 'ס': 's', 'ע': 'a', 'פ': 'p',
+  'ף': 'f', 'צ': 'ts', 'ץ': 'ts', 'ק': 'k', 'ר': 'r',
+  'ש': 'sh', 'ת': 't',
+};
+
+/**
+ * Transliterate a string (Hebrew → Latin, strip accents, lowercase).
+ * Non-transliterable chars pass through (English stays as-is).
+ */
+function transliterate(str: string): string {
+  let result = '';
+  for (const ch of str) {
+    if (HE_TRANSLIT[ch]) {
+      result += HE_TRANSLIT[ch];
+    } else {
+      result += ch;
+    }
+  }
+  return result.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+/**
+ * Convert a free-form event name into a URL-safe slug base.
+ * Replaces & with "and", strips non-alphanumeric, collapses hyphens.
+ */
+function nameToSlug(name: string): string {
+  let s = transliterate(name);
+  // Replace common connecting symbols with "and"
+  s = s.replace(/\s*[&+]\s*/g, '-and-');
+  // Replace spaces and underscores with hyphens
+  s = s.replace(/[\s_]+/g, '-');
+  // Remove anything that isn't alphanumeric or hyphen
+  s = s.replace(/[^a-z0-9-]/g, '');
+  // Collapse multiple hyphens
+  s = s.replace(/-{2,}/g, '-');
+  // Trim leading/trailing hyphens
+  s = s.replace(/^-+|-+$/g, '');
+  return s;
+}
+
+/**
+ * Strip common event-type prefixes from a name so we get just the people/place.
+ * "Wedding Tomer & Eden" → "Tomer & Eden"
+ * "חתונה של תומר ועדן"  → "תומר ועדן"
+ */
+const TYPE_PREFIXES = [
+  // English
+  /^wedding\s+(of\s+)?/i,
+  /^party\s+(of\s+|for\s+)?/i,
+  /^event\s+(of\s+|for\s+)?/i,
+  /^birthday\s+(of\s+|for\s+|party\s+)?/i,
+  /^corporate\s+(event\s+)?/i,
+  /^meetup\s+(for\s+)?/i,
+  // Hebrew
+  /^(ה)?(חתונה|אירוע|מסיבה|יום הולדת|מפגש)\s+(של\s+)?/,
+];
+
+function stripTypePrefix(name: string): string {
+  let result = name.trim();
+  for (const re of TYPE_PREFIXES) {
+    result = result.replace(re, '');
+  }
+  return result.trim() || name.trim();
+}
+
+/**
  * Extract a city code from an event name string.
  * Looks for known city names (Hebrew or English) in the text.
  */
 export function extractCity(eventName: string): string | null {
   const normalized = eventName.toLowerCase().trim();
-  // Check each city name (longest first to avoid partial matches)
   const cityNames = Object.keys(CITY_CODES).sort((a, b) => b.length - a.length);
   for (const name of cityNames) {
     if (normalized.includes(name.toLowerCase())) {
@@ -118,12 +197,13 @@ export async function checkSlugAvailable(
  * Generate a pretty, human-readable slug for an event.
  *
  * Algorithm:
- * 1. Build parts: {type}-{city}-{mmdd}
- * 2. Add random suffix for uniqueness
- * 3. If collision, retry with new random suffix (up to 5 attempts)
- * 4. Final fallback: full UUID-based slug
+ * 1. Strip type prefix from name ("Wedding Tomer & Eden" → "Tomer & Eden")
+ * 2. Transliterate Hebrew → Latin if needed
+ * 3. Convert to URL-safe slug ("tomer-and-eden")
+ * 4. If collision, try "tomer-and-eden-2", "tomer-and-eden-3", … (up to 20)
+ * 5. Fallback: {type}-{mmdd}-{rand}
  *
- * @param eventName - Event name (may contain city hints)
+ * @param eventName - Event name (e.g. "Tomer & Eden")
  * @param eventType - Event type key (e.g. 'wedding', 'party')
  * @param startsAt  - ISO date string of event start
  * @param supabase  - Supabase client for uniqueness check
@@ -134,13 +214,32 @@ export async function generatePrettySlug(
   startsAt: string,
   supabase: SupabaseClient,
 ): Promise<string> {
-  // Type code
+  // ── 1. Try name-based slug ──
+  const stripped = stripTypePrefix(eventName);
+  const baseSlug = nameToSlug(stripped);
+
+  // Only use the name-based slug if it's at least 3 chars
+  if (baseSlug.length >= 3) {
+    // Trim to a reasonable length (max 50 chars for the base)
+    const trimmed = baseSlug.slice(0, 50).replace(/-$/, '');
+
+    // First attempt: exact name slug
+    if (isValidSlug(trimmed) && await checkSlugAvailable(trimmed, supabase)) {
+      return trimmed;
+    }
+
+    // Collision: try -2, -3, … up to -20
+    for (let i = 2; i <= 20; i++) {
+      const candidate = `${trimmed}-${i}`;
+      if (isValidSlug(candidate) && await checkSlugAvailable(candidate, supabase)) {
+        return candidate;
+      }
+    }
+  }
+
+  // ── 2. Fallback: type-date-random ──
   const typeCode = TYPE_CODES[eventType] || TYPE_CODES.other;
 
-  // City code (optional)
-  const cityCode = extractCity(eventName);
-
-  // Date code: MMDD from starts_at
   let dateCode = '';
   try {
     const d = new Date(startsAt);
@@ -151,13 +250,10 @@ export async function generatePrettySlug(
     dateCode = '';
   }
 
-  // Build base slug
   const parts = [typeCode];
-  if (cityCode) parts.push(cityCode);
   if (dateCode) parts.push(dateCode);
   const basePart = parts.join('-');
 
-  // Try with random suffix up to 5 times
   for (let attempt = 0; attempt < 5; attempt++) {
     const slug = `${basePart}-${randomSlugSuffix()}`;
     if (isValidSlug(slug) && await checkSlugAvailable(slug, supabase)) {
@@ -165,7 +261,6 @@ export async function generatePrettySlug(
     }
   }
 
-  // Final fallback: UUID-based
-  const fallback = `${typeCode}-${crypto.randomUUID().slice(0, 8)}`;
-  return fallback;
+  // Ultimate fallback
+  return `${typeCode}-${crypto.randomUUID().slice(0, 8)}`;
 }

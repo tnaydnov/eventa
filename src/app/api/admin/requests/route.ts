@@ -286,7 +286,7 @@ export async function POST(req: NextRequest) {
         if (request.contact_email) {
           const eventDate = formatDate(request.starts_at);
           const eventTime = formatTime(request.starts_at);
-          const portalUrl = `${APP_BASE_URL}/guest-upload/${newEvent.id}?token=${portalToken}`;
+          const portalUrl = `${APP_BASE_URL}/guest-upload/${newEvent.slug}?token=${portalToken}`;
           const templateUrl = `${APP_BASE_URL}/templates/guest-upload-template.xlsx`;
 
           const email = buildUploadInstructionsEmail({

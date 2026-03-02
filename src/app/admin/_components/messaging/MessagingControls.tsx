@@ -5,6 +5,7 @@ import type { MessagingConfig, EventMessagingStatus } from '../shared';
 
 interface MessagingControlsProps {
   eventId: string;
+  eventSlug: string;
   eventName: string;
   eventDate: string;
   status: EventMessagingStatus;
@@ -431,6 +432,7 @@ function ActionDialog({ action, onConfirm, onCancel, loading, previewHtml, custo
 
 export default function MessagingControls({
   eventId,
+  eventSlug,
   eventName,
   eventDate,
   status,
@@ -446,7 +448,7 @@ export default function MessagingControls({
   const [customBody, setCustomBody] = useState('');
 
   const portalUrl = status.portalToken
-    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/guest-upload/${eventId}?token=${status.portalToken}`
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/guest-upload/${eventSlug}?token=${status.portalToken}`
     : null;
 
   const handleAction = useCallback(async (actionId: string) => {
