@@ -53,7 +53,15 @@ ALTER TABLE event_requests
 
 -- (no replacement — payment_method is already nullable and the check above covers it)
 
--- 5. Add Invoice4U Clearing-specific columns
+-- 5. Extend contact_preference CHECK to include 'pay-now'
+ALTER TABLE event_requests
+  DROP CONSTRAINT IF EXISTS event_requests_contact_preference_check;
+
+ALTER TABLE event_requests
+  ADD CONSTRAINT event_requests_contact_preference_check
+    CHECK (contact_preference IN ('call-me', 'send-link', 'pay-now'));
+
+-- 6. Add Invoice4U Clearing-specific columns
 ALTER TABLE event_requests
   ADD COLUMN IF NOT EXISTS clearing_log_id       TEXT DEFAULT NULL,
   ADD COLUMN IF NOT EXISTS clearing_payment_id   TEXT DEFAULT NULL,
