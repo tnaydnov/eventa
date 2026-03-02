@@ -246,19 +246,27 @@ function shell(title: string, inner: string, subtitle?: string): string {
         <!-- Accent top strip -->
         <tr><td style="background-color:${C.accent};height:4px;font-size:0;line-height:0;">&nbsp;</td></tr>
 
-        <!-- Logo + headline -->
+        <!-- Header row: subtitle + logo -->
         <tr>
-          <td style="background-color:${C.card};padding:28px 32px ${subtitle ? '16px' : '24px'};text-align:center;${subtitle ? '' : `border-bottom:1px solid ${C.border};`}">
-            <img src="${LOGO_URL}" alt="Eventa" width="80" height="auto" style="display:block;margin:0 auto;max-width:80px;height:auto;border:0;" />
+          <td style="background-color:${C.card};padding:0;border-bottom:1px solid ${C.border};">
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;">
+              <tr>
+                <!-- Subtitle (RTL start = right) -->
+                <td dir="rtl" style="text-align:right;padding:24px 28px 24px 0;vertical-align:middle;">
+                  ${subtitle
+                    ? `<div dir="rtl" style="direction:rtl;text-align:right;font-size:20px;font-weight:700;color:${C.accent};line-height:1.3;">${subtitle}</div>`
+                    : `<div style="font-size:14px;color:${C.dim};letter-spacing:0.5px;">${ltr('EVENTA')}</div>`}
+                </td>
+                <!-- Logo (RTL end = left) -->
+                <td style="text-align:left;padding:20px 28px 20px 0;vertical-align:middle;width:52px;">
+                  <div style="width:44px;height:44px;border-radius:50%;background-color:#1e1e1e;text-align:center;line-height:44px;">
+                    <img src="${LOGO_URL}" alt="Eventa" width="30" height="auto" style="display:inline-block;max-width:30px;height:auto;border:0;vertical-align:middle;" />
+                  </div>
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
-        ${subtitle ? `<!-- Separator + subtitle -->
-        <tr>
-          <td style="background-color:${C.card};padding:0 32px 24px;text-align:center;border-bottom:1px solid ${C.border};">
-            <div style="margin:0 auto 14px;width:40px;height:1px;background-color:${C.accent};opacity:0.4;"></div>
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:20px;font-weight:700;color:${C.accent};line-height:1.3;">${subtitle}</div>
-          </td>
-        </tr>` : ''}
 
         ${inner}
 
