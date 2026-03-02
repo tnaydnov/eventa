@@ -81,8 +81,8 @@ function fmtTime(iso: string): string {
 function row(label: string, value: string, isLast = false): string {
   const bb = isLast ? '' : `border-bottom:1px solid ${C.border};`;
   return `<tr>
-    <td dir="rtl" style="text-align:right;padding:12px 0 12px 12px;${bb}background-color:${C.card};color:#555555;font-size:14px;font-weight:600;width:100px;vertical-align:top;line-height:1.5;">${label}</td>
-    <td dir="rtl" style="text-align:right;padding:12px 12px 12px 0;${bb}background-color:${C.card};color:${C.text};font-size:15px;line-height:1.5;">${value}</td>
+    <td dir="rtl" style="text-align:right;padding:12px 4px 12px 12px;${bb}background-color:${C.card};color:#555555;font-size:14px;font-weight:600;width:100px;vertical-align:top;line-height:1.5;">${label}</td>
+    <td dir="rtl" style="text-align:right;padding:12px 12px 12px 4px;${bb}background-color:${C.card};color:${C.text};font-size:15px;line-height:1.5;">${value}</td>
   </tr>`;
 }
 
@@ -95,10 +95,10 @@ function sectionTitle(text: string): string {
 function stepRow(num: number, text: string, isLast = false): string {
   const bb = isLast ? '' : `border-bottom:1px solid ${C.border};`;
   return `<tr>
-    <td dir="rtl" style="text-align:right;padding:14px 0 14px 8px;${bb}background-color:${C.card};vertical-align:middle;width:44px;">
+    <td dir="rtl" style="text-align:right;padding:14px 4px 14px 8px;${bb}background-color:${C.card};vertical-align:middle;width:44px;">
       <div style="width:30px;height:30px;line-height:30px;text-align:center;border-radius:50%;background-color:${C.accent};color:#ffffff;font-size:14px;font-weight:700;margin:0 auto;">${num}</div>
     </td>
-    <td dir="rtl" style="text-align:right;padding:14px 12px 14px 0;${bb}background-color:${C.card};color:${C.text};font-size:15px;line-height:1.5;vertical-align:middle;">${text}</td>
+    <td dir="rtl" style="text-align:right;padding:14px 12px 14px 4px;${bb}background-color:${C.card};color:${C.text};font-size:15px;line-height:1.5;vertical-align:middle;">${text}</td>
   </tr>`;
 }
 
@@ -257,15 +257,15 @@ function shell(title: string, inner: string, subtitle?: string): string {
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;">
               <tr>
                 <!-- Subtitle (RTL start = right) -->
-                <td dir="rtl" style="text-align:right;padding:24px 28px 24px 12px;vertical-align:middle;">
+                <td dir="rtl" style="text-align:right;padding:24px 28px 24px 0;vertical-align:middle;">
                   ${subtitle
                     ? `<div dir="rtl" style="direction:rtl;text-align:right;font-size:20px;font-weight:700;color:${C.accent};line-height:1.3;">${subtitle}</div>`
                     : `<div style="font-size:14px;color:${C.dim};letter-spacing:0.5px;">${ltr('EVENTA')}</div>`}
                 </td>
                 <!-- Logo (RTL end = left), sized to fill row height -->
-                <td style="text-align:left;padding:2px 16px 2px 0;vertical-align:middle;width:200px;">
-                  <img class="em-logo-dark" src="${LOGO_DARK}" alt="Eventa" width="190" height="auto" style="display:inline-block;max-width:190px;height:auto;border:0;vertical-align:middle;" />
-                  <img class="em-logo-light" src="${LOGO_LIGHT}" alt="Eventa" width="190" height="auto" style="display:none;max-width:190px;height:auto;border:0;vertical-align:middle;" />
+                <td style="text-align:left;padding:4px 28px 4px 0;vertical-align:middle;width:160px;">
+                  <img class="em-logo-dark" src="${LOGO_DARK}" alt="Eventa" width="150" height="auto" style="display:inline-block;max-width:150px;height:auto;border:0;vertical-align:middle;" />
+                  <img class="em-logo-light" src="${LOGO_LIGHT}" alt="Eventa" width="150" height="auto" style="display:none;max-width:150px;height:auto;border:0;vertical-align:middle;" />
                 </td>
               </tr>
             </table>
