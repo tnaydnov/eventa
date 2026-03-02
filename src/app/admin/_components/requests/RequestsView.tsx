@@ -32,12 +32,9 @@ interface Props {
   onApprove: (requestId: string, adminNotes?: string) => Promise<{ ok: boolean; error?: string }>;
   onDeny: (requestId: string, adminNotes?: string) => Promise<{ ok: boolean; error?: string }>;
   onReload: () => void;
-  onMarkAsPaid?: (requestId: string, method: string) => Promise<{ ok: boolean; error?: string }>;
-  onWaivePayment?: (requestId: string) => Promise<{ ok: boolean; error?: string }>;
-  onResendPaymentLink?: (requestId: string) => Promise<{ ok: boolean; error?: string }>;
 }
 
-export default function RequestsView({ requests, onApprove, onDeny, onReload, onMarkAsPaid, onWaivePayment, onResendPaymentLink }: Props) {
+export default function RequestsView({ requests, onApprove, onDeny, onReload }: Props) {
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -233,7 +230,7 @@ export default function RequestsView({ requests, onApprove, onDeny, onReload, on
                     </div>
                   </div>
 
-                  {/* Payment Status */}
+                  {/* Payment Status (read-only — manage in Payments tab) */}
                   {req.payment_status && req.payment_status !== 'not_applicable' && (
                     <div className="req-payment">
                       <div className="req-payment__status">
@@ -249,71 +246,17 @@ export default function RequestsView({ requests, onApprove, onDeny, onReload, on
                         )}
                       </div>
 
-                      {/* Payment actions (only for unpaid requests) */}
-                      {req.payment_status !== 'paid' && req.payment_status !== 'waived' && (
-                        <div className="req-payment__actions" style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                          {/* Mark as paid dropdown */}
-                          {onMarkAsPaid && (
-                            <select
-                              className="admin-input"
-                              style={{ maxWidth: 200, fontSize: '0.85rem' }}
-                              defaultValue=""
-                              onChange={async (e) => {
-                                const method = e.target.value;
-                                if (!method) return;
-                                if (!confirm(`לסמן כשולם באמצעות ${PAYMENT_METHOD_LABELS[method]}?`)) {
-                                  e.target.value = '';
-                                  return;
-                                }
-                                const result = await onMarkAsPaid(req.id, method);
-                                if (result.ok) alert('✅ סומן כשולם');
-                                else alert(result.error || 'שגיאה');
-                                e.target.value = '';
-                              }}
-                            >
-                              <option value="" disabled>💳 סמנו כשולם...</option>
-                              {Object.entries(PAYMENT_METHOD_LABELS).map(([key, label]) => (
-                                <option key={key} value={key}>{label}</option>
-                              ))}
-                            </select>
-                          )}
-                          {/* Resend payment link */}
-                          {onResendPaymentLink && req.contact_email && (
-                            <button
-                              className="admin-btn admin-btn--ghost"
-                              style={{ fontSize: '0.85rem' }}
-                              onClick={async () => {
-                                if (!confirm('לשלוח קישור תשלום חדש?')) return;
-                                const result = await onResendPaymentLink(req.id);
-                                if (result.ok) alert('✅ קישור תשלום נשלח מחדש');
-                                else alert(result.error || 'שגיאה');
-                              }}
-                            >
-                              📧 שלח קישור מחדש
-                            </button>
-                          )}
-                          {/* Waive payment */}
-                          {onWaivePayment && (
-                            <button
-                              className="admin-btn admin-btn--ghost"
-                              style={{ fontSize: '0.85rem' }}
-                              onClick={async () => {
-                                if (!confirm('לבטל את דרישת התשלום?')) return;
-                                const result = await onWaivePayment(req.id);
-                                if (result.ok) alert('✅ תשלום בוטל');
-                                else alert(result.error || 'שגיאה');
-                              }}
-                            >
-                              🎁 ביטול תשלום
-                            </button>
-                          )}
-                        </div>
-                      )}
-
                       {/* Show payment method if paid */}
                       {req.payment_status === 'paid' && req.payment_method && (
                         <div style={{ marginTop: 4, fontSize: '0.85rem', color: '#a0a0a0' }}>
                           שולם באמצעות: {PAYMENT_METHOD_LABELS[req.payment_method] || req.payment_method}
+                        </div>
+                      )}
+
+                      {/* Hint to manage payments in dedicated tab */}
+                      {req.payment_status !== 'paid' && req.payment_status !== 'waived' && (
+                        <div style={{ marginTop: 6, fontSize: '0.8rem', color: '#888' }}>
+                          💡 ניהול תשלומים בלשונית &quot;תשלומים וחשבוניות&quot;
                         </div>
                       )}
                     </div>

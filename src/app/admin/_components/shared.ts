@@ -382,3 +382,81 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
   bank_transfer: 'העברה בנקאית',
   other: 'אחר',
 };
+
+/* ---------- Invoice / Payments Tab Types ---------- */
+
+/** Invoice4U Document type enum (mirrors server-side) */
+export const DOCUMENT_TYPES = {
+  1: 'חשבונית',
+  2: 'קבלה',
+  3: 'חשבונית מס / קבלה',
+  4: 'חשבונית זיכוי',
+  5: 'חשבונית עסקה',
+  6: 'הזמנת עבודה',
+  7: 'הצעת מחיר',
+  8: 'תעודת משלוח',
+  9: 'קבלה על חשבון',
+} as const;
+
+/** Types commonly generated in Eventa */
+export const COMMON_DOC_TYPES = [
+  { value: 3, label: 'חשבונית מס / קבלה', emoji: '🧾' },
+  { value: 1, label: 'חשבונית', emoji: '📄' },
+  { value: 2, label: 'קבלה', emoji: '🧾' },
+  { value: 5, label: 'חשבונית עסקה', emoji: '📋' },
+  { value: 7, label: 'הצעת מחיר', emoji: '📝' },
+] as const;
+
+/** Invoice4U payment types for receipts */
+export const INVOICE4U_PAYMENT_TYPES = [
+  { value: 4, label: 'מזומן' },
+  { value: 3, label: 'העברה בנקאית' },
+  { value: 8, label: 'Bit' },
+  { value: 9, label: 'PayBox' },
+  { value: 1, label: 'כרטיס אשראי' },
+  { value: 2, label: 'צ׳ק' },
+  { value: 7, label: 'אחר' },
+] as const;
+
+/** Local invoice record (from our DB) */
+export interface LocalInvoice {
+  id: string;
+  event_request_id: string | null;
+  invoice4u_doc_id: string;
+  invoice4u_doc_number: string | null;
+  invoice4u_doc_type: number;
+  invoice4u_customer_id: number | null;
+  invoice4u_doc_url: string | null;
+  doc_type_label: string;
+  customer_name: string | null;
+  customer_email: string | null;
+  total_amount: number;
+  vat_amount: number;
+  currency: string;
+  status: 'active' | 'cancelled';
+  issued_at: string;
+  created_at: string;
+  original_invoice_id: string | null;
+}
+
+/** Payment summary from the API */
+export interface PaymentSummaryData {
+  totalRevenue: number;
+  pendingRevenue: number;
+  totalRequests: number;
+  statusCounts: Record<string, number>;
+  methodCounts: Record<string, number>;
+  invoiceCount: number;
+  recentInvoices: LocalInvoice[];
+  invoice4uConfigured: boolean;
+}
+
+/** Format ILS currency */
+export function formatILS(amount: number): string {
+  return new Intl.NumberFormat('he-IL', {
+    style: 'currency',
+    currency: 'ILS',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}

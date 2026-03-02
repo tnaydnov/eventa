@@ -12,6 +12,7 @@ import CreateEventDialog, { type CreateEventData } from './_components/events/Cr
 import EventAnalyticsView from './_components/analytics/EventAnalyticsView';
 import GlobalAnalyticsView from './_components/analytics/GlobalAnalyticsView';
 import RequestsView from './_components/requests/RequestsView';
+import PaymentsView from './_components/payments/PaymentsView';
 import QRDialog from './_components/QRDialog';
 import ParticipantsDialog from './_components/ParticipantsDialog';
 
@@ -239,6 +240,12 @@ export default function AdminPage() {
                 onApprove={admin.approveRequest}
                 onDeny={admin.denyRequest}
                 onReload={admin.loadRequests}
+              />
+            )}
+
+            {activeView === 'payments' && (
+              <PaymentsView
+                requests={admin.requests}
                 onMarkAsPaid={admin.markAsPaid}
                 onWaivePayment={admin.waivePayment}
                 onResendPaymentLink={admin.resendPaymentLink}

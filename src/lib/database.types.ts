@@ -244,8 +244,35 @@ export interface EventRequest {
   total_price: number;
   payment_link_token: string | null;
   payment_link_expires_at: string | null;
+  // Invoice4U tracking
+  invoice4u_customer_id: number | null;
+  invoice4u_doc_id: string | null;
+  invoice4u_doc_number: string | null;
+  invoice4u_doc_type: number | null;
   created_at: string;
   reviewed_at: string | null;
+}
+
+export type InvoiceStatus = 'active' | 'cancelled';
+
+export interface Invoice {
+  id: string;
+  event_request_id: string | null;
+  invoice4u_doc_id: string;
+  invoice4u_doc_number: string | null;
+  invoice4u_doc_type: number;
+  invoice4u_customer_id: number | null;
+  invoice4u_doc_url: string | null;
+  doc_type_label: string;
+  customer_name: string | null;
+  customer_email: string | null;
+  total_amount: number;
+  vat_amount: number;
+  currency: string;
+  status: InvoiceStatus;
+  issued_at: string;
+  created_at: string;
+  original_invoice_id: string | null;
 }
 
 /** Payment-specific fields from EventRequest (for UI components). */
@@ -280,6 +307,7 @@ export interface Database {
       client_portal_tokens: { Row: ClientPortalToken; Insert: Omit<ClientPortalToken, 'id' | 'created_at'>; Update: Partial<ClientPortalToken>; Relationships: [] };
       discount_claims: { Row: DiscountClaim; Insert: Omit<DiscountClaim, 'id' | 'created_at'>; Update: Partial<DiscountClaim>; Relationships: [] };
       event_requests: { Row: EventRequest; Insert: Omit<EventRequest, 'id' | 'created_at'>; Update: Partial<EventRequest>; Relationships: [] };
+      invoices: { Row: Invoice; Insert: Omit<Invoice, 'id' | 'created_at'>; Update: Partial<Invoice>; Relationships: [] };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

@@ -4,7 +4,7 @@ import { EVENT_STATUS_LABELS } from '@/lib/constants';
 import type { EventStatus } from '@/lib/database.types';
 
 /** Navigation view the sidebar can switch between. */
-export type AdminView = 'events' | 'global-analytics' | 'requests';
+export type AdminView = 'events' | 'global-analytics' | 'requests' | 'payments';
 
 interface SidebarProps {
   activeView: AdminView;
@@ -67,6 +67,14 @@ export default function Sidebar({
             {pendingRequestsCount > 0 && (
               <span className="admin-sidebar__badge">{pendingRequestsCount}</span>
             )}
+          </button>
+
+          <button
+            className={`admin-sidebar__nav-item ${activeView === 'payments' ? 'admin-sidebar__nav-item--active' : ''}`}
+            onClick={() => { onNavigate('payments'); onClose(); }}
+          >
+            <span className="admin-sidebar__nav-icon">💰</span>
+            תשלומים וחשבוניות
           </button>
 
           <button
