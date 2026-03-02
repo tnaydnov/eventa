@@ -48,8 +48,8 @@ describe('enum value arrays', () => {
     expect([...messageTypeValues]).toEqual(['text', 'image']);
   });
 
-  it('U-VAL-05: eventTypeValues has 7 entries', () => {
-    expect(eventTypeValues.length).toBe(7);
+  it('U-VAL-05: eventTypeValues has 5 entries', () => {
+    expect(eventTypeValues.length).toBe(5);
     expect([...eventTypeValues]).toContain('wedding');
     expect([...eventTypeValues]).toContain('party');
   });

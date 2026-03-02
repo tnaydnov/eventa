@@ -5,6 +5,7 @@ import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { RETENTION_DAYS, STORAGE_BATCH_SIZE } from '@/lib/constants';
 import { jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
+import { cleanupExpiredOtps } from '@/lib/otp';
 
 /**
  * GET|POST /api/cleanup
@@ -182,14 +183,18 @@ async function handler(req: NextRequest) {
       totalDeletedFiles += allPaths.length + bgPaths.length;
 
       // ── Step 3: Cascade-delete user data (FK order) ──
-      // Independent tables in parallel
-      const [notifsRes, likesRes, blocksRes, bannedRes, activityRes] = await Promise.all([
+      // Independent tables in parallel (includes messaging tables)
+      const [notifsRes, likesRes, blocksRes, bannedRes, activityRes, msgLogRes, guestPhonesRes, portalTokensRes, otpRes] = await Promise.all([
         supabase.from('notifications').delete().eq('event_id', eventId),
         supabase.from('likes').delete().eq('event_id', eventId),
         supabase.from('blocks').delete().eq('event_id', eventId),
         supabase.from('banned_devices').delete().eq('event_id', eventId),
         supabase.from('activity_log').delete().eq('event_id', eventId),
         // NOTE: event_analytics_snapshots is NEVER deleted - kept permanently
+        supabase.from('message_log').delete().eq('event_id', eventId),
+        supabase.from('event_guest_phones').delete().eq('event_id', eventId),
+        supabase.from('client_portal_tokens').delete().eq('event_id', eventId),
+        supabase.from('otp_verifications').delete().eq('event_id', eventId),
       ]);
 
       if (notifsRes.error) logger.error(`[CLEANUP] notifications delete error for ${eventId}:`, notifsRes.error.message);
@@ -197,6 +202,10 @@ async function handler(req: NextRequest) {
       if (blocksRes.error) logger.error(`[CLEANUP] blocks delete error for ${eventId}:`, blocksRes.error.message);
       if (bannedRes.error) logger.error(`[CLEANUP] banned_devices delete error for ${eventId}:`, bannedRes.error.message);
       if (activityRes.error) logger.error(`[CLEANUP] activity_log delete error for ${eventId}:`, activityRes.error.message);
+      if (msgLogRes.error) logger.error(`[CLEANUP] message_log delete error for ${eventId}:`, msgLogRes.error.message);
+      if (guestPhonesRes.error) logger.error(`[CLEANUP] event_guest_phones delete error for ${eventId}:`, guestPhonesRes.error.message);
+      if (portalTokensRes.error) logger.error(`[CLEANUP] client_portal_tokens delete error for ${eventId}:`, portalTokensRes.error.message);
+      if (otpRes.error) logger.error(`[CLEANUP] otp_verifications delete error for ${eventId}:`, otpRes.error.message);
 
       // Messages → conversations (FK order)
       const { error: msgsErr } = await supabase.from('messages').delete().eq('event_id', eventId);
@@ -215,13 +224,27 @@ async function handler(req: NextRequest) {
       const { error: participantsErr } = await supabase.from('participants').delete().eq('event_id', eventId);
       if (participantsErr) logger.error(`[CLEANUP] participants delete error for ${eventId}:`, participantsErr.message);
 
-      // ── Step 4: Mark event as archived (preserve the row forever) ──
+      // ── Step 4: Mark event as archived + recycle slug ──
+      // Save the original slug for audit trail, then free it for reuse
+      // by appending the first 8 chars of the event ID
+      const { data: eventRow } = await supabase
+        .from('events')
+        .select('slug')
+        .eq('id', eventId)
+        .single();
+
+      const currentSlug = eventRow?.slug || '';
+      const idPrefix = eventId.slice(0, 8);
+      const recycledSlug = `${currentSlug}--${idPrefix}`;
+
       await supabase
         .from('events')
         .update({
           status: 'archived',
           is_active: false,
           archived_at: new Date().toISOString(),
+          original_slug: currentSlug,
+          slug: recycledSlug,
         })
         .eq('id', eventId);
 
@@ -229,15 +252,23 @@ async function handler(req: NextRequest) {
       logger.info(`[CLEANUP] Archived event "${event.name}" (${eventId})`);
     }
 
+    // Global OTP cleanup (not event-scoped — cleans all expired OTPs)
+    const otpsCleaned = await cleanupExpiredOtps();
+    if (otpsCleaned > 0) {
+      logger.info('[CLEANUP] Cleaned expired OTPs', { count: otpsCleaned });
+    }
+
     logger.info('[CLEANUP] complete', {
       archivedEvents: archivedCount,
       deletedFiles: totalDeletedFiles,
+      otpsCleaned,
     });
 
     return NextResponse.json({
       message: 'Cleanup complete',
       archivedEvents: archivedCount,
       deletedFiles: totalDeletedFiles,
+      otpsCleaned,
     });
   } catch (err) {
     logger.error('[CLEANUP] error:', err);

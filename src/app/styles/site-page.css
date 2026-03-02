@@ -37,7 +37,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: rgba(240, 237, 232, 0.6);
   text-decoration: none;
-  transition: all 0.25s ease;
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
 .site-page__back:hover {

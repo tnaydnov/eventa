@@ -65,7 +65,7 @@ describe('OrderForm', () => {
     fireEvent.submit(container.querySelector('form')!);
 
     await waitFor(() => {
-      expect(screen.getByText(/הבקשה נשלחה בהצלחה/)).toBeInTheDocument();
+      expect(screen.getByText(/הפרטים נשלחו בהצלחה/)).toBeInTheDocument();
     });
   });
 
@@ -110,8 +110,9 @@ describe('OrderForm', () => {
     const select = screen.getByRole('combobox');
     expect(select).toBeInTheDocument();
     expect(screen.getByText('חתונה')).toBeInTheDocument();
-    expect(screen.getByText('אירוע חברה / כנס')).toBeInTheDocument();
-    expect(screen.getByText('יום הולדת')).toBeInTheDocument();
-    expect(screen.getByText('מסיבה פרטית')).toBeInTheDocument();
+    expect(screen.getByText('אירוע חברה')).toBeInTheDocument();
+    expect(screen.getByText('מסיבה')).toBeInTheDocument();
+    expect(screen.getByText('מיטאפ')).toBeInTheDocument();
+    expect(screen.getByText('אחר')).toBeInTheDocument();
   });
 });

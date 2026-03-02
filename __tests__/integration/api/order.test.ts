@@ -24,6 +24,8 @@ vi.mock('@/lib/logger', () => ({
 
 vi.mock('@/lib/constants', () => ({
   EVENT_TYPE_LABELS: { wedding: 'חתונה', party: 'מסיבה' },
+  MIN_PHONE_LENGTH: 10,
+  MAX_PHONE_LENGTH: 20,
 }));
 
 vi.mock('@/lib/config', () => ({

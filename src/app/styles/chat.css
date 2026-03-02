@@ -31,6 +31,45 @@
   flex-shrink: 0;
 }
 
+.chat-avatar-placeholder {
+  background: var(--surface-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-name--unread {
+  font-weight: 700;
+}
+
+.chat-last-msg--unread {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.chat-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 40px;
+}
+
+.unread-badge {
+  background: var(--primary);
+  color: white;
+  border-radius: 12px;
+  min-width: 22px;
+  height: 22px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  line-height: 1;
+}
+
 .chat-info {
   flex: 1;
   min-width: 0;
@@ -66,6 +105,7 @@
   padding: 12px 16px;
   padding-bottom: calc(70px + env(safe-area-inset-bottom));
   overflow-y: auto;
+  overscroll-behavior-y: contain;
   min-height: 0;
 }
 
@@ -92,9 +132,7 @@
 
 .message-bubble.received {
   align-self: flex-start;
-  background: rgba(255, 255, 255, 0.11);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.13);
   color: var(--foreground);
   border-bottom-right-radius: 4px;
   margin-right: auto;

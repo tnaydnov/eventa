@@ -57,7 +57,7 @@
   -webkit-backdrop-filter: blur(12px);
   color: var(--foreground);
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
   font-size: 13px;
 }
 

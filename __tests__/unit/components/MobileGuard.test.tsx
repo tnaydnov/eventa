@@ -55,6 +55,7 @@ describe('MobileGuard', () => {
   });
 
   it('updates on resize', () => {
+    vi.useFakeTimers();
     Object.defineProperty(window, 'innerWidth', { value: 1200, configurable: true });
     Object.defineProperty(navigator, 'userAgent', {
       value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
@@ -64,11 +65,13 @@ describe('MobileGuard', () => {
     render(<MobileGuard><div>App content</div></MobileGuard>);
     expect(screen.getByText(/האפליקציה זמינה לנייד בלבד/)).toBeTruthy();
 
-    // Resize to mobile
+    // Resize to mobile (debounced — advance timers to flush)
     act(() => {
       Object.defineProperty(window, 'innerWidth', { value: 375, configurable: true });
       window.dispatchEvent(new Event('resize'));
+      vi.advanceTimersByTime(200);
     });
     expect(screen.getByText('App content')).toBeTruthy();
+    vi.useRealTimers();
   });
 });

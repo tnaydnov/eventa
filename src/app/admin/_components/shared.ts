@@ -1,5 +1,10 @@
 /* ─── Admin shared types, helpers, and styles ─── */
 
+import type { PaymentStatus, PaymentMethod } from '@/lib/database.types';
+
+/* ---------- Re-export payment types for convenience ---------- */
+export type { PaymentStatus, PaymentMethod };
+
 /* ---------- Analytics ---------- */
 
 export interface EventAnalytics {
@@ -249,6 +254,11 @@ export interface AdminParticipant {
   is_banned: boolean;
   created_at: string;
   profile_complete?: boolean;
+  // ─── Messaging fields ───
+  phone: string | null;           // masked: "050-***-4567"
+  sms_consent: boolean;
+  feedback_sent: boolean;
+  join_source: 'pre_event_link' | 'qr_on_spot';
 }
 
 /**
@@ -284,6 +294,13 @@ export interface EventRequest {
   contact_email: string | null;
   admin_notes: string | null;
   approved_event_id: string | null;
+  // Payment fields
+  payment_status: PaymentStatus;
+  payment_method: PaymentMethod | null;
+  paid_at: string | null;
+  total_price: number;
+  payment_link_token: string | null;
+  payment_link_expires_at: string | null;
   created_at: string;
   reviewed_at: string | null;
 }
@@ -291,3 +308,77 @@ export interface EventRequest {
 /** Generate a URL-safe slug from a string. */
 export const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+/* ---------- Messaging & Guest Phone Management ---------- */
+
+export interface EventMessagingStatus {
+  waMessagesEnabled: boolean;
+  preEventSendAt: string | null;   // ISO timestamp when pre-event messages fire
+  feedbackSendAt: string | null;   // ISO timestamp when feedback messages fire
+  preEventSentCount: number;
+  feedbackSentCount: number;
+  totalGuestPhones: number;
+  portalTokenActive: boolean;
+  portalToken: string | null;
+}
+
+export interface GuestPhoneAdmin {
+  id: string;
+  phone: string;            // full phone (admin can see unmasked)
+  name: string | null;
+  source: 'file' | 'manual' | 'portal';
+  normalizedPhone: string;
+  waPreEventSent: boolean;
+  waFeedbackSent: boolean;
+  createdAt: string;
+}
+
+export interface MessageLogEntry {
+  id: string;
+  phoneId: string;
+  channel: 'whatsapp' | 'sms' | 'email';
+  messageType: 'pre_event' | 'feedback' | 'reminder' | 'custom';
+  status: 'pending' | 'sent' | 'delivered' | 'failed';
+  sentAt: string;
+  errorMessage: string | null;
+}
+
+export interface MessagingConfig {
+  waMessagesEnabled: boolean;
+  preEventHoursBefore: number;
+  feedbackHoursAfter: number;
+}
+
+/** High-level messaging overview for the admin dashboard. */
+export interface MessagingOverview {
+  totalEvents: number;
+  eventsWithMessaging: number;
+  totalGuestPhones: number;
+  totalMessagesSent: number;
+  totalDelivered: number;
+  totalFailed: number;
+  channelBreakdown: {
+    sms: number;
+    whatsapp: number;
+    email: number;
+  };
+}
+
+/** Payment status display config (Hebrew label, emoji, CSS color class). */
+export const PAYMENT_STATUS_DISPLAY: Record<string, { label: string; emoji: string; color: string }> = {
+  not_applicable: { label: 'לא רלוונטי', emoji: '➖', color: 'admin-badge--muted' },
+  pending_payment: { label: 'ממתין לתשלום', emoji: '⏳', color: 'admin-badge--draft' },
+  payment_link_sent: { label: 'קישור נשלח', emoji: '📧', color: 'admin-badge--draft' },
+  paid: { label: 'שולם', emoji: '✅', color: 'admin-badge--active' },
+  waived: { label: 'בוטל/הנחה', emoji: '🎁', color: 'admin-badge--ended' },
+  expired: { label: 'פג תוקף', emoji: '⏰', color: 'admin-badge--ended' },
+};
+
+/** Payment method labels in Hebrew. */
+export const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  bit: 'Bit',
+  paybox: 'PayBox',
+  cash: 'מזומן',
+  bank_transfer: 'העברה בנקאית',
+  other: 'אחר',
+};

@@ -51,31 +51,11 @@ export default function TabBar() {
           className={pathname === tab.path ? 'active' : ''}
           aria-label={tab.label}
           aria-current={pathname === tab.path ? 'page' : undefined}
-          style={{ position: 'relative' }}
         >
           {tab.icon}
           <span>{tab.label}</span>
           {tab.badge > 0 && (
-            <span
-              style={{
-                position: 'absolute',
-                top: '2px',
-                right: '50%',
-                transform: 'translateX(14px)',
-                background: 'var(--primary)',
-                color: 'white',
-                borderRadius: '10px',
-                minWidth: '18px',
-                height: '18px',
-                fontSize: '11px',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0 4px',
-                lineHeight: 1,
-              }}
-            >
+            <span className="tab-badge">
               {tab.badge > 9 ? '9+' : tab.badge}
             </span>
           )}

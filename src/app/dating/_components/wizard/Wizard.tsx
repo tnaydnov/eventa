@@ -296,7 +296,7 @@ export default function Wizard() {
           <div className="wiz-progress__line">
             <div
               className="wiz-progress__fill"
-              style={{ width: `${progressPercent}%` }}
+              style={{ '--progress': progressPercent / 100 } as React.CSSProperties}
             />
           </div>
           {WIZARD_STEPS.map((s, i) => (

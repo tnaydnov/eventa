@@ -174,7 +174,7 @@
   border-radius: 12px;
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease, transform 0.25s ease;
   font-size: 14px;
   font-weight: 400;
 }
@@ -336,12 +336,22 @@
   box-shadow: 0 0 0 4px rgba(212, 165, 154, 0.35), 0 0 24px rgba(212, 165, 154, 0.2);
   transform: scale(1.04);
   z-index: 3;
+  position: relative;
+}
+
+.profile-edit-photo-item.selected::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  box-shadow: 0 0 0 6px rgba(212, 165, 154, 0.5), 0 0 32px rgba(212, 165, 154, 0.35);
   animation: selected-pulse 1.5s ease-in-out infinite;
+  pointer-events: none;
 }
 
 @keyframes selected-pulse {
-  0%, 100% { box-shadow: 0 0 0 4px rgba(212, 165, 154, 0.35), 0 0 24px rgba(212, 165, 154, 0.2); }
-  50% { box-shadow: 0 0 0 6px rgba(212, 165, 154, 0.5), 0 0 32px rgba(212, 165, 154, 0.35); }
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
 }
 
 /* Selected overlay with checkmark */
@@ -450,7 +460,7 @@
   border-style: dashed;
   border-color: rgba(255, 255, 255, 0.20);
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: border-color 0.25s ease, background 0.25s ease;
 }
 
 .profile-edit-photo-item.add:active {
@@ -538,7 +548,7 @@
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: transform 0.25s ease, opacity 0.25s ease;
   letter-spacing: -0.1px;
 }
 
@@ -602,7 +612,7 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: background 0.25s ease, opacity 0.25s ease;
   opacity: 0.6;
 }
 

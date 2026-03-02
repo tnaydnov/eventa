@@ -14,6 +14,7 @@ import Toast from '@/components/Toast';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { LikesSkeleton } from '@/components/Skeletons';
 import { HeartIcon, HeartFilledIcon, UserIcon } from '@/components/Icons';
+import Image from 'next/image';
 import type { PublicParticipant, ParticipantPhoto } from '@/lib/database.types';
 
 /** Memoized participant card used for matches, received, and sent likes. */
@@ -23,13 +24,13 @@ const ParticipantCard = memo(function ParticipantCard({
   badge,
 }: {
   participant: PublicParticipant & { photos: ParticipantPhoto[] };
-  onClick: () => void;
+  onClick: (id: string) => void;
   badge?: React.ReactNode;
 }) {
   return (
-    <div className="grid-card" onClick={onClick} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }} role="button" tabIndex={0} aria-label={participant.display_name} style={badge ? { position: 'relative' } : undefined}>
+    <div className="grid-card" onClick={() => onClick(participant.id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(participant.id); } }} role="button" tabIndex={0} aria-label={participant.display_name} style={badge ? { position: 'relative' } : undefined}>
       {participant.photos.length > 0 ? (
-        <img src={getPhotoUrl(participant.photos[0].storage_path)} alt={participant.display_name} loading="lazy" />
+        <Image src={getPhotoUrl(participant.photos[0].storage_path)} alt={participant.display_name} fill sizes="33vw" />
       ) : (
         <div className="avatar-placeholder"><UserIcon size={32} /></div>
       )}
@@ -47,12 +48,22 @@ export default function LikesPage({
   const { eventSlug } = use(params);
   const router = useRouter();
   const session = useSessionStore((s) => s.session);
-  const { receivedLikes, sentLikes, setReceivedLikes, setSentLikes } = useLikesStore();
-  const { matches, matchesLoaded, setMatches } = useMatchStore();
+  const receivedLikes = useLikesStore((s) => s.receivedLikes);
+  const sentLikes = useLikesStore((s) => s.sentLikes);
+  const setReceivedLikes = useLikesStore((s) => s.setReceivedLikes);
+  const setSentLikes = useLikesStore((s) => s.setSentLikes);
+  const matches = useMatchStore((s) => s.matches);
+  const matchesLoaded = useMatchStore((s) => s.matchesLoaded);
+  const setMatches = useMatchStore((s) => s.setMatches);
   const [tab, setTab] = useState<'matches' | 'received' | 'sent'>('matches');
   // Stale-while-revalidate: only show spinner on first-ever load
   const [loading, setLoading] = useState(!matchesLoaded && receivedLikes.length === 0);
   const lastFetchRef = useRef(0);
+
+  // Stable callback for profile navigation - avoids re-creating closures per card
+  const handleProfileClick = useCallback((id: string) => {
+    router.push(`/dating/${eventSlug}/user/${id}`);
+  }, [router, eventSlug]);
 
   const loadLikes = useCallback(async () => {
     const s = useSessionStore.getState().session;
@@ -70,7 +81,7 @@ export default function LikesPage({
   }, [setReceivedLikes, setSentLikes, setMatches]);
 
   useEffect(() => {
-    if (Date.now() - lastFetchRef.current < 10_000) return;
+    if (Date.now() - lastFetchRef.current < 30_000) return;
     loadLikes();
   }, [loadLikes, session]);
 
@@ -198,7 +209,7 @@ export default function LikesPage({
                           <StaggerItem key={match.participantId}>
                             <ParticipantCard
                               participant={p}
-                              onClick={() => router.push(`/dating/${eventSlug}/user/${p.id}`)}
+                              onClick={handleProfileClick}
                               badge={
                                 <div style={{
                                   position: 'absolute',
@@ -232,7 +243,7 @@ export default function LikesPage({
                         const p = like.from;
                         return (
                           <StaggerItem key={like.id}>
-                            <ParticipantCard participant={p} onClick={() => router.push(`/dating/${eventSlug}/user/${p.id}`)} />
+                            <ParticipantCard participant={p} onClick={handleProfileClick} />
                           </StaggerItem>
                         );
                       })}
@@ -249,7 +260,7 @@ export default function LikesPage({
                       const p = like.to;
                       return (
                         <StaggerItem key={like.id}>
-                          <ParticipantCard participant={p} onClick={() => router.push(`/dating/${eventSlug}/user/${p.id}`)} />
+                          <ParticipantCard participant={p} onClick={handleProfileClick} />
                         </StaggerItem>
                       );
                     })}

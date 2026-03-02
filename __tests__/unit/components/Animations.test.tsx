@@ -79,14 +79,14 @@ describe('AnimatedToast', () => {
     expect(screen.getByText('Test toast')).toBeTruthy();
   });
 
-  it('has role="alert"', () => {
+  it('has role="status"', () => {
     render(<AnimatedToast message="Alert" />);
-    expect(screen.getByRole('alert')).toBeTruthy();
+    expect(screen.getByRole('status')).toBeTruthy();
   });
 
   it('has aria-live="polite"', () => {
     render(<AnimatedToast message="Live" />);
-    const toast = screen.getByRole('alert');
+    const toast = screen.getByRole('status');
     expect(toast.getAttribute('aria-live')).toBe('polite');
   });
 });

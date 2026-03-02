@@ -58,6 +58,8 @@ vi.mock('@/lib/constants', () => ({
   STORAGE_BATCH_SIZE: 100,
   MAX_PHOTOS: 6,
   MAX_BACKGROUND_SIZE_BYTES: 5 * 1024 * 1024,
+  MIN_PHONE_LENGTH: 10,
+  MAX_PHONE_LENGTH: 20,
 }));
 
 vi.mock('@/lib/logger', () => ({
@@ -512,16 +514,22 @@ describe('participants management', () => {
     const { isValidUUID } = await import('@/lib/session');
     vi.mocked(isValidUUID).mockReturnValue(true);
 
+    // First call: participants query
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({
         data: [
-          { id: 'p1', display_name: 'User 1', age: 25, is_banned: false },
-          { id: 'p2', display_name: null, age: null, is_banned: false },
+          { id: 'p1', display_name: 'User 1', age: 25, is_banned: false, phone: '0501234567', sms_consent: false, feedback_sent: false },
+          { id: 'p2', display_name: null, age: null, is_banned: false, phone: null, sms_consent: false, feedback_sent: false },
         ],
         error: null,
       }),
+    });
+    // Second call: event_guest_phones query
+    mockFrom.mockReturnValueOnce({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({ data: [], error: null }),
     });
 
     const req = new NextRequest('http://localhost/api/admin/events/e1/participants');

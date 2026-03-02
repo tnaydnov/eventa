@@ -13,6 +13,7 @@ import TabBar from '@/components/TabBar';
 import Toast from '@/components/Toast';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { ChatsSkeleton } from '@/components/Skeletons';
+import Image from 'next/image';
 import { ChatBubbleIcon, UserIcon } from '@/components/Icons';
 import type { ConversationWithDetails } from '@/lib/stores/chats';
 
@@ -32,39 +33,26 @@ const ChatListItem = memo(function ChatListItem({
   onClick,
 }: {
   conv: ConversationWithDetails;
-  onClick: () => void;
+  onClick: (convId: string) => void;
 }) {
   const other = conv.otherParticipant;
   const photoUrl = other.photos.length > 0 ? getPhotoUrl(other.photos[0].storage_path) : null;
   const hasUnread = conv.unreadCount > 0;
   return (
-    <div className="chat-list-item" onClick={onClick} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }} role="button" tabIndex={0} aria-label={`שיחה עם ${other.display_name}`}>
+    <div className="chat-list-item" onClick={() => onClick(conv.id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(conv.id); } }} role="button" tabIndex={0} aria-label={`שיחה עם ${other.display_name}`}>
       {photoUrl ? (
-        <img src={photoUrl} alt={other.display_name} className="chat-avatar" />
+        <Image src={photoUrl} alt={other.display_name} className="chat-avatar" width={48} height={48} />
       ) : (
-        <div className="chat-avatar" style={{ background: 'var(--surface-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><UserIcon size={20} /></div>
+        <div className="chat-avatar chat-avatar-placeholder"><UserIcon size={20} /></div>
       )}
       <div className="chat-info">
-        <div className="chat-name" style={hasUnread ? { fontWeight: 700 } : undefined}>{other.display_name}</div>
-        <div className="chat-last-msg" style={hasUnread ? { color: 'var(--text-primary)', fontWeight: 600 } : undefined}>{conv.lastMessageText || 'שיחה חדשה'}</div>
+        <div className={`chat-name${hasUnread ? ' chat-name--unread' : ''}`}>{other.display_name}</div>
+        <div className={`chat-last-msg${hasUnread ? ' chat-last-msg--unread' : ''}`}>{conv.lastMessageText || 'שיחה חדשה'}</div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', minWidth: '40px' }}>
+      <div className="chat-meta">
         <div className="chat-time">{timeAgo(conv.last_message_at || conv.created_at)}</div>
         {hasUnread && (
-          <span style={{
-            background: 'var(--primary)',
-            color: 'white',
-            borderRadius: '12px',
-            minWidth: '22px',
-            height: '22px',
-            fontSize: '12px',
-            fontWeight: 700,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '0 6px',
-            lineHeight: 1,
-          }}>{conv.unreadCount > 99 ? '99+' : conv.unreadCount}</span>
+          <span className="unread-badge">{conv.unreadCount > 99 ? '99+' : conv.unreadCount}</span>
         )}
       </div>
     </div>
@@ -79,7 +67,10 @@ export default function ChatsPage({
   const { eventSlug } = use(params);
   const router = useRouter();
   const session = useSessionStore((s) => s.session);
-  const { conversations, setConversations, updateConversationPreview, removeConversation } = useChatsStore();
+  const conversations = useChatsStore((s) => s.conversations);
+  const setConversations = useChatsStore((s) => s.setConversations);
+  const updateConversationPreview = useChatsStore((s) => s.updateConversationPreview);
+  const removeConversation = useChatsStore((s) => s.removeConversation);
   // Stale-while-revalidate: only show spinner on first-ever load
   const [loading, setLoading] = useState(conversations.length === 0);
   const lastFetchRef = useRef(0);
@@ -94,7 +85,7 @@ export default function ChatsPage({
   }, [setConversations]);
 
   useEffect(() => {
-    if (Date.now() - lastFetchRef.current < 10_000) return;
+    if (Date.now() - lastFetchRef.current < 30_000) return;
     loadChats();
   }, [loadChats, session]);
 
@@ -145,6 +136,11 @@ export default function ChatsPage({
     enabled: !!session,
   });
 
+  // Stable callback for chat list item clicks - avoids re-creating closures per item
+  const handleChatClick = useCallback((convId: string) => {
+    router.push(`/dating/${eventSlug}/chat/${convId}`);
+  }, [router, eventSlug]);
+
   // Realtime via Hub handles live updates; useAppResume handles returning from background.
   // No additional polling needed - RealtimeNotificationListener provides global fallback.
 
@@ -166,7 +162,7 @@ export default function ChatsPage({
               <StaggerContainer>
                 {conversations.map((conv) => (
                     <StaggerItem key={conv.id}>
-                      <ChatListItem conv={conv} onClick={() => router.push(`/dating/${eventSlug}/chat/${conv.id}`)} />
+                      <ChatListItem conv={conv} onClick={handleChatClick} />
                     </StaggerItem>
                 ))}
               </StaggerContainer>

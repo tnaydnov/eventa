@@ -24,21 +24,50 @@ export async function GET(
 
   try {
     const supabase = getServiceClient();
-    const { data, error } = await supabase
-      .from('participants')
-      .select('id, display_name, gender, age, is_banned, created_at')
-      .eq('event_id', eventId)
-      .order('created_at', { ascending: false });
 
-    if (error) {
-      logger.error('[ADMIN_PARTICIPANTS_GET] query error:', error.message);
+    // Fetch participants + guest phone list in parallel
+    const [participantsRes, guestPhonesRes] = await Promise.all([
+      supabase
+        .from('participants')
+        .select('id, display_name, gender, age, is_banned, created_at, phone, sms_consent, feedback_sent')
+        .eq('event_id', eventId)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('event_guest_phones')
+        .select('phone')
+        .eq('event_id', eventId),
+    ]);
+
+    if (participantsRes.error) {
+      logger.error('[ADMIN_PARTICIPANTS_GET] query error:', participantsRes.error.message);
       return jsonError('Failed to load participants', 500);
     }
 
-    // Add profile_complete flag so admin can distinguish completed vs incomplete signups
-    const enriched = (data || []).map((p: { display_name: string | null; age: number | null }) => ({
+    // Build a Set of guest list phones for quick lookup (determines join source)
+    const guestPhoneSet = new Set(
+      (guestPhonesRes.data || []).map((g: { phone: string }) => g.phone)
+    );
+
+    // Mask phone for admin display: "0501234567" → "050-***-4567"
+    const maskPhone = (phone: string | null): string | null => {
+      if (!phone) return null;
+      const digits = phone.replace(/\D/g, '');
+      if (digits.length < 7) return '***';
+      return `${digits.slice(0, 3)}-***-${digits.slice(-4)}`;
+    };
+
+    // Enrich with profile_complete, masked phone, and join_source
+    const enriched = (participantsRes.data || []).map((p: {
+      display_name: string | null;
+      age: number | null;
+      phone: string | null;
+      sms_consent: boolean;
+      feedback_sent: boolean;
+    }) => ({
       ...p,
       profile_complete: !!(p.display_name && p.display_name.trim() && p.age != null),
+      phone: maskPhone(p.phone),
+      join_source: p.phone && guestPhoneSet.has(p.phone) ? 'pre_event_link' : 'qr_on_spot',
     }));
 
     return NextResponse.json({ participants: enriched });

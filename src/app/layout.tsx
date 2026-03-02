@@ -73,6 +73,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="he" dir="rtl" className={`${rubik.variable} ${greatVibes.variable}`}>
+      <head>
+        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
+          <>
+            <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+            <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+          </>
+        )}
+      </head>
       <body className={rubik.className}>
         <a href="#main-content" className="skip-to-content">דלג לתוכן</a>
         <script

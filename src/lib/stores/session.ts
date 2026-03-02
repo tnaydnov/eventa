@@ -7,6 +7,7 @@ export interface WeddingSession {
   eventName: string;
   participantId: string;
   backgroundImage?: string | null;
+  phone?: string | null;
 }
 
 interface SessionState {

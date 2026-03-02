@@ -4,7 +4,7 @@ import { EVENT_STATUS_LABELS } from '@/lib/constants';
 import type { EventStatus } from '@/lib/database.types';
 
 /** Navigation view the sidebar can switch between. */
-export type AdminView = 'events' | 'global-analytics' | 'requests';
+export type AdminView = 'events' | 'global-analytics' | 'requests' | 'messaging';
 
 interface SidebarProps {
   activeView: AdminView;
@@ -12,6 +12,7 @@ interface SidebarProps {
   eventCounts: Record<string, number>;
   totalEvents: number;
   pendingRequestsCount: number;
+  pendingMessagingCount: number;
   onLogout: () => void;
   isOpen: boolean;
   onClose: () => void;
@@ -28,7 +29,7 @@ const STATUS_NAV: { key: string; icon: string; label: string }[] = [
 ];
 
 export default function Sidebar({
-  activeView, onNavigate, eventCounts, totalEvents, pendingRequestsCount, onLogout, isOpen, onClose,
+  activeView, onNavigate, eventCounts, totalEvents, pendingRequestsCount, pendingMessagingCount, onLogout, isOpen, onClose,
 }: SidebarProps) {
   return (
     <>
@@ -56,6 +57,17 @@ export default function Sidebar({
             <span className="admin-sidebar__nav-icon">📋</span>
             אירועים
             <span style={{ marginRight: 'auto', fontSize: '12px', opacity: 0.7 }}>{totalEvents}</span>
+          </button>
+
+          <button
+            className={`admin-sidebar__nav-item ${activeView === 'messaging' ? 'admin-sidebar__nav-item--active' : ''}`}
+            onClick={() => { onNavigate('messaging'); onClose(); }}
+          >
+            <span className="admin-sidebar__nav-icon">📱</span>
+            הודעות
+            {pendingMessagingCount > 0 && (
+              <span className="admin-sidebar__badge">{pendingMessagingCount}</span>
+            )}
           </button>
 
           <button

@@ -562,7 +562,7 @@ function StatRow({ label, value, valueColor, highlight, bar, barColor }: {
       {typeof bar === 'number' && (
         <div className="ad-progress">
           <div className="ad-progress__track">
-            <div className="ad-progress__fill" style={{ width: `${Math.min(bar, 100)}%`, background: barColor || C.indigo }} />
+            <div className="ad-progress__fill" style={{ '--progress': Math.min(bar, 100) / 100, background: barColor || C.indigo } as React.CSSProperties} />
           </div>
         </div>
       )}

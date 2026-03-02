@@ -1,6 +1,6 @@
 # Eventa - Complete Technical Architecture Document
 
-> **Last updated**: February 20, 2026
+> **Last updated**: March 1, 2026
 
 ---
 
@@ -169,6 +169,17 @@ Both are **hand-rolled HMAC-SHA256 JWTs** using Node.js `crypto` module - no dep
 
 **Why hand-rolled JWT**: Eliminates a dependency. The token format is simple (3 fields + expiry). A `typ` discriminator field prevents admin tokens from being used as participant sessions and vice versa.
 
+### 5.1b Phone Verification (OTP)
+
+Alternative authentication flow via phone number + OTP code (controlled by `NEXT_PUBLIC_PHONE_VERIFICATION_ENABLED` env var):
+
+| Step | Endpoint | Description |
+|---|---|---|
+| 1 | `POST /api/auth/send-otp` | Validates Israeli mobile number, checks rate limit + cooldown, generates 6-digit OTP, stores hashed in `phone_otps` table, sends via SMS stub |
+| 2 | `POST /api/auth/verify-otp` | Verifies OTP (max 3 attempts), checks expiry (5 min), creates/reconnects participant by phone, issues JWT session cookie |
+
+**Security measures**: OTP codes are stored as SHA-256 hashes. Max 3 verification attempts per OTP. 45-second cooldown between resend requests. Expired OTPs cleaned up by cron. Banned phones checked before OTP issuance.
+
 ### 5.2 API Security Pipeline - `secureGuard()`
 
 Every authenticated API call passes through this pipeline:
@@ -263,6 +274,11 @@ Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 | 10 | `activity_log` | No anon access | No | Usage timeline for analytics (joins, likes, messages, etc.) |
 | 11 | `event_analytics_snapshots` | No anon access | No | Preserved aggregate analytics after archiving |
 | 12 | `banned_devices` (hardware) | No anon access | No | Hardware fingerprint bans (separate from device fingerprint) |
+| 13 | `phone_otps` | No anon access | No | OTP codes for phone verification (hashed, expiry, attempt tracking) |
+| 14 | `guest_phones` | No anon access | No | Client guest phone lists for pre-event WA messaging |
+| 15 | `message_log` | No anon access | No | Audit trail of all sent messages (SMS, WA, email) with delivery status |
+| 16 | `event_requests` | No anon access | No | Event booking requests from the order form with pricing |
+| 17 | `discount_claims` | No anon access | No | Discount code usage tracking (survives event deletion) |
 
 ### 6.2 Enums (PostgreSQL)
 
@@ -328,6 +344,9 @@ Writes are never done directly by the client. The API generates **signed upload 
 | `POST /api/auth/join` | POST | **Main entry**: validates slug + join code, checks dual fingerprint bans, creates or reconnects participant, issues JWT session cookie |
 | `GET /api/auth/verify` | GET | Verifies session cookie, checks ban/event status; clears cookie on failure |
 | `DELETE /api/auth/verify` | DELETE | Logout - clears session cookie |
+| `GET /api/auth/event-status` | GET | Check event status by slug (for join page pre-check) |
+| `POST /api/auth/send-otp` | POST | Send 6-digit OTP via SMS to Israeli mobile number |
+| `POST /api/auth/verify-otp` | POST | Verify OTP code, create/reconnect participant, issue session cookie |
 
 ### 7.2 Authenticated Participant Endpoints (via `secureGuard()`)
 
@@ -370,6 +389,22 @@ Writes are never done directly by the client. The API generates **signed upload 
 | `GET/POST /api/admin/auto-archive` | GET/POST | **Vercel Cron** (daily 3AM UTC): auto-transitions event lifecycle |
 | `GET /api/admin/global-analytics` | GET | **Cross-event analytics** (510 lines): aggregates live + archived data |
 | `GET/POST /api/cleanup` | GET/POST | **Vercel Cron** (daily 4AM UTC): archives old events, purges data |
+| `GET/POST /api/admin/events/[eventId]/guests` | GET/POST/DELETE | Guest phone list CRUD: list, import (JSON/file), remove |
+| `GET/PATCH/POST /api/admin/events/[eventId]/messaging` | GET/PATCH/POST | Messaging overview, toggle WA, trigger manual sends |
+| `POST /api/admin/events/[eventId]/portal-token` | POST | Generate/regenerate client portal access token |
+| `POST /api/admin/send-email` | POST | Send lifecycle emails (instructions, invoice, reminder, custom) |
+| `GET /api/cron/pre-event-messages` | GET | **Vercel Cron** (hourly): send pre-event WA to guests 2h before event |
+| `GET /api/cron/feedback-messages` | GET | **Vercel Cron** (hourly): send feedback WA 3h after event end |
+| `GET /api/cron/upload-reminders` | GET | **Vercel Cron** (daily): remind clients to upload guest lists at T-7/T-3 days |
+
+### 7.4 Guest Portal Endpoints (token-authenticated)
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `GET /api/guest-portal/[token]` | GET | Load portal data: event info, guest list (paginated), messaging status |
+| `POST /api/guest-portal/[token]` | POST | Upload guest file (Excel/CSV) or add single phone (JSON) |
+| `DELETE /api/guest-portal/[token]` | DELETE | Remove guest phone (only if WA not yet sent) |
+| `GET /api/guest-portal/[token]/download-template` | GET | Download pre-formatted Excel template with Hebrew headers |
 
 ---
 
@@ -493,8 +528,10 @@ next build --webpack
 ### 11.1 Organization
 
 - `src/lib/api/*.ts` - Individual API function files (auth, grid, likes, matches, conversations, photos, blocks, profile, account)
-- `src/lib/api/index.ts` - Barrel re-export of all ~30 client-side API functions
+- `src/lib/api/index.ts` - Barrel re-export of all ~35 client-side API functions
 - `src/lib/api/helpers.ts` - Server-side data helpers (photo URL building, blocked-IDs cache, batch loading)
+
+- `src/lib/api/guest-portal.ts` - Portal API functions: load portal data, upload file, add/remove phone, download template
 
 ### 11.2 Data Fetching Pattern
 
@@ -513,8 +550,11 @@ Client components call typed API functions which make `fetch()` calls to Next.js
     "src/app/api/**/*.ts": { "maxDuration": 15 }
   },
   "crons": [
-    { "path": "/api/admin/auto-archive", "schedule": "0 3 * * *" },
-    { "path": "/api/cleanup",            "schedule": "0 4 * * *" }
+    { "path": "/api/admin/auto-archive",     "schedule": "0 3 * * *" },
+    { "path": "/api/cleanup",                "schedule": "0 4 * * *" },
+    { "path": "/api/cron/pre-event-messages", "schedule": "0 * * * *" },
+    { "path": "/api/cron/feedback-messages",  "schedule": "0 * * * *" },
+    { "path": "/api/cron/upload-reminders",   "schedule": "0 9 * * *" }
   ]
 }
 ```
@@ -567,6 +607,12 @@ The SW is never cached by the browser - ensures updates propagate immediately.
 | `SMTP_PORT` | Server only | Optional | SMTP port |
 | `SMTP_USER` | Server only | Optional | SMTP username |
 | `SMTP_PASS` | Server only | Optional | SMTP password |
+| `NEXT_PUBLIC_PHONE_VERIFICATION_ENABLED` | Client + Server | Optional | Enable phone+OTP join flow (default: true) |
+| `SMS_PROVIDER_LIVE` | Server only | Optional | Use real SMS provider vs stub (default: false) |
+| `WHATSAPP_PROVIDER_LIVE` | Server only | Optional | Use real WhatsApp provider vs stub (default: false) |
+| `SMS_API_KEY` | Server only | Optional | SMS provider API key (when live) |
+| `WHATSAPP_API_TOKEN` | Server only | Optional | WhatsApp Business API token (when live) |
+| `WHATSAPP_PHONE_NUMBER_ID` | Server only | Optional | WhatsApp sender phone number ID |
 
 All validated at startup via Zod schema (`validateEnv()` in `src/lib/validations.ts`).
 
@@ -592,6 +638,15 @@ EVENT_CACHE_TTL = 5min       // Event status cache (30s if paused)
 BLOCKED_IDS_CACHE_TTL = 30s  // Blocked-IDs query cache
 NAME_CACHE_TTL = 5min        // Participant display name cache
 SEEN_IDS_PRUNE = 5min        // Realtime notification dedup set auto-prune
+OTP_LENGTH = 6               // OTP code digit count
+OTP_EXPIRY = 5min            // OTP validity window
+OTP_MAX_ATTEMPTS = 3         // Max wrong OTP attempts before invalidation
+OTP_RESEND_COOLDOWN = 45s    // Min wait between OTP resend requests
+MAX_GUEST_PHONES = 500       // Max guest phones per event
+MAX_GUEST_NAME_LEN = 100     // Max guest name character length
+UPLOAD_MAX_ROWS = 500        // Max rows per guest file upload
+PRE_EVENT_HOURS = 2          // Hours before event to send pre-event WA
+FEEDBACK_DELAY_HOURS = 3     // Hours after event end to send feedback WA
 ```
 
 ---
@@ -607,10 +662,70 @@ A full single-page admin panel at `/admin`:
 - **Per-event analytics**: Demographics, engagement funnels, match rates, peak hours, response times, photo impact analysis (646-line analytics endpoint)
 - **Global analytics**: Cross-event comparison, growth timelines, aggregate engagement metrics (510-line endpoint)
 - **Auto-archiving**: Events auto-transition through `active → ended → archived` lifecycle
+- **Guest messaging**: Per-event WhatsApp toggle, guest phone list management, pre-event/feedback message triggers
+- **Client portal**: Shareable portal link for clients to upload guest phone lists (Excel/CSV or individual)
+- **Email lifecycle**: Upload instructions, invoice with PayBox link, upload reminders (T-7/T-3), custom emails
+- **Cross-reference table**: Guest list vs joined participants funnel analysis
+- **Message log**: Full audit trail of all sent messages (SMS, WA, email) with delivery status
 
 ---
 
-## 17. File Structure Summary
+## 17. Phone Verification & Messaging System
+
+### 17.1 Overview
+
+The messaging system provides multi-channel communication for event lifecycle management:
+
+- **Phone verification**: OTP-based participant authentication (alternative to fingerprint join)
+- **SMS**: OTP delivery and direct participant messaging (stub provider, live via env var)
+- **WhatsApp**: Pre-event and feedback messages to guest phone lists (stub provider, live via env var)
+- **Email**: 6 lifecycle email templates (upload instructions, invoice, reminders, summary, custom)
+- **Client portal**: Self-service guest list upload for event clients
+
+### 17.2 Messaging Architecture
+
+```
+┌─────────────────────┐
+│  messaging-service   │  ← Orchestrator
+│  (send, log, track)  │
+├──────────┬──────────┤
+│ sms-prov │  wa-prov │  ← Channel providers (stub/live)
+│ ider.ts  │  ider.ts │
+├──────────┴──────────┤
+│   phone-utils.ts     │  ← Phone normalization & validation
+│   templates.ts       │  ← Message text/URL builders
+│   types.ts           │  ← Shared interfaces
+└─────────────────────┘
+```
+
+All providers start as **stubs** (controlled by `SMS_PROVIDER_LIVE` / `WHATSAPP_PROVIDER_LIVE` env vars). Stubs log messages via `logger.info()` instead of sending, making development and testing safe.
+
+### 17.3 Guest Phone Upload Pipeline
+
+```
+Client (Excel/CSV) → /api/guest-portal/[token] POST
+  → parseGuestFile() → xlsx library parses
+  → validateGuestRows() → normalizePhone() + dedup
+  → processGuestUpload() → batch insert to guest_phones
+  → Return: { added, duplicates, errors[] }
+```
+
+Supports: `.xlsx`, `.csv` files up to 500 rows. Hebrew + English column headers auto-detected. Invalid phones return per-row error details.
+
+### 17.4 Message Lifecycle
+
+| Message Type | Trigger | Channel | Timing |
+|---|---|---|---|
+| **Pre-event** | Cron or admin button | WhatsApp | 2 hours before `starts_at` |
+| **Welcome** | Participant joins from QR (not pre-WA link) | WhatsApp | Immediate |
+| **Feedback** | Cron or admin button | WhatsApp | 3 hours after `ends_at` |
+| **Upload instructions** | Admin button | Email | On demand |
+| **Invoice** | Admin button | Email | On demand |
+| **Upload reminder** | Cron | Email | T-7 and T-3 days before event |
+
+---
+
+## 18. File Structure Summary
 
 ```
 ├── next.config.js              # Next.js + Serwist SW config + CSP headers
@@ -663,10 +778,17 @@ A full single-page admin panel at `/admin`:
 │   │   │   ├── admin.css       # Admin styles
 │   │   │   └── _components/    # AdminLogin, Sidebar, events/, analytics/, charts/
 │   │   │
-│   │   ├── api/                # 30+ API route files
-│   │   │   ├── auth/           # join, verify
+│   │   ├── guest-upload/
+│   │   │   └── [eventId]/      # Client guest upload portal
+│   │   │       ├── page.tsx    # Portal page (token-authenticated)
+│   │   │       └── _components/# UploadZone, AddPhoneForm, GuestListTable, UploadResultDisplay
+│   │   │
+│   │   ├── api/                # 40+ API route files
+│   │   │   ├── auth/           # join, verify, send-otp, verify-otp, event-status
 │   │   │   ├── secure/         # heartbeat, profile, photos, likes, messages, blocks, etc.
-│   │   │   ├── admin/          # events CRUD, analytics, participants, cron jobs
+│   │   │   ├── admin/          # events CRUD, analytics, participants, messaging, guests, portal-token, send-email
+│   │   │   ├── cron/           # pre-event-messages, feedback-messages, upload-reminders
+│   │   │   ├── guest-portal/   # [token] portal data, upload, add/remove, download-template
 │   │   │   ├── account/        # delete account
 │   │   │   ├── order/          # booking form email
 │   │   │   ├── health/         # health check
@@ -674,7 +796,7 @@ A full single-page admin panel at `/admin`:
 │   │   │
 │   │   └── (legal pages)       # about, faq, privacy, terms, safety, cookies, community
 │   │
-│   ├── components/             # 17 shared components
+│   ├── components/             # 19 shared components
 │   │   ├── SessionProvider.tsx
 │   │   ├── RealtimeNotificationListener.tsx
 │   │   ├── HeartbeatPinger.tsx
@@ -692,6 +814,8 @@ A full single-page admin panel at `/admin`:
 │   │   ├── LoadingSpinner.tsx
 │   │   ├── Skeletons.tsx
 │   │   ├── Animations.tsx
+│   │   ├── PhoneInput.tsx      # Israeli mobile phone input with +972 prefix
+│   │   ├── OtpInput.tsx        # 6-digit OTP code input with auto-submit
 │   │   └── LegalPageLayout.tsx
 │   │
 │   ├── hooks/
@@ -705,14 +829,25 @@ A full single-page admin panel at `/admin`:
 │   │   ├── admin-auth.ts       # JWT sign/verify for admin sessions
 │   │   ├── route-helpers.ts    # secureGuard(), adminGuard(), caching, path validation
 │   │   ├── rate-limit.ts       # Sliding window rate limiter
-│   │   ├── validations.ts      # All Zod schemas (profile, event, message, join, etc.)
+│   │   ├── validations.ts      # All Zod schemas (profile, event, message, join, OTP, guests, etc.)
 │   │   ├── constants.ts        # Shared constants + Hebrew labels
+│   │   ├── config.ts           # Runtime config (cache TTLs, OTP settings, feature flags)
+│   │   ├── otp.ts              # OTP generation, creation, verification, cleanup
+│   │   ├── guest-upload.ts     # Excel/CSV parsing, phone validation, template generation
 │   │   ├── sanitize.ts         # Server + client HTML sanitization
+│   │   ├── messaging/          # Messaging abstraction layer
+│   │   │   ├── index.ts        # Barrel export
+│   │   │   ├── types.ts        # Messaging types & interfaces
+│   │   │   ├── phone-utils.ts  # Israeli phone normalization & validation
+│   │   │   ├── templates.ts    # Message template builders (SMS, WA, email)
+│   │   │   ├── sms-provider.ts # SMS stub/live provider
+│   │   │   ├── whatsapp-provider.ts  # WhatsApp stub/live provider
+│   │   │   └── messaging-service.ts  # Orchestrator: send pre-event, welcome, feedback
 │   │   ├── image-compression.ts# Client-side WebP compression
 │   │   ├── device-fingerprint.ts# Canvas + WebGL + screen + navigator fingerprinting
 │   │   ├── database.types.ts   # Full TypeScript types for all tables + enums
 │   │   ├── api.ts              # Legacy (barrel)
-│   │   ├── api/                # 11 client API function files
+│   │   ├── api/                # 12 client API function files (incl. guest-portal.ts)
 │   │   └── stores/             # 10 Zustand store files
 │   │
 │   └── shared/                 # Shared utilities
@@ -722,12 +857,18 @@ A full single-page admin panel at `/admin`:
     ├── schema.sql              # Base schema (291 lines)
     ├── production-setup.sql    # Full production schema with RLS + indexes
     ├── migration-security.sql  # RLS hardening migration
-    └── migrations/             # 7 incremental migrations
+    └── migrations/             # 12 incremental migrations
         ├── 001_admin_dashboard.sql
         ├── 002_performance_indexes.sql
         ├── 003_rls_event_scoping.sql
         ├── 004_check_constraints_and_realtime.sql
         ├── 005_nullable_last_message_at.sql
         ├── 006_push_subscriptions.sql  # (table dropped - push removed)
-        └── 007_hardware_fingerprint.sql
+        ├── 007_hardware_fingerprint.sql
+        ├── 008_event_requests.sql
+        ├── 008_realtime_column_security.sql
+        ├── 009_text_field_constraints.sql
+        ├── 010_fix_replica_identity.sql
+        ├── 011_phone_verification.sql  # phone_otps, guest_phones, message_log, discount_claims tables
+        └── 012_message_log_email_channel.sql
 ```

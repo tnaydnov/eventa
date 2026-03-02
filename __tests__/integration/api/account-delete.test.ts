@@ -75,6 +75,8 @@ vi.mock('@/lib/logger', () => ({
 
 vi.mock('@/lib/constants', () => ({
   STORAGE_BATCH_SIZE: 100,
+  MIN_PHONE_LENGTH: 10,
+  MAX_PHONE_LENGTH: 20,
 }));
 
 import { POST } from '@/app/api/account/delete/route';

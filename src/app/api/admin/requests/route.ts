@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient, generateJoinCode } from '@/lib/supabase';
 import { adminGuard, jsonError } from '../_helpers';
 import { logger } from '@/lib/logger';
 import { adminAuditLog } from '@/lib/admin-auth';
+import { APP_BASE_URL } from '@/lib/config';
+import { buildUploadInstructionsEmail } from '@/lib/email-templates';
+import { generatePrettySlug } from '@/lib/slug';
 
-/** Generate a 4-char random hex suffix for unique slugs. */
-function randomSuffix(): string {
-  return crypto.randomBytes(2).toString('hex');
-}
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT) || 587,
+  secure: Number(process.env.SMTP_PORT) === 465,
+  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+});
+const SMTP_FROM = process.env.SMTP_FROM || 'noreply@eventa.productions';
 
 /**
  * GET /api/admin/requests
@@ -27,7 +34,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabase
       .from('event_requests')
-      .select('id, status, event_type, event_name, starts_at, ends_at, wants_custom_background, poster_choice, selected_template_id, special_requests, wants_guest_messages, contact_preference, contact_name, contact_phone, contact_email, admin_notes, approved_event_id, created_at, reviewed_at')
+      .select('id, status, event_type, event_name, starts_at, ends_at, wants_custom_background, poster_choice, selected_template_id, special_requests, wants_guest_messages, contact_preference, contact_name, contact_phone, contact_email, admin_notes, approved_event_id, created_at, reviewed_at, payment_status, payment_method, paid_at, total_price, payment_link_token, payment_link_expires_at')
       .order('created_at', { ascending: false });
 
     if (statusFilter) {
@@ -106,25 +113,14 @@ export async function POST(req: NextRequest) {
     // ── APPROVE ── Create the event automatically
     const eventName = request.event_name || `${request.event_type}-event`;
 
-    // Generate slug
-    const base = eventName
-      .toLowerCase()
-      .replace(/[^a-z0-9\u0590-\u05ff]+/g, '-')
-      .replace(/[\u0590-\u05ff]+/g, '') // strip Hebrew from slug
-      .replace(/(^-|-$)/g, '')
-      .replace(/-{2,}/g, '-');
-    let slug = `${base || 'event'}-${randomSuffix()}`;
-
-    // Ensure slug uniqueness
-    const { data: existing } = await supabase
-      .from('events')
-      .select('id')
-      .eq('slug', slug)
-      .maybeSingle();
-
-    if (existing) {
-      slug = `${slug}-${randomSuffix()}`;
-    }
+    // Generate pretty slug using the slug library
+    const supabaseForSlug = getServiceClient();
+    const slug = await generatePrettySlug(
+      eventName,
+      request.event_type,
+      request.starts_at || new Date().toISOString(),
+      supabaseForSlug,
+    );
 
     // Create the event
     const { data: newEvent, error: createErr } = await supabase
@@ -202,6 +198,69 @@ export async function POST(req: NextRequest) {
     adminAuditLog('REQUEST_APPROVE', { requestId, eventId: newEvent.id, slug }, req);
     logger.info('Event request approved', { requestId, eventId: newEvent.id });
 
+    // ── Auto-actions for messaging addon ──
+    if (request.wants_guest_messages) {
+      try {
+        // 5a. Enable WA messaging on the created event
+        await supabase
+          .from('events')
+          .update({
+            wa_messages_enabled: true,
+            guest_list_uploaded: false,
+            guest_list_count: 0,
+          })
+          .eq('id', newEvent.id);
+
+        // 5b. Generate portal token
+        const portalToken = crypto.randomUUID();
+        await supabase
+          .from('client_portal_tokens')
+          .insert({ event_id: newEvent.id, token: portalToken, is_active: true });
+
+        // 5c. Send upload instructions email to client
+        if (request.contact_email) {
+          const eventDate = formatDate(request.starts_at);
+          const eventTime = formatTime(request.starts_at);
+          const portalUrl = `${APP_BASE_URL}/guest-upload/${newEvent.id}?token=${portalToken}`;
+          const templateUrl = `${APP_BASE_URL}/templates/guest-upload-template.xlsx`;
+
+          const email = buildUploadInstructionsEmail({
+            contactName: request.contact_name || '',
+            eventName: eventName,
+            eventDate,
+            eventTime,
+            uploadUrl: portalUrl,
+            templateUrl,
+          });
+
+          await transporter.sendMail({
+            from: SMTP_FROM,
+            to: request.contact_email,
+            subject: email.subject,
+            html: email.html,
+          });
+
+          // Log to message_log
+          await supabase.from('message_log').insert({
+            event_id: newEvent.id,
+            channel: 'email',
+            message_type: 'upload_instructions',
+            recipient_email: request.contact_email,
+            status: 'sent',
+            sent_at: new Date().toISOString(),
+          });
+
+          logger.info('Auto-sent upload instructions on approval', {
+            eventId: newEvent.id,
+            to: request.contact_email,
+          });
+        }
+      } catch (msgErr) {
+        // Non-fatal — event and approval already succeeded
+        logger.warn('[ADMIN_REQUESTS] messaging auto-setup error:', msgErr);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       action: 'approved',
@@ -210,5 +269,157 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     logger.error('[ADMIN_REQUESTS] error:', err);
     return jsonError('Failed to process request', 500);
+  }
+}
+
+// ─── Helpers ────────────────────────────────────────────
+
+function formatDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString('he-IL', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    });
+  } catch { return iso; }
+}
+
+function formatTime(iso: string): string {
+  try {
+    return new Date(iso).toLocaleTimeString('he-IL', {
+      hour: '2-digit', minute: '2-digit',
+    });
+  } catch { return ''; }
+}
+
+/**
+ * PATCH /api/admin/requests
+ * Update payment status on a request.
+ * Body: { requestId, action: 'mark_paid' | 'waive' | 'resend_link', paymentMethod?: string }
+ */
+export async function PATCH(req: NextRequest) {
+  const denied = adminGuard(req, 'admin-requests-patch', RATE_LIMITS.strict);
+  if (denied) return denied;
+
+  try {
+    const body = await req.json();
+    const { requestId, action, paymentMethod } = body;
+
+    if (!requestId || !action) {
+      return jsonError('Missing requestId or action', 400);
+    }
+
+    const supabase = getServiceClient();
+    const { data: request, error: fetchErr } = await supabase
+      .from('event_requests')
+      .select('id, payment_status, contact_email, contact_name, event_name, total_price, payment_link_token')
+      .eq('id', requestId)
+      .single();
+
+    if (fetchErr || !request) {
+      return jsonError('Request not found', 404);
+    }
+
+    if (action === 'mark_paid') {
+      const method = paymentMethod || 'other';
+      const validMethods = ['bit', 'paybox', 'cash', 'bank_transfer', 'other'];
+      if (!validMethods.includes(method)) {
+        return jsonError('Invalid payment method', 400);
+      }
+
+      const { error: updateErr } = await supabase
+        .from('event_requests')
+        .update({
+          payment_status: 'paid',
+          payment_method: method,
+          paid_at: new Date().toISOString(),
+        })
+        .eq('id', requestId);
+
+      if (updateErr) {
+        logger.error('[ADMIN_REQUESTS_PATCH] mark_paid error:', updateErr.message);
+        return jsonError('Failed to update payment status', 500);
+      }
+
+      adminAuditLog('PAYMENT_MARK_PAID', { requestId, method }, req);
+      return NextResponse.json({ success: true, action: 'mark_paid' });
+    }
+
+    if (action === 'waive') {
+      const { error: updateErr } = await supabase
+        .from('event_requests')
+        .update({ payment_status: 'waived' })
+        .eq('id', requestId);
+
+      if (updateErr) {
+        logger.error('[ADMIN_REQUESTS_PATCH] waive error:', updateErr.message);
+        return jsonError('Failed to waive payment', 500);
+      }
+
+      adminAuditLog('PAYMENT_WAIVE', { requestId }, req);
+      return NextResponse.json({ success: true, action: 'waived' });
+    }
+
+    if (action === 'resend_link') {
+      // Generate new token and extend expiry by 7 days
+      const newToken = crypto.randomUUID();
+      const newExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+      const { error: updateErr } = await supabase
+        .from('event_requests')
+        .update({
+          payment_link_token: newToken,
+          payment_link_expires_at: newExpiry,
+          payment_status: 'payment_link_sent',
+        })
+        .eq('id', requestId);
+
+      if (updateErr) {
+        logger.error('[ADMIN_REQUESTS_PATCH] resend_link error:', updateErr.message);
+        return jsonError('Failed to resend payment link', 500);
+      }
+
+      // Send the payment email to client
+      if (request.contact_email) {
+        try {
+          const { buildClientPaymentEmail } = await import('@/lib/email-templates');
+          const baseUrl = APP_BASE_URL;
+          const paymentEmail = buildClientPaymentEmail({
+            contactName: request.contact_name || '',
+            contactEmail: request.contact_email,
+            eventType: '',
+            eventName: request.event_name || '',
+            startsAt: '',
+            endsAt: '',
+            wantsCustomBackground: false,
+            hasBgImage: false,
+            posterChoice: '',
+            selectedTemplate: '',
+            specialRequests: '',
+            wantsGuestMessages: true,
+            requestId: request.id,
+            baseUrl,
+          });
+          await transporter.sendMail({
+            from: SMTP_FROM,
+            to: request.contact_email,
+            subject: paymentEmail.subject,
+            html: paymentEmail.html,
+          });
+          logger.info('[ADMIN_REQUESTS_PATCH] Payment link resent', { requestId, to: request.contact_email });
+        } catch (emailErr) {
+          logger.warn('[ADMIN_REQUESTS_PATCH] Failed to send payment email', {
+            error: emailErr instanceof Error ? emailErr.message : String(emailErr),
+          });
+          // Non-fatal — token was already updated
+        }
+      }
+
+      adminAuditLog('PAYMENT_RESEND_LINK', { requestId }, req);
+      return NextResponse.json({ success: true, action: 'resend_link' });
+    }
+
+    return jsonError('Invalid action. Use: mark_paid, waive, resend_link', 400);
+  } catch (err) {
+    logger.error('[ADMIN_REQUESTS_PATCH] error:', err);
+    return jsonError('Failed to update payment', 500);
   }
 }

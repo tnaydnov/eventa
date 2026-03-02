@@ -309,7 +309,7 @@ export default function MatchPopup() {
 
 /** Generates floating heart particles for the match celebration. */
 function HeartsRain() {
-  const hearts = Array.from({ length: 20 }, (_, i) => ({
+  const hearts = Array.from({ length: 10 }, (_, i) => ({
     id: i,
     left: `${Math.random() * 100}%`,
     delay: Math.random() * 2,

@@ -211,7 +211,7 @@
   color: var(--stage-accent);
   position: relative;
   z-index: 2;
-  transition: all 0.5s ease;
+  transition: background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
 }
 
 .hiw-stage--visible .hiw-stage__dot {

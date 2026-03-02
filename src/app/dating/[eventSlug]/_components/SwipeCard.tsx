@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { motion, useMotionValue, useTransform, type PanInfo } from 'framer-motion';
+import Image from 'next/image';
 import { getPhotoUrl } from '@/lib/api';
 import { UserIcon } from '@/components/Icons';
 import { LOOKING_FOR_LABELS } from '@/lib/constants';
@@ -147,69 +148,32 @@ export default function SwipeCard({
     >
       <div
         onClick={handleCardTap}
-        style={{
-          width: '100%',
-          height: '100%',
-          borderRadius: '20px',
-          overflow: 'hidden',
-          position: 'relative',
-          background: 'rgba(30, 30, 30, 0.9)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-        }}
+        className="swipe-card-inner"
       >
         {/* ── Photo ── */}
         {photos.length > 0 ? (
-          <img
+          <Image
             src={getPhotoUrl(photos[photoIndex].storage_path)}
             alt={participant.display_name}
             draggable={false}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              pointerEvents: 'none',
-            }}
+            fill
+            sizes="100vw"
+            priority={stackIndex === 0}
+            style={{ objectFit: 'cover', pointerEvents: 'none' }}
           />
         ) : (
-          <div
-            style={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(40, 40, 40, 0.9)',
-            }}
-          >
+          <div className="swipe-card-no-photo">
             <UserIcon size={80} />
           </div>
         )}
 
         {/* ── Photo progress bar ── */}
         {photos.length > 1 && (
-          <div
-            style={{
-              position: 'absolute',
-              top: '10px',
-              left: '16px',
-              right: '16px',
-              display: 'flex',
-              gap: '4px',
-              zIndex: 5,
-            }}
-          >
+          <div className="swipe-photo-progress">
             {photos.map((_, i) => (
               <div
                 key={i}
-                style={{
-                  flex: 1,
-                  height: '3px',
-                  borderRadius: '2px',
-                  background: i === photoIndex ? 'white' : 'rgba(255,255,255,0.35)',
-                  transition: 'background 0.25s',
-                }}
+                className={`swipe-photo-dot${i === photoIndex ? ' swipe-photo-dot--active' : ''}`}
               />
             ))}
           </div>
@@ -218,23 +182,8 @@ export default function SwipeCard({
         {/* ── LIKE badge (right swipe) ── */}
         {isTop && (
           <motion.div
-            style={{
-              opacity: likeOpacity,
-              position: 'absolute',
-              top: '60px',
-              left: '24px',
-              padding: '8px 20px',
-              border: '3px solid #4ade80',
-              borderRadius: '12px',
-              color: '#4ade80',
-              fontSize: '28px',
-              fontWeight: 800,
-              letterSpacing: '2px',
-              transform: 'rotate(-15deg)',
-              pointerEvents: 'none',
-              zIndex: 10,
-              textShadow: '0 2px 8px rgba(0,0,0,0.5)',
-            }}
+            className="swipe-badge swipe-badge--like"
+            style={{ opacity: likeOpacity }}
           >
             LIKE
           </motion.div>
@@ -243,82 +192,39 @@ export default function SwipeCard({
         {/* ── NOPE badge (left swipe) ── */}
         {isTop && (
           <motion.div
-            style={{
-              opacity: nopeOpacity,
-              position: 'absolute',
-              top: '60px',
-              right: '24px',
-              padding: '8px 20px',
-              border: '3px solid #f87171',
-              borderRadius: '12px',
-              color: '#f87171',
-              fontSize: '28px',
-              fontWeight: 800,
-              letterSpacing: '2px',
-              transform: 'rotate(15deg)',
-              pointerEvents: 'none',
-              zIndex: 10,
-              textShadow: '0 2px 8px rgba(0,0,0,0.5)',
-            }}
+            className="swipe-badge swipe-badge--nope"
+            style={{ opacity: nopeOpacity }}
           >
             NOPE
           </motion.div>
         )}
 
         {/* ── Bottom gradient + info + action buttons ── */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            padding: '80px 20px 20px',
-            background: 'linear-gradient(transparent, rgba(0,0,0,0.85))',
-          }}
-        >
+        <div className="swipe-card-overlay">
           {/* Name / age / city / bio */}
-          <div style={{ pointerEvents: 'none' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '4px' }}>
-              <span style={{ fontSize: '26px', fontWeight: 700, color: '#fff' }}>
+          <div className="swipe-card-info">
+            <div className="swipe-card-name-row">
+              <span className="swipe-card-name">
                 {participant.display_name}
               </span>
               {participant.age && (
-                <span style={{ fontSize: '20px', fontWeight: 400, color: 'rgba(255,255,255,0.7)' }}>
+                <span className="swipe-card-age">
                   {participant.age}
                 </span>
               )}
             </div>
             {participant.city && (
-              <div style={{ fontSize: '15px', color: 'rgba(255,255,255,0.6)' }}>
+              <div className="swipe-card-city">
                 📍 {participant.city}
               </div>
             )}
             {participant.looking_for && LOOKING_FOR_LABELS[participant.looking_for] && (
-              <div style={{
-                display: 'inline-block',
-                marginTop: '6px',
-                padding: '3px 10px',
-                borderRadius: '16px',
-                background: 'rgba(212, 165, 154, 0.2)',
-                border: '1px solid rgba(212, 165, 154, 0.35)',
-                color: '#D4A59A',
-                fontSize: '12px',
-                fontWeight: 500,
-              }}>
+              <div className="swipe-card-looking-for">
                 🎯 {LOOKING_FOR_LABELS[participant.looking_for]}
               </div>
             )}
             {participant.bio && (
-              <p style={{
-                fontSize: '14px',
-                color: 'rgba(255,255,255,0.55)',
-                marginTop: '6px',
-                lineHeight: 1.4,
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-              }}>
+              <p className="swipe-card-bio">
                 {participant.bio}
               </p>
             )}
@@ -326,36 +232,12 @@ export default function SwipeCard({
 
           {/* Action buttons - on the card (X left, profile center, heart right) */}
           {isTop && (
-            <div
-              dir="ltr"
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: '24px',
-                marginTop: '16px',
-                pointerEvents: 'auto',
-              }}
-            >
+            <div dir="ltr" className="swipe-card-actions">
               {/* Skip (left) */}
               <button
                 onClick={(e) => { e.stopPropagation(); if (!isDrag()) onSwipeLeft(); }}
                 aria-label="דלג"
-                style={{
-                  width: '52px',
-                  height: '52px',
-                  borderRadius: '50%',
-                  border: '2px solid rgba(248, 113, 113, 0.5)',
-                  background: 'rgba(248, 113, 113, 0.12)',
-                  color: '#f87171',
-                  fontSize: '22px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  backdropFilter: 'blur(8px)',
-                  WebkitBackdropFilter: 'blur(8px)',
-                }}
+                className="swipe-btn swipe-btn-skip"
               >
                 ✕
               </button>
@@ -364,21 +246,7 @@ export default function SwipeCard({
               <button
                 onClick={(e) => { e.stopPropagation(); if (!isDrag()) onViewProfile(); }}
                 aria-label="צפייה בפרופיל"
-                style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '50%',
-                  border: '1.5px solid rgba(255, 255, 255, 0.25)',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  fontSize: '18px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  backdropFilter: 'blur(8px)',
-                  WebkitBackdropFilter: 'blur(8px)',
-                }}
+                className="swipe-btn swipe-btn-profile"
               >
                 <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
@@ -390,21 +258,7 @@ export default function SwipeCard({
               <button
                 onClick={(e) => { e.stopPropagation(); if (!isDrag()) onSwipeRight(); }}
                 aria-label="לייק"
-                style={{
-                  width: '52px',
-                  height: '52px',
-                  borderRadius: '50%',
-                  border: '2px solid rgba(74, 222, 128, 0.5)',
-                  background: 'rgba(74, 222, 128, 0.12)',
-                  color: '#4ade80',
-                  fontSize: '22px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  backdropFilter: 'blur(8px)',
-                  WebkitBackdropFilter: 'blur(8px)',
-                }}
+                className="swipe-btn swipe-btn-like"
               >
                 ♥
               </button>

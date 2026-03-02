@@ -46,3 +46,78 @@ export const MAX_CACHE_SIZE = 5_000;
 export const ORDER_NAME_MAX_LENGTH = 100;
 export const ORDER_PHONE_MAX_LENGTH = 30;
 export const ORDER_EMAIL_MAX_LENGTH = 254;
+
+// ─── OTP Configuration ──────────────────────────────────────
+
+/** Number of digits in the OTP code. */
+export const OTP_LENGTH = parseInt(process.env.OTP_LENGTH || '6', 10);
+
+/** OTP expiry in seconds (default 5 minutes). */
+export const OTP_EXPIRY_S = parseInt(process.env.OTP_EXPIRY_SECONDS || '300', 10);
+
+/** Maximum verification attempts per OTP code. */
+export const OTP_MAX_ATTEMPTS = parseInt(process.env.OTP_MAX_ATTEMPTS || '5', 10);
+
+/** Minimum seconds between OTP resend requests. */
+export const OTP_RESEND_COOLDOWN_S = parseInt(process.env.OTP_RESEND_COOLDOWN_SECONDS || '60', 10);
+
+// ─── Messaging Configuration ────────────────────────────────
+
+/** Base URL for building join/feedback links. */
+export const APP_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://eventa.productions';
+
+/** Whether the SMS provider is live (true) or using stubs (false). */
+export const SMS_PROVIDER_LIVE = process.env.SMS_PROVIDER_LIVE === 'true';
+
+/** Whether the WhatsApp provider is live (true) or using stubs (false). */
+export const WA_PROVIDER_LIVE = process.env.WA_PROVIDER_LIVE === 'true';
+
+/** WhatsApp marketing conversation window duration in hours. */
+export const WA_MARKETING_WINDOW_HOURS = 24;
+
+/** Maximum guest phones per event. */
+export const MAX_GUEST_PHONES_PER_EVENT = 10_000;
+
+/** Maximum length for guest name in guest phone list. */
+export const MAX_GUEST_NAME_LENGTH = 100;
+
+// ─── Messaging Timing ───────────────────────────────────────
+
+/** Centralised timing constants for cron-driven messaging. */
+export const MSG_TIMING = {
+  /** Hours before event start to send pre-event WA messages. */
+  PRE_EVENT_HOURS_BEFORE: 3,
+  /** Hours after event end to send feedback WA messages. */
+  FEEDBACK_HOURS_AFTER: 3,
+  /** Days before event to send upload-reminder emails (descending). */
+  UPLOAD_REMINDER_DAYS: [7, 3] as const,
+} as const;
+
+// ─── Feature Flags ──────────────────────────────────────────
+
+/** Whether phone verification is required on the join page (default true). */
+export const PHONE_VERIFICATION_ENABLED =
+  process.env.NEXT_PUBLIC_PHONE_VERIFICATION_ENABLED !== 'false';
+
+// ─── Payment Configuration ──────────────────────────────────
+
+/** Whether the payment provider is live (true) or using stubs (false). */
+export const PAYMENT_PROVIDER_LIVE = process.env.PAYMENT_PROVIDER_LIVE === 'true';
+
+/** Base event package price in shekels. */
+export const BASE_PRICE = 250;
+
+/** Guest messaging add-on price in shekels. */
+export const MSG_ADDON = 50;
+
+/** Number of days a payment link stays valid before expiring. */
+export const PAYMENT_LINK_EXPIRY_DAYS = 7;
+
+/**
+ * Calculate the total price in agorot (shekel × 100).
+ * @param wantsGuestMessages Whether the client opted for the messaging add-on.
+ */
+export function calculateTotalPrice(wantsGuestMessages: boolean): number {
+  const shekel = BASE_PRICE + (wantsGuestMessages ? MSG_ADDON : 0);
+  return shekel * 100; // agorot
+}

@@ -2,7 +2,16 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { Event } from '@/lib/database.types';
-import { adminFetch, type EventStats, type AdminParticipant, type EventRequest } from './shared';
+import {
+  adminFetch,
+  type EventStats,
+  type AdminParticipant,
+  type EventRequest,
+  type EventMessagingStatus,
+  type GuestPhoneAdmin,
+  type MessageLogEntry,
+  type MessagingConfig,
+} from './shared';
 
 /**
  * Custom hook encapsulating all admin data fetching, mutations, and state.
@@ -16,6 +25,9 @@ export function useAdminData() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [participants, setParticipants] = useState<AdminParticipant[]>([]);
   const [requests, setRequests] = useState<EventRequest[]>([]);
+  const [messagingStatus, setMessagingStatus] = useState<EventMessagingStatus | null>(null);
+  const [guestPhones, setGuestPhones] = useState<GuestPhoneAdmin[]>([]);
+  const [messageLog, setMessageLog] = useState<MessageLogEntry[]>([]);
 
   /** Wrapper around adminFetch that resets auth state on 401 */
   const authedFetch: typeof adminFetch = useCallback(async (url, init) => {
@@ -264,13 +276,204 @@ export function useAdminData() {
     if (authed) loadRequests();
   }, [authed, loadRequests]);
 
+  /* ─── messaging status ─── */
+  const loadMessagingStatus = useCallback(async (eventId: string) => {
+    try {
+      const res = await authedFetch(`/api/admin/events/${eventId}/messaging`);
+      if (res.ok) {
+        const data = await res.json();
+        setMessagingStatus(data);
+      }
+    } catch (err) {
+      console.warn('[useAdminData] loadMessagingStatus failed:', err);
+    }
+  }, [authedFetch]);
+
+  const updateMessagingConfig = async (eventId: string, config: Partial<MessagingConfig>): Promise<{ ok: boolean; error?: string }> => {
+    const res = await authedFetch(`/api/admin/events/${eventId}/messaging`, {
+      method: 'PATCH',
+      body: JSON.stringify(config),
+    });
+    if (res.ok) {
+      await loadMessagingStatus(eventId);
+      return { ok: true };
+    }
+    const err = await res.json().catch(() => ({}));
+    return { ok: false, error: err.error || 'שגיאה בעדכון הגדרות הודעות' };
+  };
+
+  const triggerMessages = async (eventId: string, type: 'pre_event' | 'feedback'): Promise<{ ok: boolean; sent?: number; error?: string }> => {
+    const res = await authedFetch(`/api/admin/events/${eventId}/messaging`, {
+      method: 'POST',
+      body: JSON.stringify({ type }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      await loadMessagingStatus(eventId);
+      return { ok: true, sent: data.sent };
+    }
+    return { ok: false, error: data.error || 'שגיאה בשליחת הודעות' };
+  };
+
+  /* ─── guest phones ─── */
+  const loadGuestPhones = useCallback(async (eventId: string) => {
+    try {
+      const res = await authedFetch(`/api/admin/events/${eventId}/guests`);
+      if (res.ok) {
+        const data = await res.json();
+        setGuestPhones(data.guests || []);
+      }
+    } catch (err) {
+      console.warn('[useAdminData] loadGuestPhones failed:', err);
+    }
+  }, [authedFetch]);
+
+  const adminAddGuestPhone = async (
+    eventId: string,
+    phone: string,
+    name?: string
+  ): Promise<{ ok: boolean; error?: string }> => {
+    const res = await authedFetch(`/api/admin/events/${eventId}/guests`, {
+      method: 'POST',
+      body: JSON.stringify({ phone, name }),
+    });
+    if (res.ok) {
+      await loadGuestPhones(eventId);
+      return { ok: true };
+    }
+    const err = await res.json().catch(() => ({}));
+    return { ok: false, error: err.error || 'שגיאה בהוספת מספר' };
+  };
+
+  const adminRemoveGuestPhone = async (eventId: string, phoneId: string): Promise<{ ok: boolean; error?: string }> => {
+    const res = await authedFetch(`/api/admin/events/${eventId}/guests`, {
+      method: 'DELETE',
+      body: JSON.stringify({ phoneId }),
+    });
+    if (res.ok) {
+      await loadGuestPhones(eventId);
+      return { ok: true };
+    }
+    const err = await res.json().catch(() => ({}));
+    return { ok: false, error: err.error || 'שגיאה בהסרת מספר' };
+  };
+
+  const adminUploadGuestFile = async (eventId: string, file: File): Promise<{ ok: boolean; result?: unknown; error?: string }> => {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await authedFetch(`/api/admin/events/${eventId}/guests`, {
+      method: 'POST',
+      body: form,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      await loadGuestPhones(eventId);
+      return { ok: true, result: data };
+    }
+    return { ok: false, error: data.error || 'שגיאה בהעלאת קובץ' };
+  };
+
+  /* ─── portal token ─── */
+  const regeneratePortalToken = async (eventId: string): Promise<{ ok: boolean; token?: string; error?: string }> => {
+    const res = await authedFetch(`/api/admin/events/${eventId}/portal-token`, {
+      method: 'POST',
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      await loadMessagingStatus(eventId);
+      return { ok: true, token: data.token };
+    }
+    return { ok: false, error: data.error || 'שגיאה ביצירת טוקן' };
+  };
+
+  /* ─── send email ─── */
+  const sendClientEmail = async (
+    eventId: string,
+    emailType: string,
+    options?: { subject?: string; body?: string }
+  ): Promise<{ ok: boolean; error?: string }> => {
+    const res = await authedFetch(`/api/admin/events/${eventId}/send-email`, {
+      method: 'POST',
+      body: JSON.stringify({ type: emailType, ...options }),
+    });
+    if (res.ok) return { ok: true };
+    const err = await res.json().catch(() => ({}));
+    return { ok: false, error: err.error || 'שגיאה בשליחת אימייל' };
+  };
+
+  /* ─── message log (placeholder for future API) ─── */
+  const loadMessageLog = useCallback(async (eventId: string) => {
+    try {
+      const res = await authedFetch(`/api/admin/events/${eventId}/messaging`);
+      if (res.ok) {
+        const data = await res.json();
+        // The messaging endpoint returns messageLog if available
+        if (data.messageLog) {
+          setMessageLog(data.messageLog);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('[useAdminData] loadMessageLog failed:', err);
+    }
+    setMessageLog([]);
+  }, [authedFetch]);
+
+  /* ─── payment management ─── */
+  const markAsPaid = async (
+    requestId: string,
+    paymentMethod: string
+  ): Promise<{ ok: boolean; error?: string }> => {
+    const res = await authedFetch('/api/admin/requests', {
+      method: 'PATCH',
+      body: JSON.stringify({ requestId, action: 'mark_paid', paymentMethod }),
+    });
+    if (res.ok) {
+      loadRequests();
+      return { ok: true };
+    }
+    const err = await res.json().catch(() => ({}));
+    return { ok: false, error: err.error || 'שגיאה בעדכון תשלום' };
+  };
+
+  const waivePayment = async (requestId: string): Promise<{ ok: boolean; error?: string }> => {
+    const res = await authedFetch('/api/admin/requests', {
+      method: 'PATCH',
+      body: JSON.stringify({ requestId, action: 'waive' }),
+    });
+    if (res.ok) {
+      loadRequests();
+      return { ok: true };
+    }
+    const err = await res.json().catch(() => ({}));
+    return { ok: false, error: err.error || 'שגיאה בביטול תשלום' };
+  };
+
+  const resendPaymentLink = async (requestId: string): Promise<{ ok: boolean; error?: string }> => {
+    const res = await authedFetch('/api/admin/requests', {
+      method: 'PATCH',
+      body: JSON.stringify({ requestId, action: 'resend_link' }),
+    });
+    if (res.ok) {
+      loadRequests();
+      return { ok: true };
+    }
+    const err = await res.json().catch(() => ({}));
+    return { ok: false, error: err.error || 'שגיאה בשליחת קישור תשלום' };
+  };
+
   return {
     authed, events, loading, stats, requests,
     selectedEvent, participants,
+    messagingStatus, guestPhones, messageLog,
     login, logout, loadEvents,
     createEvent, toggleEvent, rotateJoinCode, deleteEvent,
     loadStats, loadParticipants, banParticipant, closeParticipants,
     uploadBackground, removeBackground, updateStatus, archiveEvent,
     loadRequests, approveRequest, denyRequest,
+    loadMessagingStatus, updateMessagingConfig, triggerMessages,
+    loadGuestPhones, adminAddGuestPhone, adminRemoveGuestPhone, adminUploadGuestFile,
+    regeneratePortalToken, sendClientEmail, loadMessageLog,
+    markAsPaid, waivePayment, resendPaymentLink,
   };
 }

@@ -50,3 +50,19 @@ export function LikesSkeleton({ count = 4 }: { count?: number }) {
     </div>
   );
 }
+
+/* ── Chat room message skeleton ────────────────────── */
+export function ChatRoomSkeleton({ count = 8 }: { count?: number }) {
+  return (
+    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      {Array.from({ length: count }).map((_, i) => {
+        const isRight = i % 3 !== 0;
+        return (
+          <div key={i} style={{ display: 'flex', justifyContent: isRight ? 'flex-end' : 'flex-start' }}>
+            <div style={{ ...shimmerStyle, height: 36, width: `${35 + (i % 4) * 12}%`, borderRadius: '16px' }} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import SitePageLayout from '@/components/SitePageLayout';
+import { BASE_PRICE, MSG_ADDON } from '@/lib/config';
 
 export const metadata: Metadata = {
   title: 'מחירון | Eventa',
@@ -9,8 +10,6 @@ export const metadata: Metadata = {
 };
 
 /* ── Plan data ── */
-const BASE_PRICE = 250;
-const MSG_ADDON = 50;
 
 const BASE_FEATURES = [
   'אפליקציית היכרויות מלאה לאירוע',
@@ -103,12 +102,11 @@ export default function PricingPage() {
             </a>
           </div>
 
-          {/* ── Messages add-on (coming soon) ── */}
-          <div className="pricing-card pricing-card--addon pricing-card--coming-soon">
+          {/* ── Messages add-on ── */}
+          <div className="pricing-card pricing-card--addon">
             <div className="pricing-card__badge pricing-card__badge--addon">
-              תוספת
+              תוספת אופציונלית
             </div>
-            <span className="pricing-coming-soon-badge">בקרוב</span>
             <div className="pricing-card__price pricing-card__price--addon">
               <span className="pricing-card__plus">+</span>
               <span className="pricing-card__currency">₪</span>
@@ -148,9 +146,21 @@ export default function PricingPage() {
               ))}
             </ul>
 
-            <div className="pricing-card__note">
-              שירות זה נמצא בפיתוח ויהיה זמין בקרוב
-            </div>
+            <a href="/dating/order" className="pricing-card__cta pricing-card__cta--addon">
+              להוספה בהזמנה
+              <svg
+                aria-hidden="true"
+                focusable="false"
+                width="16"
+                height="16"
+                viewBox="0 0 20 20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M7 4l-6 6 6 6" />
+              </svg>
+            </a>
           </div>
         </div>
 

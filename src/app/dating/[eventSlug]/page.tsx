@@ -1,14 +1,16 @@
 'use client';
 
-import { use, useEffect, useState, useCallback, useRef, memo } from 'react';
+import { use, useEffect, useState, useCallback, useRef, useMemo, memo } from 'react';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSessionStore, useGridStore, useNotificationStore, useSwipeStore } from '@/lib/store';
 import { getGridParticipants, getPhotoUrl, markLikeSeen, getParticipant } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import { useRealtimeHub } from '@/hooks/useRealtimeHub';
 import { useAppResume } from '@/hooks/useAppResume';
-import { PageTransition, StaggerContainer, StaggerItem } from '@/components/Animations';
+import { PageTransition } from '@/components/Animations';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import MobileGuard from '@/components/MobileGuard';
 import AppHeader from '@/components/AppHeader';
 import TabBar from '@/components/TabBar';
@@ -32,7 +34,7 @@ const GridCard = memo(function GridCard({
   p: GridParticipant;
   hasLikeHighlight: boolean;
   hasMessageHighlight: boolean;
-  onCardClick: () => void;
+  onCardClick: (id: string) => void;
 }) {
   const hasHighlight = hasLikeHighlight || hasMessageHighlight;
   return (
@@ -43,17 +45,18 @@ const GridCard = memo(function GridCard({
           ? '0 0 0 2px var(--primary), 0 0 12px rgba(212,165,154,0.3)'
           : '0 0 0 2px rgba(255,255,255,0.3), 0 0 12px rgba(255,255,255,0.1)',
       } : undefined}
-      onClick={onCardClick}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCardClick(); } }}
+      onClick={() => onCardClick(p.id)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCardClick(p.id); } }}
       role="button"
       tabIndex={0}
       aria-label={p.display_name}
     >
       {p.photos.length > 0 ? (
-        <img
+        <Image
           src={getPhotoUrl(p.photos[0].storage_path)}
           alt={p.display_name}
-          loading="lazy"
+          fill
+          sizes="33vw"
         />
       ) : (
         <div className="avatar-placeholder"><UserIcon size={32} /></div>
@@ -62,14 +65,14 @@ const GridCard = memo(function GridCard({
         <div className="name">{p.display_name}</div>
       </div>
       {hasHighlight && (
-        <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', gap: '4px' }}>
+        <div className="grid-card-badges">
           {hasLikeHighlight && (
-            <span style={{ background: 'var(--primary)', borderRadius: '12px', padding: '3px 8px', display: 'flex', alignItems: 'center', color: '#1a1a1a', animation: 'pulse-badge 2s infinite' }}>
+            <span className="badge-like">
               <HeartFilledIcon size={14} color="#1a1a1a" />
             </span>
           )}
           {hasMessageHighlight && (
-            <span style={{ background: 'rgba(255,255,255,0.85)', borderRadius: '12px', padding: '3px 8px', display: 'flex', alignItems: 'center', color: '#1a1a1a', animation: 'pulse-badge 2s infinite' }}>
+            <span className="badge-message">
               <ChatBubbleIcon size={14} color="#1a1a1a" />
             </span>
           )}
@@ -96,14 +99,20 @@ export default function EventPage({
   const session = useSessionStore((s) => s.session);
   const participant = useSessionStore((s) => s.participant);
   const setParticipant = useSessionStore((s) => s.setParticipant);
-  const { participants, filter, setParticipants, setFilter, removeParticipant, addParticipant, updateParticipant } = useGridStore();
+  const participants = useGridStore((s) => s.participants);
+  const filter = useGridStore((s) => s.filter);
+  const setParticipants = useGridStore((s) => s.setParticipants);
+  const setFilter = useGridStore((s) => s.setFilter);
+  const removeParticipant = useGridStore((s) => s.removeParticipant);
+  const addParticipant = useGridStore((s) => s.addParticipant);
+  const updateParticipant = useGridStore((s) => s.updateParticipant);
   const gridHighlights = useNotificationStore((s) => s.gridHighlights);
-  const removeGridHighlightByType = useNotificationStore((s) => s.removeGridHighlightByType);
   const viewMode = useSwipeStore((s) => s.viewMode);
   const setViewMode = useSwipeStore((s) => s.setViewMode);
   // Stale-while-revalidate: only show spinner on first-ever load
   const [loading, setLoading] = useState(participants.length === 0);
   const lastFetchRef = useRef(0);
+  const gridScrollRef = useRef<HTMLDivElement>(null);
 
   const loadGrid = useCallback(async () => {
     const s = useSessionStore.getState().session;
@@ -155,7 +164,7 @@ export default function EventPage({
   // Load grid (skip if recently fetched - Realtime keeps data fresh)
   useEffect(() => {
     if (session) {
-      if (Date.now() - lastFetchRef.current < 10_000) return;
+      if (Date.now() - lastFetchRef.current < 30_000) return;
       loadGrid();
     }
   }, [session, eventSlug, loadGrid]);
@@ -267,6 +276,22 @@ export default function EventPage({
     }
   }, [participant, setFilter]);
 
+  // Stable callback for grid card clicks - avoids re-creating closures per card
+  const handleCardClick = useCallback((id: string) => {
+    const highlights = useNotificationStore.getState().gridHighlights;
+    const hasLike = highlights.some((h) => h.participantId === id && h.type === 'like');
+    const hasMsg = highlights.some((h) => h.participantId === id && h.type === 'message');
+    if (hasLike) {
+      markLikeSeen(id);
+      useNotificationStore.getState().removeGridHighlightByType(id, 'like');
+      useNotificationStore.getState().decrementLikes();
+    }
+    if (hasMsg) {
+      useNotificationStore.getState().removeGridHighlightByType(id, 'message');
+    }
+    router.push(`/dating/${eventSlug}/user/${id}`);
+  }, [router, eventSlug]);
+
   // Only show filter bar when attracted_to is 'all' (otherwise cross-attraction handles it)
   const showFilterBar = participant?.attracted_to === 'all';
 
@@ -279,6 +304,34 @@ export default function EventPage({
   const filteredParticipants = participants.filter((p) => {
     if (!showFilterBar || filter === 'all') return true;
     return p.gender === genderFilterMap[filter];
+  });
+
+  // Virtualized grid: chunk participants into rows of 3
+  const COLS = 3;
+  const GAP = 8;
+  const rows = useMemo(() => {
+    const result: GridParticipant[][] = [];
+    for (let i = 0; i < filteredParticipants.length; i += COLS) {
+      result.push(filteredParticipants.slice(i, i + COLS));
+    }
+    return result;
+  }, [filteredParticipants]);
+
+  // Estimate row height: card width = (containerWidth - gaps) / 3, height = width * 4/3 + gap
+  // On a 390px phone: (390 - 16 padding - 16 gap) / 3 ≈ 119px → 119 * 1.333 ≈ 159px + 8px gap ≈ 167px
+  const estimateRowHeight = useCallback(() => {
+    const container = gridScrollRef.current;
+    if (!container) return 167; // sensible default
+    const containerWidth = container.clientWidth - 16; // 8px padding each side
+    const cardWidth = (containerWidth - GAP * (COLS - 1)) / COLS;
+    return Math.ceil(cardWidth * (4 / 3)) + GAP;
+  }, []);
+
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => gridScrollRef.current,
+    estimateSize: estimateRowHeight,
+    overscan: 3,
   });
 
   if (!session) return null;
@@ -312,7 +365,7 @@ export default function EventPage({
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    transition: 'all 0.2s',
+                    transition: 'background 0.2s, color 0.2s',
                   }}
                 >
                   <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -333,7 +386,7 @@ export default function EventPage({
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    transition: 'all 0.2s',
+                    transition: 'background 0.2s, color 0.2s',
                   }}
                 >
                   <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -372,34 +425,43 @@ export default function EventPage({
               /* ── Swipe mode ── */
               <SwipeView participants={filteredParticipants} eventSlug={eventSlug} />
             ) : (
-              <StaggerContainer className="profile-grid">
-                {filteredParticipants.map((p) => {
-                  const highlights = gridHighlights.filter((h) => h.participantId === p.id);
-                  const hasLikeHighlight = highlights.some((h) => h.type === 'like');
-                  const hasMessageHighlight = highlights.some((h) => h.type === 'message');
-
-                  return (
-                  <StaggerItem key={p.id}>
-                    <GridCard
-                      p={p}
-                      hasLikeHighlight={hasLikeHighlight}
-                      hasMessageHighlight={hasMessageHighlight}
-                      onCardClick={() => {
-                        if (hasLikeHighlight) {
-                          markLikeSeen(p.id);
-                          removeGridHighlightByType(p.id, 'like');
-                          useNotificationStore.getState().decrementLikes();
-                        }
-                        if (hasMessageHighlight) {
-                          removeGridHighlightByType(p.id, 'message');
-                        }
-                        router.push(`/dating/${eventSlug}/user/${p.id}`);
-                      }}
-                    />
-                  </StaggerItem>
-                  );
-                })}
-              </StaggerContainer>
+              <div
+                ref={gridScrollRef}
+                className="virtual-grid-scroll"
+              >
+                <div
+                  className="virtual-grid-inner"
+                  style={{ height: virtualizer.getTotalSize() }}
+                >
+                  {virtualizer.getVirtualItems().map((virtualRow) => {
+                    const rowParticipants = rows[virtualRow.index];
+                    return (
+                      <div
+                        key={virtualRow.index}
+                        className="virtual-grid-row"
+                        style={{
+                          transform: `translateY(${virtualRow.start}px)`,
+                          height: virtualRow.size,
+                        }}
+                      >
+                        {rowParticipants.map((p) => {
+                          const hasLikeHighlight = gridHighlights.some((h) => h.participantId === p.id && h.type === 'like');
+                          const hasMessageHighlight = gridHighlights.some((h) => h.participantId === p.id && h.type === 'message');
+                          return (
+                            <GridCard
+                              key={p.id}
+                              p={p}
+                              hasLikeHighlight={hasLikeHighlight}
+                              hasMessageHighlight={hasMessageHighlight}
+                              onCardClick={handleCardClick}
+                            />
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             )}
           </div>
           <TabBar />

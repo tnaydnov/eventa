@@ -50,6 +50,8 @@ vi.mock('@/lib/constants', () => ({
   MAX_NAME_LENGTH: 30,
   MAX_BIO_LENGTH: 500,
   MAX_CITY_LENGTH: 50,
+  MIN_PHONE_LENGTH: 10,
+  MAX_PHONE_LENGTH: 20,
 }));
 
 vi.mock('@/lib/logger', () => ({

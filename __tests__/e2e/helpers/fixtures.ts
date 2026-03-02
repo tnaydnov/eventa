@@ -191,6 +191,45 @@ export const mockMatch = {
   matched_at: '2025-06-15T13:00:00Z',
 };
 
+/* ─────── Phone & messaging mock data ─────── */
+export const TEST_PORTAL_TOKEN = 'portal-test-token-abc123';
+export const TEST_GUEST_PHONE_ID = '10000000-1000-4000-8000-700000000001';
+
+export const mockGuestPhone = {
+  id: TEST_GUEST_PHONE_ID,
+  event_id: TEST_EVENT_ID,
+  phone_e164: '+972501234567',
+  name: 'ישראל ישראלי',
+  source: 'manual' as const,
+  wa_sent: false,
+  feedback_sent: false,
+  created_at: '2025-06-01T08:00:00Z',
+};
+
+export const mockPortalData = {
+  event: {
+    id: TEST_EVENT_ID,
+    name: TEST_EVENT_NAME,
+    starts_at: '2025-06-01T10:00:00Z',
+    ends_at: '2025-06-01T22:00:00Z',
+    status: 'active',
+  },
+  guests: [mockGuestPhone],
+  totalGuests: 1,
+  waEnabled: true,
+  preSent: false,
+};
+
+export const mockMessagingOverview = {
+  wa_enabled: true,
+  portal_token: TEST_PORTAL_TOKEN,
+  pre_event_sent: false,
+  feedback_sent: false,
+  guest_count: 1,
+  pre_event_timing_hours: 2,
+  message_log: [] as Array<{ id: string; channel: string; type: string; status: string; created_at: string; error: string | null }>,
+};
+
 /* ─────── Admin mock data ─────── */
 export const mockAdminStats = {
   participants: 10,
@@ -566,3 +605,180 @@ export async function setupAdminMocks(page: Page) {
 
 // Re-export base test
 export { base as test };
+
+/* ─────── Phone join flow helpers ─────── */
+
+/**
+ * Mock event-status endpoint to return active event.
+ */
+export async function mockEventStatus(page: Page, status: string = 'active') {
+  await page.route('**/api/auth/event-status**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status, slug: TEST_EVENT_SLUG }),
+    });
+  });
+}
+
+/**
+ * Mock send-otp endpoint to return success.
+ */
+export async function mockSendOtp(page: Page, response?: { success: boolean; maskedPhone?: string; error?: string }) {
+  const body = response ?? { success: true, maskedPhone: '050-***4567' };
+  await page.route('**/api/auth/send-otp', async (route) => {
+    await route.fulfill({
+      status: body.success ? 200 : 400,
+      contentType: 'application/json',
+      body: JSON.stringify(body),
+    });
+  });
+}
+
+/**
+ * Mock verify-otp endpoint to return success with session.
+ */
+export async function mockVerifyOtp(page: Page, response?: Record<string, unknown>) {
+  const body = response ?? {
+    eventId: TEST_EVENT_ID,
+    eventName: TEST_EVENT_NAME,
+    backgroundImage: null,
+    participantId: TEST_PARTICIPANT_ID,
+    participant: mockParticipant,
+  };
+  await page.route('**/api/auth/verify-otp', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      headers: {
+        'Set-Cookie': 'ws_session=fake-jwt; Path=/; HttpOnly',
+      },
+      body: JSON.stringify(body),
+    });
+  });
+}
+
+/**
+ * Set up mocks for the guest upload portal.
+ */
+export async function setupPortalMocks(page: Page, portalData?: Record<string, unknown>) {
+  const data = portalData ?? mockPortalData;
+
+  await page.route('**/api/guest-portal/**', async (route) => {
+    const method = route.request().method();
+    const url = route.request().url();
+
+    if (url.includes('/download-template')) {
+      // Template download
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        body: Buffer.from('fake-xlsx-data'),
+      });
+      return;
+    }
+
+    if (method === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(data),
+      });
+    } else if (method === 'POST') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, added: 5, duplicates: 0, errors: [] }),
+      });
+    } else if (method === 'DELETE') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true }),
+      });
+    } else {
+      await route.continue();
+    }
+  });
+}
+
+/**
+ * Set up admin mocks with messaging support.
+ */
+export async function setupAdminMessagingMocks(page: Page) {
+  await setupAdminMocks(page);
+
+  await page.route(`**/api/admin/events/${TEST_EVENT_ID}/messaging**`, async (route) => {
+    const method = route.request().method();
+    if (method === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockMessagingOverview),
+      });
+    } else if (method === 'PATCH') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true }),
+      });
+    } else if (method === 'POST') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, sent: 5 }),
+      });
+    } else {
+      await route.continue();
+    }
+  });
+
+  await page.route(`**/api/admin/events/${TEST_EVENT_ID}/guests**`, async (route) => {
+    const method = route.request().method();
+    if (method === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ guests: [mockGuestPhone], total: 1 }),
+      });
+    } else if (method === 'POST') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, added: 1, duplicates: 0 }),
+      });
+    } else if (method === 'DELETE') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true }),
+      });
+    } else {
+      await route.continue();
+    }
+  });
+
+  await page.route(`**/api/admin/events/${TEST_EVENT_ID}/portal-token**`, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ token: TEST_PORTAL_TOKEN }),
+    });
+  });
+
+  await page.route('**/api/admin/requests**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ requests: [] }),
+    });
+  });
+
+  await page.route('**/api/admin/send-email**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true }),
+    });
+  });
+}

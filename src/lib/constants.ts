@@ -48,6 +48,25 @@ export const RETENTION_DAYS = 7;
 /** Number of storage objects to delete per batch during cleanup. */
 export const STORAGE_BATCH_SIZE = 100;
 
+// ─── Phone ──────────────────────────────────────────────
+
+/** Maximum phone number length (E.164). */
+export const MAX_PHONE_LENGTH = 20;
+
+/** Minimum phone number length. */
+export const MIN_PHONE_LENGTH = 10;
+
+/** Israeli mobile prefixes for validation. */
+export const IL_MOBILE_PREFIXES = ['050', '051', '052', '053', '054', '055', '056', '058'] as const;
+
+// ─── Messaging ──────────────────────────────────────────
+
+/** Default discount code included in feedback messages. */
+export const DEFAULT_DISCOUNT_CODE = 'EVENTA10';
+
+/** Discount code validity period in months. */
+export const DISCOUNT_VALIDITY_MONTHS = 6;
+
 // ─── Event Types ────────────────────────────────────────
 // Hebrew labels for event types, keyed by DB value.
 

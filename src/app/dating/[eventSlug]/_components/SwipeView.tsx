@@ -32,15 +32,13 @@ export default function SwipeView({ participants, eventSlug }: SwipeViewProps) {
   const session = useSessionStore((s) => s.session);
   const toast = useToastStore((s) => s.show);
 
-  const {
-    dismissedIds,
-    likedIds,
-    likedIdsLoaded,
-    dismiss,
-    addLiked,
-    setLikedIds,
-    resetPool,
-  } = useSwipeStore();
+  const dismissedIds = useSwipeStore((s) => s.dismissedIds);
+  const likedIds = useSwipeStore((s) => s.likedIds);
+  const likedIdsLoaded = useSwipeStore((s) => s.likedIdsLoaded);
+  const dismiss = useSwipeStore((s) => s.dismiss);
+  const addLiked = useSwipeStore((s) => s.addLiked);
+  const setLikedIds = useSwipeStore((s) => s.setLikedIds);
+  const resetPool = useSwipeStore((s) => s.resetPool);
 
   /* ── Seed liked IDs from the server on first mount ─────────── */
   useEffect(() => {

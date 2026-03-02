@@ -17,6 +17,8 @@ interface EventsViewProps {
   onViewDetails: (event: Event) => void;
   onUpdateStatus: (id: string, status: string) => void;
   onCreateEvent: () => void;
+  title?: string;
+  subtitle?: string;
 }
 
 export default function EventsView({
@@ -24,7 +26,7 @@ export default function EventsView({
   onRotate, onDelete,
   onGenerateQR, onCopyUrl,
   onUploadBg, onRemoveBg, onViewDetails, onUpdateStatus,
-  onCreateEvent,
+  onCreateEvent, title, subtitle,
 }: EventsViewProps) {
   const [search, setSearch] = useState('');
   const [statusTab, setStatusTab] = useState<StatusTab>('all');
@@ -56,8 +58,8 @@ export default function EventsView({
       {/* Page header */}
       <div className="admin-topbar">
         <div>
-          <h2 className="admin-topbar__title">אירועים</h2>
-          <p className="admin-topbar__subtitle">ניהול אירועים, סטטיסטיקות ומשתתפים</p>
+          <h2 className="admin-topbar__title">{title || 'אירועים'}</h2>
+          <p className="admin-topbar__subtitle">{subtitle || 'ניהול אירועים, סטטיסטיקות ומשתתפים'}</p>
         </div>
         <button className="admin-btn admin-btn--primary" onClick={onCreateEvent}>
           ➕ אירוע חדש

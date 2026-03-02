@@ -109,7 +109,7 @@ export default function LandingPage() {
             ל<span className="gradient-text">חוויית היכרויות</span> בלתי נשכחת
           </h1>
           <p className="landing-hero__subheading">
-            Eventa מוסיפה שכבת היכרויות חכמה לכל אירוע - חתונות, מסיבות, בר/בת מצוות, אירועי חברה ועוד. האורחים סורקים QR, בונים פרופיל, ומתחילים לגלות אחד את השנייה. הכל בדפדפן, בלי להוריד כלום.
+            Eventa מוסיפה שכבת היכרויות חכמה לכל אירוע - חתונות, מסיבות, אירועי חברה ועוד. האורחים סורקים QR, בונים פרופיל, ומתחילים לדבר אחד עם השנייה. הכל בדפדפן, בלי להוריד כלום.
           </p>
           <div className="landing-hero__actions">
             <a className="landing-btn landing-btn--primary" href="/dating/order">

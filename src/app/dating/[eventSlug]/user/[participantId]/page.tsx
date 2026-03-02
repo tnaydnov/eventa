@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useSessionStore, useToastStore, useNotificationStore, useSwipeStore, useMatchStore, useGridStore } from '@/lib/store';
 import { UserIcon } from '@/components/Icons';
 import {
@@ -30,7 +31,8 @@ export default function UserProfilePage({
   const router = useRouter();
   const session = useSessionStore((s) => s.session);
   const toast = useToastStore((s) => s.show);
-  const { addLiked, removeLiked } = useSwipeStore();
+  const addLiked = useSwipeStore((s) => s.addLiked);
+  const removeLiked = useSwipeStore((s) => s.removeLiked);
 
   // Seed from grid store for instant display (stale-while-revalidate)
   const cached = useGridStore((s) => s.participants.find((p) => p.id === participantId)) ?? null;
@@ -215,9 +217,13 @@ export default function UserProfilePage({
           }}
         >
           {user.photos.length > 0 ? (
-            <img
+            <Image
               src={getPhotoUrl(user.photos[photoIndex].storage_path)}
               alt={user.display_name}
+              fill
+              sizes="100vw"
+              priority
+              style={{ objectFit: 'cover' }}
             />
           ) : (
             <div className="avatar-placeholder"><UserIcon size={64} /></div>

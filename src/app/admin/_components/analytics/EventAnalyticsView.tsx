@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import type { Event } from '@/lib/database.types';
 import { EVENT_TYPE_ICONS, EVENT_TYPE_LABELS, EVENT_STATUS_LABELS } from '@/lib/constants';
-import { adminFetch, type EventAnalytics } from '../shared';
+import { adminFetch, type EventAnalytics, type EventMessagingStatus, type GuestPhoneAdmin, type MessageLogEntry, type MessagingConfig } from '../shared';
 import StatCard from './StatCard';
 import ParticipantsTable from '../participants/ParticipantsTable';
 
 const AnalyticsDashboard = dynamic(() => import('./AnalyticsDashboard'), { ssr: false });
+const MessagingTab = dynamic(() => import('../messaging/MessagingTab'), { ssr: false });
 
 interface EventAnalyticsViewProps {
   event: Event;
@@ -20,9 +21,23 @@ interface EventAnalyticsViewProps {
   onUpdateStatus: (id: string, status: string) => void;
   onDelete: (id: string) => void;
   onArchive: (id: string) => void;
+  // Messaging props
+  messagingStatus: EventMessagingStatus | null;
+  guestPhones: GuestPhoneAdmin[];
+  messageLog: MessageLogEntry[];
+  loadMessagingStatus: (eventId: string) => Promise<void>;
+  updateMessagingConfig: (eventId: string, config: Partial<MessagingConfig>) => Promise<{ ok: boolean; error?: string }>;
+  triggerMessages: (eventId: string, type: 'pre_event' | 'feedback') => Promise<{ ok: boolean; sent?: number; error?: string }>;
+  loadGuestPhones: (eventId: string) => Promise<void>;
+  adminAddGuestPhone: (eventId: string, phone: string, name?: string) => Promise<{ ok: boolean; error?: string }>;
+  adminRemoveGuestPhone: (eventId: string, phoneId: string) => Promise<{ ok: boolean; error?: string }>;
+  adminUploadGuestFile: (eventId: string, file: File) => Promise<{ ok: boolean; result?: unknown; error?: string }>;
+  regeneratePortalToken: (eventId: string) => Promise<{ ok: boolean; token?: string; error?: string }>;
+  sendClientEmail: (eventId: string, type: string, opts?: { subject?: string; body?: string }) => Promise<{ ok: boolean; error?: string }>;
+  loadMessageLog: (eventId: string) => Promise<void>;
 }
 
-type DetailTab = 'overview' | 'analytics' | 'participants' | 'settings';
+type DetailTab = 'overview' | 'analytics' | 'participants' | 'messaging' | 'settings';
 
 const statusBadgeClass = (status: string): string => {
   const map: Record<string, string> = {
@@ -45,10 +60,11 @@ function formatDateTime(iso: string): string {
   } catch { return ''; }
 }
 
-const TABS: { key: DetailTab; label: string; icon: string }[] = [
+const BASE_TABS: { key: DetailTab; label: string; icon: string }[] = [
   { key: 'overview', label: 'סקירה', icon: '📋' },
   { key: 'analytics', label: 'אנליטיקס', icon: '📊' },
   { key: 'participants', label: 'משתתפים', icon: '👥' },
+  { key: 'messaging', label: 'הודעות', icon: '📩' },
   { key: 'settings', label: 'הגדרות', icon: '⚙️' },
 ];
 
@@ -56,6 +72,10 @@ export default function EventAnalyticsView({
   event, onBack,
   onGenerateQR, onCopyUrl,
   onUploadBg, onRemoveBg, onUpdateStatus, onDelete, onArchive,
+  messagingStatus, guestPhones, messageLog,
+  loadMessagingStatus, updateMessagingConfig, triggerMessages,
+  loadGuestPhones, adminAddGuestPhone, adminRemoveGuestPhone, adminUploadGuestFile,
+  regeneratePortalToken, sendClientEmail, loadMessageLog,
 }: EventAnalyticsViewProps) {
   const [analytics, setAnalytics] = useState<EventAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,6 +107,11 @@ export default function EventAnalyticsView({
   const typeLabel = EVENT_TYPE_LABELS[event.event_type] || event.event_type;
   const statusLabel = EVENT_STATUS_LABELS[event.status] || event.status;
   const isArchived = event.status === 'archived';
+
+  // Only show messaging tab when WA is enabled for this event
+  const TABS = event.wa_messages_enabled
+    ? BASE_TABS
+    : BASE_TABS.filter(t => t.key !== 'messaging');
 
   return (
     <div className="ea-root admin-animate-in">
@@ -194,7 +219,27 @@ export default function EventAnalyticsView({
 
       {/* ═══ TAB: Participants ═══ */}
       {activeTab === 'participants' && (
-        <ParticipantsTable eventId={event.id} isArchived={isArchived} />
+        <ParticipantsTable eventId={event.id} isArchived={isArchived} waMessagesEnabled={event.wa_messages_enabled} />
+      )}
+
+      {/* ═══ TAB: Messaging ═══ */}
+      {activeTab === 'messaging' && event.wa_messages_enabled && (
+        <MessagingTab
+          event={event}
+          messagingStatus={messagingStatus}
+          guestPhones={guestPhones}
+          messageLog={messageLog}
+          loadMessagingStatus={loadMessagingStatus}
+          updateMessagingConfig={updateMessagingConfig}
+          triggerMessages={triggerMessages}
+          loadGuestPhones={loadGuestPhones}
+          adminAddGuestPhone={adminAddGuestPhone}
+          adminRemoveGuestPhone={adminRemoveGuestPhone}
+          adminUploadGuestFile={adminUploadGuestFile}
+          regeneratePortalToken={regeneratePortalToken}
+          sendClientEmail={sendClientEmail}
+          loadMessageLog={loadMessageLog}
+        />
       )}
 
       {/* ═══ TAB: Settings ═══ */}

@@ -49,9 +49,9 @@ describe('SitePageLayout', () => {
         <p>x</p>
       </SitePageLayout>
     );
-    const logo = screen.getByAltText('Eventa');
-    expect(logo).toBeInTheDocument();
+    const logos = screen.getAllByAltText('Eventa');
+    expect(logos.length).toBeGreaterThan(0);
+    const logo = logos[0];
     expect(logo.closest('a')).toHaveAttribute('href', '/dating');
-  });
   });
 });

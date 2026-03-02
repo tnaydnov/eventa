@@ -102,7 +102,7 @@
   padding: 10px 20px;
   color: var(--admin-text-muted);
   cursor: pointer;
-  transition: all var(--admin-transition);
+  transition: color var(--admin-transition), background var(--admin-transition);
   border: none;
   background: none;
   width: 100%;
@@ -370,7 +370,7 @@
   color: var(--admin-text-muted);
   font-size: 18px;
   cursor: pointer;
-  transition: all var(--admin-transition);
+  transition: background var(--admin-transition), border-color var(--admin-transition), color var(--admin-transition);
   font-family: inherit;
 }
 
@@ -456,7 +456,7 @@
   font-size: 13px;
   font-weight: 500;
   padding: 8px 16px;
-  transition: all var(--admin-transition);
+  transition: background var(--admin-transition), color var(--admin-transition);
   white-space: nowrap;
 }
 
@@ -663,7 +663,7 @@
   font-weight: 500;
   cursor: pointer;
   border-radius: var(--admin-radius-xs);
-  transition: all var(--admin-transition);
+  transition: color var(--admin-transition), background var(--admin-transition);
   white-space: nowrap;
   display: flex;
   align-items: center;
@@ -917,7 +917,7 @@
   cursor: pointer;
   font-family: inherit;
   color: var(--admin-text-muted);
-  transition: all var(--admin-transition);
+  transition: border-color var(--admin-transition), color var(--admin-transition), background var(--admin-transition), transform var(--admin-transition);
 }
 
 .ced-type-card:hover {
@@ -964,7 +964,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--admin-transition);
+  transition: border-color var(--admin-transition), color var(--admin-transition);
   flex-shrink: 0;
 }
 
@@ -1200,7 +1200,7 @@
   font-weight: 500;
   cursor: pointer;
   border-bottom: 2px solid transparent;
-  transition: all var(--admin-transition);
+  transition: color var(--admin-transition), border-bottom-color var(--admin-transition);
   margin-bottom: -2px;
   display: flex;
   align-items: center;
@@ -1415,7 +1415,7 @@
   font-weight: 500;
   cursor: pointer;
   border-radius: var(--admin-radius-xs);
-  transition: all var(--admin-transition);
+  transition: color var(--admin-transition), background var(--admin-transition);
   white-space: nowrap;
 }
 
@@ -1976,9 +1976,12 @@
 }
 
 .ad-progress__fill {
+  width: 100%;
   height: 100%;
   border-radius: 3px;
-  transition: width 0.8s ease;
+  transform: scaleX(var(--progress, 0));
+  transform-origin: right;
+  transition: transform 0.8s ease;
 }
 
 /* ─── Recharts Tooltip ─── */
@@ -2688,7 +2691,7 @@
   font-size: 13px;
   font-family: inherit;
   cursor: pointer;
-  transition: all var(--admin-transition);
+  transition: border-color var(--admin-transition), color var(--admin-transition), background var(--admin-transition);
 }
 
 .req-tab:hover {
@@ -2977,4 +2980,201 @@
     width: 100%;
     justify-content: center;
   }
+}
+
+/* ══════════════════════════════════════════
+   Messaging Tab Styles
+   ══════════════════════════════════════════ */
+
+.msg-tab {
+  padding-bottom: 24px;
+}
+
+/* Status grid (key-value pairs) */
+.msg-status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+  margin-top: 12px;
+}
+
+.msg-status-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.msg-status-label {
+  font-size: 0.75rem;
+  color: var(--admin-text-dim, #999);
+  font-weight: 500;
+}
+
+.msg-status-value {
+  font-size: 0.88rem;
+  color: var(--admin-text, #e0e0e0);
+}
+
+/* Action button rows */
+.msg-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.msg-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+@media (max-width: 480px) {
+  .msg-actions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Portal URL input */
+.msg-portal-url {
+  margin-top: 12px;
+}
+
+.msg-portal-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--admin-bg-darker, #111);
+  border: 1px solid var(--admin-border, #333);
+  border-radius: 8px;
+  color: var(--admin-text, #e0e0e0);
+  font-size: 0.78rem;
+  font-family: monospace;
+  outline: none;
+}
+
+.msg-portal-input:focus {
+  border-color: var(--admin-accent, #7c3aed);
+}
+
+/* Guest list add row */
+.msg-add-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.msg-input {
+  padding: 8px 10px;
+  background: var(--admin-bg-darker, #111);
+  border: 1px solid var(--admin-border, #333);
+  border-radius: 8px;
+  color: var(--admin-text, #e0e0e0);
+  font-size: 0.82rem;
+  font-family: inherit;
+  direction: ltr;
+  outline: none;
+  flex: 1;
+  min-width: 0;
+}
+
+.msg-input--rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+.msg-input:focus {
+  border-color: var(--admin-accent, #7c3aed);
+}
+
+.msg-input::placeholder {
+  color: var(--admin-text-dim, #666);
+}
+
+.msg-search {
+  width: 100%;
+  margin-bottom: 12px;
+  direction: rtl;
+}
+
+/* Table */
+.msg-table-wrap {
+  overflow-x: auto;
+  margin-top: 8px;
+}
+
+.msg-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.msg-table th {
+  text-align: right;
+  padding: 8px 6px;
+  color: var(--admin-text-dim, #999);
+  font-weight: 600;
+  border-bottom: 1px solid var(--admin-border, #333);
+  white-space: nowrap;
+  font-size: 0.75rem;
+}
+
+.msg-table td {
+  padding: 8px 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--admin-text, #e0e0e0);
+  white-space: nowrap;
+}
+
+.msg-table tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.msg-error-cell {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--admin-text-dim, #999) !important;
+  font-size: 0.75rem !important;
+}
+
+.msg-empty {
+  text-align: center;
+  color: var(--admin-text-dim, #777);
+  font-size: 0.85rem;
+  padding: 20px 0;
+}
+
+/* Badge small variant */
+.admin-badge--sm {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+}
+
+/* Cross-reference funnel */
+.msg-funnel {
+  margin-top: 16px;
+}
+
+.msg-funnel-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--admin-bg-darker, #111);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.msg-funnel-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #7c3aed, #a855f7);
+  border-radius: 4px;
+  transition: width 0.4s;
+}
+
+.msg-funnel-label {
+  display: block;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--admin-text-dim, #999);
+  margin-top: 6px;
 }

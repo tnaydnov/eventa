@@ -34,15 +34,16 @@ const mockSetPendingMatch = vi.fn();
 vi.mock('@/lib/store', () => ({
   useSessionStore: (sel: (s: Record<string, unknown>) => unknown) =>
     sel({ session: mockSession }),
-  useSwipeStore: () => ({
-    dismissedIds: mockDismissedIds,
-    likedIds: mockLikedIds,
-    likedIdsLoaded: mockLikedIdsLoaded,
-    dismiss: mockDismiss,
-    addLiked: mockAddLiked,
-    setLikedIds: mockSetLikedIds,
-    resetPool: mockResetPool,
-  }),
+  useSwipeStore: (sel: (s: Record<string, unknown>) => unknown) =>
+    sel({
+      dismissedIds: mockDismissedIds,
+      likedIds: mockLikedIds,
+      likedIdsLoaded: mockLikedIdsLoaded,
+      dismiss: mockDismiss,
+      addLiked: mockAddLiked,
+      setLikedIds: mockSetLikedIds,
+      resetPool: mockResetPool,
+    }),
   useToastStore: (sel: (s: Record<string, unknown>) => unknown) =>
     sel({ show: mockShowToast }),
   useMatchStore: Object.assign(

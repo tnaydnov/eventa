@@ -3,7 +3,7 @@
  * Import from '@/lib/api' continues to work via the facade in ../api.ts.
  */
 export { getPhotoUrl } from './helpers';
-export { joinEvent } from './auth';
+export { joinEvent, sendOtp, verifyOtp } from './auth';
 export { updateProfile, getParticipant } from './profile';
 export { uploadPhoto, deletePhoto, reorderPhotos, getMyPhotos } from './photos';
 export { getGridParticipants } from './grid';
@@ -34,3 +34,16 @@ export {
   getMatches,
 } from './matches';
 export { deleteAccount } from './account';
+export {
+  getPortalData,
+  uploadGuestFile,
+  addGuestPhone,
+  removeGuestPhone,
+  getTemplateDownloadUrl,
+} from './guest-portal';
+export type {
+  PortalData,
+  PortalGuest,
+  UploadResult,
+  AddPhoneResult,
+} from './guest-portal';

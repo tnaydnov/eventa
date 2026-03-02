@@ -35,6 +35,8 @@ vi.mock('@/lib/route-helpers', () => ({
 vi.mock('@/lib/constants', () => ({
   RETENTION_DAYS: 30,
   STORAGE_BATCH_SIZE: 100,
+  MIN_PHONE_LENGTH: 10,
+  MAX_PHONE_LENGTH: 20,
 }));
 
 vi.mock('@/lib/logger', () => ({

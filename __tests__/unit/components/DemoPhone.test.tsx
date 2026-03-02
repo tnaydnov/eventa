@@ -35,7 +35,7 @@ describe('DemoPhone', () => {
 
   it('renders header with event name', () => {
     render(<DemoPhone />);
-    expect(screen.getByText(/החתונה של דנה ואיתי/)).toBeInTheDocument();
+    expect(screen.getByText(/Dana & Itai/)).toBeInTheDocument();
   });
 
   it('grid/swipe view toggle works', () => {

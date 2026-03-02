@@ -8,11 +8,15 @@ import { adminFetch, type AdminParticipant } from '../shared';
 type SortField = 'display_name' | 'gender' | 'age' | 'created_at' | 'is_banned';
 type SortDir = 'asc' | 'desc';
 type GenderFilter = 'all' | 'male' | 'female';
+type SourceFilter = 'all' | 'wa' | 'qr';
+type FeedbackFilter = 'all' | 'consent' | 'banned';
 
 interface ParticipantsTableProps {
   eventId: string;
   /** If true, the event is archived and ban actions are hidden. */
   isArchived?: boolean;
+  /** If true, messaging columns (phone, source, feedback) are shown. */
+  waMessagesEnabled?: boolean;
 }
 
 /* ─── Helpers ─── */
@@ -30,9 +34,19 @@ const shortDate = (iso: string) => {
 
 const SORT_ICONS: Record<SortDir, string> = { asc: '↑', desc: '↓' };
 
+const sourceLabel = (s: string) =>
+  s === 'pre_event_link' ? '📱 WA' : '📸 QR';
+
+const feedbackLabel = (p: AdminParticipant) => {
+  if (!p.phone) return '—';
+  if (p.feedback_sent) return '✅ נשלח';
+  if (!p.sms_consent) return '❌ סירב';
+  return '⏳ ממתין';
+};
+
 /* ─── Component ─── */
 
-export default function ParticipantsTable({ eventId, isArchived }: ParticipantsTableProps) {
+export default function ParticipantsTable({ eventId, isArchived, waMessagesEnabled }: ParticipantsTableProps) {
   const [participants, setParticipants] = useState<AdminParticipant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -40,6 +54,8 @@ export default function ParticipantsTable({ eventId, isArchived }: ParticipantsT
   /* Filters */
   const [search, setSearch] = useState('');
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('all');
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const [feedbackFilter, setFeedbackFilter] = useState<FeedbackFilter>('all');
 
   /* Sorting */
   const [sortField, setSortField] = useState<SortField>('created_at');
@@ -112,6 +128,21 @@ export default function ParticipantsTable({ eventId, isArchived }: ParticipantsT
       result = result.filter(p => p.gender === genderFilter);
     }
 
+    // Source filter (messaging only)
+    if (waMessagesEnabled && sourceFilter !== 'all') {
+      const src = sourceFilter === 'wa' ? 'pre_event_link' : 'qr_on_spot';
+      result = result.filter(p => p.join_source === src);
+    }
+
+    // Feedback filter (messaging only)
+    if (waMessagesEnabled && feedbackFilter !== 'all') {
+      if (feedbackFilter === 'consent') {
+        result = result.filter(p => p.sms_consent);
+      } else if (feedbackFilter === 'banned') {
+        result = result.filter(p => p.is_banned);
+      }
+    }
+
     // Search
     if (search.trim()) {
       const q = search.trim().toLowerCase();
@@ -144,7 +175,7 @@ export default function ParticipantsTable({ eventId, isArchived }: ParticipantsT
     });
 
     return result;
-  }, [participants, genderFilter, search, sortField, sortDir]);
+  }, [participants, genderFilter, sourceFilter, feedbackFilter, waMessagesEnabled, search, sortField, sortDir]);
 
   /* ─── Counts (only count profile-complete participants) ─── */
   const complete = participants.filter((p: any) => p.profile_complete !== false);
@@ -200,6 +231,36 @@ export default function ParticipantsTable({ eventId, isArchived }: ParticipantsT
               👩 ({totalWomen})
             </button>
           </div>
+
+          {/* Source + feedback filters (messaging events only) */}
+          {waMessagesEnabled && (
+            <div className="pt-gender-tabs" style={{ marginTop: 6 }}>
+              <button
+                className={`pt-gender-tab ${sourceFilter === 'all' ? 'pt-gender-tab--active' : ''}`}
+                onClick={() => setSourceFilter('all')}
+              >
+                כל המקורות
+              </button>
+              <button
+                className={`pt-gender-tab ${sourceFilter === 'wa' ? 'pt-gender-tab--active' : ''}`}
+                onClick={() => setSourceFilter('wa')}
+              >
+                📱 WA
+              </button>
+              <button
+                className={`pt-gender-tab ${sourceFilter === 'qr' ? 'pt-gender-tab--active' : ''}`}
+                onClick={() => setSourceFilter('qr')}
+              >
+                📸 QR
+              </button>
+              <button
+                className={`pt-gender-tab ${feedbackFilter === 'consent' ? 'pt-gender-tab--active' : ''}`}
+                onClick={() => setFeedbackFilter(feedbackFilter === 'consent' ? 'all' : 'consent')}
+              >
+                הסכימו לפידבק
+              </button>
+            </div>
+          )}
         </div>
         <div className="pt-toolbar__left">
           {incomplete.length > 0 && (
@@ -249,6 +310,9 @@ export default function ParticipantsTable({ eventId, isArchived }: ParticipantsT
                     <SortHeader field="gender" label="מגדר" />
                     <SortHeader field="age" label="גיל" />
                     <SortHeader field="created_at" label="הצטרפ/ה" />
+                    {waMessagesEnabled && <th className="pt-th">טלפון</th>}
+                    {waMessagesEnabled && <th className="pt-th">מקור</th>}
+                    {waMessagesEnabled && <th className="pt-th">פידבק</th>}
                     <SortHeader field="is_banned" label="סטטוס" />
                     {!isArchived && <th className="pt-th">פעולות</th>}
                   </tr>
@@ -271,6 +335,21 @@ export default function ParticipantsTable({ eventId, isArchived }: ParticipantsT
                       <td className="pt-td pt-td--date">
                         {shortDate(p.created_at)}
                       </td>
+                      {waMessagesEnabled && (
+                        <td className="pt-td" dir="ltr" style={{ textAlign: 'center' }}>
+                          {p.phone || '—'}
+                        </td>
+                      )}
+                      {waMessagesEnabled && (
+                        <td className="pt-td" style={{ textAlign: 'center' }}>
+                          {sourceLabel(p.join_source)}
+                        </td>
+                      )}
+                      {waMessagesEnabled && (
+                        <td className="pt-td" style={{ textAlign: 'center' }}>
+                          {feedbackLabel(p)}
+                        </td>
+                      )}
                       <td className="pt-td">
                         {p.is_banned ? (
                           <span className="admin-badge admin-badge--ended">🚫 חסום</span>

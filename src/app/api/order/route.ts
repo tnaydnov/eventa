@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { checkCsrf } from '@/lib/session';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
@@ -9,6 +10,8 @@ import {
   ORDER_NAME_MAX_LENGTH,
   ORDER_PHONE_MAX_LENGTH,
   ORDER_EMAIL_MAX_LENGTH,
+  calculateTotalPrice,
+  PAYMENT_LINK_EXPIRY_DAYS,
 } from '@/lib/config';
 import {
   buildAdminNotificationEmail,
@@ -97,8 +100,22 @@ export async function POST(request: NextRequest) {
 
     // ── 1. Save to event_requests table ──
     let requestId = '';
+    let paymentLinkToken = '';
     if (isWizard) {
       const supabase = getServiceClient();
+
+      // Generate payment link token and calculate price
+      paymentLinkToken = crypto.randomUUID();
+      const totalPrice = calculateTotalPrice(wantsMessages);
+      const paymentLinkExpiresAt = new Date(
+        Date.now() + PAYMENT_LINK_EXPIRY_DAYS * 24 * 60 * 60 * 1000
+      ).toISOString();
+
+      // Determine initial payment status based on contact preference
+      const paymentStatus = contactPref === 'send-link'
+        ? 'payment_link_sent'
+        : 'pending_payment';
+
       const { data: reqRow, error: dbErr } = await supabase
         .from('event_requests')
         .insert({
@@ -116,6 +133,11 @@ export async function POST(request: NextRequest) {
           contact_name: contactName,
           contact_phone: contactPhone,
           contact_email: contactEmail || null,
+          // Payment fields
+          payment_status: paymentStatus,
+          total_price: totalPrice,
+          payment_link_token: paymentLinkToken,
+          payment_link_expires_at: paymentLinkExpiresAt,
         })
         .select('id')
         .single();

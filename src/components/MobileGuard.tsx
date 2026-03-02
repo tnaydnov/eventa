@@ -16,8 +16,18 @@ export default function MobileGuard({ children }: { children: ReactNode }) {
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+
+    let timer: ReturnType<typeof setTimeout>;
+    const debouncedCheck = () => {
+      clearTimeout(timer);
+      timer = setTimeout(checkMobile, 150);
+    };
+
+    window.addEventListener('resize', debouncedCheck);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', debouncedCheck);
+    };
   }, []);
 
   if (isMobile === null) return null;

@@ -4,6 +4,8 @@ import {
   MAX_BIO_LENGTH,
   MAX_CITY_LENGTH,
   MAX_MESSAGE_LENGTH,
+  MAX_PHONE_LENGTH,
+  MIN_PHONE_LENGTH,
 } from './constants';
 
 /* ---- Env validation ---- */
@@ -14,6 +16,12 @@ const envSchema = z.object({
   ADMIN_PASSWORD: z.string().min(12).optional(),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters').optional(),
   CRON_SECRET: z.string().min(16).optional(),
+  // SMS provider (optional — stubs used when absent)
+  INFORU_API_TOKEN: z.string().min(1).optional(),
+  INFORU_SENDER_NAME: z.string().min(1).max(11).optional(),
+  // WhatsApp provider (optional — stubs used when absent)
+  WA_API_KEY: z.string().min(1).optional(),
+  WA_PHONE_NUMBER_ID: z.string().min(1).optional(),
 });
 
 /** Validate environment variables at import time (server + client) */
@@ -25,6 +33,10 @@ export function validateEnv() {
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
     JWT_SECRET: process.env.JWT_SECRET,
     CRON_SECRET: process.env.CRON_SECRET,
+    INFORU_API_TOKEN: process.env.INFORU_API_TOKEN,
+    INFORU_SENDER_NAME: process.env.INFORU_SENDER_NAME,
+    WA_API_KEY: process.env.WA_API_KEY,
+    WA_PHONE_NUMBER_ID: process.env.WA_PHONE_NUMBER_ID,
   });
   if (!result.success) {
     // Use console.error here intentionally - logger.ts may depend on env vars
@@ -41,6 +53,96 @@ export const lookingForValues = ['serious', 'casual', 'friends', 'figuring_out']
 export const messageTypeValues = ['text', 'image'] as const;
 export const eventTypeValues = ['wedding', 'party', 'corporate', 'meetup', 'other'] as const;
 export const eventStatusValues = ['draft', 'active', 'paused', 'ended', 'archived'] as const;
+export const messageLogChannelValues = ['sms', 'whatsapp', 'email'] as const;
+export const messagePurposeValues = [
+  'otp', 'pre_event', 'welcome', 'feedback',
+  'upload_reminder_7d', 'upload_reminder_3d',
+  'upload_instructions', 'event_summary',
+  'addon_invoice', 'custom_reminder',
+] as const;
+export const waCategoryValues = ['authentication', 'marketing', 'utility'] as const;
+
+/* ---- Guest phone schemas ---- */
+export const guestPhoneSchema = z.object({
+  phone: z.string().min(MIN_PHONE_LENGTH).max(MAX_PHONE_LENGTH),
+  name: z.string().max(100).optional(),
+});
+
+export const guestPhoneImportSchema = z.object({
+  guests: z.array(guestPhoneSchema).min(1).max(500),
+});
+
+/** Manual admin email send types. */
+export const adminEmailTypeValues = [
+  'upload_instructions',
+  'upload_reminder',
+  'invoice',
+  'summary',
+  'custom',
+] as const;
+
+export const adminSendEmailSchema = z.object({
+  type: z.enum(adminEmailTypeValues),
+  customMessage: z.string().max(2000).optional(),
+});
+
+/** Admin messaging toggle / manual trigger schema. */
+export const adminMessagingPatchSchema = z.object({
+  wa_messages_enabled: z.boolean().optional(),
+  messaging_config: z
+    .object({
+      pre_event_hours_before: z.number().int().min(1).max(24).optional(),
+      feedback_hours_after: z.number().int().min(1).max(24).optional(),
+      upload_reminder_days: z.array(z.number().int().min(1).max(30)).max(5).optional(),
+    })
+    .optional(),
+});
+
+export const adminMessagingTriggerSchema = z.object({
+  action: z.enum(['send_pre_event', 'send_feedback']),
+});
+
+/* ---- Phone number schema ---- */
+export const phoneSchema = z
+  .string()
+  .min(MIN_PHONE_LENGTH, 'מספר טלפון קצר מדי')
+  .max(MAX_PHONE_LENGTH, 'מספר טלפון ארוך מדי');
+
+/** Israeli mobile phone validation (050-058 prefixes, 10 digits). */
+export const israeliPhoneSchema = z
+  .string()
+  .regex(
+    /^05[0-8]\d{7}$/,
+    'מספר טלפון ישראלי לא תקין (05X-XXXXXXX)',
+  );
+
+/** Pretty slug validation (3-30 chars, alphanumeric + hyphens). */
+export const prettySlugSchema = z
+  .string()
+  .min(3, 'slug חייב להכיל לפחות 3 תווים')
+  .max(30, 'slug חייב להכיל עד 30 תווים')
+  .regex(
+    /^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$/,
+    'slug חייב להכיל רק אותיות קטנות, מספרים ומקפים, ללא מקף בתחילה/סוף',
+  );
+
+/* ---- Send OTP schema ---- */
+export const sendOtpSchema = z.object({
+  phone: phoneSchema,
+  eventSlug: z.string().min(1),
+  joinCode: z.string().min(12).max(32),
+});
+
+/* ---- Verify OTP schema ---- */
+export const verifyOtpSchema = z.object({
+  phone: phoneSchema,
+  code: z.string().min(4).max(8),
+  eventSlug: z.string().min(1),
+  joinCode: z.string().min(12).max(32),
+  fingerprint: z.string().max(64).optional(),
+  hardwareFingerprint: z.string().max(128).optional(),
+  smsConsent: z.boolean(),
+});
 
 /* ---- Profile setup schema ---- */
 export const profileSetupSchema = z.object({
