@@ -70,6 +70,7 @@ export interface Participant {
   created_at: string;
   phone: string | null;
   sms_consent: boolean;
+  feedback_consent: boolean;
   feedback_sent: boolean;
 }
 

@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       return jsonError('Invalid input', 400);
     }
 
-    const { code, eventSlug, joinCode, smsConsent } = parsed.data;
+    const { code, eventSlug, joinCode, smsConsent, feedbackConsent } = parsed.data;
 
     // Normalize phone to E.164
     const phone = normalizePhone(parsed.data.phone);
@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
     const { data: existing } = await supabase
       .from('participants')
       .select(
-        'id, event_id, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at, phone, sms_consent, feedback_sent'
+        'id, event_id, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at, phone, sms_consent, feedback_consent, feedback_sent'
       )
       .eq('event_id', event.id)
       .eq('phone', phone)
@@ -190,6 +190,7 @@ export async function POST(req: NextRequest) {
       if (fingerprint) updates.device_fingerprint = fingerprint;
       if (hwFingerprint) updates.hardware_fingerprint = hwFingerprint;
       if (smsConsent !== existing.sms_consent) updates.sms_consent = smsConsent;
+      if (feedbackConsent !== undefined && feedbackConsent !== existing.feedback_consent) updates.feedback_consent = feedbackConsent;
 
       Promise.resolve(
         supabase.from('participants').update(updates).eq('id', participantId)
@@ -211,6 +212,7 @@ export async function POST(req: NextRequest) {
           bio: null,
           is_banned: false,
           sms_consent: smsConsent,
+          feedback_consent: feedbackConsent ?? false,
         })
         .select('id')
         .single();

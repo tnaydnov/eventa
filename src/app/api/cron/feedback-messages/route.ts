@@ -106,6 +106,7 @@ async function handler(req: NextRequest) {
         .eq('feedback_sent', false)
         .not('phone', 'is', null)
         .eq('sms_consent', true)
+        .eq('feedback_consent', true)
         .limit(remaining);
 
       if (pError) {

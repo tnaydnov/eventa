@@ -74,6 +74,7 @@ export default function JoinPage({
   const [phone, setPhone] = useState('');
   const [maskedPhone, setMaskedPhone] = useState('');
   const [smsConsent, setSmsConsent] = useState(true);
+  const [feedbackConsent, setFeedbackConsent] = useState(true);
   const [otpValue, setOtpValue] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
   const resendTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -272,6 +273,7 @@ export default function JoinPage({
           fingerprint: localId,
           hardwareFingerprint,
           smsConsent,
+          feedbackConsent,
         });
         completeJoin(result);
       } catch (err) {
@@ -283,7 +285,7 @@ export default function JoinPage({
       }
       setLoading(false);
     },
-    [phone, eventSlug, smsConsent, getJoinCode, completeJoin],
+    [phone, eventSlug, smsConsent, feedbackConsent, getJoinCode, completeJoin],
   );
 
   /** Resend OTP (same as handleSendOtp but resets timer) */
@@ -493,6 +495,10 @@ export default function JoinPage({
 
                   <Checkbox checked={smsConsent} onChange={() => setSmsConsent(!smsConsent)}>
                     אני מסכים/ה לקבל הודעות SMS ו-WhatsApp
+                  </Checkbox>
+
+                  <Checkbox checked={feedbackConsent} onChange={() => setFeedbackConsent(!feedbackConsent)}>
+                    אני מסכים/ה לקבל הודעה יום אחרי האירוע עם שאלון קצר + הנחה לאירוע הבא
                   </Checkbox>
 
                   {error && (

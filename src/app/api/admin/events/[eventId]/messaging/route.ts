@@ -341,10 +341,11 @@ async function handleManualFeedback(
 ) {
   const { data: participants } = await supabase
     .from('participants')
-    .select('id, phone, sms_consent, feedback_sent')
+    .select('id, phone, sms_consent, feedback_consent, feedback_sent')
     .eq('event_id', eventId)
     .eq('feedback_sent', false)
     .eq('sms_consent', true)
+    .eq('feedback_consent', true)
     .not('phone', 'is', null)
     .limit(MAX_MESSAGES_PER_TRIGGER);
 

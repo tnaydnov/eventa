@@ -3598,6 +3598,21 @@
   border-bottom: none;
 }
 
+/* Email/WA preview iframe */
+.act-dialog__preview-body {
+  padding: 6px;
+  background: #f5f3f0;
+  border-radius: 0 0 10px 10px;
+}
+
+.act-dialog__iframe {
+  display: block;
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  background: #f5f3f0;
+}
+
 /* Custom email fields */
 .act-dialog__custom {
   padding: 12px 20px 0;

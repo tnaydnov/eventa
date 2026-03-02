@@ -69,6 +69,8 @@ export default function MessagingTab({
       {/* Controls: status, portal, manual actions */}
       <MessagingControls
         eventId={event.id}
+        eventName={event.name}
+        eventDate={event.starts_at}
         status={messagingStatus}
         onToggleWA={updateMessagingConfig}
         onTrigger={triggerMessages}

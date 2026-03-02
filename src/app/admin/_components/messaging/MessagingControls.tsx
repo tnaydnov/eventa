@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type { MessagingConfig, EventMessagingStatus } from '../shared';
 
 interface MessagingControlsProps {
   eventId: string;
+  eventName: string;
+  eventDate: string;
   status: EventMessagingStatus;
   onToggleWA: (eventId: string, config: Partial<MessagingConfig>) => Promise<{ ok: boolean; error?: string }>;
   onTrigger: (eventId: string, type: 'pre_event' | 'feedback') => Promise<{ ok: boolean; sent?: number; error?: string }>;
@@ -161,6 +163,214 @@ function formatDate(iso: string | null): string {
   } catch { return iso; }
 }
 
+function fmtDateHe(iso: string): string {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleDateString('he-IL', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    });
+  } catch { return iso; }
+}
+
+function fmtTimeHe(iso: string): string {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+  } catch { return ''; }
+}
+
+/* ── Email Preview HTML Generator ── */
+
+const PE = {
+  bg: '#f5f3f0', card: '#fff', text: '#1a1a1a', muted: '#6b6b6b',
+  accent: '#b08d7e', accentBg: '#faf6f4', border: '#e8e4df', dim: '#999',
+  paybox: '#004aad', bit: '#1aab4a', warn: '#c27816', warnBg: '#fef9f0',
+} as const;
+
+function emailShell(title: string, inner: string, subtitle?: string): string {
+  return `<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>body{margin:0;padding:0;background:${PE.bg};font-family:Arial,sans-serif;direction:rtl;text-align:right;color:${PE.text}}</style></head><body>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${PE.bg};"><tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background:${PE.card};border-radius:12px;border:1px solid ${PE.border};overflow:hidden;">
+<tr><td style="background:${PE.text};padding:20px 24px;text-align:center;"><img src="https://www.eventa.productions/icons/Eventa_Logo.png" alt="Eventa" width="120" style="max-width:120px;height:auto;"/>${subtitle ? `<div style="text-align:center;font-size:11px;color:${PE.dim};margin-top:6px;">${subtitle}</div>` : ''}</td></tr>
+${inner}
+</table>
+<table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;"><tr><td style="padding:12px 0;text-align:center;font-size:10px;color:${PE.dim};">&copy; ${new Date().getFullYear()} Eventa</td></tr></table>
+</td></tr></table></body></html>`;
+}
+
+function peRow(label: string, value: string, last = false): string {
+  const bb = last ? '' : `border-bottom:1px solid ${PE.border};`;
+  return `<tr><td dir="rtl" style="text-align:right;padding:8px 0 8px 10px;${bb}color:${PE.muted};font-size:12px;width:80px;">${label}</td><td dir="rtl" style="text-align:right;padding:8px 10px 8px 0;${bb}color:${PE.text};font-size:13px;">${value}</td></tr>`;
+}
+
+function generateEmailPreview(actionId: string, eventName: string, eventDate: string, customSubject?: string, customBody?: string): string | null {
+  const safeName = eventName.replace(/</g, '&lt;');
+  const date = fmtDateHe(eventDate);
+  const time = fmtTimeHe(eventDate);
+  const uploadLink = '#';
+
+  switch (actionId) {
+    case 'upload_instructions': return emailShell('הוראות העלאה', `
+      <tr><td dir="rtl" style="text-align:right;padding:20px 24px 4px;border-bottom:1px solid ${PE.border};background:${PE.card};">
+        <div style="font-size:15px;font-weight:500;">שלום [שם הלקוח],</div>
+        <div style="font-size:13px;color:${PE.muted};margin-top:6px;line-height:1.6;">האירוע <strong>${safeName}</strong> אושר ונוצר בהצלחה!</div>
+        <div style="font-size:13px;color:${PE.muted};line-height:1.6;padding-bottom:16px;">הזמנתם את שירות ההודעות לאורחים — כדי שנוכל לשלוח הודעות <span dir="ltr">WhatsApp</span> לאורחים שלכם, צריך להעלות את רשימת מספרי הטלפון.</div>
+      </td></tr>
+      <tr><td dir="rtl" style="text-align:right;padding:16px 24px 0;background:${PE.card};">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${PE.accent};margin-bottom:10px;">איך זה עובד?</div>
+        <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+          ${peRow('שלב 1', 'הורידו את הטמפלט (Excel)')}
+          ${peRow('שלב 2', 'מלאו את מספרי הטלפון של האורחים')}
+          ${peRow('שלב 3', 'העלו את הקובץ בלינק שלמטה', true)}
+        </table>
+      </td></tr>
+      <tr><td dir="rtl" style="text-align:right;padding:16px 24px 0;background:${PE.card};">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${PE.accent};margin-bottom:10px;">פרטים</div>
+        <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+          ${peRow('תאריך', `${date}${time ? `, ${time}` : ''}`)}
+          ${peRow('פורמט', 'סלולרי ישראלי (05X) בלבד')}
+          ${peRow('דד-ליין', '3 שעות לפני האירוע', true)}
+        </table>
+      </td></tr>
+      <tr><td style="padding:20px 24px 8px;text-align:center;background:${PE.card};">
+        <a href="${uploadLink}" style="display:inline-block;background:${PE.accent};border-radius:10px;padding:14px 28px;color:#fff;font-size:15px;font-weight:700;text-decoration:none;">העלו את רשימת האורחים</a>
+      </td></tr>
+      <tr><td style="padding:8px 24px 20px;text-align:center;background:${PE.card};">
+        <a href="#" style="color:${PE.accent};text-decoration:underline;font-size:13px;">הורידו טמפלט Excel</a>
+      </td></tr>`, 'אירוע אושר');
+
+    case 'upload_reminder': return emailShell('תזכורת העלאה', `
+      <tr><td dir="rtl" style="text-align:right;padding:20px 24px 4px;border-bottom:1px solid ${PE.border};background:${PE.card};">
+        <div style="font-size:15px;font-weight:500;">שלום [שם הלקוח],</div>
+        <div style="font-size:13px;color:${PE.muted};margin-top:6px;line-height:1.6;">האירוע <strong>${safeName}</strong> בעוד <strong>7</strong> ימים ועדיין לא העליתם את רשימת האורחים.</div>
+        <div style="font-size:13px;color:${PE.muted};line-height:1.6;padding-bottom:16px;">כדי שנוכל לשלוח הודעות <span dir="ltr">WhatsApp</span> לאורחים, אנחנו צריכים את רשימת המספרים.</div>
+      </td></tr>
+      <tr><td style="padding:20px 24px;text-align:center;background:${PE.card};">
+        <a href="${uploadLink}" style="display:inline-block;background:${PE.accent};border-radius:10px;padding:14px 28px;color:#fff;font-size:15px;font-weight:700;text-decoration:none;">העלו את הרשימה עכשיו</a>
+        <div style="font-size:11px;color:${PE.dim};margin-top:10px;">ההודעות נשלחות 2–3 שעות לפני האירוע. ככל שתעלו מוקדם יותר, כך יותר טוב!</div>
+      </td></tr>`, 'תזכורת ידידותית');
+
+    case 'invoice': return emailShell('חשבונית הודעות', `
+      <tr><td dir="rtl" style="text-align:right;padding:20px 24px 4px;border-bottom:1px solid ${PE.border};background:${PE.card};">
+        <div style="font-size:15px;font-weight:500;">שלום [שם הלקוח],</div>
+        <div style="font-size:13px;color:${PE.muted};margin-top:6px;line-height:1.6;padding-bottom:16px;">הוספנו את שירות ההודעות לאורחים לאירוע <strong>${safeName}</strong>.</div>
+      </td></tr>
+      <tr><td dir="rtl" style="text-align:right;padding:16px 24px 0;background:${PE.card};">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${PE.accent};margin-bottom:10px;">פרטי חשבון</div>
+        <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+          ${peRow('שירות', 'הודעות WhatsApp לאורחים')}
+          <tr><td dir="rtl" style="text-align:right;padding:10px 0 10px 10px;color:${PE.accent};font-size:14px;font-weight:700;width:80px;border-top:2px solid ${PE.accent};">סה"כ</td><td dir="rtl" style="text-align:right;padding:10px 10px 10px 0;color:${PE.text};font-size:16px;font-weight:700;border-top:2px solid ${PE.accent};"><span dir="ltr">₪50</span></td></tr>
+        </table>
+      </td></tr>
+      <tr><td style="padding:20px 24px;text-align:center;background:${PE.card};">
+        <a href="#" style="display:block;background:${PE.paybox};border-radius:10px;padding:16px 20px;color:#fff;font-size:16px;font-weight:700;text-decoration:none;margin-bottom:10px;">שלמו עכשיו (PayBox)</a>
+        <div style="font-size:13px;color:${PE.muted};">או העבירו ₪50 ב-Bit</div>
+      </td></tr>`, 'חשבון שירות הודעות');
+
+    case 'summary': return emailShell('סיכום אירוע', `
+      <tr><td dir="rtl" style="text-align:right;padding:20px 24px 4px;border-bottom:1px solid ${PE.border};background:${PE.card};">
+        <div style="font-size:15px;font-weight:500;">שלום [שם הלקוח],</div>
+        <div style="font-size:13px;color:${PE.muted};margin-top:6px;line-height:1.6;padding-bottom:16px;">האירוע <strong>${safeName}</strong> הסתיים! הנה סיכום קצר:</div>
+      </td></tr>
+      <tr><td dir="rtl" style="text-align:right;padding:16px 24px 0;background:${PE.card};">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${PE.accent};margin-bottom:10px;">נתוני האירוע</div>
+        <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+          ${peRow('משתתפים', '[XX]')}
+          ${peRow('הגיעו מ-WhatsApp', '[XX]')}
+          ${peRow('הגיעו מ-QR', '[XX]')}
+          ${peRow('התאמות (Matches)', '[XX]')}
+          ${peRow('הודעות שנשלחו', '[XX/XX]')}
+          ${peRow('פידבקים שנשלחו', '[XX]', true)}
+        </table>
+      </td></tr>
+      <tr><td style="padding:20px 24px;text-align:center;background:${PE.card};">
+        <div style="font-size:13px;color:${PE.muted};line-height:1.7;">תודה שבחרתם ב-Eventa!<br/>נשמח לארח אתכם שוב.</div>
+      </td></tr>`, 'סיכום אירוע');
+
+    case 'custom': {
+      const subj = customSubject || 'נושא שתבחרו';
+      const body = customBody || 'התוכן שתכתבו יופיע כאן...';
+      return emailShell('תזכורת מ-Eventa', `
+      <tr><td dir="rtl" style="text-align:right;padding:20px 24px 4px;border-bottom:1px solid ${PE.border};background:${PE.card};">
+        <div style="font-size:15px;font-weight:500;">שלום [שם הלקוח],</div>
+        <div style="font-size:13px;color:${PE.muted};margin-top:6px;line-height:1.6;padding-bottom:16px;">בנוגע לאירוע <strong>${safeName}</strong>:</div>
+      </td></tr>
+      <tr><td dir="rtl" style="text-align:right;padding:16px 24px;background:${PE.card};">
+        <div style="font-size:10px;font-weight:700;color:${PE.accent};margin-bottom:8px;">נושא: ${subj.replace(/</g, '&lt;')}</div>
+        <div style="background:${PE.accentBg};border-right:3px solid ${PE.accent};border-radius:6px;padding:14px 16px;font-size:13px;color:${PE.text};line-height:1.8;white-space:pre-line;">${body.replace(/</g, '&lt;')}</div>
+      </td></tr>`, 'תזכורת');
+    }
+
+    case 'send_pre_event': return emailShell('הזמנה ל-' + safeName, `
+      <tr><td dir="rtl" style="text-align:right;padding:20px 24px;background:${PE.card};border-bottom:1px solid ${PE.border};">
+        <div style="text-align:center;margin-bottom:12px;"><span style="font-size:28px;">📱</span></div>
+        <div style="text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#22c55e;margin-bottom:12px;">WhatsApp Message Preview</div>
+        <div style="background:#0b3d2e;border-radius:12px;padding:16px;color:#e0e0e0;font-size:13px;line-height:1.7;direction:rtl;">
+          <div>שלום [שם האורח]! 🎉</div>
+          <div style="margin-top:8px;">הוזמנתם לאירוע <strong>${safeName}</strong></div>
+          <div>📅 ${date}${time ? ` בשעה ${time}` : ''}</div>
+          <div style="margin-top:8px;">הצטרפו עכשיו ותתחילו להכיר אנשים חדשים:</div>
+          <div style="margin-top:6px;"><a href="#" style="color:#60a5fa;text-decoration:underline;">🔗 קישור הצטרפות</a></div>
+        </div>
+        <div style="text-align:center;font-size:11px;color:${PE.dim};margin-top:10px;">* נשלח לכל האורחים ברשימה שטרם קיבלו הודעה</div>
+      </td></tr>`, '');
+
+    case 'send_feedback': return emailShell('פידבק — ' + safeName, `
+      <tr><td dir="rtl" style="text-align:right;padding:20px 24px;background:${PE.card};border-bottom:1px solid ${PE.border};">
+        <div style="text-align:center;margin-bottom:12px;"><span style="font-size:28px;">💬</span></div>
+        <div style="text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#22c55e;margin-bottom:12px;">WhatsApp Message Preview</div>
+        <div style="background:#0b3d2e;border-radius:12px;padding:16px;color:#e0e0e0;font-size:13px;line-height:1.7;direction:rtl;">
+          <div>היי [שם המשתתף]! 💫</div>
+          <div style="margin-top:8px;">תודה שהשתתפת באירוע <strong>${safeName}</strong>!</div>
+          <div style="margin-top:8px;">נשמח לשמוע מה חשבת:</div>
+          <div>⭐ איך היה האירוע?</div>
+          <div>💝 הכרת מישהו מעניין?</div>
+          <div style="margin-top:8px;">🎁 קוד הנחה לאירוע הבא: <strong>EVENTA10</strong></div>
+          <div style="margin-top:6px;"><a href="#" style="color:#60a5fa;text-decoration:underline;">📝 מלאו שאלון קצר</a></div>
+        </div>
+        <div style="text-align:center;font-size:11px;color:${PE.dim};margin-top:10px;">* נשלח למשתתפים שנתנו הסכמה וטרם קיבלו פידבק</div>
+      </td></tr>`, '');
+
+    default: return null;
+  }
+}
+
+/* ── Email Preview Iframe ── */
+
+function EmailPreviewFrame({ html }: { html: string }) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [height, setHeight] = useState(360);
+
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    const doc = iframe.contentDocument;
+    if (!doc) return;
+    doc.open();
+    doc.write(html);
+    doc.close();
+    // Auto-resize
+    const tryResize = () => {
+      try {
+        const h = doc.documentElement?.scrollHeight || doc.body?.scrollHeight || 360;
+        setHeight(Math.min(h + 10, 500));
+      } catch { /* cross-origin safety */ }
+    };
+    setTimeout(tryResize, 100);
+    setTimeout(tryResize, 300);
+  }, [html]);
+
+  return (
+    <iframe
+      ref={iframeRef}
+      className="act-dialog__iframe"
+      sandbox="allow-same-origin"
+      title="תצוגה מקדימה של המייל"
+      style={{ width: '100%', height, border: 'none', borderRadius: 8, background: '#f5f3f0' }}
+    />
+  );
+}
+
 /* ── Action Preview Dialog ── */
 
 interface ActionDialogProps {
@@ -168,10 +378,11 @@ interface ActionDialogProps {
   onConfirm: () => void;
   onCancel: () => void;
   loading: boolean;
+  previewHtml: string | null;
   customFields?: React.ReactNode;
 }
 
-function ActionDialog({ action, onConfirm, onCancel, loading, customFields }: ActionDialogProps) {
+function ActionDialog({ action, onConfirm, onCancel, loading, previewHtml, customFields }: ActionDialogProps) {
   const targetLabel = action.target === 'client' ? '👤 ללקוח' : '👥 לאורחים';
   const channelLabel =
     action.channel === 'email' ? '📧 אימייל' :
@@ -199,19 +410,32 @@ function ActionDialog({ action, onConfirm, onCancel, loading, customFields }: Ac
         {/* Description */}
         <p className="act-dialog__desc">{action.description}</p>
 
-        {/* Preview */}
-        <div className="act-dialog__preview">
-          <div className="act-dialog__preview-header">
-            <span className="act-dialog__preview-icon">👁</span>
-            <span>תצוגה מקדימה</span>
-          </div>
-          {action.preview.map((line, i) => (
-            <div key={i} className="act-dialog__preview-line">{line}</div>
-          ))}
-        </div>
-
-        {/* Custom fields (for custom email) */}
+        {/* Custom fields (for custom email) — placed BEFORE preview */}
         {customFields}
+
+        {/* Real email / WA preview */}
+        {previewHtml ? (
+          <div className="act-dialog__preview">
+            <div className="act-dialog__preview-header">
+              <span className="act-dialog__preview-icon">👁</span>
+              <span>תצוגה מקדימה — כך ייראה</span>
+            </div>
+            <div className="act-dialog__preview-body">
+              <EmailPreviewFrame html={previewHtml} />
+            </div>
+          </div>
+        ) : (
+          /* Fallback for system actions */
+          <div className="act-dialog__preview">
+            <div className="act-dialog__preview-header">
+              <span className="act-dialog__preview-icon">👁</span>
+              <span>תצוגה מקדימה</span>
+            </div>
+            {action.preview.map((line, i) => (
+              <div key={i} className="act-dialog__preview-line">{line}</div>
+            ))}
+          </div>
+        )}
 
         {/* Actions */}
         <div className="act-dialog__actions">
@@ -239,6 +463,8 @@ function ActionDialog({ action, onConfirm, onCancel, loading, customFields }: Ac
 
 export default function MessagingControls({
   eventId,
+  eventName,
+  eventDate,
   status,
   onToggleWA,
   onTrigger,
@@ -530,6 +756,7 @@ export default function MessagingControls({
           onConfirm={() => handleAction(activeDialog!)}
           onCancel={() => setActiveDialog(null)}
           loading={loading}
+          previewHtml={activeDialog ? generateEmailPreview(activeDialog, eventName, eventDate, customSubject, customBody) : null}
           customFields={activeDialog === 'custom' ? (
             <div className="act-dialog__custom">
               <label className="act-dialog__field-label">נושא המייל</label>

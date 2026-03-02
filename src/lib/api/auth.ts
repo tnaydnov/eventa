@@ -34,6 +34,7 @@ export async function verifyOtp(params: {
   fingerprint?: string;
   hardwareFingerprint?: string;
   smsConsent: boolean;
+  feedbackConsent: boolean;
 }): Promise<{
   eventId: string;
   eventName: string;
