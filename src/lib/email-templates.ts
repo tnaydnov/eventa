@@ -7,6 +7,11 @@
  *  - No emojis
  *  - English words (brand, phone, email) in dir="ltr" spans with unicode-bidi:isolate
  *  - Logo from https://www.eventa.productions/icons/Eventa_Logo.png
+ *
+ * Design system v2 — consistent across all emails:
+ *  - Card shadow, pill-shaped CTAs, accent section titles, step pills
+ *  - Responsive: max-width 600px card, 100% on mobile
+ *  - Typography: base 15px, titles 18px bold, labels 14px semi-bold, values 15px
  */
 
 import { EVENT_TYPE_LABELS } from '@/lib/constants';
@@ -17,12 +22,13 @@ const LOGO_URL = 'https://www.eventa.productions/icons/Eventa_Logo.png';
 const C = {
   bg:       '#f5f3f0',
   card:     '#ffffff',
-  text:     '#1a1a1a',
+  text:     '#1e1e1e',
   muted:    '#6b6b6b',
   dim:      '#999999',
-  border:   '#e8e4df',
+  border:   '#ece7e4',
   accent:   '#b08d7e',
   accentBg: '#faf6f4',
+  rowAlt:   '#faf7f4',
   paybox:   '#004aad',
   bit:      '#1aab4a',
   warn:     '#c27816',
@@ -65,14 +71,122 @@ function fmtTime(iso: string): string {
   } catch { return ''; }
 }
 
+
+/* ─── Design-system helpers ─── */
+
 /** Build a two-column info row: label | value. Both cells are RTL. */
 function row(label: string, value: string, isLast = false): string {
   const bb = isLast ? '' : `border-bottom:1px solid ${C.border};`;
   return `<tr>
-    <td dir="rtl" style="text-align:right;padding:10px 0 10px 12px;${bb}background-color:${C.card};color:${C.muted};font-size:13px;width:90px;vertical-align:top;">${label}</td>
-    <td dir="rtl" style="text-align:right;padding:10px 12px 10px 0;${bb}background-color:${C.card};color:${C.text};font-size:14px;">${value}</td>
+    <td dir="rtl" style="text-align:right;padding:12px 0 12px 12px;${bb}background-color:${C.card};color:#555555;font-size:14px;font-weight:600;width:100px;vertical-align:top;line-height:1.5;">${label}</td>
+    <td dir="rtl" style="text-align:right;padding:12px 12px 12px 0;${bb}background-color:${C.card};color:${C.text};font-size:15px;line-height:1.5;">${value}</td>
   </tr>`;
 }
+
+/** Section title with accent right-border (visual leading-edge in RTL). */
+function sectionTitle(text: string): string {
+  return `<div dir="rtl" style="direction:rtl;text-align:right;font-size:18px;font-weight:700;color:${C.text};margin-bottom:14px;padding-right:12px;border-right:3px solid ${C.accent};line-height:1.4;">${text}</div>`;
+}
+
+/** Step row with accent-colored number pill. */
+function stepRow(num: number, text: string, isLast = false): string {
+  const bb = isLast ? '' : `border-bottom:1px solid ${C.border};`;
+  return `<tr>
+    <td dir="rtl" style="text-align:right;padding:14px 0 14px 8px;${bb}background-color:${C.card};vertical-align:middle;width:44px;">
+      <div style="width:30px;height:30px;line-height:30px;text-align:center;border-radius:50%;background-color:${C.accent};color:#ffffff;font-size:14px;font-weight:700;margin:0 auto;">${num}</div>
+    </td>
+    <td dir="rtl" style="text-align:right;padding:14px 12px 14px 0;${bb}background-color:${C.card};color:${C.text};font-size:15px;line-height:1.5;vertical-align:middle;">${text}</td>
+  </tr>`;
+}
+
+/** Pill-shaped CTA button with shadow. Returns a full <tr>. */
+function ctaBtn(href: string, text: string, bgColor: string = C.accent): string {
+  return `
+        <tr>
+          <td style="padding:28px 32px 12px;text-align:center;background-color:${C.card};">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td align="center">
+                  <a href="${escapeHtml(href)}" style="display:inline-block;text-decoration:none;background-color:${bgColor};border-radius:999px;padding:14px 28px;color:#ffffff;font-size:16px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.13);" target="_blank">
+                    ${text}
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>`;
+}
+
+/** Section divider — a soft horizontal line with spacing. */
+function divider(): string {
+  return `
+        <tr>
+          <td style="padding:16px 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr><td style="border-top:1px solid ${C.border};font-size:0;line-height:0;">&nbsp;</td></tr>
+            </table>
+          </td>
+        </tr>`;
+}
+
+/** Accent-bordered tip / callout box. Returns a full <tr>. */
+function tipBox(html: string): string {
+  return `
+        <tr>
+          <td dir="rtl" style="direction:rtl;text-align:right;padding:16px 32px 28px;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:right;background-color:${C.accentBg};border-right:3px solid ${C.accent};border-radius:8px;padding:16px 18px;font-size:14px;color:${C.muted};line-height:1.7;">
+              ${html}
+            </div>
+          </td>
+        </tr>`;
+}
+
+/** Standardized support email row at bottom of card. */
+function supportRow(): string {
+  return `
+        <tr>
+          <td dir="rtl" style="direction:rtl;text-align:center;padding:0 32px 24px;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:center;font-size:13px;color:${C.dim};">
+              לשאלות ניתן לפנות אלינו&rlm;: <a href="mailto:contact@eventa.productions" style="color:${C.accent};text-decoration:none;" dir="ltr">contact@eventa.productions</a>
+            </div>
+          </td>
+        </tr>`;
+}
+
+/** Greeting block: name line + subtitle lines. Returns a full <tr>. */
+function greeting(name: string, ...lines: string[]): string {
+  return `
+        <tr>
+          <td ${RTL} style="text-align:right;padding:28px 32px 4px;border-bottom:1px solid ${C.border};background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:17px;color:${C.text};font-weight:600;line-height:1.5;">שלום ${name}&rlm;,</div>
+            ${lines.map((l, i) => `<div dir="rtl" style="direction:rtl;text-align:right;font-size:15px;color:${C.muted};${i === 0 ? 'margin-top:8px;' : ''}line-height:1.6;${i === lines.length - 1 ? 'padding-bottom:20px;' : ''}">${l}</div>`).join('\n            ')}
+          </td>
+        </tr>`;
+}
+
+/** Contact info card used in admin emails. */
+function contactCard(name: string, phone: string, email: string): string {
+  return `
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" class="em-row-alt" style="direction:rtl;border-collapse:collapse;background-color:${C.rowAlt};border-radius:8px;overflow:hidden;">
+              <tr>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:${C.rowAlt};color:#555555;font-size:14px;font-weight:600;width:70px;">שם</td>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:${C.rowAlt};color:${C.text};font-size:15px;font-weight:600;">${name}</td>
+              </tr>
+              <tr>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;${email ? `border-bottom:1px solid ${C.border};` : ''}background-color:${C.rowAlt};color:#555555;font-size:14px;font-weight:600;">טלפון</td>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;${email ? `border-bottom:1px solid ${C.border};` : ''}background-color:${C.rowAlt};">
+                  <a href="tel:${phone}" style="color:${C.accent};font-size:15px;font-weight:600;text-decoration:none;" dir="ltr">${phone}</a>
+                </td>
+              </tr>
+              ${email ? `<tr>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;background-color:${C.rowAlt};color:#555555;font-size:14px;font-weight:600;">אימייל</td>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;background-color:${C.rowAlt};">
+                  <a href="mailto:${email}" style="color:${C.accent};font-size:15px;text-decoration:none;" dir="ltr">${email}</a>
+                </td>
+              </tr>` : ''}
+            </table>`;
+}
+
 
 interface OrderData {
   eventType: string;
@@ -108,28 +222,33 @@ function shell(title: string, inner: string, subtitle?: string): string {
     @media (prefers-color-scheme: dark) {
       body, table, td, div, p, a, span { background-color: ${C.bg} !important; color: ${C.text} !important; }
       .em-card { background-color: ${C.card} !important; }
-      .em-header { background-color: ${C.text} !important; }
-      .em-row-alt { background-color: #fafaf8 !important; }
+      .em-header { background-color: #1e1e1e !important; }
+      .em-row-alt { background-color: ${C.rowAlt} !important; }
       .em-paybox { background-color: ${C.paybox} !important; }
       .em-bit { background-color: ${C.bit} !important; }
       .em-warn { background-color: ${C.warnBg} !important; }
     }
+    @media only screen and (max-width: 620px) {
+      .em-card { width: 100% !important; border-radius: 0 !important; }
+      .em-body-pad { padding: 16px 0 !important; }
+      .em-inner-pad { padding-left: 20px !important; padding-right: 20px !important; }
+    }
   </style>
 </head>
-<body dir="rtl" style="margin:0;padding:0;direction:rtl;text-align:right;background-color:${C.bg};color:${C.text};font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+<body dir="rtl" style="margin:0;padding:0;direction:rtl;text-align:right;background-color:${C.bg};color:${C.text};font-family:'Segoe UI',Arial,'Helvetica Neue',Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;font-size:15px;line-height:1.5;">
 
   <!-- Outer wrapper -->
   <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;background-color:${C.bg};">
-    <tr><td align="center" style="padding:32px 16px;">
+    <tr><td align="center" class="em-body-pad" style="padding:32px 16px;">
 
       <!-- Main card -->
-      <table dir="rtl" role="presentation" width="560" cellpadding="0" cellspacing="0" class="em-card" style="direction:rtl;max-width:560px;width:100%;background-color:${C.card};border-radius:12px;overflow:hidden;border:1px solid ${C.border};">
+      <table dir="rtl" role="presentation" width="600" cellpadding="0" cellspacing="0" class="em-card" style="direction:rtl;max-width:600px;width:100%;background-color:${C.card};border-radius:12px;overflow:hidden;border:1px solid ${C.border};box-shadow:0 3px 12px rgba(0,0,0,0.08);">
 
         <!-- Logo header -->
         <tr>
-          <td class="em-header" style="background-color:${C.text};padding:24px 32px;text-align:center;">
+          <td class="em-header" style="background-color:${C.text};padding:28px 32px;text-align:center;">
             <img src="${LOGO_URL}" alt="Eventa" width="140" height="auto" style="display:inline-block;max-width:140px;height:auto;border:0;" />
-            ${subtitle ? `<div dir="rtl" style="direction:rtl;text-align:center;font-size:12px;color:${C.dim};margin-top:8px;letter-spacing:1px;">${subtitle}</div>` : ''}
+            ${subtitle ? `<div dir="rtl" style="direction:rtl;text-align:center;font-size:13px;color:rgba(255,255,255,0.55);margin-top:10px;letter-spacing:1px;">${subtitle}</div>` : ''}
           </td>
         </tr>
 
@@ -139,9 +258,16 @@ function shell(title: string, inner: string, subtitle?: string): string {
       <!-- /Main card -->
 
       <!-- Footer -->
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="em-card" style="max-width:600px;width:100%;">
         <tr>
-          <td style="padding:16px 0;text-align:center;font-size:11px;color:${C.dim};">
+          <td style="padding:20px 32px 8px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr><td style="border-top:1px solid ${C.border};font-size:0;line-height:0;">&nbsp;</td></tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:4px 0 20px;text-align:center;font-size:12px;color:${C.dim};opacity:0.7;">
             &copy; ${ltr(String(new Date().getFullYear()))} ${ltr('Eventa')}
           </td>
         </tr>
@@ -162,14 +288,14 @@ function priceBlock(wantsGuestMessages: boolean): string {
   return `
         <!-- Price breakdown -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px 0;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">עלות</div>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05E2\u05DC\u05D5\u05EA')}
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('חבילה בסיסית', ltr(`\u20AA${base}`))}
-              ${wantsGuestMessages ? row('הודעות לאורחים', ltr(`\u20AA${msgAddon}`)) : ''}
+              ${row('\u05D7\u05D1\u05D9\u05DC\u05D4 \u05D1\u05E1\u05D9\u05E1\u05D9\u05EA', ltr(`\u20AA${base}`))}
+              ${wantsGuestMessages ? row('\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD', ltr(`\u20AA${msgAddon}`)) : ''}
               <tr>
-                <td dir="rtl" style="text-align:right;padding:14px 0 14px 12px;background-color:${C.card};color:${C.accent};font-size:15px;font-weight:700;width:90px;border-top:2px solid ${C.accent};vertical-align:top;">סה\u05F4כ</td>
-                <td dir="rtl" style="text-align:right;padding:14px 12px 14px 0;background-color:${C.card};color:${C.text};font-size:18px;font-weight:700;border-top:2px solid ${C.accent};">${ltr(`\u20AA${total}`)}</td>
+                <td dir="rtl" style="text-align:right;padding:14px 0 14px 12px;background-color:${C.card};color:${C.accent};font-size:16px;font-weight:700;width:100px;border-top:2px solid ${C.accent};vertical-align:top;">\u05E1\u05D4\u05F4\u05DB</td>
+                <td dir="rtl" style="text-align:right;padding:14px 12px 14px 0;background-color:${C.card};color:${C.text};font-size:20px;font-weight:700;border-top:2px solid ${C.accent};">${ltr(`\u20AA${total}`)}</td>
               </tr>
             </table>
           </td>
@@ -192,25 +318,25 @@ function eventDetailsBlock(data: OrderData): string {
   return `
         <!-- Event info section -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:28px 32px 0;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">פרטי האירוע</div>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2')}
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('סוג אירוע', `<strong>${s.eventLabel}</strong>`)}
-              ${s.eventName ? row('שם', s.eventName) : ''}
-              ${row('התחלה', `${s.startsAt}${s.startsTime ? `&rlm;, ${ltr(s.startsTime)}` : ''}`)}
-              ${row('סיום', `${s.endsAt}${s.endsTime ? `&rlm;, ${ltr(s.endsTime)}` : ''}`, true)}
+              ${row('\u05E1\u05D5\u05D2 \u05D0\u05D9\u05E8\u05D5\u05E2', `<strong>${s.eventLabel}</strong>`)}
+              ${s.eventName ? row('\u05E9\u05DD', s.eventName) : ''}
+              ${row('\u05D4\u05EA\u05D7\u05DC\u05D4', `${s.startsAt}${s.startsTime ? `&rlm;, ${ltr(s.startsTime)}` : ''}`)}
+              ${row('\u05E1\u05D9\u05D5\u05DD', `${s.endsAt}${s.endsTime ? `&rlm;, ${ltr(s.endsTime)}` : ''}`, true)}
             </table>
           </td>
         </tr>
 
         <!-- Options section -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px 0;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">אפשרויות</div>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05D0\u05E4\u05E9\u05E8\u05D5\u05D9\u05D5\u05EA')}
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('רקע', data.wantsCustomBackground ? `רקע מותאם אישית${data.hasBgImage ? ' (תמונה מצורפת)' : ''}` : 'ברירת מחדל')}
-              ${row('פוסטר', data.posterChoice === 'qr-only' ? `${ltr('QR')} בלבד` : `תבנית&rlm;: ${s.template}`)}
-              ${row('הודעות', data.wantsGuestMessages ? 'כן' : 'לא', true)}
+              ${row('\u05E8\u05E7\u05E2', data.wantsCustomBackground ? `\u05E8\u05E7\u05E2 \u05DE\u05D5\u05EA\u05D0\u05DD \u05D0\u05D9\u05E9\u05D9\u05EA${data.hasBgImage ? ' (\u05EA\u05DE\u05D5\u05E0\u05D4 \u05DE\u05E6\u05D5\u05E8\u05E4\u05EA)' : ''}` : '\u05D1\u05E8\u05D9\u05E8\u05EA \u05DE\u05D7\u05D3\u05DC')}
+              ${row('\u05E4\u05D5\u05E1\u05D8\u05E8', data.posterChoice === 'qr-only' ? `${ltr('QR')} \u05D1\u05DC\u05D1\u05D3` : `\u05EA\u05D1\u05E0\u05D9\u05EA&rlm;: ${s.template}`)}
+              ${row('\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA', data.wantsGuestMessages ? '\u05DB\u05DF' : '\u05DC\u05D0', true)}
             </table>
           </td>
         </tr>
@@ -218,9 +344,9 @@ function eventDetailsBlock(data: OrderData): string {
         ${s.specialReqs ? `
         <!-- Special requests -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px 0;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:10px;">בקשות מיוחדות</div>
-            <div dir="rtl" style="direction:rtl;text-align:right;background-color:${C.accentBg};border-right:3px solid ${C.accent};border-radius:6px;padding:14px 16px;font-size:14px;color:${C.text};line-height:1.7;">
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05D1\u05E7\u05E9\u05D5\u05EA \u05DE\u05D9\u05D5\u05D7\u05D3\u05D5\u05EA')}
+            <div dir="rtl" style="direction:rtl;text-align:right;background-color:${C.accentBg};border-right:3px solid ${C.accent};border-radius:8px;padding:16px 18px;font-size:15px;color:${C.text};line-height:1.7;">
               ${s.specialReqs}
             </div>
           </td>
@@ -242,18 +368,18 @@ export function buildAdminNotificationEmail(data: OrderData): { subject: string;
   };
 
   const contactPrefLabel = data.contactPreference === 'call-me'
-    ? 'התקשרו אליי'
+    ? '\u05D4\u05EA\u05E7\u05E9\u05E8\u05D5 \u05D0\u05DC\u05D9\u05D9'
     : data.contactPreference === 'pay-now'
-      ? 'תשלום באתר (כרטיס אשראי)'
-      : 'שלחו לינק לתשלום';
+      ? '\u05EA\u05E9\u05DC\u05D5\u05DD \u05D1\u05D0\u05EA\u05E8 (\u05DB\u05E8\u05D8\u05D9\u05E1 \u05D0\u05E9\u05E8\u05D0\u05D9)'
+      : '\u05E9\u05DC\u05D7\u05D5 \u05DC\u05D9\u05E0\u05E7 \u05DC\u05EA\u05E9\u05DC\u05D5\u05DD';
 
-  const subject = `בקשה חדשה \u2014 ${s.eventLabel} | ${data.contactName}`;
+  const subject = `\u05D1\u05E7\u05E9\u05D4 \u05D7\u05D3\u05E9\u05D4 \u2014 ${s.eventLabel} | ${data.contactName}`;
 
   const inner = `
         <!-- Contact preference banner -->
         <tr>
-          <td ${RTL} style="text-align:right;background-color:${data.contactPreference === 'pay-now' ? '#e8f5e9' : data.contactPreference === 'send-link' ? '#eef4ff' : C.accentBg} !important;padding:14px 32px;border-bottom:1px solid ${C.border};font-size:14px;font-weight:600;color:${data.contactPreference === 'pay-now' ? '#2e7d32' : data.contactPreference === 'send-link' ? C.paybox : C.accent};">
-            ${data.contactPreference === 'pay-now' ? 'הלקוח שילם באתר (כרטיס אשראי)' : data.contactPreference === 'send-link' ? 'הלקוח ביקש לקבל לינק לתשלום' : 'הלקוח מבקש שנחזור אליו'}
+          <td ${RTL} style="text-align:right;background-color:${data.contactPreference === 'pay-now' ? '#e8f5e9' : data.contactPreference === 'send-link' ? '#eef4ff' : C.accentBg} !important;padding:16px 32px;border-bottom:1px solid ${C.border};font-size:15px;font-weight:600;color:${data.contactPreference === 'pay-now' ? '#2e7d32' : data.contactPreference === 'send-link' ? C.paybox : C.accent};">
+            ${data.contactPreference === 'pay-now' ? '\u05D4\u05DC\u05E7\u05D5\u05D7 \u05E9\u05D9\u05DC\u05DD \u05D1\u05D0\u05EA\u05E8 (\u05DB\u05E8\u05D8\u05D9\u05E1 \u05D0\u05E9\u05E8\u05D0\u05D9)' : data.contactPreference === 'send-link' ? '\u05D4\u05DC\u05E7\u05D5\u05D7 \u05D1\u05D9\u05E7\u05E9 \u05DC\u05E7\u05D1\u05DC \u05DC\u05D9\u05E0\u05E7 \u05DC\u05EA\u05E9\u05DC\u05D5\u05DD' : '\u05D4\u05DC\u05E7\u05D5\u05D7 \u05DE\u05D1\u05E7\u05E9 \u05E9\u05E0\u05D7\u05D6\u05D5\u05E8 \u05D0\u05DC\u05D9\u05D5'}
           </td>
         </tr>
 
@@ -265,37 +391,20 @@ export function buildAdminNotificationEmail(data: OrderData): { subject: string;
         <tr>
           <td ${RTL} style="text-align:right;padding:0 32px 4px;background-color:${C.card};">
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('העדפת קשר', `<strong>${contactPrefLabel}</strong>`, true)}
+              ${row('\u05D4\u05E2\u05D3\u05E4\u05EA \u05E7\u05E9\u05E8', `<strong>${contactPrefLabel}</strong>`, true)}
             </table>
           </td>
         </tr>
 
         <!-- Contact section -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px 28px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">פרטי לקוח</div>
-            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" class="em-row-alt" style="direction:rtl;border-collapse:collapse;background-color:#fafaf8;border-radius:8px;overflow:hidden;">
-              <tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:#fafaf8;color:${C.muted};font-size:13px;width:70px;">שם</td>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:#fafaf8;color:${C.text};font-size:15px;font-weight:600;">${s.name}</td>
-              </tr>
-              <tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;${s.email ? `border-bottom:1px solid ${C.border};` : ''}background-color:#fafaf8;color:${C.muted};font-size:13px;">טלפון</td>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;${s.email ? `border-bottom:1px solid ${C.border};` : ''}background-color:#fafaf8;">
-                  <a href="tel:${s.phone}" style="color:${C.accent};font-size:15px;font-weight:600;text-decoration:none;" dir="ltr">${s.phone}</a>
-                </td>
-              </tr>
-              ${s.email ? `<tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;background-color:#fafaf8;color:${C.muted};font-size:13px;">אימייל</td>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;background-color:#fafaf8;">
-                  <a href="mailto:${s.email}" style="color:${C.accent};font-size:14px;text-decoration:none;" dir="ltr">${s.email}</a>
-                </td>
-              </tr>` : ''}
-            </table>
+          <td ${RTL} style="text-align:right;padding:32px 32px 28px;background-color:${C.card};">
+            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9 \u05DC\u05E7\u05D5\u05D7')}
+            ${contactCard(s.name, s.phone, s.email)}
           </td>
         </tr>`;
 
-  return { subject, html: shell(subject, inner, 'בקשת אירוע חדשה') };
+  return { subject, html: shell(subject, inner, '\u05D1\u05E7\u05E9\u05EA \u05D0\u05D9\u05E8\u05D5\u05E2 \u05D7\u05D3\u05E9\u05D4') };
 }
 
 
@@ -325,7 +434,7 @@ export function buildClientPaymentEmail(data: {
   const safeName = escapeHtml(data.contactName);
   const contactMeUrl = `${data.baseUrl}/api/order/contact-me?id=${data.requestId}`;
 
-  const subject = `${ltr('Eventa')} \u2014 פרטי תשלום עבור האירוע שלך`;
+  const subject = `${ltr('Eventa')} \u2014 \u05E4\u05E8\u05D8\u05D9 \u05EA\u05E9\u05DC\u05D5\u05DD \u05E2\u05D1\u05D5\u05E8 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E9\u05DC\u05DA`;
 
   // Cast partial data to OrderData shape for the shared event-details builder
   const orderLike: OrderData = {
@@ -348,13 +457,11 @@ export function buildClientPaymentEmail(data: {
 
   const inner = `
         <!-- Greeting -->
-        <tr>
-          <td dir="rtl" style="direction:rtl;text-align:right;padding:28px 32px 4px;border-bottom:1px solid ${C.border};background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:16px;color:${C.text};font-weight:500;line-height:1.6;">שלום ${safeName}&rlm;,</div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};margin-top:6px;line-height:1.6;">הבקשה שלך התקבלה בהצלחה.</div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};line-height:1.6;padding-bottom:20px;">ניתן להשלים את התשלום באחת הדרכים הבאות&rlm;:</div>
-          </td>
-        </tr>
+        ${greeting(
+          safeName,
+          '\u05D4\u05D1\u05E7\u05E9\u05D4 \u05E9\u05DC\u05DA \u05D4\u05EA\u05E7\u05D1\u05DC\u05D4 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4.',
+          '\u05E0\u05D9\u05EA\u05DF \u05DC\u05D4\u05E9\u05DC\u05D9\u05DD \u05D0\u05EA \u05D4\u05EA\u05E9\u05DC\u05D5\u05DD \u05D1\u05D0\u05D7\u05EA \u05D4\u05D3\u05E8\u05DB\u05D9\u05DD \u05D4\u05D1\u05D0\u05D5\u05EA&rlm;:',
+        )}
 
         <!-- Payment buttons -->
         <tr>
@@ -366,9 +473,9 @@ export function buildClientPaymentEmail(data: {
                   <a href="#" style="display:block;text-decoration:none;" target="_blank">
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                       <tr>
-                        <td align="center" class="em-paybox" style="background-color:${C.paybox} !important;border-radius:10px;padding:18px 24px;">
+                        <td align="center" class="em-paybox" style="background-color:${C.paybox} !important;border-radius:12px;padding:18px 24px;">
                           <div style="font-size:18px;font-weight:700;color:#ffffff;letter-spacing:0.5px;">${ltr('PayBox')}</div>
-                          <div dir="rtl" style="direction:rtl;font-size:12px;color:rgba(255,255,255,0.75);margin-top:4px;">תשלום מאובטח</div>
+                          <div dir="rtl" style="direction:rtl;font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">\u05EA\u05E9\u05DC\u05D5\u05DD \u05DE\u05D0\u05D5\u05D1\u05D8\u05D7</div>
                         </td>
                       </tr>
                     </table>
@@ -383,9 +490,9 @@ export function buildClientPaymentEmail(data: {
                   <a href="#" style="display:block;text-decoration:none;" target="_blank">
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                       <tr>
-                        <td align="center" class="em-bit" style="background-color:${C.bit} !important;border-radius:10px;padding:18px 24px;">
+                        <td align="center" class="em-bit" style="background-color:${C.bit} !important;border-radius:12px;padding:18px 24px;">
                           <div style="font-size:18px;font-weight:700;color:#ffffff;letter-spacing:0.5px;">${ltr('Bit')}</div>
-                          <div dir="rtl" style="direction:rtl;font-size:12px;color:rgba(255,255,255,0.75);margin-top:4px;">תשלום מאובטח</div>
+                          <div dir="rtl" style="direction:rtl;font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">\u05EA\u05E9\u05DC\u05D5\u05DD \u05DE\u05D0\u05D5\u05D1\u05D8\u05D7</div>
                         </td>
                       </tr>
                     </table>
@@ -396,47 +503,26 @@ export function buildClientPaymentEmail(data: {
           </td>
         </tr>
 
-        <!-- Separator -->
-        <tr>
-          <td style="padding:0 32px;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-              <tr><td style="border-top:1px solid ${C.border};font-size:0;line-height:0;">&nbsp;</td></tr>
-            </table>
-          </td>
-        </tr>
+        ${divider()}
 
         ${eventDetailsBlock(orderLike)}
 
         ${priceBlock(data.wantsGuestMessages)}
 
-        <!-- Separator -->
-        <tr>
-          <td style="padding:16px 32px 0;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-              <tr><td style="border-top:1px solid ${C.border};font-size:0;line-height:0;">&nbsp;</td></tr>
-            </table>
-          </td>
-        </tr>
+        ${divider()}
 
         <!-- Contact me instead -->
         <tr>
           <td dir="rtl" style="direction:rtl;text-align:center;padding:24px 32px 32px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:13px;color:${C.muted};margin-bottom:14px;">מעדיפים שניצור איתכם קשר&rlm;?</div>
-            <a href="${contactMeUrl}" style="display:inline-block;text-decoration:none;border:1px solid ${C.accent};border-radius:8px;padding:12px 28px;color:${C.accent};font-size:14px;font-weight:600;" target="_blank">
-              צרו איתי קשר
+            <div dir="rtl" style="direction:rtl;text-align:center;font-size:14px;color:${C.muted};margin-bottom:16px;">\u05DE\u05E2\u05D3\u05D9\u05E4\u05D9\u05DD \u05E9\u05E0\u05D9\u05E6\u05D5\u05E8 \u05D0\u05D9\u05EA\u05DB\u05DD \u05E7\u05E9\u05E8&rlm;?</div>
+            <a href="${contactMeUrl}" style="display:inline-block;text-decoration:none;border:2px solid ${C.accent};border-radius:999px;padding:12px 28px;color:${C.accent};font-size:15px;font-weight:600;" target="_blank">
+              \u05E6\u05E8\u05D5 \u05D0\u05D9\u05EA\u05D9 \u05E7\u05E9\u05E8
             </a>
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:12px;color:${C.dim};margin-top:10px;">נחזור אליכם תוך 48 שעות</div>
+            <div dir="rtl" style="direction:rtl;text-align:center;font-size:13px;color:${C.dim};margin-top:12px;">\u05E0\u05D7\u05D6\u05D5\u05E8 \u05D0\u05DC\u05D9\u05DB\u05DD \u05EA\u05D5\u05DA 48 \u05E9\u05E2\u05D5\u05EA</div>
           </td>
         </tr>
 
-        <!-- Support footer row -->
-        <tr>
-          <td dir="rtl" style="direction:rtl;text-align:center;padding:0 32px 24px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:12px;color:${C.dim};">
-              לשאלות ניתן לפנות אלינו&rlm;: <a href="mailto:contact@eventa.productions" style="color:${C.accent};text-decoration:none;" dir="ltr">contact@eventa.productions</a>
-            </div>
-          </td>
-        </tr>`;
+        ${supportRow()}`;
 
   return { subject, html: shell(subject, inner) };
 }
@@ -464,47 +550,30 @@ export function buildContactMeInsteadEmail(data: {
     eventName: data.eventName ? escapeHtml(data.eventName) : '',
   };
 
-  const subject = `לקוח מבקש שניצור קשר \u2014 ${data.contactName}`;
+  const subject = `\u05DC\u05E7\u05D5\u05D7 \u05DE\u05D1\u05E7\u05E9 \u05E9\u05E0\u05D9\u05E6\u05D5\u05E8 \u05E7\u05E9\u05E8 \u2014 ${data.contactName}`;
 
   const inner = `
         <!-- Alert banner -->
         <tr>
-          <td ${RTL} class="em-warn" style="text-align:right;background-color:${C.warnBg} !important;padding:16px 32px;border-bottom:1px solid ${C.border};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;font-weight:600;color:${C.warn};">לקוח שינה העדפה \u2014 מבקש שניצור קשר</div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:13px;color:${C.muted};margin-top:4px;">
-              הלקוח קיבל לינק לתשלום אבל בחר לבקש שנחזור אליו.
+          <td ${RTL} class="em-warn" style="text-align:right;background-color:${C.warnBg} !important;padding:18px 32px;border-bottom:1px solid ${C.border};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:15px;font-weight:700;color:${C.warn};">\u05DC\u05E7\u05D5\u05D7 \u05E9\u05D9\u05E0\u05D4 \u05D4\u05E2\u05D3\u05E4\u05D4 \u2014 \u05DE\u05D1\u05E7\u05E9 \u05E9\u05E0\u05D9\u05E6\u05D5\u05E8 \u05E7\u05E9\u05E8</div>
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};margin-top:6px;line-height:1.5;">
+              \u05D4\u05DC\u05E7\u05D5\u05D7 \u05E7\u05D9\u05D1\u05DC \u05DC\u05D9\u05E0\u05E7 \u05DC\u05EA\u05E9\u05DC\u05D5\u05DD \u05D0\u05D1\u05DC \u05D1\u05D7\u05E8 \u05DC\u05D1\u05E7\u05E9 \u05E9\u05E0\u05D7\u05D6\u05D5\u05E8 \u05D0\u05DC\u05D9\u05D5.
             </div>
           </td>
         </tr>
 
         <!-- Details -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.text};line-height:1.7;margin-bottom:20px;">
-              <strong>${s.name}</strong> ביקש/ה ליצור קשר טלפוני במקום תשלום אונליין עבור ${s.eventLabel}${s.eventName ? ` (${s.eventName})` : ''}.
+          <td ${RTL} style="text-align:right;padding:28px 32px;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:15px;color:${C.text};line-height:1.7;margin-bottom:24px;">
+              <strong>${s.name}</strong> \u05D1\u05D9\u05E7\u05E9/\u05D4 \u05DC\u05D9\u05E6\u05D5\u05E8 \u05E7\u05E9\u05E8 \u05D8\u05DC\u05E4\u05D5\u05E0\u05D9 \u05D1\u05DE\u05E7\u05D5\u05DD \u05EA\u05E9\u05DC\u05D5\u05DD \u05D0\u05D5\u05E0\u05DC\u05D9\u05D9\u05DF \u05E2\u05D1\u05D5\u05E8 ${s.eventLabel}${s.eventName ? ` (${s.eventName})` : ''}.
             </div>
 
-            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" class="em-row-alt" style="direction:rtl;border-collapse:collapse;background-color:#fafaf8;border-radius:8px;overflow:hidden;">
-              <tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:#fafaf8;color:${C.muted};font-size:13px;width:70px;">שם</td>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:#fafaf8;color:${C.text};font-size:14px;font-weight:600;">${s.name}</td>
-              </tr>
-              <tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;${s.email ? `border-bottom:1px solid ${C.border};` : ''}background-color:#fafaf8;color:${C.muted};font-size:13px;">טלפון</td>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;${s.email ? `border-bottom:1px solid ${C.border};` : ''}background-color:#fafaf8;">
-                  <a href="tel:${s.phone}" style="color:${C.accent};font-size:15px;font-weight:600;text-decoration:none;" dir="ltr">${s.phone}</a>
-                </td>
-              </tr>
-              ${s.email ? `<tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;background-color:#fafaf8;color:${C.muted};font-size:13px;">אימייל</td>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;background-color:#fafaf8;">
-                  <a href="mailto:${s.email}" style="color:${C.accent};font-size:14px;text-decoration:none;" dir="ltr">${s.email}</a>
-                </td>
-              </tr>` : ''}
-            </table>
+            ${contactCard(s.name, s.phone, s.email)}
 
-            <div dir="rtl" style="direction:rtl;text-align:right;margin-top:16px;font-size:12px;color:${C.dim};">
-              מזהה בקשה&rlm;: ${ltr(escapeHtml(data.requestId))}
+            <div dir="rtl" style="direction:rtl;text-align:right;margin-top:16px;font-size:13px;color:${C.dim};">
+              \u05DE\u05D6\u05D4\u05D4 \u05D1\u05E7\u05E9\u05D4&rlm;: ${ltr(escapeHtml(data.requestId))}
             </div>
           </td>
         </tr>`;
@@ -530,86 +599,59 @@ export function buildUploadInstructionsEmail(params: {
   const safeName = escapeHtml(params.contactName);
   const safeEvent = escapeHtml(params.eventName);
 
-  const subject = `האירוע שלכם אושר — הכינו את רשימת האורחים`;
+  const subject = `\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E9\u05DC\u05DB\u05DD \u05D0\u05D5\u05E9\u05E8 \u2014 \u05D4\u05DB\u05D9\u05E0\u05D5 \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD`;
 
   const inner = `
         <!-- Greeting -->
-        <tr>
-          <td ${RTL} style="text-align:right;padding:28px 32px 4px;border-bottom:1px solid ${C.border};background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:16px;color:${C.text};font-weight:500;line-height:1.6;">שלום ${safeName}&rlm;,</div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};margin-top:6px;line-height:1.6;">
-              האירוע <strong>${safeEvent}</strong> אושר ונוצר בהצלחה!
-            </div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};line-height:1.6;padding-bottom:20px;">
-              הזמנתם את שירות ההודעות לאורחים &mdash; כדי שנוכל לשלוח הודעות ${ltr('WhatsApp')}
-              לאורחים שלכם לפני האירוע, צריך להעלות את רשימת מספרי הטלפון.
-            </div>
-          </td>
-        </tr>
+        ${greeting(
+          safeName,
+          `\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong> \u05D0\u05D5\u05E9\u05E8 \u05D5\u05E0\u05D5\u05E6\u05E8 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4!`,
+          `\u05D4\u05D6\u05DE\u05E0\u05EA\u05DD \u05D0\u05EA \u05E9\u05D9\u05E8\u05D5\u05EA \u05D4\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD &mdash; \u05DB\u05D3\u05D9 \u05E9\u05E0\u05D5\u05DB\u05DC \u05DC\u05E9\u05DC\u05D5\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E9\u05DC\u05DB\u05DD \u05DC\u05E4\u05E0\u05D9 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2, \u05E6\u05E8\u05D9\u05DA \u05DC\u05D4\u05E2\u05DC\u05D5\u05EA \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05DE\u05E1\u05E4\u05E8\u05D9 \u05D4\u05D8\u05DC\u05E4\u05D5\u05DF.`,
+        )}
 
         <!-- How it works -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px 0;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">איך זה עובד?</div>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05D0\u05D9\u05DA \u05D6\u05D4 \u05E2\u05D5\u05D1\u05D3?')}
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('שלב 1', 'הורידו את הטמפלט (Excel)')}
-              ${row('שלב 2', 'מלאו את מספרי הטלפון של האורחים')}
-              ${row('שלב 3', 'העלו את הקובץ בלינק שלמטה', true)}
+              ${stepRow(1, `\u05D4\u05D5\u05E8\u05D9\u05D3\u05D5 \u05D0\u05EA \u05D4\u05D8\u05DE\u05E4\u05DC\u05D8 (${ltr('Excel')})`)}
+              ${stepRow(2, '\u05DE\u05DC\u05D0\u05D5 \u05D0\u05EA \u05DE\u05E1\u05E4\u05E8\u05D9 \u05D4\u05D8\u05DC\u05E4\u05D5\u05DF \u05E9\u05DC \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD')}
+              ${stepRow(3, '\u05D4\u05E2\u05DC\u05D5 \u05D0\u05EA \u05D4\u05E7\u05D5\u05D1\u05E5 \u05D1\u05DC\u05D9\u05E0\u05E7 \u05E9\u05DC\u05DE\u05D8\u05D4', true)}
             </table>
           </td>
         </tr>
 
         <!-- Event info -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px 0;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">פרטים</div>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9\u05DD')}
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('תאריך האירוע', `${escapeHtml(params.eventDate)}${params.eventTime ? `&rlm;, ${ltr(escapeHtml(params.eventTime))}` : ''}`)}
-              ${row('מספרי טלפון', 'סלולרי ישראלי (05X) בלבד')}
-              ${row('דד-ליין להעלאה', '3 שעות לפני האירוע', true)}
+              ${row('\u05EA\u05D0\u05E8\u05D9\u05DA \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2', `${escapeHtml(params.eventDate)}${params.eventTime ? `&rlm;, ${ltr(escapeHtml(params.eventTime))}` : ''}`)}
+              ${row('\u05DE\u05E1\u05E4\u05E8\u05D9 \u05D8\u05DC\u05E4\u05D5\u05DF', '\u05E1\u05DC\u05D5\u05DC\u05E8\u05D9 \u05D9\u05E9\u05E8\u05D0\u05DC\u05D9 (05X) \u05D1\u05DC\u05D1\u05D3')}
+              ${row('\u05D3\u05D3-\u05DC\u05D9\u05D9\u05DF \u05DC\u05D4\u05E2\u05DC\u05D0\u05D4', '3 \u05E9\u05E2\u05D5\u05EA \u05DC\u05E4\u05E0\u05D9 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2', true)}
             </table>
           </td>
         </tr>
 
         <!-- CTA buttons -->
+        ${ctaBtn(params.uploadUrl, '\u05D4\u05E2\u05DC\u05D5 \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD')}
+
         <tr>
-          <td style="padding:28px 32px 12px;text-align:center;background-color:${C.card};">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
-              <tr>
-                <td align="center">
-                  <a href="${escapeHtml(params.uploadUrl)}" style="display:inline-block;text-decoration:none;background-color:${C.accent};border-radius:10px;padding:16px 32px;color:#ffffff;font-size:16px;font-weight:700;" target="_blank">
-                    העלו את רשימת האורחים
-                  </a>
-                </td>
-              </tr>
-            </table>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td align="center">
-                  <a href="${escapeHtml(params.templateUrl)}" style="color:${C.accent};text-decoration:underline;font-size:14px;" target="_blank">
-                    הורידו טמפלט ${ltr('Excel')}
-                  </a>
-                </td>
-              </tr>
-            </table>
+          <td style="padding:0 32px 8px;text-align:center;background-color:${C.card};">
+            <a href="${escapeHtml(params.templateUrl)}" style="color:${C.accent};text-decoration:underline;font-size:14px;" target="_blank">
+              \u05D4\u05D5\u05E8\u05D9\u05D3\u05D5 \u05D8\u05DE\u05E4\u05DC\u05D8 ${ltr('Excel')}
+            </a>
           </td>
         </tr>
 
-        <!-- Tip -->
-        <tr>
-          <td dir="rtl" style="direction:rtl;text-align:right;padding:16px 32px 28px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;background-color:${C.accentBg};border-right:3px solid ${C.accent};border-radius:6px;padding:14px 16px;font-size:13px;color:${C.muted};line-height:1.7;">
-              <strong>טיפ:</strong> תוכלו להוסיף, להסיר, ולהעלות מספרים נוספים בכל שלב דרך הלינק הזה. הפורטל פתוח עד סיום האירוע.
-            </div>
-          </td>
-        </tr>`;
+        ${tipBox(`<strong>\u05D8\u05D9\u05E4:</strong> \u05EA\u05D5\u05DB\u05DC\u05D5 \u05DC\u05D4\u05D5\u05E1\u05D9\u05E3, \u05DC\u05D4\u05E1\u05D9\u05E8, \u05D5\u05DC\u05D4\u05E2\u05DC\u05D5\u05EA \u05DE\u05E1\u05E4\u05E8\u05D9\u05DD \u05E0\u05D5\u05E1\u05E4\u05D9\u05DD \u05D1\u05DB\u05DC \u05E9\u05DC\u05D1 \u05D3\u05E8\u05DA \u05D4\u05DC\u05D9\u05E0\u05E7 \u05D4\u05D6\u05D4. \u05D4\u05E4\u05D5\u05E8\u05D8\u05DC \u05E4\u05EA\u05D5\u05D7 \u05E2\u05D3 \u05E1\u05D9\u05D5\u05DD \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2.`)}`;
 
-  return { subject, html: shell(subject, inner, 'אירוע אושר') };
+  return { subject, html: shell(subject, inner, '\u05D0\u05D9\u05E8\u05D5\u05E2 \u05D0\u05D5\u05E9\u05E8') };
 }
 
 
 /* ═══════════════════════════════════════════════════════════════
-   5. UPLOAD REMINDER EMAIL (7‑day)
+   5. UPLOAD REMINDER EMAIL (7-day)
    Sent when event is ~7 days away and guest list not yet uploaded.
    ═══════════════════════════════════════════════════════════════ */
 
@@ -623,54 +665,33 @@ export function buildUploadReminderEmail(params: {
   const safeName = escapeHtml(params.contactName);
   const safeEvent = escapeHtml(params.eventName);
 
-  const subject = `תזכורת: העלו את רשימת האורחים ל-\u201C${params.eventName}\u201D`;
+  const subject = `\u05EA\u05D6\u05DB\u05D5\u05E8\u05EA: \u05D4\u05E2\u05DC\u05D5 \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05DC-\u201C${params.eventName}\u201D`;
 
   const inner = `
         <!-- Greeting -->
-        <tr>
-          <td ${RTL} style="text-align:right;padding:28px 32px 4px;border-bottom:1px solid ${C.border};background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:16px;color:${C.text};font-weight:500;line-height:1.6;">שלום ${safeName}&rlm;,</div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};margin-top:6px;line-height:1.6;">
-              האירוע <strong>${safeEvent}</strong> בעוד
-              <strong>${ltr(String(params.daysLeft))}</strong> ימים ועדיין לא העליתם את רשימת האורחים.
-            </div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};line-height:1.6;padding-bottom:20px;">
-              כדי שנוכל לשלוח הודעות ${ltr('WhatsApp')} לאורחים שלכם, אנחנו צריכים
-              את רשימת מספרי הטלפון. אפשר להעלות קובץ ${ltr('Excel')} או להוסיף מספרים ידנית.
-            </div>
-          </td>
-        </tr>
+        ${greeting(
+          safeName,
+          `\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong> \u05D1\u05E2\u05D5\u05D3 <strong>${ltr(String(params.daysLeft))}</strong> \u05D9\u05DE\u05D9\u05DD \u05D5\u05E2\u05D3\u05D9\u05D9\u05DF \u05DC\u05D0 \u05D4\u05E2\u05DC\u05D9\u05EA\u05DD \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD.`,
+          `\u05DB\u05D3\u05D9 \u05E9\u05E0\u05D5\u05DB\u05DC \u05DC\u05E9\u05DC\u05D5\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E9\u05DC\u05DB\u05DD, \u05D0\u05E0\u05D7\u05E0\u05D5 \u05E6\u05E8\u05D9\u05DB\u05D9\u05DD \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05DE\u05E1\u05E4\u05E8\u05D9 \u05D4\u05D8\u05DC\u05E4\u05D5\u05DF. \u05D0\u05E4\u05E9\u05E8 \u05DC\u05D4\u05E2\u05DC\u05D5\u05EA \u05E7\u05D5\u05D1\u05E5 ${ltr('Excel')} \u05D0\u05D5 \u05DC\u05D4\u05D5\u05E1\u05D9\u05E3 \u05DE\u05E1\u05E4\u05E8\u05D9\u05DD \u05D9\u05D3\u05E0\u05D9\u05EA.`,
+        )}
 
-        <!-- CTA -->
-        <tr>
-          <td style="padding:28px 32px 20px;text-align:center;background-color:${C.card};">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td align="center">
-                  <a href="${escapeHtml(params.uploadUrl)}" style="display:inline-block;text-decoration:none;background-color:${C.accent};border-radius:10px;padding:16px 32px;color:#ffffff;font-size:16px;font-weight:700;" target="_blank">
-                    העלו את הרשימה עכשיו
-                  </a>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
+        ${ctaBtn(params.uploadUrl, '\u05D4\u05E2\u05DC\u05D5 \u05D0\u05EA \u05D4\u05E8\u05E9\u05D9\u05DE\u05D4 \u05E2\u05DB\u05E9\u05D9\u05D5')}
 
         <!-- Note -->
         <tr>
-          <td dir="rtl" style="direction:rtl;text-align:center;padding:0 32px 28px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:12px;color:${C.dim};">
-              ההודעות נשלחות 2&ndash;3 שעות לפני האירוע. ככל שתעלו מוקדם יותר, כך יותר טוב!
+          <td dir="rtl" style="direction:rtl;text-align:center;padding:8px 32px 28px;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:center;font-size:13px;color:${C.dim};line-height:1.5;">
+              \u05D4\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05E0\u05E9\u05DC\u05D7\u05D5\u05EA 2&ndash;3 \u05E9\u05E2\u05D5\u05EA \u05DC\u05E4\u05E0\u05D9 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2. \u05DB\u05DB\u05DC \u05E9\u05EA\u05E2\u05DC\u05D5 \u05DE\u05D5\u05E7\u05D3\u05DD \u05D9\u05D5\u05EA\u05E8, \u05DB\u05DA \u05D9\u05D5\u05EA\u05E8 \u05D8\u05D5\u05D1!
             </div>
           </td>
         </tr>`;
 
-  return { subject, html: shell(subject, inner, 'תזכורת ידידותית') };
+  return { subject, html: shell(subject, inner, '\u05EA\u05D6\u05DB\u05D5\u05E8\u05EA \u05D9\u05D3\u05D9\u05D3\u05D5\u05EA\u05D9\u05EA') };
 }
 
 
 /* ═══════════════════════════════════════════════════════════════
-   6. UPLOAD URGENT REMINDER EMAIL (3‑day)
+   6. UPLOAD URGENT REMINDER EMAIL (3-day)
    Sent when event is ~3 days away and guest list still missing.
    ═══════════════════════════════════════════════════════════════ */
 
@@ -683,52 +704,39 @@ export function buildUploadUrgentReminderEmail(params: {
   const safeName = escapeHtml(params.contactName);
   const safeEvent = escapeHtml(params.eventName);
 
-  const subject = `אחרון להעלאת רשימת אורחים ל-\u201C${params.eventName}\u201D!`;
+  const subject = `\u05D0\u05D7\u05E8\u05D5\u05DF \u05DC\u05D4\u05E2\u05DC\u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05DC-\u201C${params.eventName}\u201D!`;
 
   const inner = `
         <!-- Urgent banner -->
         <tr>
-          <td ${RTL} class="em-warn" style="text-align:right;background-color:${C.warnBg} !important;padding:16px 32px;border-bottom:1px solid ${C.border};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;font-weight:600;color:${C.warn};">תזכורת אחרונה</div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:13px;color:${C.muted};margin-top:4px;">
-              האירוע בעוד 3 ימים ועדיין אין רשימת אורחים
+          <td ${RTL} class="em-warn" style="text-align:right;background-color:${C.warnBg} !important;padding:18px 32px;border-bottom:1px solid ${C.border};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:15px;font-weight:700;color:${C.warn};">\u05EA\u05D6\u05DB\u05D5\u05E8\u05EA \u05D0\u05D7\u05E8\u05D5\u05E0\u05D4</div>
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};margin-top:6px;line-height:1.5;">
+              \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05D1\u05E2\u05D5\u05D3 3 \u05D9\u05DE\u05D9\u05DD \u05D5\u05E2\u05D3\u05D9\u05D9\u05DF \u05D0\u05D9\u05DF \u05E8\u05E9\u05D9\u05DE\u05EA \u05D0\u05D5\u05E8\u05D7\u05D9\u05DD
             </div>
           </td>
         </tr>
 
         <!-- Greeting -->
+        ${greeting(
+          safeName,
+          `\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong> \u05DB\u05D1\u05E8 \u05D1\u05E2\u05D5\u05D3 <strong>3 \u05D9\u05DE\u05D9\u05DD</strong> \u05D5\u05E2\u05D3\u05D9\u05D9\u05DF \u05D0\u05D9\u05DF \u05DC\u05E0\u05D5 \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD.`,
+        )}
+
+        <!-- Warning -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:28px 32px 4px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:16px;color:${C.text};font-weight:500;line-height:1.6;">שלום ${safeName}&rlm;,</div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};margin-top:6px;line-height:1.6;">
-              האירוע <strong>${safeEvent}</strong> כבר בעוד <strong>3 ימים</strong> ועדיין אין לנו את רשימת האורחים.
-            </div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.warn};font-weight:600;line-height:1.6;margin-top:8px;">
-              בלי הרשימה, לא נוכל לשלוח הודעות ${ltr('WhatsApp')} לאורחים.
-            </div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:13px;color:${C.muted};line-height:1.6;margin-top:8px;padding-bottom:20px;">
-              אם אתם לא מתכננים להעלות רשימה, זה בסדר &mdash; האורחים עדיין יוכלו
-              להצטרף דרך ${ltr('QR')} באירוע עצמו.
+          <td ${RTL} style="text-align:right;padding:0 32px;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:15px;color:${C.warn};font-weight:600;line-height:1.6;">
+              \u05D1\u05DC\u05D9 \u05D4\u05E8\u05E9\u05D9\u05DE\u05D4, \u05DC\u05D0 \u05E0\u05D5\u05DB\u05DC \u05DC\u05E9\u05DC\u05D5\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD.
             </div>
           </td>
         </tr>
 
-        <!-- CTA -->
-        <tr>
-          <td style="padding:8px 32px 28px;text-align:center;background-color:${C.card};">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td align="center">
-                  <a href="${escapeHtml(params.uploadUrl)}" style="display:inline-block;text-decoration:none;background-color:${C.warn};border-radius:10px;padding:16px 32px;color:#ffffff;font-size:16px;font-weight:700;" target="_blank">
-                    העלו עכשיו &mdash; לפני שמאוחר!
-                  </a>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>`;
+        ${tipBox(`\u05D0\u05DD \u05D0\u05EA\u05DD \u05DC\u05D0 \u05DE\u05EA\u05DB\u05E0\u05E0\u05D9\u05DD \u05DC\u05D4\u05E2\u05DC\u05D5\u05EA \u05E8\u05E9\u05D9\u05DE\u05D4, \u05D6\u05D4 \u05D1\u05E1\u05D3\u05E8 &mdash; \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E2\u05D3\u05D9\u05D9\u05DF \u05D9\u05D5\u05DB\u05DC\u05D5 \u05DC\u05D4\u05E6\u05D8\u05E8\u05E3 \u05D3\u05E8\u05DA ${ltr('QR')} \u05D1\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E2\u05E6\u05DE\u05D5.`)}
 
-  return { subject, html: shell(subject, inner, 'תזכורת דחופה') };
+        ${ctaBtn(params.uploadUrl, '\u05D4\u05E2\u05DC\u05D5 \u05E2\u05DB\u05E9\u05D9\u05D5 \u2014 \u05DC\u05E4\u05E0\u05D9 \u05E9\u05DE\u05D0\u05D5\u05D7\u05E8!', C.warn)}`;
+
+  return { subject, html: shell(subject, inner, '\u05EA\u05D6\u05DB\u05D5\u05E8\u05EA \u05D3\u05D7\u05D5\u05E4\u05D4') };
 }
 
 
@@ -755,51 +763,47 @@ export function buildEventSummaryEmail(params: {
   const safeEvent = escapeHtml(params.eventName);
   const s = params.stats;
 
-  const subject = `סיכום האירוע: \u201C${params.eventName}\u201D`;
+  const subject = `\u05E1\u05D9\u05DB\u05D5\u05DD \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2: \u201C${params.eventName}\u201D`;
 
   const inner = `
         <!-- Greeting -->
-        <tr>
-          <td ${RTL} style="text-align:right;padding:28px 32px 4px;border-bottom:1px solid ${C.border};background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:16px;color:${C.text};font-weight:500;line-height:1.6;">שלום ${safeName}&rlm;,</div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};margin-top:6px;line-height:1.6;padding-bottom:20px;">
-              האירוע <strong>${safeEvent}</strong> הסתיים! הנה סיכום קצר&rlm;:
-            </div>
-          </td>
-        </tr>
+        ${greeting(
+          safeName,
+          `\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong> \u05D4\u05E1\u05EA\u05D9\u05D9\u05DD! \u05D4\u05E0\u05D4 \u05E1\u05D9\u05DB\u05D5\u05DD \u05E7\u05E6\u05E8&rlm;:`,
+        )}
 
         <!-- Stats -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px 0;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">נתוני האירוע</div>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05E0\u05EA\u05D5\u05E0\u05D9 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2')}
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('משתתפים', ltr(String(s.totalParticipants)))}
-              ${row('הגיעו מ-WhatsApp', ltr(String(s.fromPreEvent)))}
-              ${row('הגיעו מ-QR', ltr(String(s.fromQr)))}
-              ${row('התאמות (Matches)', ltr(String(s.totalMatches)))}
-              ${row('הודעות שנשלחו', ltr(`${s.messagesDelivered}/${s.messagesFromGuests}`))}
-              ${row('פידבקים שנשלחו', ltr(String(s.feedbackSent)), true)}
+              ${row('\u05DE\u05E9\u05EA\u05EA\u05E4\u05D9\u05DD', ltr(String(s.totalParticipants)))}
+              ${row(`\u05D4\u05D2\u05D9\u05E2\u05D5 \u05DE-${ltr('WhatsApp')}`, ltr(String(s.fromPreEvent)))}
+              ${row(`\u05D4\u05D2\u05D9\u05E2\u05D5 \u05DE-${ltr('QR')}`, ltr(String(s.fromQr)))}
+              ${row(`\u05D4\u05EA\u05D0\u05DE\u05D5\u05EA (${ltr('Matches')})`, ltr(String(s.totalMatches)))}
+              ${row('\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05E9\u05E0\u05E9\u05DC\u05D7\u05D5', ltr(`${s.messagesDelivered}/${s.messagesFromGuests}`))}
+              ${row('\u05E4\u05D9\u05D3\u05D1\u05E7\u05D9\u05DD \u05E9\u05E0\u05E9\u05DC\u05D7\u05D5', ltr(String(s.feedbackSent)), true)}
             </table>
           </td>
         </tr>
 
         <!-- Thank you -->
         <tr>
-          <td dir="rtl" style="direction:rtl;text-align:center;padding:24px 32px 28px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:14px;color:${C.muted};line-height:1.7;">
-              תודה שבחרתם ב-${ltr('Eventa')}!<br/>נשמח לארח אתכם שוב.
+          <td dir="rtl" style="direction:rtl;text-align:center;padding:32px 32px 28px;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:center;font-size:15px;color:${C.muted};line-height:1.7;">
+              \u05EA\u05D5\u05D3\u05D4 \u05E9\u05D1\u05D7\u05E8\u05EA\u05DD \u05D1-${ltr('Eventa')}!<br/>\u05E0\u05E9\u05DE\u05D7 \u05DC\u05D0\u05E8\u05D7 \u05D0\u05EA\u05DB\u05DD \u05E9\u05D5\u05D1.
             </div>
           </td>
         </tr>`;
 
-  return { subject, html: shell(subject, inner, 'סיכום אירוע') };
+  return { subject, html: shell(subject, inner, '\u05E1\u05D9\u05DB\u05D5\u05DD \u05D0\u05D9\u05E8\u05D5\u05E2') };
 }
 
 
 /* ═══════════════════════════════════════════════════════════════
    8. MESSAGING ADD-ON INVOICE EMAIL
    Sent when admin enables messaging for an event after the fact —
-   ₪50 add-on invoice with PayBox + Bit payment options.
+   50 shekel add-on invoice with PayBox + Bit payment options.
    ═══════════════════════════════════════════════════════════════ */
 
 export function buildMessagingAddonInvoiceEmail(params: {
@@ -812,28 +816,24 @@ export function buildMessagingAddonInvoiceEmail(params: {
   const safeEvent = escapeHtml(params.eventName);
   const addonPrice = 50;
 
-  const subject = `חשבון: שירות הודעות ל-\u201C${params.eventName}\u201D \u2014 \u20AA${addonPrice}`;
+  const subject = `\u05D7\u05E9\u05D1\u05D5\u05DF: \u05E9\u05D9\u05E8\u05D5\u05EA \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05DC-\u201C${params.eventName}\u201D \u2014 \u20AA${addonPrice}`;
 
   const inner = `
         <!-- Greeting -->
-        <tr>
-          <td ${RTL} style="text-align:right;padding:28px 32px 4px;border-bottom:1px solid ${C.border};background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:16px;color:${C.text};font-weight:500;line-height:1.6;">שלום ${safeName}&rlm;,</div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};margin-top:6px;line-height:1.6;padding-bottom:20px;">
-              הוספנו את שירות ההודעות לאורחים לאירוע <strong>${safeEvent}</strong>.
-            </div>
-          </td>
-        </tr>
+        ${greeting(
+          safeName,
+          `\u05D4\u05D5\u05E1\u05E4\u05E0\u05D5 \u05D0\u05EA \u05E9\u05D9\u05E8\u05D5\u05EA \u05D4\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong>.`,
+        )}
 
         <!-- Invoice details -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px 0;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">פרטי חשבון</div>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9 \u05D7\u05E9\u05D1\u05D5\u05DF')}
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('שירות', `הודעות ${ltr('WhatsApp')} לאורחים`)}
+              ${row('\u05E9\u05D9\u05E8\u05D5\u05EA', `\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD`)}
               <tr>
-                <td dir="rtl" style="text-align:right;padding:14px 0 14px 12px;background-color:${C.card};color:${C.accent};font-size:15px;font-weight:700;width:90px;border-top:2px solid ${C.accent};vertical-align:top;">סה\u05F4כ</td>
-                <td dir="rtl" style="text-align:right;padding:14px 12px 14px 0;background-color:${C.card};color:${C.text};font-size:18px;font-weight:700;border-top:2px solid ${C.accent};">${ltr(`\u20AA${addonPrice}`)}</td>
+                <td dir="rtl" style="text-align:right;padding:14px 0 14px 12px;background-color:${C.card};color:${C.accent};font-size:16px;font-weight:700;width:100px;border-top:2px solid ${C.accent};vertical-align:top;">\u05E1\u05D4\u05F4\u05DB</td>
+                <td dir="rtl" style="text-align:right;padding:14px 12px 14px 0;background-color:${C.card};color:${C.text};font-size:20px;font-weight:700;border-top:2px solid ${C.accent};">${ltr(`\u20AA${addonPrice}`)}</td>
               </tr>
             </table>
           </td>
@@ -848,9 +848,9 @@ export function buildMessagingAddonInvoiceEmail(params: {
                   <a href="${escapeHtml(params.payboxUrl)}" style="display:block;text-decoration:none;" target="_blank">
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                       <tr>
-                        <td align="center" class="em-paybox" style="background-color:${C.paybox} !important;border-radius:10px;padding:18px 24px;">
-                          <div style="font-size:18px;font-weight:700;color:#ffffff;letter-spacing:0.5px;">שלמו עכשיו (${ltr('PayBox')})</div>
-                          <div dir="rtl" style="direction:rtl;font-size:12px;color:rgba(255,255,255,0.75);margin-top:4px;">תשלום מאובטח</div>
+                        <td align="center" class="em-paybox" style="background-color:${C.paybox} !important;border-radius:12px;padding:18px 24px;">
+                          <div style="font-size:18px;font-weight:700;color:#ffffff;letter-spacing:0.5px;">\u05E9\u05DC\u05DE\u05D5 \u05E2\u05DB\u05E9\u05D9\u05D5 (${ltr('PayBox')})</div>
+                          <div dir="rtl" style="direction:rtl;font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">\u05EA\u05E9\u05DC\u05D5\u05DD \u05DE\u05D0\u05D5\u05D1\u05D8\u05D7</div>
                         </td>
                       </tr>
                     </table>
@@ -865,21 +865,14 @@ export function buildMessagingAddonInvoiceEmail(params: {
         <tr>
           <td dir="rtl" style="direction:rtl;text-align:center;padding:0 32px 28px;background-color:${C.card};">
             <div dir="rtl" style="direction:rtl;text-align:center;font-size:14px;color:${C.muted};">
-              או העבירו ${ltr(`\u20AA${addonPrice}`)} ב-${ltr('Bit')}&rlm;: ${ltr(escapeHtml(params.bitPhone))}
+              \u05D0\u05D5 \u05D4\u05E2\u05D1\u05D9\u05E8\u05D5 ${ltr(`\u20AA${addonPrice}`)} \u05D1-${ltr('Bit')}&rlm;: ${ltr(escapeHtml(params.bitPhone))}
             </div>
           </td>
         </tr>
 
-        <!-- Support footer row -->
-        <tr>
-          <td dir="rtl" style="direction:rtl;text-align:center;padding:0 32px 24px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:12px;color:${C.dim};">
-              לשאלות ניתן לפנות אלינו&rlm;: <a href="mailto:contact@eventa.productions" style="color:${C.accent};text-decoration:none;" dir="ltr">contact@eventa.productions</a>
-            </div>
-          </td>
-        </tr>`;
+        ${supportRow()}`;
 
-  return { subject, html: shell(subject, inner, 'חשבון שירות הודעות') };
+  return { subject, html: shell(subject, inner, '\u05D7\u05E9\u05D1\u05D5\u05DF \u05E9\u05D9\u05E8\u05D5\u05EA \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA') };
 }
 
 
@@ -898,58 +891,27 @@ export function buildCustomReminderEmail(params: {
   const safeEvent = escapeHtml(params.eventName);
   const safeMessage = escapeHtml(params.message);
 
-  const subject = `תזכורת מ-Eventa: \u201C${params.eventName}\u201D`;
+  const subject = `\u05EA\u05D6\u05DB\u05D5\u05E8\u05EA \u05DE-Eventa: \u201C${params.eventName}\u201D`;
 
   const inner = `
         <!-- Greeting -->
-        <tr>
-          <td ${RTL} style="text-align:right;padding:28px 32px 4px;border-bottom:1px solid ${C.border};background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:16px;color:${C.text};font-weight:500;line-height:1.6;">שלום ${safeName}&rlm;,</div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};margin-top:6px;line-height:1.6;padding-bottom:20px;">
-              בנוגע לאירוע <strong>${safeEvent}</strong>&rlm;:
-            </div>
-          </td>
-        </tr>
+        ${greeting(
+          safeName,
+          `\u05D1\u05E0\u05D5\u05D2\u05E2 \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong>&rlm;:`,
+        )}
 
         <!-- Message body -->
-        <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;background-color:${C.accentBg};border-right:3px solid ${C.accent};border-radius:6px;padding:16px 18px;font-size:14px;color:${C.text};line-height:1.8;white-space:pre-line;">
-              ${safeMessage}
-            </div>
-          </td>
-        </tr>
+        ${tipBox(safeMessage)}
 
-        ${params.uploadUrl ? `
-        <!-- Upload CTA -->
-        <tr>
-          <td style="padding:8px 32px 28px;text-align:center;background-color:${C.card};">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td align="center">
-                  <a href="${escapeHtml(params.uploadUrl)}" style="display:inline-block;text-decoration:none;background-color:${C.accent};border-radius:10px;padding:16px 32px;color:#ffffff;font-size:16px;font-weight:700;" target="_blank">
-                    לפורטל העלאת אורחים
-                  </a>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>` : `
+        ${params.uploadUrl ? ctaBtn(params.uploadUrl, '\u05DC\u05E4\u05D5\u05E8\u05D8\u05DC \u05D4\u05E2\u05DC\u05D0\u05EA \u05D0\u05D5\u05E8\u05D7\u05D9\u05DD') : `
         <!-- Bottom padding -->
         <tr>
           <td style="padding:0 0 16px;background-color:${C.card};">&nbsp;</td>
         </tr>`}
 
-        <!-- Support footer row -->
-        <tr>
-          <td dir="rtl" style="direction:rtl;text-align:center;padding:0 32px 24px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:12px;color:${C.dim};">
-              לשאלות ניתן לפנות אלינו&rlm;: <a href="mailto:contact@eventa.productions" style="color:${C.accent};text-decoration:none;" dir="ltr">contact@eventa.productions</a>
-            </div>
-          </td>
-        </tr>`;
+        ${supportRow()}`;
 
-  return { subject, html: shell(subject, inner, 'תזכורת') };
+  return { subject, html: shell(subject, inner, '\u05EA\u05D6\u05DB\u05D5\u05E8\u05EA') };
 }
 
 
@@ -967,52 +929,35 @@ export function buildCardCapturedEmail(params: {
   const safeName = escapeHtml(params.contactName);
   const safeEvent = escapeHtml(params.eventName);
 
-  const subject = `${ltr('Eventa')} \u2014 פרטי הכרטיס נשמרו בהצלחה`;
+  const subject = `${ltr('Eventa')} \u2014 \u05E4\u05E8\u05D8\u05D9 \u05D4\u05DB\u05E8\u05D8\u05D9\u05E1 \u05E0\u05E9\u05DE\u05E8\u05D5 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4`;
 
   const inner = `
         <!-- Greeting -->
-        <tr>
-          <td ${RTL} style="text-align:right;padding:28px 32px 4px;border-bottom:1px solid ${C.border};background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:16px;color:${C.text};font-weight:500;line-height:1.6;">שלום ${safeName}&rlm;,</div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};margin-top:6px;line-height:1.6;padding-bottom:20px;">
-              פרטי כרטיס האשראי שלך נשמרו בהצלחה עבור האירוע <strong>${safeEvent}</strong>.
-            </div>
-          </td>
-        </tr>
+        ${greeting(
+          safeName,
+          `\u05E4\u05E8\u05D8\u05D9 \u05DB\u05E8\u05D8\u05D9\u05E1 \u05D4\u05D0\u05E9\u05E8\u05D0\u05D9 \u05E9\u05DC\u05DA \u05E0\u05E9\u05DE\u05E8\u05D5 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4 \u05E2\u05D1\u05D5\u05E8 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong>.`,
+        )}
 
         <!-- Info box -->
-        <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;background-color:${C.accentBg};border-right:3px solid ${C.accent};border-radius:6px;padding:16px 18px;font-size:14px;color:${C.text};line-height:1.8;">
-              <strong>חשוב לדעת:</strong> הכרטיס <u>לא חויב</u> בשלב זה.<br/>
-              החיוב יתבצע רק לאחר שנבדוק ונאשר את ההזמנה שלך.<br/>
-              סכום לחיוב: ${ltr(`\u20AA${params.totalPriceShekel}`)}
-            </div>
-          </td>
-        </tr>
+        ${tipBox(`<strong>\u05D7\u05E9\u05D5\u05D1 \u05DC\u05D3\u05E2\u05EA:</strong> \u05D4\u05DB\u05E8\u05D8\u05D9\u05E1 <u>\u05DC\u05D0 \u05D7\u05D5\u05D9\u05D1</u> \u05D1\u05E9\u05DC\u05D1 \u05D6\u05D4.<br/>
+              \u05D4\u05D7\u05D9\u05D5\u05D1 \u05D9\u05EA\u05D1\u05E6\u05E2 \u05E8\u05E7 \u05DC\u05D0\u05D7\u05E8 \u05E9\u05E0\u05D1\u05D3\u05D5\u05E7 \u05D5\u05E0\u05D0\u05E9\u05E8 \u05D0\u05EA \u05D4\u05D4\u05D6\u05DE\u05E0\u05D4 \u05E9\u05DC\u05DA.<br/>
+              \u05E1\u05DB\u05D5\u05DD \u05DC\u05D7\u05D9\u05D5\u05D1: ${ltr(`\u20AA${params.totalPriceShekel}`)}`)}
 
         <!-- What happens next -->
         <tr>
           <td ${RTL} style="text-align:right;padding:0 32px 28px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">מה קורה עכשיו?</div>
+            ${sectionTitle('\u05DE\u05D4 \u05E7\u05D5\u05E8\u05D4 \u05E2\u05DB\u05E9\u05D9\u05D5?')}
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('שלב 1', 'אנחנו בודקים את הבקשה שלך')}
-              ${row('שלב 2', 'לאחר אישור \u2014 הכרטיס יחויב')}
-              ${row('שלב 3', 'תקבלו קבלה במייל + האירוע ייצא לאוויר', true)}
+              ${stepRow(1, '\u05D0\u05E0\u05D7\u05E0\u05D5 \u05D1\u05D5\u05D3\u05E7\u05D9\u05DD \u05D0\u05EA \u05D4\u05D1\u05E7\u05E9\u05D4 \u05E9\u05DC\u05DA')}
+              ${stepRow(2, '\u05DC\u05D0\u05D7\u05E8 \u05D0\u05D9\u05E9\u05D5\u05E8 \u2014 \u05D4\u05DB\u05E8\u05D8\u05D9\u05E1 \u05D9\u05D7\u05D5\u05D9\u05D1')}
+              ${stepRow(3, '\u05EA\u05E7\u05D1\u05DC\u05D5 \u05E7\u05D1\u05DC\u05D4 \u05D1\u05DE\u05D9\u05D9\u05DC + \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05D9\u05D9\u05E6\u05D0 \u05DC\u05D0\u05D5\u05D5\u05D9\u05E8', true)}
             </table>
           </td>
         </tr>
 
-        <!-- Support footer row -->
-        <tr>
-          <td dir="rtl" style="direction:rtl;text-align:center;padding:0 32px 24px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:12px;color:${C.dim};">
-              לשאלות ניתן לפנות אלינו&rlm;: <a href="mailto:contact@eventa.productions" style="color:${C.accent};text-decoration:none;" dir="ltr">contact@eventa.productions</a>
-            </div>
-          </td>
-        </tr>`;
+        ${supportRow()}`;
 
-  return { subject, html: shell(subject, inner, 'אישור כרטיס') };
+  return { subject, html: shell(subject, inner, '\u05D0\u05D9\u05E9\u05D5\u05E8 \u05DB\u05E8\u05D8\u05D9\u05E1') };
 }
 
 
@@ -1032,77 +977,53 @@ export function buildApprovalChargeEmail(params: {
   const safeName = escapeHtml(params.contactName);
   const safeEvent = escapeHtml(params.eventName);
 
-  const subject = `${ltr('Eventa')} \u2014 ההזמנה אושרה והאירוע נוצר!`;
+  const subject = `${ltr('Eventa')} \u2014 \u05D4\u05D4\u05D6\u05DE\u05E0\u05D4 \u05D0\u05D5\u05E9\u05E8\u05D4 \u05D5\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E0\u05D5\u05E6\u05E8!`;
 
   const inner = `
         <!-- Greeting -->
-        <tr>
-          <td ${RTL} style="text-align:right;padding:28px 32px 4px;border-bottom:1px solid ${C.border};background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:16px;color:${C.text};font-weight:500;line-height:1.6;">שלום ${safeName}&rlm;,</div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};margin-top:6px;line-height:1.6;padding-bottom:20px;">
-              ההזמנה שלך עבור <strong>${safeEvent}</strong> <strong>אושרה</strong> והאירוע נוצר בהצלחה!
-            </div>
-          </td>
-        </tr>
+        ${greeting(
+          safeName,
+          `\u05D4\u05D4\u05D6\u05DE\u05E0\u05D4 \u05E9\u05DC\u05DA \u05E2\u05D1\u05D5\u05E8 <strong>${safeEvent}</strong> <strong>\u05D0\u05D5\u05E9\u05E8\u05D4</strong> \u05D5\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E0\u05D5\u05E6\u05E8 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4!`,
+        )}
 
         <!-- Payment confirmation -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px 0;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">פרטי תשלום</div>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9 \u05EA\u05E9\u05DC\u05D5\u05DD')}
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('סטטוס', '<strong style="color:#2e7d32;">שולם בהצלחה</strong>')}
-              ${row('סכום', ltr(`\u20AA${params.totalPriceShekel}`))}
-              ${row('אמצעי תשלום', 'כרטיס אשראי')}
-              ${row('תאריך חיוב', fmtDate(new Date().toISOString()), true)}
+              ${row('\u05E1\u05D8\u05D8\u05D5\u05E1', '<strong style="color:#2e7d32;">\u05E9\u05D5\u05DC\u05DD \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4</strong>')}
+              ${row('\u05E1\u05DB\u05D5\u05DD', ltr(`\u20AA${params.totalPriceShekel}`))}
+              ${row('\u05D0\u05DE\u05E6\u05E2\u05D9 \u05EA\u05E9\u05DC\u05D5\u05DD', '\u05DB\u05E8\u05D8\u05D9\u05E1 \u05D0\u05E9\u05E8\u05D0\u05D9')}
+              ${row('\u05EA\u05D0\u05E8\u05D9\u05DA \u05D7\u05D9\u05D5\u05D1', fmtDate(new Date().toISOString()), true)}
             </table>
           </td>
         </tr>
 
         <!-- Event info -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px 0;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">האירוע שלך</div>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E9\u05DC\u05DA')}
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('שם האירוע', safeEvent)}
-              ${row('תאריך', escapeHtml(params.eventDate), true)}
+              ${row('\u05E9\u05DD \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2', safeEvent)}
+              ${row('\u05EA\u05D0\u05E8\u05D9\u05DA', escapeHtml(params.eventDate), true)}
             </table>
           </td>
         </tr>
 
-        <!-- CTA -->
-        <tr>
-          <td style="padding:28px 32px 12px;text-align:center;background-color:${C.card};">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td align="center">
-                  <a href="${escapeHtml(params.eventUrl)}" style="display:inline-block;text-decoration:none;background-color:${C.accent};border-radius:10px;padding:16px 32px;color:#ffffff;font-size:16px;font-weight:700;" target="_blank">
-                    צפייה באירוע שלך
-                  </a>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
+        ${ctaBtn(params.eventUrl, '\u05E6\u05E4\u05D9\u05D9\u05D4 \u05D1\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E9\u05DC\u05DA')}
 
         <!-- Receipt note -->
         <tr>
           <td dir="rtl" style="direction:rtl;text-align:center;padding:8px 32px 28px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:13px;color:${C.muted};">
-              קבלה דיגיטלית תישלח בנפרד לכתובת המייל שלך.
+            <div dir="rtl" style="direction:rtl;text-align:center;font-size:14px;color:${C.muted};">
+              \u05E7\u05D1\u05DC\u05D4 \u05D3\u05D9\u05D2\u05D9\u05D8\u05DC\u05D9\u05EA \u05EA\u05D9\u05E9\u05DC\u05D7 \u05D1\u05E0\u05E4\u05E8\u05D3 \u05DC\u05DB\u05EA\u05D5\u05D1\u05EA \u05D4\u05DE\u05D9\u05D9\u05DC \u05E9\u05DC\u05DA.
             </div>
           </td>
         </tr>
 
-        <!-- Support footer row -->
-        <tr>
-          <td dir="rtl" style="direction:rtl;text-align:center;padding:0 32px 24px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:12px;color:${C.dim};">
-              לשאלות ניתן לפנות אלינו&rlm;: <a href="mailto:contact@eventa.productions" style="color:${C.accent};text-decoration:none;" dir="ltr">contact@eventa.productions</a>
-            </div>
-          </td>
-        </tr>`;
+        ${supportRow()}`;
 
-  return { subject, html: shell(subject, inner, 'אישור הזמנה') };
+  return { subject, html: shell(subject, inner, '\u05D0\u05D9\u05E9\u05D5\u05E8 \u05D4\u05D6\u05DE\u05E0\u05D4') };
 }
 
 
@@ -1129,54 +1050,37 @@ export function buildAdminChargeNotificationEmail(params: {
     event: escapeHtml(params.eventName),
   };
 
-  const subject = `חיוב בוצע \u2014 ${params.contactName} | ${ltr(`\u20AA${params.totalPriceShekel}`)}`;
+  const subject = `\u05D7\u05D9\u05D5\u05D1 \u05D1\u05D5\u05E6\u05E2 \u2014 ${params.contactName} | ${ltr(`\u20AA${params.totalPriceShekel}`)}`;
 
   const inner = `
         <!-- Success banner -->
         <tr>
-          <td ${RTL} style="text-align:right;background-color:#e8f5e9 !important;padding:14px 32px;border-bottom:1px solid ${C.border};font-size:14px;font-weight:600;color:#2e7d32;">
-            חיוב בוצע בהצלחה + אירוע נוצר
+          <td ${RTL} style="text-align:right;background-color:#e8f5e9 !important;padding:18px 32px;border-bottom:1px solid ${C.border};font-size:15px;font-weight:700;color:#2e7d32;">
+            \u05D7\u05D9\u05D5\u05D1 \u05D1\u05D5\u05E6\u05E2 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4 + \u05D0\u05D9\u05E8\u05D5\u05E2 \u05E0\u05D5\u05E6\u05E8
           </td>
         </tr>
 
         <!-- Details -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px 0;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">פרטי ההזמנה</div>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9 \u05D4\u05D4\u05D6\u05DE\u05E0\u05D4')}
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('לקוח', s.name)}
-              ${row('אירוע', s.event)}
-              ${row('סכום חיוב', ltr(`\u20AA${params.totalPriceShekel}`))}
-              ${row('אמצעי', 'כרטיס אשראי (Invoice4U Clearing)')}
-              ${row('אירוע ID', ltr(escapeHtml(params.eventId)), true)}
+              ${row('\u05DC\u05E7\u05D5\u05D7', s.name)}
+              ${row('\u05D0\u05D9\u05E8\u05D5\u05E2', s.event)}
+              ${row('\u05E1\u05DB\u05D5\u05DD \u05D7\u05D9\u05D5\u05D1', ltr(`\u20AA${params.totalPriceShekel}`))}
+              ${row('\u05D0\u05DE\u05E6\u05E2\u05D9', `\u05DB\u05E8\u05D8\u05D9\u05E1 \u05D0\u05E9\u05E8\u05D0\u05D9 (${ltr('Invoice4U Clearing')})`)}
+              ${row('\u05D0\u05D9\u05E8\u05D5\u05E2 ID', ltr(escapeHtml(params.eventId)), true)}
             </table>
           </td>
         </tr>
 
         <!-- Contact -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:24px 32px 28px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">פרטי לקוח</div>
-            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" class="em-row-alt" style="direction:rtl;border-collapse:collapse;background-color:#fafaf8;border-radius:8px;overflow:hidden;">
-              <tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:#fafaf8;color:${C.muted};font-size:13px;width:70px;">שם</td>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:#fafaf8;color:${C.text};font-size:14px;font-weight:600;">${s.name}</td>
-              </tr>
-              <tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:#fafaf8;color:${C.muted};font-size:13px;">טלפון</td>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:#fafaf8;">
-                  <a href="tel:${s.phone}" style="color:${C.accent};font-size:15px;font-weight:600;text-decoration:none;" dir="ltr">${s.phone}</a>
-                </td>
-              </tr>
-              <tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;background-color:#fafaf8;color:${C.muted};font-size:13px;">אימייל</td>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;background-color:#fafaf8;">
-                  <a href="mailto:${s.email}" style="color:${C.accent};font-size:14px;text-decoration:none;" dir="ltr">${s.email}</a>
-                </td>
-              </tr>
-            </table>
+          <td ${RTL} style="text-align:right;padding:32px 32px 28px;background-color:${C.card};">
+            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9 \u05DC\u05E7\u05D5\u05D7')}
+            ${contactCard(s.name, s.phone, s.email)}
           </td>
         </tr>`;
 
-  return { subject, html: shell(subject, inner, 'חיוב אוטומטי') };
+  return { subject, html: shell(subject, inner, '\u05D7\u05D9\u05D5\u05D1 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9') };
 }
