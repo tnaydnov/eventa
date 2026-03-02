@@ -678,80 +678,257 @@
   opacity: 0.6;
 }
 
-/* ── WhatsApp Message Preview ── */
-.portal-wa-preview {
+/* ── WhatsApp Realistic Preview ── */
+.wa-phone-frame {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   animation: portalFadeIn 0.2s ease-out;
 }
 
-.portal-wa-header {
+/* ─ Top bar ─ */
+.wa-topbar {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
-  background: #075e54;
-  border-radius: 10px 10px 0 0;
+  padding: 8px 12px;
+  background: #1f2c34;
 }
 
-.portal-wa-avatar {
-  width: 32px;
-  height: 32px;
+.wa-back-arrow {
+  width: 20px;
+  height: 20px;
+  color: #aebac1;
+  flex-shrink: 0;
+}
+
+.wa-topbar-avatar {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: var(--primary);
-  color: #000;
-  font-size: 0.85rem;
+  background: #00a884;
+  color: #fff;
+  font-size: 0.9rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.portal-wa-name {
-  color: #fff;
-  font-size: 0.85rem;
+.wa-topbar-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.wa-topbar-name {
+  color: #e9edef;
+  font-size: 0.88rem;
   font-weight: 600;
+  line-height: 1.2;
 }
 
-.portal-wa-bubble {
-  background: #1a2c34;
-  border-radius: 0 0 10px 10px;
-  padding: 12px 14px 8px;
+.wa-topbar-status {
+  color: #8696a0;
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+
+.wa-topbar-actions {
+  display: flex;
+  gap: 16px;
+  color: #aebac1;
+  flex-shrink: 0;
+}
+
+/* ─ Chat area ─ */
+.wa-chat-area {
+  background: #0b141a;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 10c1 0 2 1 2 2s-1 2-2 2-2-1-2-2 1-2 2-2zm-15 8c.6 0 1 .4 1 1s-.4 1-1 1-1-.4-1-1 .4-1 1-1zm30 0c.6 0 1 .4 1 1s-.4 1-1 1-1-.4-1-1 .4-1 1-1zm-15 14c.6 0 1 .4 1 1s-.4 1-1 1-1-.4-1-1 .4-1 1-1zm-20 8c.6 0 1 .4 1 1s-.4 1-1 1-1-.4-1-1 .4-1 1-1zm40 0c.6 0 1 .4 1 1s-.4 1-1 1-1-.4-1-1 .4-1 1-1z' fill='%23ffffff' fill-opacity='.02'/%3E%3C/svg%3E");
+  padding: 16px 12px 12px;
+  min-height: 180px;
   position: relative;
 }
 
-.portal-wa-text {
-  font-size: 0.8rem;
+/* ─ Encryption badge ─ */
+.wa-encrypt-badge {
+  text-align: center;
+  font-size: 0.62rem;
+  color: rgba(134, 150, 160, 0.7);
+  background: rgba(18, 30, 37, 0.85);
+  padding: 4px 12px;
+  border-radius: 6px;
+  margin: 0 auto 14px;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ─ Message bubble ─ */
+.wa-msg-row {
+  display: flex;
+  justify-content: flex-start;
+  padding-right: 40px;
+}
+
+.wa-msg-bubble {
+  background: #1a2c34;
+  border-radius: 0 8px 8px 8px;
+  padding: 7px 9px 4px;
+  max-width: 100%;
+  position: relative;
+  box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
+}
+
+.wa-msg-tail {
+  position: absolute;
+  top: 0;
+  left: -8px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 8px 10px 0;
+  border-color: transparent #1a2c34 transparent transparent;
+}
+
+.wa-msg-text {
+  font-size: 0.82rem;
   color: #e9edef;
-  margin: 0 0 6px;
-  line-height: 1.5;
+  margin: 0 0 3px;
+  line-height: 1.55;
+  white-space: pre-line;
+  direction: rtl;
 }
 
-.portal-wa-var {
-  background: rgba(212, 165, 154, 0.2);
-  padding: 1px 5px;
-  border-radius: 4px;
-  color: var(--primary);
-  font-weight: 500;
+.wa-msg-text strong {
+  color: #fff;
 }
 
-.portal-wa-link {
-  font-size: 0.78rem;
+.wa-msg-link {
+  font-size: 0.8rem;
   color: #53bdeb;
-  margin: 4px 0 8px;
-  word-break: break-all;
+  margin: 6px 0 4px;
+  direction: rtl;
 }
 
-.portal-wa-time {
-  display: block;
-  text-align: left;
-  font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.4);
-  margin-top: 4px;
+.wa-msg-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+  font-size: 0.62rem;
+  color: rgba(134, 150, 160, 0.7);
+  margin-top: 2px;
 }
 
-.portal-wa-disclaimer {
+.wa-msg-check {
+  flex-shrink: 0;
+}
+
+/* ─ Bottom input bar ─ */
+.wa-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #1f2c34;
+}
+
+.wa-input-row {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #2a3942;
+  border-radius: 24px;
+  padding: 7px 12px;
+}
+
+.wa-input-field {
+  flex: 1;
+  font-size: 0.8rem;
+  color: #8696a0;
+  user-select: none;
+}
+
+.wa-mic-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #00a884;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ─ Disclaimer ─ */
+.wa-disclaimer {
   font-size: 0.7rem;
   color: var(--text-muted);
   opacity: 0.6;
   text-align: center;
-  margin: 8px 0 0;
+  margin: 10px 0 0;
+}
+
+/* ── Guest List Search ── */
+.portal-search-wrapper {
+  margin-bottom: 14px;
+}
+
+.portal-search-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  direction: rtl;
+}
+
+.portal-search-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.portal-search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb, 168, 85, 247), 0.15);
+}
+
+/* ── Guest List Scroll Container ── */
+.portal-guest-scroll {
+  max-height: 420px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) transparent;
+}
+
+.portal-guest-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.portal-guest-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.portal-guest-scroll::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+/* ── No Results ── */
+.portal-no-results {
+  text-align: center;
+  padding: 28px 16px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }

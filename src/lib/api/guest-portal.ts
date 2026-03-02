@@ -50,9 +50,12 @@ const portalUrl = (token: string) => `/api/guest-portal/${token}`;
 /** Fetch portal data with paginated guest list. */
 export async function getPortalData(
   token: string,
-  page = 1
+  page = 1,
+  search = ''
 ): Promise<PortalData> {
-  const res = await fetch(`${portalUrl(token)}?page=${page}`);
+  const params = new URLSearchParams({ page: String(page) });
+  if (search.trim()) params.set('search', search.trim());
+  const res = await fetch(`${portalUrl(token)}?${params}`);
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error || 'שגיאה בטעינת הנתונים');

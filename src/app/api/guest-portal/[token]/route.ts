@@ -114,18 +114,33 @@ export async function GET(
     // Check if event is archived
     const isReadOnly = event.status === 'archived';
 
-    // Pagination
+    // Pagination & search
     const url = new URL(req.url);
     const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
+    const search = (url.searchParams.get('search') || '').trim().slice(0, 100);
     const offset = (page - 1) * PAGE_SIZE;
 
-    // Load guest list (paginated)
-    const { data: guests, count } = await supabase
+    // Build guest query with optional search filter
+    let guestQuery = supabase
       .from('event_guest_phones')
       .select('id, phone, guest_name, wa_pre_event_sent, created_at', {
         count: 'exact',
       })
-      .eq('event_id', eventId)
+      .eq('event_id', eventId);
+
+    if (search) {
+      // Search by guest name (ilike) or phone (contains digits)
+      const digits = search.replace(/[^\d]/g, '');
+      if (digits.length >= 3) {
+        // Search by phone digits or name
+        guestQuery = guestQuery.or(`guest_name.ilike.%${search}%,phone.like.%${digits}%`);
+      } else {
+        // Name-only search
+        guestQuery = guestQuery.ilike('guest_name', `%${search}%`);
+      }
+    }
+
+    const { data: guests, count } = await guestQuery
       .order('created_at', { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1);
 

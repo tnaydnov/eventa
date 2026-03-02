@@ -16,6 +16,7 @@ import UploadResultDisplay from './_components/UploadResultDisplay';
 import AddPhoneForm from './_components/AddPhoneForm';
 import GuestListTable from './_components/GuestListTable';
 import MessagePreview from './_components/MessagePreview';
+import TimingInfo from './_components/TimingInfo';
 
 // ─── Status badge helpers ──────────────────────────────
 
@@ -59,18 +60,19 @@ export default function GuestUploadPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
 
   // ── Load portal data ──
   const loadData = useCallback(
-    async (p = page) => {
+    async (p = page, search = searchQuery) => {
       if (!token) {
         setError('קישור לא תקין — חסר טוקן אימות');
         setLoading(false);
         return;
       }
       try {
-        const result = await getPortalData(token, p);
+        const result = await getPortalData(token, p, search);
         // Verify event slug matches URL
         if (result.event.slug !== slug) {
           setError('הקישור אינו תואם את האירוע');
@@ -86,7 +88,7 @@ export default function GuestUploadPage({
         setLoading(false);
       }
     },
-    [token, slug, page]
+    [token, slug, page, searchQuery]
   );
 
   useEffect(() => {
@@ -148,7 +150,16 @@ export default function GuestUploadPage({
   // ── Page change ──
   const handlePageChange = useCallback(
     (newPage: number) => {
-      loadData(newPage);
+      loadData(newPage, searchQuery);
+    },
+    [loadData, searchQuery]
+  );
+
+  // ── Search handler ──
+  const handleSearch = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
+      loadData(1, query);
     },
     [loadData]
   );
@@ -194,6 +205,11 @@ export default function GuestUploadPage({
         </span>
       </div>
 
+      {/* Timing info - right after header, only when WA enabled and not read-only */}
+      {data.event.waMessagesEnabled && !isReadOnly && (
+        <TimingInfo startsAt={data.event.startsAt} />
+      )}
+
       {/* Read-only banner */}
       {isReadOnly && (
         <div className="portal-read-only-banner">
@@ -235,6 +251,8 @@ export default function GuestUploadPage({
         onPageChange={handlePageChange}
         onRemove={handleRemove}
         isReadOnly={isReadOnly}
+        searchQuery={searchQuery}
+        onSearch={handleSearch}
       />
 
       {/* Message preview & timing info - only when WA enabled */}
@@ -250,8 +268,6 @@ export default function GuestUploadPage({
         {data.event.waMessagesEnabled ? (
           <p>
             הודעות WhatsApp יישלחו אוטומטית 3 שעות לפני תחילת האירוע.
-            <br />
-            ניתן להוסיף או לערוך מספרים עד למועד האחרון שמצוין למעלה.
           </p>
         ) : (
           <p>

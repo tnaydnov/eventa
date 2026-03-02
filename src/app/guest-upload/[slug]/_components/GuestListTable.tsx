@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { PortalGuest } from '@/lib/api/guest-portal';
 
 interface GuestListTableProps {
@@ -11,6 +11,8 @@ interface GuestListTableProps {
   onPageChange: (page: number) => void;
   onRemove: (phoneId: string) => Promise<void>;
   isReadOnly: boolean;
+  searchQuery: string;
+  onSearch: (query: string) => void;
 }
 
 export default function GuestListTable({
@@ -21,8 +23,11 @@ export default function GuestListTable({
   onPageChange,
   onRemove,
   isReadOnly,
+  searchQuery,
+  onSearch,
 }: GuestListTableProps) {
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleRemove = useCallback(
     async (phoneId: string) => {
@@ -36,7 +41,19 @@ export default function GuestListTable({
     [onRemove]
   );
 
-  if (total === 0) {
+  const handleSearchInput = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      // Debounce search to avoid spamming API
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        onSearch(val);
+      }, 350);
+    },
+    [onSearch]
+  );
+
+  if (total === 0 && !searchQuery) {
     return (
       <div className="portal-section">
         <h2 className="portal-section-title">📋 רשימת אורחים</h2>
@@ -48,7 +65,7 @@ export default function GuestListTable({
   }
 
   return (
-    <div className="portal-section">
+    <div className="portal-section portal-section--list">
       <div className="portal-list-header">
         <h2 className="portal-section-title" style={{ margin: 0 }}>
           📋 רשימת אורחים
@@ -56,34 +73,55 @@ export default function GuestListTable({
         <span className="portal-list-count">{total} אורחים</span>
       </div>
 
-      <div className="portal-guest-table">
-        {guests.map((guest) => (
-          <div key={guest.id} className="portal-guest-row">
-            <span className="portal-guest-name">
-              {guest.name || '—'}
-            </span>
-            <span className="portal-guest-phone">{guest.maskedPhone}</span>
-            <span
-              className={`portal-guest-status ${
-                guest.sent
-                  ? 'portal-guest-status--sent'
-                  : 'portal-guest-status--pending'
-              }`}
-            >
-              {guest.sent ? 'נשלח ✓' : 'ממתין'}
-            </span>
-            {!isReadOnly && (
-              <button
-                className="portal-guest-remove"
-                onClick={() => handleRemove(guest.id)}
-                disabled={guest.sent || removingId === guest.id}
-                title={guest.sent ? 'לא ניתן להסיר — כבר נשלחה הודעה' : 'הסרה'}
-              >
-                {removingId === guest.id ? '…' : '🗑'}
-              </button>
-            )}
+      {/* Search input */}
+      <div className="portal-search-wrapper">
+        <input
+          type="text"
+          className="portal-search-input"
+          placeholder="🔍 חיפוש לפי שם או מספר טלפון..."
+          defaultValue={searchQuery}
+          onChange={handleSearchInput}
+          dir="rtl"
+        />
+      </div>
+
+      {/* Scrollable guest table */}
+      <div className="portal-guest-scroll">
+        {guests.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', textAlign: 'center', padding: '16px 0' }}>
+            לא נמצאו תוצאות לחיפוש &quot;{searchQuery}&quot;
+          </p>
+        ) : (
+          <div className="portal-guest-table">
+            {guests.map((guest) => (
+              <div key={guest.id} className="portal-guest-row">
+                <span className="portal-guest-name">
+                  {guest.name || '—'}
+                </span>
+                <span className="portal-guest-phone">{guest.maskedPhone}</span>
+                <span
+                  className={`portal-guest-status ${
+                    guest.sent
+                      ? 'portal-guest-status--sent'
+                      : 'portal-guest-status--pending'
+                  }`}
+                >
+                  {guest.sent ? 'נשלח ✓' : 'ממתין'}
+                </span>
+                {!isReadOnly && (
+                  <button
+                    className="portal-guest-remove"
+                    onClick={() => handleRemove(guest.id)}
+                    disabled={guest.sent || removingId === guest.id}
+                    title={guest.sent ? 'לא ניתן להסיר — כבר נשלחה הודעה' : 'הסרה'}
+                  >
+                    {removingId === guest.id ? '…' : '🗑'}
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
 
       {totalPages > 1 && (
