@@ -483,3 +483,275 @@
   color: var(--text-muted);
   margin-bottom: 16px;
 }
+
+/* ── Step-by-Step Guide ── */
+.portal-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.portal-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.portal-step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #000;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.portal-step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.portal-step-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.portal-step-desc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* ── Expandable Guide Toggle ── */
+.portal-guide-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px;
+  border: 1px dashed var(--card-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+
+.portal-guide-toggle:hover {
+  background: rgba(212, 165, 154, 0.06);
+  border-color: var(--primary);
+}
+
+/* ── Guide Panel ── */
+.portal-guide {
+  margin-bottom: 14px;
+  animation: portalFadeIn 0.2s ease-out;
+}
+
+@keyframes portalFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Spreadsheet Preview ── */
+.portal-spreadsheet {
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.portal-spreadsheet-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  font-size: 0.78rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.portal-spreadsheet-row:last-child {
+  border-bottom: none;
+}
+
+.portal-spreadsheet-row > span {
+  padding: 8px 12px;
+  color: var(--foreground);
+}
+
+.portal-spreadsheet-row > span:first-child {
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.portal-spreadsheet-header {
+  background: var(--surface);
+}
+
+.portal-spreadsheet-header > span {
+  font-weight: 600;
+  color: var(--primary);
+  font-size: 0.75rem;
+}
+
+/* ── Guide Notes ── */
+.portal-guide-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.portal-guide-notes p {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.portal-mono {
+  font-family: 'Courier New', monospace;
+  background: var(--surface);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+}
+
+/* ── Timing Info ── */
+.portal-timing-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.portal-timing-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  background: var(--surface);
+  border-radius: 10px;
+}
+
+.portal-timing-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.portal-timing-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.portal-timing-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.portal-timing-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.portal-timing-sub {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* ── WhatsApp Message Preview ── */
+.portal-wa-preview {
+  animation: portalFadeIn 0.2s ease-out;
+}
+
+.portal-wa-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #075e54;
+  border-radius: 10px 10px 0 0;
+}
+
+.portal-wa-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #000;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.portal-wa-name {
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.portal-wa-bubble {
+  background: #1a2c34;
+  border-radius: 0 0 10px 10px;
+  padding: 12px 14px 8px;
+  position: relative;
+}
+
+.portal-wa-text {
+  font-size: 0.8rem;
+  color: #e9edef;
+  margin: 0 0 6px;
+  line-height: 1.5;
+}
+
+.portal-wa-var {
+  background: rgba(212, 165, 154, 0.2);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.portal-wa-link {
+  font-size: 0.78rem;
+  color: #53bdeb;
+  margin: 4px 0 8px;
+  word-break: break-all;
+}
+
+.portal-wa-time {
+  display: block;
+  text-align: left;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 4px;
+}
+
+.portal-wa-disclaimer {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+  text-align: center;
+  margin: 8px 0 0;
+}

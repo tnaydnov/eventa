@@ -15,6 +15,7 @@ import UploadZone from './_components/UploadZone';
 import UploadResultDisplay from './_components/UploadResultDisplay';
 import AddPhoneForm from './_components/AddPhoneForm';
 import GuestListTable from './_components/GuestListTable';
+import MessagePreview from './_components/MessagePreview';
 
 // ─── Status badge helpers ──────────────────────────────
 
@@ -236,13 +237,21 @@ export default function GuestUploadPage({
         isReadOnly={isReadOnly}
       />
 
+      {/* Message preview & timing info - only when WA enabled */}
+      {data.event.waMessagesEnabled && !isReadOnly && (
+        <MessagePreview
+          eventName={data.event.name}
+          startsAt={data.event.startsAt}
+        />
+      )}
+
       {/* Footer */}
       <div className="portal-info">
         {data.event.waMessagesEnabled ? (
           <p>
-            הודעות WhatsApp יישלחו אוטומטית יום לפני האירוע.
+            הודעות WhatsApp יישלחו אוטומטית 3 שעות לפני תחילת האירוע.
             <br />
-            ניתן להוסיף או לערוך מספרים עד לשליחת ההודעות.
+            ניתן להוסיף או לערוך מספרים עד למועד האחרון שמצוין למעלה.
           </p>
         ) : (
           <p>

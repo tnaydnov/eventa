@@ -18,13 +18,14 @@ const ACCEPTED_EXT = ['.xlsx', '.csv'];
 export default function UploadZone({ onUpload, templateUrl, disabled }: UploadZoneProps) {
   const [dragover, setDragover] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback(
     async (file: File) => {
       const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
       if (!ACCEPTED.includes(file.type) && !ACCEPTED_EXT.includes(ext)) {
-        return; // silently ignore — parent will show toast if needed
+        return;
       }
       setUploading(true);
       try {
@@ -78,6 +79,31 @@ export default function UploadZone({ onUpload, templateUrl, disabled }: UploadZo
     <div className="portal-section">
       <h2 className="portal-section-title">📤 העלאת רשימת אורחים</h2>
 
+      {/* Step-by-step guide */}
+      <div className="portal-steps">
+        <div className="portal-step">
+          <span className="portal-step-num">1</span>
+          <div className="portal-step-content">
+            <span className="portal-step-label">הורידו את הקובץ לדוגמה</span>
+            <span className="portal-step-desc">קובץ Excel מוכן עם הכותרות הנכונות</span>
+          </div>
+        </div>
+        <div className="portal-step">
+          <span className="portal-step-num">2</span>
+          <div className="portal-step-content">
+            <span className="portal-step-label">מלאו את מספרי הטלפון</span>
+            <span className="portal-step-desc">הוסיפו מספרים ישראליים בתוך הקובץ</span>
+          </div>
+        </div>
+        <div className="portal-step">
+          <span className="portal-step-num">3</span>
+          <div className="portal-step-content">
+            <span className="portal-step-label">העלו את הקובץ כאן</span>
+            <span className="portal-step-desc">גררו לכאן או לחצו לבחירה</span>
+          </div>
+        </div>
+      </div>
+
       {/* Template download */}
       <a
         href={templateUrl}
@@ -87,6 +113,48 @@ export default function UploadZone({ onUpload, templateUrl, disabled }: UploadZo
       >
         📥 הורידו את הטמפלט
       </a>
+
+      {/* "How should it look?" toggle */}
+      <button
+        type="button"
+        className="portal-guide-toggle"
+        onClick={() => setShowGuide((v) => !v)}
+        aria-expanded={showGuide}
+      >
+        {showGuide ? '▲' : '▼'} איך הקובץ צריך להיראות?
+      </button>
+
+      {showGuide && (
+        <div className="portal-guide">
+          {/* Mini spreadsheet preview */}
+          <div className="portal-spreadsheet">
+            <div className="portal-spreadsheet-row portal-spreadsheet-header">
+              <span>טלפון</span>
+              <span>שם (אופציונלי)</span>
+            </div>
+            <div className="portal-spreadsheet-row">
+              <span dir="ltr">0501234567</span>
+              <span>דנה כהן</span>
+            </div>
+            <div className="portal-spreadsheet-row">
+              <span dir="ltr">052-1234567</span>
+              <span>יוסי לוי</span>
+            </div>
+            <div className="portal-spreadsheet-row">
+              <span dir="ltr">054-1234567</span>
+              <span></span>
+            </div>
+          </div>
+
+          <div className="portal-guide-notes">
+            <p>✅ אפשר עם מקף או בלי: <span dir="ltr" className="portal-mono">052-1234567</span> או <span dir="ltr" className="portal-mono">0521234567</span></p>
+            <p>✅ עמודת השם היא אופציונלית — אפשר להשאיר ריק</p>
+            <p>✅ רק מספרים ישראליים שמתחילים ב-<span dir="ltr" className="portal-mono">05</span></p>
+            <p>✅ עד 500 מספרים בקובץ אחד (אפשר להעלות עוד)</p>
+            <p>✅ מספרים כפולים יסוננו אוטומטית</p>
+          </div>
+        </div>
+      )}
 
       {/* Drop zone */}
       <div
