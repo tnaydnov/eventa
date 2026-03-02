@@ -262,10 +262,10 @@ function shell(title: string, inner: string, subtitle?: string): string {
                     ? `<div dir="rtl" style="direction:rtl;text-align:right;font-size:20px;font-weight:700;color:${C.accent};line-height:1.3;">${subtitle}</div>`
                     : `<div style="font-size:14px;color:${C.dim};letter-spacing:0.5px;">${ltr('EVENTA')}</div>`}
                 </td>
-                <!-- Logo (RTL end = left), sized to nearly fill row height -->
-                <td style="text-align:left;padding:2px 8px 2px 16px;vertical-align:middle;width:68px;">
-                  <img class="em-logo-dark" src="${LOGO_DARK}" alt="Eventa" width="64" height="64" style="display:inline-block;width:64px;height:64px;border:0;vertical-align:middle;" />
-                  <img class="em-logo-light" src="${LOGO_LIGHT}" alt="Eventa" width="64" height="64" style="display:none;width:64px;height:64px;border:0;vertical-align:middle;" />
+                <!-- Logo (RTL end = left), sized to fill row height -->
+                <td style="text-align:left;padding:2px 16px 2px 0;vertical-align:middle;width:200px;">
+                  <img class="em-logo-dark" src="${LOGO_DARK}" alt="Eventa" width="190" height="auto" style="display:inline-block;max-width:190px;height:auto;border:0;vertical-align:middle;" />
+                  <img class="em-logo-light" src="${LOGO_LIGHT}" alt="Eventa" width="190" height="auto" style="display:none;max-width:190px;height:auto;border:0;vertical-align:middle;" />
                 </td>
               </tr>
             </table>
