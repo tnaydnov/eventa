@@ -1,41 +1,84 @@
 'use client';
 
+import type { WizardFormState } from '../wizard-config';
+import { MSG_ADDON } from '@/lib/config';
 import WizardIcon from '../WizardIcons';
 
-export default function StepMessages() {
+interface Props {
+  state: WizardFormState;
+  onChange: (patch: Partial<WizardFormState>) => void;
+}
+
+export default function StepMessages({ state, onChange }: Props) {
+  const enabled = state.wantsGuestMessages;
+
   return (
     <div className="wiz-step">
       <div className="wiz-step__header">
-        <h2 className="wiz-step__title">הודעות לאורחים</h2>
+        <h2 className="wiz-step__title">הודעות WhatsApp לאורחים</h2>
         <p className="wiz-step__subtitle">
-          שירות זה עדיין לא זמין — ניתן לדלג לשלב הבא.
+          שלחו לאורחים הודעת WhatsApp עם קישור אישי לאפליקציה — בלי צורך ב-QR.
         </p>
       </div>
 
-      {/* Coming soon — visually locked */}
-      <div className="wiz-coming-soon">
-        {/* Lock icon */}
-        <div className="wiz-coming-soon__lock">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-          </svg>
+      {/* Toggle card */}
+      <button
+        type="button"
+        className={`wiz-msg-toggle ${enabled ? 'wiz-msg-toggle--active' : ''}`}
+        onClick={() => onChange({ wantsGuestMessages: !enabled })}
+      >
+        <div className="wiz-msg-toggle__header">
+          <div className="wiz-msg-toggle__icon">
+            <WizardIcon name="chat" size={24} />
+          </div>
+          <div className="wiz-msg-toggle__content">
+            <div className="wiz-msg-toggle__title">שירות הודעות לאורחים</div>
+            <div className="wiz-msg-toggle__price">+₪{MSG_ADDON}</div>
+          </div>
+          <div className={`wiz-msg-toggle__switch ${enabled ? 'wiz-msg-toggle__switch--on' : ''}`}>
+            <div className="wiz-msg-toggle__switch-thumb" />
+          </div>
         </div>
-        <div className="wiz-coming-soon__badge">
-          לא זמין כרגע
+      </button>
+
+      {/* Feature list */}
+      <div className={`wiz-msg-features ${enabled ? 'wiz-msg-features--active' : ''}`}>
+        <div className="wiz-msg-features__grid">
+          <div className="wiz-msg-feature">
+            <div className="wiz-msg-feature__icon">📱</div>
+            <div className="wiz-msg-feature__text">
+              <strong>הודעת WhatsApp לפני האירוע</strong>
+              <span>כל אורח מקבל קישור אישי להצטרפות — בלי סריקת QR</span>
+            </div>
+          </div>
+          <div className="wiz-msg-feature">
+            <div className="wiz-msg-feature__icon">📊</div>
+            <div className="wiz-msg-feature__text">
+              <strong>העלאת רשימת טלפונים</strong>
+              <span>תקבלו קישור ייעודי להעלאת מספרי טלפון מ-Excel</span>
+            </div>
+          </div>
+          <div className="wiz-msg-feature">
+            <div className="wiz-msg-feature__icon">💬</div>
+            <div className="wiz-msg-feature__text">
+              <strong>הודעת פידבק + הנחה</strong>
+              <span>יום אחרי האירוע — סקר קצר וקוד הנחה 10% לאירוע הבא</span>
+            </div>
+          </div>
         </div>
-        <p className="wiz-coming-soon__text">
-          שירות שליחת הודעות WhatsApp לאורחים נמצא בפיתוח.<br />
-          השירות יהיה זמין בקרוב — אין צורך לעשות דבר כרגע.
-        </p>
-        <div className="wiz-coming-soon__features">
-          <p className="wiz-coming-soon__features-title">מה יכלול השירות בעתיד:</p>
-          <ul>
-            <li><WizardIcon name="chat" size={14} /> שליחת הודעות WhatsApp לאורחים עם קישור אישי</li>
-            <li><WizardIcon name="check" size={14} /> העלאת רשימת טלפונים מקובץ Excel</li>
-            <li><WizardIcon name="check" size={14} /> הצטרפות ללא צורך בסריקת QR</li>
-          </ul>
+      </div>
+
+      {/* How it works */}
+      <div className="wiz-msg-howto">
+        <div className="wiz-msg-howto__title">
+          <WizardIcon name="check" size={14} /> איך זה עובד?
         </div>
+        <ol className="wiz-msg-howto__steps">
+          <li>לאחר הרכישה תקבלו קישור למערכת העלאת מספרים</li>
+          <li>תעלו קובץ Excel עם רשימת הטלפונים (נשלח לכם תבנית מוכנה)</li>
+          <li>כ-3 שעות לפני האירוע — נשלח הודעות WhatsApp אוטומטית</li>
+          <li>יום אחרי האירוע — נשלח פידבק + הנחה (למי שהסכים)</li>
+        </ol>
       </div>
     </div>
   );

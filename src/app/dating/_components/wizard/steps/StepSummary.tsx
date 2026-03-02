@@ -2,6 +2,7 @@
 
 import type { WizardFormState } from '../wizard-config';
 import { WIZARD_TYPE_MAP } from '../wizard-config';
+import { BASE_PRICE, MSG_ADDON } from '@/lib/config';
 import WizardIcon from '../WizardIcons';
 
 interface Props {
@@ -94,13 +95,17 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
           </button>
         </div>
 
-        <div className="wiz-summary__card wiz-summary__card--disabled">
+        <div className={`wiz-summary__card${state.wantsGuestMessages ? '' : ' wiz-summary__card--disabled'}`}>
           <div className="wiz-summary__card-content">
             <div className="wiz-summary__card-label">הודעות לאורחים</div>
-            <div className="wiz-summary__card-value wiz-summary__card-value--muted">
-              <WizardIcon name="chat" size={14} className="wiz-summary__inline-icon" /> בקרוב
+            <div className={`wiz-summary__card-value${state.wantsGuestMessages ? '' : ' wiz-summary__card-value--muted'}`}>
+              <WizardIcon name="chat" size={14} className="wiz-summary__inline-icon" />
+              {state.wantsGuestMessages ? 'WhatsApp + Excel — כלול' : 'לא נבחר'}
             </div>
           </div>
+          <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(4)}>
+            שנה
+          </button>
         </div>
       </div>
 
@@ -108,12 +113,18 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
       <div className="wiz-price">
         <div className="wiz-price__row">
           <span>חבילת אירוע בסיסית</span>
-          <span>₪250</span>
+          <span>₪{BASE_PRICE}</span>
         </div>
+        {state.wantsGuestMessages && (
+          <div className="wiz-price__row">
+            <span>שירות הודעות WhatsApp</span>
+            <span>₪{MSG_ADDON}</span>
+          </div>
+        )}
         <div className="wiz-price__divider" />
         <div className="wiz-price__row wiz-price__row--total">
           <span>סה״כ</span>
-          <span>₪250</span>
+          <span>₪{BASE_PRICE + (state.wantsGuestMessages ? MSG_ADDON : 0)}</span>
         </div>
       </div>
 
