@@ -93,7 +93,7 @@ CREATE INDEX IF NOT EXISTS idx_message_log_phone
 CREATE TABLE IF NOT EXISTS client_portal_tokens (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-  token TEXT NOT NULL UNIQUE CHECK (char_length(token) >= 32 AND char_length(token) <= 128),
+  token TEXT NOT NULL UNIQUE CHECK (char_length(token) >= 4 AND char_length(token) <= 128),
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   last_used_at TIMESTAMPTZ
