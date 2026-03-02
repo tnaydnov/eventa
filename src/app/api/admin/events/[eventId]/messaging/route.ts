@@ -42,7 +42,7 @@ export async function GET(
         supabase
           .from('events')
           .select(
-            'id, wa_messages_enabled, guest_list_uploaded, guest_list_uploaded_at, guest_list_count, messaging_config'
+            'id, wa_messages_enabled, guest_list_uploaded, guest_list_uploaded_at, guest_list_count'
           )
           .eq('id', eventId)
           .single(),
@@ -106,10 +106,16 @@ export async function GET(
     ).length;
     const estimatedCost = waMessages * 0.15 + smsMessages * 0.04;
 
-    // Parse messaging_config with fallback to defaults
-    const msgConfig = (event as Record<string, unknown>).messaging_config as
-      | Record<string, unknown>
-      | null;
+    // Try to read messaging_config (column may not exist yet in DB)
+    let msgConfig: Record<string, unknown> | null = null;
+    const { data: cfgRow, error: cfgErr } = await supabase
+      .from('events')
+      .select('messaging_config')
+      .eq('id', eventId)
+      .single();
+    if (!cfgErr && cfgRow) {
+      msgConfig = (cfgRow.messaging_config as Record<string, unknown>) ?? null;
+    }
 
     return NextResponse.json({
       wa_messages_enabled: event.wa_messages_enabled,
@@ -171,19 +177,23 @@ export async function PATCH(
     }
 
     if (parsed.data.messaging_config) {
-      // Merge with existing config
-      const { data: current } = await supabase
+      // Merge with existing config (column may not exist yet in DB)
+      const { data: current, error: cfgErr } = await supabase
         .from('events')
         .select('messaging_config')
         .eq('id', eventId)
         .single();
 
-      const existing =
-        (current?.messaging_config as Record<string, unknown>) || {};
-      updates.messaging_config = {
-        ...existing,
-        ...parsed.data.messaging_config,
-      };
+      if (!cfgErr) {
+        const existing =
+          (current?.messaging_config as Record<string, unknown>) || {};
+        updates.messaging_config = {
+          ...existing,
+          ...parsed.data.messaging_config,
+        };
+      } else {
+        logger.warn('[ADMIN_MESSAGING_PATCH] messaging_config column not available, skipping');
+      }
     }
 
     if (Object.keys(updates).length === 0) {
