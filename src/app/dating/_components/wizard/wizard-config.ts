@@ -158,7 +158,7 @@ export interface WizardFormState {
   wantsGuestMessages: boolean;
 
   // Step 6 - Summary / Contact
-  contactPreference: 'call-me' | 'send-link';
+  contactPreference: 'call-me' | 'pay-now';
   contactName: string;
   contactPhone: string;
   contactEmail: string;

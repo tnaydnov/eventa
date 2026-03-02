@@ -243,15 +243,17 @@ export function buildAdminNotificationEmail(data: OrderData): { subject: string;
 
   const contactPrefLabel = data.contactPreference === 'call-me'
     ? 'התקשרו אליי'
-    : 'שלחו לינק לתשלום';
+    : data.contactPreference === 'pay-now'
+      ? 'תשלום באתר (כרטיס אשראי)'
+      : 'שלחו לינק לתשלום';
 
   const subject = `בקשה חדשה \u2014 ${s.eventLabel} | ${data.contactName}`;
 
   const inner = `
         <!-- Contact preference banner -->
         <tr>
-          <td ${RTL} style="text-align:right;background-color:${data.contactPreference === 'send-link' ? '#eef4ff' : C.accentBg} !important;padding:14px 32px;border-bottom:1px solid ${C.border};font-size:14px;font-weight:600;color:${data.contactPreference === 'send-link' ? C.paybox : C.accent};">
-            ${data.contactPreference === 'send-link' ? 'הלקוח ביקש לקבל לינק לתשלום' : 'הלקוח מבקש שנחזור אליו'}
+          <td ${RTL} style="text-align:right;background-color:${data.contactPreference === 'pay-now' ? '#e8f5e9' : data.contactPreference === 'send-link' ? '#eef4ff' : C.accentBg} !important;padding:14px 32px;border-bottom:1px solid ${C.border};font-size:14px;font-weight:600;color:${data.contactPreference === 'pay-now' ? '#2e7d32' : data.contactPreference === 'send-link' ? C.paybox : C.accent};">
+            ${data.contactPreference === 'pay-now' ? 'הלקוח שילם באתר (כרטיס אשראי)' : data.contactPreference === 'send-link' ? 'הלקוח ביקש לקבל לינק לתשלום' : 'הלקוח מבקש שנחזור אליו'}
           </td>
         </tr>
 
@@ -948,4 +950,233 @@ export function buildCustomReminderEmail(params: {
         </tr>`;
 
   return { subject, html: shell(subject, inner, 'תזכורת') };
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   10. CARD CAPTURED CONFIRMATION EMAIL
+   Sent to the client right after they enter their credit card
+   on the website. Tells them card is saved, charge only on approval.
+   ═══════════════════════════════════════════════════════════════ */
+
+export function buildCardCapturedEmail(params: {
+  contactName: string;
+  eventName: string;
+  totalPriceShekel: number;
+}): { subject: string; html: string } {
+  const safeName = escapeHtml(params.contactName);
+  const safeEvent = escapeHtml(params.eventName);
+
+  const subject = `${ltr('Eventa')} \u2014 פרטי הכרטיס נשמרו בהצלחה`;
+
+  const inner = `
+        <!-- Greeting -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:28px 32px 4px;border-bottom:1px solid ${C.border};background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:16px;color:${C.text};font-weight:500;line-height:1.6;">שלום ${safeName}&rlm;,</div>
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};margin-top:6px;line-height:1.6;padding-bottom:20px;">
+              פרטי כרטיס האשראי שלך נשמרו בהצלחה עבור האירוע <strong>${safeEvent}</strong>.
+            </div>
+          </td>
+        </tr>
+
+        <!-- Info box -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:24px 32px;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:right;background-color:${C.accentBg};border-right:3px solid ${C.accent};border-radius:6px;padding:16px 18px;font-size:14px;color:${C.text};line-height:1.8;">
+              <strong>חשוב לדעת:</strong> הכרטיס <u>לא חויב</u> בשלב זה.<br/>
+              החיוב יתבצע רק לאחר שנבדוק ונאשר את ההזמנה שלך.<br/>
+              סכום לחיוב: ${ltr(`\u20AA${params.totalPriceShekel}`)}
+            </div>
+          </td>
+        </tr>
+
+        <!-- What happens next -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:0 32px 28px;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">מה קורה עכשיו?</div>
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
+              ${row('שלב 1', 'אנחנו בודקים את הבקשה שלך')}
+              ${row('שלב 2', 'לאחר אישור \u2014 הכרטיס יחויב')}
+              ${row('שלב 3', 'תקבלו קבלה במייל + האירוע ייצא לאוויר', true)}
+            </table>
+          </td>
+        </tr>
+
+        <!-- Support footer row -->
+        <tr>
+          <td dir="rtl" style="direction:rtl;text-align:center;padding:0 32px 24px;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:center;font-size:12px;color:${C.dim};">
+              לשאלות ניתן לפנות אלינו&rlm;: <a href="mailto:contact@eventa.productions" style="color:${C.accent};text-decoration:none;" dir="ltr">contact@eventa.productions</a>
+            </div>
+          </td>
+        </tr>`;
+
+  return { subject, html: shell(subject, inner, 'אישור כרטיס') };
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   11. APPROVAL + CHARGE EMAIL
+   Sent to the client when admin approves the request and the
+   credit card charge goes through. Includes receipt info.
+   ═══════════════════════════════════════════════════════════════ */
+
+export function buildApprovalChargeEmail(params: {
+  contactName: string;
+  eventName: string;
+  eventDate: string;
+  totalPriceShekel: number;
+  eventUrl: string;
+}): { subject: string; html: string } {
+  const safeName = escapeHtml(params.contactName);
+  const safeEvent = escapeHtml(params.eventName);
+
+  const subject = `${ltr('Eventa')} \u2014 ההזמנה אושרה והאירוע נוצר!`;
+
+  const inner = `
+        <!-- Greeting -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:28px 32px 4px;border-bottom:1px solid ${C.border};background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:16px;color:${C.text};font-weight:500;line-height:1.6;">שלום ${safeName}&rlm;,</div>
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};margin-top:6px;line-height:1.6;padding-bottom:20px;">
+              ההזמנה שלך עבור <strong>${safeEvent}</strong> <strong>אושרה</strong> והאירוע נוצר בהצלחה!
+            </div>
+          </td>
+        </tr>
+
+        <!-- Payment confirmation -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:24px 32px 0;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">פרטי תשלום</div>
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
+              ${row('סטטוס', '<strong style="color:#2e7d32;">שולם בהצלחה</strong>')}
+              ${row('סכום', ltr(`\u20AA${params.totalPriceShekel}`))}
+              ${row('אמצעי תשלום', 'כרטיס אשראי')}
+              ${row('תאריך חיוב', fmtDate(new Date().toISOString()), true)}
+            </table>
+          </td>
+        </tr>
+
+        <!-- Event info -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:24px 32px 0;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">האירוע שלך</div>
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
+              ${row('שם האירוע', safeEvent)}
+              ${row('תאריך', escapeHtml(params.eventDate), true)}
+            </table>
+          </td>
+        </tr>
+
+        <!-- CTA -->
+        <tr>
+          <td style="padding:28px 32px 12px;text-align:center;background-color:${C.card};">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td align="center">
+                  <a href="${escapeHtml(params.eventUrl)}" style="display:inline-block;text-decoration:none;background-color:${C.accent};border-radius:10px;padding:16px 32px;color:#ffffff;font-size:16px;font-weight:700;" target="_blank">
+                    צפייה באירוע שלך
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Receipt note -->
+        <tr>
+          <td dir="rtl" style="direction:rtl;text-align:center;padding:8px 32px 28px;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:center;font-size:13px;color:${C.muted};">
+              קבלה דיגיטלית תישלח בנפרד לכתובת המייל שלך.
+            </div>
+          </td>
+        </tr>
+
+        <!-- Support footer row -->
+        <tr>
+          <td dir="rtl" style="direction:rtl;text-align:center;padding:0 32px 24px;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:center;font-size:12px;color:${C.dim};">
+              לשאלות ניתן לפנות אלינו&rlm;: <a href="mailto:contact@eventa.productions" style="color:${C.accent};text-decoration:none;" dir="ltr">contact@eventa.productions</a>
+            </div>
+          </td>
+        </tr>`;
+
+  return { subject, html: shell(subject, inner, 'אישור הזמנה') };
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   12. ADMIN CHARGE NOTIFICATION EMAIL
+   Sent to admin after auto-charge on approval so they have a
+   record of the charge.
+   ═══════════════════════════════════════════════════════════════ */
+
+export function buildAdminChargeNotificationEmail(params: {
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  eventName: string;
+  totalPriceShekel: number;
+  requestId: string;
+  eventId: string;
+  eventSlug: string;
+}): { subject: string; html: string } {
+  const s = {
+    name: escapeHtml(params.contactName),
+    email: escapeHtml(params.contactEmail),
+    phone: escapeHtml(params.contactPhone),
+    event: escapeHtml(params.eventName),
+  };
+
+  const subject = `חיוב בוצע \u2014 ${params.contactName} | ${ltr(`\u20AA${params.totalPriceShekel}`)}`;
+
+  const inner = `
+        <!-- Success banner -->
+        <tr>
+          <td ${RTL} style="text-align:right;background-color:#e8f5e9 !important;padding:14px 32px;border-bottom:1px solid ${C.border};font-size:14px;font-weight:600;color:#2e7d32;">
+            חיוב בוצע בהצלחה + אירוע נוצר
+          </td>
+        </tr>
+
+        <!-- Details -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:24px 32px 0;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">פרטי ההזמנה</div>
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
+              ${row('לקוח', s.name)}
+              ${row('אירוע', s.event)}
+              ${row('סכום חיוב', ltr(`\u20AA${params.totalPriceShekel}`))}
+              ${row('אמצעי', 'כרטיס אשראי (Invoice4U Clearing)')}
+              ${row('אירוע ID', ltr(escapeHtml(params.eventId)), true)}
+            </table>
+          </td>
+        </tr>
+
+        <!-- Contact -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:24px 32px 28px;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${C.accent};margin-bottom:14px;">פרטי לקוח</div>
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" class="em-row-alt" style="direction:rtl;border-collapse:collapse;background-color:#fafaf8;border-radius:8px;overflow:hidden;">
+              <tr>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:#fafaf8;color:${C.muted};font-size:13px;width:70px;">שם</td>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:#fafaf8;color:${C.text};font-size:14px;font-weight:600;">${s.name}</td>
+              </tr>
+              <tr>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:#fafaf8;color:${C.muted};font-size:13px;">טלפון</td>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:#fafaf8;">
+                  <a href="tel:${s.phone}" style="color:${C.accent};font-size:15px;font-weight:600;text-decoration:none;" dir="ltr">${s.phone}</a>
+                </td>
+              </tr>
+              <tr>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;background-color:#fafaf8;color:${C.muted};font-size:13px;">אימייל</td>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;background-color:#fafaf8;">
+                  <a href="mailto:${s.email}" style="color:${C.accent};font-size:14px;text-decoration:none;" dir="ltr">${s.email}</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>`;
+
+  return { subject, html: shell(subject, inner, 'חיוב אוטומטי') };
 }

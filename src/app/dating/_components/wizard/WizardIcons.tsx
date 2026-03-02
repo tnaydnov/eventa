@@ -234,6 +234,15 @@ export default function WizardIcon({ name, size = 24, className }: Props) {
         </svg>
       );
 
+    case 'lock':
+      // Lock - secure payment
+      return (
+        <svg viewBox="0 0 24 24" fill="none" style={s} className={className} {...a11y}>
+          <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      );
+
     default:
       // Fallback - small dot
       return (

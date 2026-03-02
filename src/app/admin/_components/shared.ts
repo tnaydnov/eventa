@@ -369,9 +369,12 @@ export const PAYMENT_STATUS_DISPLAY: Record<string, { label: string; emoji: stri
   not_applicable: { label: 'לא רלוונטי', emoji: '➖', color: 'admin-badge--muted' },
   pending_payment: { label: 'ממתין לתשלום', emoji: '⏳', color: 'admin-badge--draft' },
   payment_link_sent: { label: 'קישור נשלח', emoji: '📧', color: 'admin-badge--draft' },
+  awaiting_payment: { label: 'ממתין לכרטיס', emoji: '💳', color: 'admin-badge--draft' },
+  card_captured: { label: 'כרטיס נשמר', emoji: '🔒', color: 'admin-badge--paused' },
   paid: { label: 'שולם', emoji: '✅', color: 'admin-badge--active' },
   waived: { label: 'בוטל/הנחה', emoji: '🎁', color: 'admin-badge--ended' },
   expired: { label: 'פג תוקף', emoji: '⏰', color: 'admin-badge--ended' },
+  charge_failed: { label: 'חיוב נכשל', emoji: '❌', color: 'admin-badge--ended' },
 };
 
 /** Payment method labels in Hebrew. */
@@ -380,6 +383,7 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
   paybox: 'PayBox',
   cash: 'מזומן',
   bank_transfer: 'העברה בנקאית',
+  credit_card: 'כרטיס אשראי',
   other: 'אחר',
 };
 

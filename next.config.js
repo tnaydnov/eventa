@@ -52,7 +52,7 @@ const nextConfig = {
       {
         source: '/(.*)',
         headers: [
-          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           {
@@ -76,8 +76,9 @@ const nextConfig = {
               `media-src 'self' blob: ${supabaseImg}`,
               `connect-src 'self' ${supabaseConnect}`,
               "worker-src 'self' blob:",
+              "frame-src 'self' https://*.creditguard.co.il https://*.cardcom.co.il https://*.yaadsarig.com https://*.meshulam.co.il https://*.upay.co.il https://*.invoice4u.co.il",
               "object-src 'none'",
-              "frame-ancestors 'none'",
+              "frame-ancestors 'self'",
               "base-uri 'self'",
               "form-action 'self'",
               "upgrade-insecure-requests",

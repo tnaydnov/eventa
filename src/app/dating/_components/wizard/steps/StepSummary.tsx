@@ -149,12 +149,12 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
 
         <button
           type="button"
-          className={`wiz-contact-opt${state.contactPreference === 'send-link' ? ' wiz-contact-opt--selected' : ''}`}
-          onClick={() => onChange({ contactPreference: 'send-link' })}
+          className={`wiz-contact-opt${state.contactPreference === 'pay-now' ? ' wiz-contact-opt--selected' : ''}`}
+          onClick={() => onChange({ contactPreference: 'pay-now' })}
         >
-          <div className="wiz-contact-opt__icon"><WizardIcon name="link" size={22} /></div>
-          <div className="wiz-contact-opt__label">שלחו לי לינק</div>
-          <div className="wiz-contact-opt__desc">לינק לתשלום ישירות</div>
+          <div className="wiz-contact-opt__icon"><WizardIcon name="lock" size={22} /></div>
+          <div className="wiz-contact-opt__label">תשלום מאובטח</div>
+          <div className="wiz-contact-opt__desc">תשלום בכרטיס אשראי באתר</div>
         </button>
       </div>
 

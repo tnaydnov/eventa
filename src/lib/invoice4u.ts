@@ -612,3 +612,397 @@ export function getConfigStatus(): {
     endpoint: API_URL,
   };
 }
+
+/* ════════════════════════════════════════════════════════
+   Invoice4U Clearing API  (Payment Processing)
+   ──────────────────────────────────────────────────────
+   REST/JSON endpoints on the same WCF service.
+   Used for card tokenisation (AddToken) and deferred
+   charging (ChargeWithToken).
+   ════════════════════════════════════════════════════════ */
+
+/** Clearing type enum. */
+export enum ClearingType {
+  Regular        = 1,
+  Payments       = 2,
+  CreditPayments = 3,
+  Refund         = 4,
+}
+
+/** Known Israeli clearing companies. */
+export enum ClearingCompany {
+  UPay       = 6,
+  Meshulam   = 7,
+  YaadSarig  = 12,
+  Cardcom    = 15,
+}
+
+export interface ClearingSessionParams {
+  /** Customer display name. */
+  fullName: string;
+  /** Customer phone. */
+  phone: string;
+  /** Customer email. */
+  email: string;
+  /** Amount in ILS (e.g. 250). */
+  sum: number;
+  /** Short description shown on the payment page. */
+  description: string;
+  /** Our internal order reference (stored with the clearing log). */
+  orderId?: string;
+  /** URL the iframe redirects to after completion. */
+  returnUrl: string;
+  /** Whether to tokenise only (true) or tokenise + charge immediately. */
+  tokenOnly?: boolean;
+  /** Clearing company override (leave undefined to use account default). */
+  clearingCompany?: ClearingCompany;
+  /** Document language — 'he' (default) or 'en'. */
+  language?: 'he' | 'en';
+}
+
+export interface ClearingSessionResult {
+  /** URL to load inside an iframe for the customer to enter card details. */
+  clearingRedirectUrl: string;
+  /** Invoice4U customer ID (auto-created if needed). */
+  customerId: number | null;
+  /** Payment ID assigned by Invoice4U. */
+  paymentId: string | null;
+  /** Clearing log ID. */
+  clearingLogId: string | null;
+  /** Clearing trace ID. */
+  clearingTraceId: string | null;
+}
+
+export interface ChargeTokenParams {
+  /** Invoice4U customer ID (from the tokenisation response). */
+  customerId: number;
+  /** Amount to charge in ILS. */
+  sum: number;
+  /** Short description. */
+  description: string;
+  /** Our internal order reference. */
+  orderId?: string;
+  /** Whether to also create an Invoice4U document (receipt). */
+  createDocument?: boolean;
+  /** Document headline / subject. */
+  docHeadline?: string;
+  /** Document comments. */
+  docComments?: string;
+  /** Manual item breakdown — names separated by |. */
+  docItemNames?: string;
+  /** Manual item breakdown — quantities separated by |. */
+  docItemQuantities?: string;
+  /** Manual item breakdown — prices separated by |. */
+  docItemPrices?: string;
+  /** Manual item breakdown — tax rates separated by |. */
+  docItemTaxRates?: string;
+  /** Document language — 'he' (default) or 'en'. */
+  language?: 'he' | 'en';
+}
+
+export interface ChargeTokenResult {
+  /** Whether the charge was successful. */
+  success: boolean;
+  /** Payment ID. */
+  paymentId: string | null;
+  /** Clearing log ID. */
+  clearingLogId: string | null;
+  /** Clearing trace ID. */
+  clearingTraceId: string | null;
+  /** Error message if failed. */
+  error?: string;
+}
+
+export interface ClearingLog {
+  id: number;
+  amount: number;
+  isSuccess: boolean;
+  paymentId: string;
+  clearingTraceId: string;
+  clearingConfirmationNumber: string;
+  clientName: string;
+  clearingCompanyName: string;
+  errorMessage: string;
+  isToken: boolean;
+  isDocumentCreated: boolean;
+  docId: string | null;
+  date: string;
+}
+
+/* ── Generic JSON call helper ─────────────────────────── */
+
+async function clearingJsonCall<T>(method: string, body: Record<string, unknown>): Promise<T> {
+  if (!API_TOKEN) {
+    throw new Error('INVOICE4U_API_TOKEN environment variable is not set');
+  }
+
+  const url = `${API_URL}/${method}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    logger.error(`[Invoice4U Clearing] ${method} HTTP ${res.status}`, { body: text.slice(0, 500) });
+    throw new Error(`Invoice4U Clearing API error: ${res.status}`);
+  }
+
+  return res.json() as Promise<T>;
+}
+
+/* ── Helper: extract values from OpenInfo array ───────── */
+
+function openInfoValue(
+  arr: Array<{ Key: string; Value: string }> | null | undefined,
+  key: string,
+): string | null {
+  if (!arr) return null;
+  const entry = arr.find(e => e.Key === key);
+  return entry?.Value ?? null;
+}
+
+/**
+ * Create a clearing session for card tokenisation.
+ * Returns a URL to embed in an iframe; the customer fills in card details.
+ * No charge is made — call `chargeWithToken` later to actually charge.
+ */
+export async function createClearingSession(
+  params: ClearingSessionParams,
+): Promise<Invoice4UResult<ClearingSessionResult>> {
+  try {
+    const request: Record<string, unknown> = {
+      Invoice4UUserApiKey: API_TOKEN,
+      Type: String(ClearingType.Regular),
+      FullName: params.fullName,
+      Phone: params.phone,
+      Email: params.email,
+      Sum: String(params.sum),
+      Description: params.description,
+      PaymentsNum: '1',
+      Currency: 'ILS',
+      OrderIdClientUsage: params.orderId || '',
+      IsDocCreate: 'false',  // never create doc during tokenisation
+      IsGeneralClient: 'false',
+      IsAutoCreateCustomer: 'true',
+      ReturnUrl: params.returnUrl,
+      AddToken: 'true',
+      AddTokenAndCharge: 'false',
+      ChargeWithToken: 'false',
+      Refund: 'false',
+      IsStandingOrderClearance: 'false',
+      StandingOrderDuration: '0',
+      DocLanguage: params.language || 'he',
+      IsManualDocCreationsWithParams: 'false',
+    };
+
+    if (params.clearingCompany) {
+      request.CreditCardCompanyType = String(params.clearingCompany);
+    }
+
+    const data = await clearingJsonCall<Record<string, unknown>>(
+      'ProcessApiRequestV2',
+      { request },
+    );
+
+    // Check for errors
+    const errors = data.Errors as Array<{ Key: string; Value: string }> | null;
+    if (errors && errors.length > 0) {
+      const errMsg = errors.map(e => `${e.Key}: ${e.Value}`).join('; ');
+      logger.error('[Invoice4U Clearing] session errors', { errors: errMsg });
+      return { success: false, error: errMsg };
+    }
+
+    const redirectUrl = data.ClearingRedirectUrl as string | undefined;
+    if (!redirectUrl) {
+      return { success: false, error: 'No ClearingRedirectUrl in response' };
+    }
+
+    const openInfo = data.OpenInfo as Array<{ Key: string; Value: string }> | undefined;
+
+    return {
+      success: true,
+      data: {
+        clearingRedirectUrl: redirectUrl,
+        customerId: (data.CustomerId as number) || null,
+        paymentId: openInfoValue(openInfo, 'PaymentId'),
+        clearingLogId: openInfoValue(openInfo, 'I4UClearingLogId'),
+        clearingTraceId: openInfoValue(openInfo, 'ClearingTraceId'),
+      },
+    };
+  } catch (err) {
+    logger.error('[Invoice4U Clearing] createClearingSession failed', err);
+    return { success: false, error: String(err) };
+  }
+}
+
+/**
+ * Charge a previously tokenised card.
+ * Call this when the admin approves an order whose card was captured.
+ *
+ * Optionally creates an Invoice4U document (receipt) in the same call.
+ */
+export async function chargeWithToken(
+  params: ChargeTokenParams,
+): Promise<Invoice4UResult<ChargeTokenResult>> {
+  try {
+    const isManual = !!(params.docItemNames && params.docItemPrices);
+
+    const request: Record<string, unknown> = {
+      Invoice4UUserApiKey: API_TOKEN,
+      Type: String(ClearingType.Regular),
+      CustomerId: String(params.customerId),
+      Sum: String(params.sum),
+      Description: params.description,
+      PaymentsNum: '1',
+      Currency: 'ILS',
+      OrderIdClientUsage: params.orderId || '',
+      IsDocCreate: params.createDocument ? 'true' : 'false',
+      DocHeadline: params.docHeadline || params.description,
+      DocComments: params.docComments || '',
+      IsGeneralClient: 'false',
+      IsAutoCreateCustomer: 'false',
+      ReturnUrl: '',
+      AddToken: 'false',
+      AddTokenAndCharge: 'false',
+      ChargeWithToken: 'true',
+      Refund: 'false',
+      IsStandingOrderClearance: 'false',
+      StandingOrderDuration: '0',
+      DocLanguage: params.language || 'he',
+      IsManualDocCreationsWithParams: isManual ? 'true' : 'false',
+    };
+
+    if (isManual) {
+      request.DocItemName = params.docItemNames;
+      request.DocItemQuantity = params.docItemQuantities || '1';
+      request.DocItemPrice = params.docItemPrices;
+      request.DocItemTaxRate = params.docItemTaxRates || String(VAT_RATE * 100);
+      request.IsItemsBase64Encoded = 'false';
+    }
+
+    const data = await clearingJsonCall<Record<string, unknown>>(
+      'ProcessApiRequestV2',
+      { request },
+    );
+
+    // Check for errors
+    const errors = data.Errors as Array<{ Key: string; Value: string }> | null;
+    if (errors && errors.length > 0) {
+      const errMsg = errors.map(e => `${e.Key}: ${e.Value}`).join('; ');
+      logger.error('[Invoice4U Clearing] chargeWithToken errors', { errors: errMsg });
+      return {
+        success: true,
+        data: { success: false, paymentId: null, clearingLogId: null, clearingTraceId: null, error: errMsg },
+      };
+    }
+
+    const openInfo = data.OpenInfo as Array<{ Key: string; Value: string }> | undefined;
+
+    return {
+      success: true,
+      data: {
+        success: true,
+        paymentId: openInfoValue(openInfo, 'PaymentId'),
+        clearingLogId: openInfoValue(openInfo, 'I4UClearingLogId'),
+        clearingTraceId: openInfoValue(openInfo, 'ClearingTraceId'),
+      },
+    };
+  } catch (err) {
+    logger.error('[Invoice4U Clearing] chargeWithToken failed', err);
+    return { success: false, error: String(err) };
+  }
+}
+
+/**
+ * Get clearing log details by log ID.
+ * Used to verify card tokenisation / charge status.
+ */
+export async function getClearingLogById(
+  clearingLogId: string,
+): Promise<Invoice4UResult<ClearingLog>> {
+  try {
+    const data = await clearingJsonCall<Record<string, unknown>>(
+      'GetClearingLogById',
+      { clearingLogId, token: API_TOKEN },
+    );
+
+    const errors = data.Errors as Array<{ Key: string; Value: string }> | null;
+    if (errors && errors.length > 0) {
+      return { success: false, error: errors.map(e => `${e.Key}: ${e.Value}`).join('; ') };
+    }
+
+    return {
+      success: true,
+      data: {
+        id: (data.Id as number) || 0,
+        amount: (data.Amount as number) || 0,
+        isSuccess: (data.IsSuccess as boolean) ?? false,
+        paymentId: String(data.PaymentId || ''),
+        clearingTraceId: String(data.ClearingTraceId || ''),
+        clearingConfirmationNumber: String(data.ClearingConfirmationNumber || ''),
+        clientName: String(data.ClientName || ''),
+        clearingCompanyName: String(data.ClearingCompanyName || ''),
+        errorMessage: String(data.ErrorMessage || ''),
+        isToken: (data.IsToken as boolean) ?? false,
+        isDocumentCreated: (data.IsDocumentCreated as boolean) ?? false,
+        docId: data.DocId ? String(data.DocId) : null,
+        date: String(data.Date || ''),
+      },
+    };
+  } catch (err) {
+    logger.error('[Invoice4U Clearing] getClearingLogById failed', err);
+    return { success: false, error: String(err) };
+  }
+}
+
+/**
+ * Get clearing log details by search parameters.
+ */
+export async function getClearingLogByParams(params: {
+  paymentId?: string;
+  fromAmount?: number;
+  toAmount?: number;
+  isSuccess?: boolean;
+}): Promise<Invoice4UResult<ClearingLog>> {
+  try {
+    const searchParams: Record<string, unknown> = {};
+    if (params.paymentId) searchParams.PaymentId = params.paymentId;
+    if (params.fromAmount != null) searchParams.FromAmount = params.fromAmount;
+    if (params.toAmount != null) searchParams.ToAmount = params.toAmount;
+    if (params.isSuccess != null) searchParams.IsSuccess = params.isSuccess;
+
+    const data = await clearingJsonCall<Record<string, unknown>>(
+      'GetClearingLogByParams',
+      { searchParams, token: API_TOKEN },
+    );
+
+    const errors = data.Errors as Array<{ Key: string; Value: string }> | null;
+    if (errors && errors.length > 0) {
+      return { success: false, error: errors.map(e => `${e.Key}: ${e.Value}`).join('; ') };
+    }
+
+    return {
+      success: true,
+      data: {
+        id: (data.Id as number) || 0,
+        amount: (data.Amount as number) || 0,
+        isSuccess: (data.IsSuccess as boolean) ?? false,
+        paymentId: String(data.PaymentId || ''),
+        clearingTraceId: String(data.ClearingTraceId || ''),
+        clearingConfirmationNumber: String(data.ClearingConfirmationNumber || ''),
+        clientName: String(data.ClientName || ''),
+        clearingCompanyName: String(data.ClearingCompanyName || ''),
+        errorMessage: String(data.ErrorMessage || ''),
+        isToken: (data.IsToken as boolean) ?? false,
+        isDocumentCreated: (data.IsDocumentCreated as boolean) ?? false,
+        docId: data.DocId ? String(data.DocId) : null,
+        date: String(data.Date || ''),
+      },
+    };
+  } catch (err) {
+    logger.error('[Invoice4U Clearing] getClearingLogByParams failed', err);
+    return { success: false, error: String(err) };
+  }
+}

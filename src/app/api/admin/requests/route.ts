@@ -6,9 +6,14 @@ import { getServiceClient, generateJoinCode } from '@/lib/supabase';
 import { adminGuard, jsonError } from '../_helpers';
 import { logger } from '@/lib/logger';
 import { adminAuditLog } from '@/lib/admin-auth';
-import { APP_BASE_URL } from '@/lib/config';
-import { buildUploadInstructionsEmail } from '@/lib/email-templates';
+import { APP_BASE_URL, BASE_PRICE, MSG_ADDON } from '@/lib/config';
+import {
+  buildUploadInstructionsEmail,
+  buildApprovalChargeEmail,
+  buildAdminChargeNotificationEmail,
+} from '@/lib/email-templates';
 import { generatePrettySlug } from '@/lib/slug';
+import { chargeWithToken, getClearingLogById } from '@/lib/invoice4u';
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -34,7 +39,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabase
       .from('event_requests')
-      .select('id, status, event_type, event_name, starts_at, ends_at, wants_custom_background, poster_choice, selected_template_id, special_requests, wants_guest_messages, contact_preference, contact_name, contact_phone, contact_email, admin_notes, approved_event_id, created_at, reviewed_at, payment_status, payment_method, paid_at, total_price, payment_link_token, payment_link_expires_at')
+      .select('id, status, event_type, event_name, starts_at, ends_at, wants_custom_background, poster_choice, selected_template_id, special_requests, wants_guest_messages, contact_preference, contact_name, contact_phone, contact_email, admin_notes, approved_event_id, created_at, reviewed_at, payment_status, payment_method, paid_at, total_price, payment_link_token, payment_link_expires_at, clearing_log_id, clearing_payment_id, clearing_trace_id, invoice4u_customer_id')
       .order('created_at', { ascending: false });
 
     if (statusFilter) {
@@ -111,6 +116,66 @@ export async function POST(req: NextRequest) {
     }
 
     // ── APPROVE ── Create the event automatically
+
+    // ── Charge credit card if card was captured via clearing ──
+    let chargeSucceeded = false;
+    const isCardCaptured = request.payment_status === 'card_captured';
+
+    if (isCardCaptured) {
+      // Require invoice4u_customer_id (the saved token / customer)
+      if (!request.invoice4u_customer_id) {
+        return jsonError('Card was captured but no customer ID found. Cannot charge.', 400);
+      }
+
+      try {
+        const totalShekel = (BASE_PRICE + (request.wants_guest_messages ? MSG_ADDON : 0));
+
+        const chargeResult = await chargeWithToken({
+          customerId: request.invoice4u_customer_id,
+          sum: totalShekel,
+          description: `Eventa - ${request.event_name || request.event_type}`,
+          createDocument: true,
+          docHeadline: `אירוע: ${request.event_name || request.event_type}`,
+        });
+
+        if (!chargeResult.success) {
+          // Update payment status to charge_failed
+          await supabase
+            .from('event_requests')
+            .update({ payment_status: 'charge_failed' })
+            .eq('id', requestId);
+
+          logger.error('[ADMIN_REQUESTS] Charge failed', {
+            requestId,
+            error: chargeResult.error,
+          });
+
+          return jsonError(`Charge failed: ${chargeResult.error || 'Unknown error'}`, 400);
+        }
+
+        // Update payment status to paid
+        await supabase
+          .from('event_requests')
+          .update({
+            payment_status: 'paid',
+            payment_method: 'credit_card',
+            paid_at: new Date().toISOString(),
+          })
+          .eq('id', requestId);
+
+        chargeSucceeded = true;
+        logger.info('[ADMIN_REQUESTS] Card charged successfully', { requestId });
+      } catch (chargeErr) {
+        await supabase
+          .from('event_requests')
+          .update({ payment_status: 'charge_failed' })
+          .eq('id', requestId);
+
+        logger.error('[ADMIN_REQUESTS] Charge error:', chargeErr);
+        return jsonError('Failed to charge card. Payment status set to charge_failed.', 500);
+      }
+    }
+
     const eventName = request.event_name || `${request.event_type}-event`;
 
     // Generate pretty slug using the slug library
@@ -261,6 +326,59 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // ── Auto-send emails for credit card charge flow ──
+    if (chargeSucceeded && request.contact_email) {
+      try {
+        const totalShekel = (BASE_PRICE + (request.wants_guest_messages ? MSG_ADDON : 0));
+        const eventDate = formatDate(request.starts_at);
+        const eventUrl = `${APP_BASE_URL}/e/${newEvent.slug}`;
+
+        // Send approval + charge email to client
+        const approvalEmail = buildApprovalChargeEmail({
+          contactName: request.contact_name || '',
+          eventName,
+          eventDate,
+          totalPriceShekel: totalShekel,
+          eventUrl,
+        });
+
+        await transporter.sendMail({
+          from: SMTP_FROM,
+          to: request.contact_email,
+          subject: approvalEmail.subject,
+          html: approvalEmail.html,
+        });
+
+        // Send admin notification about the charge
+        const adminChargeEmail = buildAdminChargeNotificationEmail({
+          contactName: request.contact_name || '',
+          contactEmail: request.contact_email,
+          contactPhone: request.contact_phone || '',
+          eventName,
+          totalPriceShekel: totalShekel,
+          requestId,
+          eventId: newEvent.id,
+          eventSlug: newEvent.slug,
+        });
+
+        await transporter.sendMail({
+          from: SMTP_FROM,
+          to: 'contact@eventa.productions',
+          subject: adminChargeEmail.subject,
+          html: adminChargeEmail.html,
+        });
+
+        logger.info('[ADMIN_REQUESTS] Charge emails sent', {
+          requestId,
+          eventId: newEvent.id,
+          clientEmail: request.contact_email,
+        });
+      } catch (emailErr) {
+        // Non-fatal — charge and event creation already succeeded
+        logger.warn('[ADMIN_REQUESTS] Failed to send charge emails:', emailErr);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       action: 'approved',
@@ -320,7 +438,7 @@ export async function PATCH(req: NextRequest) {
 
     if (action === 'mark_paid') {
       const method = paymentMethod || 'other';
-      const validMethods = ['bit', 'paybox', 'cash', 'bank_transfer', 'other'];
+      const validMethods = ['bit', 'paybox', 'cash', 'bank_transfer', 'credit_card', 'other'];
       if (!validMethods.includes(method)) {
         return jsonError('Invalid payment method', 400);
       }

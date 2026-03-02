@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -93,6 +93,7 @@ export default function Wizard() {
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
   const totalSteps = WIZARD_STEPS.length;
 
@@ -167,6 +168,37 @@ export default function Wizard() {
         throw new Error(data.error || 'Failed');
       }
 
+      const data = await res.json();
+
+      // If pay-now flow — create clearing session and show payment iframe
+      if (data.payNow && data.requestId) {
+        try {
+          const sessionRes = await fetch('/api/payment/create-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              requestId: data.requestId,
+              contactName: state.contactName,
+              contactPhone: state.contactPhone,
+              contactEmail: state.contactEmail,
+              totalPriceShekel: data.totalPriceShekel,
+              eventName: state.eventName,
+            }),
+          });
+
+          if (sessionRes.ok) {
+            const sessionData = await sessionRes.json();
+            if (sessionData.paymentUrl) {
+              setPaymentUrl(sessionData.paymentUrl);
+              setSending(false);
+              return; // Don't show success yet — wait for payment
+            }
+          }
+        } catch {
+          // If clearing session fails, fall back to success (order was saved)
+        }
+      }
+
       setSuccess(true);
     } catch {
       setError('שגיאה בשליחה. נסו שוב או פנו אלינו ישירות.');
@@ -174,6 +206,21 @@ export default function Wizard() {
       setSending(false);
     }
   }, [step, state]);
+
+  // Listen for payment completion message from iframe
+  useEffect(() => {
+    if (!paymentUrl) return;
+
+    function handleMessage(event: MessageEvent) {
+      if (event.data?.type === 'eventa-payment-complete') {
+        setPaymentUrl(null);
+        setSuccess(true);
+      }
+    }
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [paymentUrl]);
 
   // Whether the current step's "next" should be enabled
   const isLastStep = step === totalSteps - 1;
@@ -183,6 +230,59 @@ export default function Wizard() {
     () => (step / (totalSteps - 1)) * 100,
     [step, totalSteps]
   );
+
+  // ── Payment iframe screen ──
+  if (paymentUrl) {
+    return (
+      <div className="wiz-page" dir="rtl">
+        <div className="wiz-ambient" />
+        <div className="wiz-particles">
+          {PARTICLES.map(p => (
+            <span
+              key={p.id}
+              className="wiz-particle"
+              style={{
+                left: p.left,
+                bottom: p.bottom,
+                width: p.width,
+                height: p.height,
+                animationDelay: p.delay,
+                animationDuration: p.duration,
+                opacity: p.opacity,
+              }}
+            />
+          ))}
+        </div>
+        <div className="wiz-payment">
+          <div className="wiz-payment__header">
+            <WizardIcon name="lock" size={28} />
+            <h2 className="wiz-payment__title">תשלום מאובטח</h2>
+            <p className="wiz-payment__subtitle">
+              הזינו את פרטי הכרטיס. הכרטיס ייגבה רק לאחר אישור ההזמנה.
+            </p>
+          </div>
+          <div className="wiz-payment__iframe-wrap">
+            <iframe
+              src={paymentUrl}
+              title="תשלום מאובטח"
+              className="wiz-payment__iframe"
+              sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-top-navigation"
+            />
+          </div>
+          <button
+            type="button"
+            className="wiz-payment__cancel"
+            onClick={() => {
+              setPaymentUrl(null);
+              setSuccess(true);
+            }}
+          >
+            אשלים תשלום מאוחר יותר
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // ── Success screen ──
   if (success) {
@@ -220,10 +320,11 @@ export default function Wizard() {
           </div>
           <h2 className="wiz-success__title">ההזמנה נשלחה בהצלחה!</h2>
           <p className="wiz-success__text">
-            קיבלנו את כל הפרטים ונחזור אליכם בהקדם.
-            {state.contactPreference === 'call-me'
-              ? ' נפנה אליכם תוך 48 שעות.'
-              : ' נשלח לכם לינק לתשלום בהקדם.'}
+            {state.contactPreference === 'pay-now'
+              ? 'פרטי הכרטיס נשמרו בהצלחה! ההזמנה בבדיקה — נעדכן אתכם ונחייב רק לאחר אישור.'
+              : state.contactPreference === 'call-me'
+                ? 'קיבלנו את כל הפרטים ונחזור אליכם בהקדם. נפנה אליכם תוך 48 שעות.'
+                : 'קיבלנו את כל הפרטים ונחזור אליכם בהקדם.'}
           </p>
           <Link href="/dating" className="wiz-success__btn">
             חזרה לדף הראשי

@@ -24,11 +24,14 @@ export type PaymentStatus =
   | 'not_applicable'
   | 'pending_payment'
   | 'payment_link_sent'
+  | 'awaiting_payment'
+  | 'card_captured'
   | 'paid'
   | 'waived'
-  | 'expired';
+  | 'expired'
+  | 'charge_failed';
 
-export type PaymentMethod = 'bit' | 'paybox' | 'cash' | 'bank_transfer' | 'other';
+export type PaymentMethod = 'bit' | 'paybox' | 'cash' | 'bank_transfer' | 'credit_card' | 'other';
 
 /* ---------- Row types ---------- */
 

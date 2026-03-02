@@ -12,10 +12,13 @@ import {
   ORDER_EMAIL_MAX_LENGTH,
   calculateTotalPrice,
   PAYMENT_LINK_EXPIRY_DAYS,
+  BASE_PRICE,
+  MSG_ADDON,
 } from '@/lib/config';
 import {
   buildAdminNotificationEmail,
   buildClientPaymentEmail,
+  buildCardCapturedEmail,
 } from '@/lib/email-templates';
 
 const transporter = nodemailer.createTransport({
@@ -48,7 +51,7 @@ const orderSchema = z.object({
   selectedTemplateId: z.string().max(100).optional().nullable(),
   specialRequests: z.string().max(500).optional(),
   wantsGuestMessages: z.boolean().optional(),
-  contactPreference: z.enum(['call-me', 'send-link']).optional(),
+  contactPreference: z.enum(['call-me', 'send-link', 'pay-now']).optional(),
 });
 
 /**
@@ -112,9 +115,14 @@ export async function POST(request: NextRequest) {
       ).toISOString();
 
       // Determine initial payment status based on contact preference
-      const paymentStatus = contactPref === 'send-link'
-        ? 'payment_link_sent'
-        : 'pending_payment';
+      let paymentStatus: string;
+      if (contactPref === 'pay-now') {
+        paymentStatus = 'awaiting_payment';
+      } else if (contactPref === 'send-link') {
+        paymentStatus = 'payment_link_sent';
+      } else {
+        paymentStatus = 'pending_payment';
+      }
 
       const { data: reqRow, error: dbErr } = await supabase
         .from('event_requests')
@@ -190,7 +198,7 @@ export async function POST(request: NextRequest) {
       ...(attachments.length > 0 ? { attachments } : {}),
     });
 
-    // ── 3. If client chose "send-link" and has email → send payment email ──
+    // ── 3. If client chose "send-link" and has email → send payment email (legacy flow) ──
     if (isWizard && contactPref === 'send-link' && contactEmail && requestId) {
       try {
         const baseUrl = `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host') || 'eventa.productions'}`;
@@ -227,13 +235,24 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ── 4. For pay-now flow, return requestId so frontend can create clearing session ──
+    const totalShekel = (BASE_PRICE + (wantsMessages ? MSG_ADDON : 0));
+    const responseData: Record<string, unknown> = { success: true };
+
+    if (isWizard && contactPref === 'pay-now' && requestId) {
+      responseData.requestId = requestId;
+      responseData.totalPriceShekel = totalShekel;
+      responseData.payNow = true;
+    }
+
     logger.info('Order processed', {
       eventType,
       contactName,
       source: isWizard ? 'wizard' : 'form',
       requestId: requestId || 'n/a',
+      contactPref,
     });
-    return NextResponse.json({ success: true });
+    return NextResponse.json(responseData);
   } catch (error) {
     logger.error('Order error', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: 'Failed to send order' }, { status: 500 });
