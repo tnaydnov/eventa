@@ -17,7 +17,7 @@ import { logger } from '@/lib/logger';
  * Auth: Admin cookie (POST from dashboard) OR CRON_SECRET bearer (GET from Vercel Cron).
  */
 async function handler(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-auto-archive', RATE_LIMITS.strict);
+  const denied = adminGuard(req, 'admin-auto-archive', RATE_LIMITS.standard);
   if (denied) return denied;
 
   // Dry-run mode: log what would be archived without actually changing anything

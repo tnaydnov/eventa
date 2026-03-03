@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
  * On approve: creates a new event with all the data from the request.
  */
 export async function POST(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-requests-post', RATE_LIMITS.strict);
+  const denied = adminGuard(req, 'admin-requests-post', RATE_LIMITS.standard);
   if (denied) return denied;
 
   try {
@@ -416,7 +416,7 @@ function formatTime(iso: string): string {
  * Body: { requestId, action: 'mark_paid' | 'waive' | 'resend_link', paymentMethod?: string }
  */
 export async function PATCH(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-requests-patch', RATE_LIMITS.strict);
+  const denied = adminGuard(req, 'admin-requests-patch', RATE_LIMITS.standard);
   if (denied) return denied;
 
   try {

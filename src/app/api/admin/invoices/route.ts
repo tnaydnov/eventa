@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
  *   { action: 'verify_auth' }           - Verify Invoice4U API token
  */
 export async function POST(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-invoices-post', RATE_LIMITS.strict);
+  const denied = adminGuard(req, 'admin-invoices-post', RATE_LIMITS.standard);
   if (denied) return denied;
 
   try {

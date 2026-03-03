@@ -50,8 +50,33 @@ export default function EventRow({
   const updatePosition = useCallback(() => {
     if (!btnRef.current) return;
     const rect = btnRef.current.getBoundingClientRect();
-    setMenuPos({ top: rect.bottom + 4, left: rect.left });
+    // Default: open below the button
+    let top = rect.bottom + 4;
+    const left = rect.left;
+    // If the menu would overflow the viewport bottom, open above instead
+    // Estimate menu height (~320px) — will be corrected after mount
+    const estimatedHeight = 320;
+    if (top + estimatedHeight > window.innerHeight) {
+      top = rect.top - estimatedHeight - 4;
+      if (top < 8) top = 8; // don't go above viewport
+    }
+    setMenuPos({ top, left });
   }, []);
+
+  // After the dropdown renders, adjust position if it overflows
+  useEffect(() => {
+    if (!menuOpen || !menuRef.current || !menuPos) return;
+    const menuRect = menuRef.current.getBoundingClientRect();
+    const viewportH = window.innerHeight;
+    if (menuRect.bottom > viewportH - 8) {
+      // Flip above the button
+      const btnRect = btnRef.current?.getBoundingClientRect();
+      if (btnRect) {
+        const newTop = btnRect.top - menuRect.height - 4;
+        setMenuPos(prev => prev ? { ...prev, top: Math.max(8, newTop) } : prev);
+      }
+    }
+  }, [menuOpen, menuPos]);
 
   useEffect(() => {
     if (!menuOpen) return;

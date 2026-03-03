@@ -13,7 +13,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
-  const denied = adminGuard(req, 'admin-rotate', RATE_LIMITS.strict);
+  const denied = adminGuard(req, 'admin-rotate', RATE_LIMITS.standard);
   if (denied) return denied;
 
   const { eventId } = await params;

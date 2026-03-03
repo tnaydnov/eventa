@@ -89,7 +89,7 @@ export async function GET(req: NextRequest) {
  * Supports event_type and description fields.
  */
 export async function POST(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-events-post', RATE_LIMITS.strict);
+  const denied = adminGuard(req, 'admin-events-post', RATE_LIMITS.standard);
   if (denied) return denied;
 
   try {

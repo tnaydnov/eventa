@@ -156,7 +156,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
-  const denied = adminGuard(req, 'admin-messaging-patch', RATE_LIMITS.strict);
+  const denied = adminGuard(req, 'admin-messaging-patch', RATE_LIMITS.standard);
   if (denied) return denied;
 
   const { eventId } = await params;
@@ -228,7 +228,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
-  const denied = adminGuard(req, 'admin-messaging-trigger', RATE_LIMITS.strict);
+  const denied = adminGuard(req, 'admin-messaging-trigger', RATE_LIMITS.standard);
   if (denied) return denied;
 
   const { eventId } = await params;
