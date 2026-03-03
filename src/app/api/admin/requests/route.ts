@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { after } from 'next/server';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { RATE_LIMITS } from '@/lib/rate-limit';
@@ -289,98 +290,102 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ── Send C4 approval email to client ──
-    if (request.contact_email) {
-      try {
-        const totalShekel = (BASE_PRICE + (request.wants_guest_messages ? MSG_ADDON : 0));
-        const eventUrl = `${APP_BASE_URL}/e/${newEvent.slug}`;
+    // ── Defer email sending to run AFTER the response is returned ──
+    // This prevents SMTP calls from causing 504 gateway timeouts.
+    after(async () => {
+      // Send C4 approval email to client
+      if (request.contact_email) {
+        try {
+          const totalShekel = (BASE_PRICE + (request.wants_guest_messages ? MSG_ADDON : 0));
+          const eventUrl = `${APP_BASE_URL}/e/${newEvent.slug}`;
 
-        const approvalEmail = buildClientApprovalEmail({
-          eventType: request.event_type,
-          eventName: eventName,
-          startsAt: request.starts_at,
-          endsAt: request.ends_at,
-          wantsCustomBackground: request.wants_custom_background || false,
-          hasBgImage: !!request.wants_custom_background,
-          posterChoice: request.poster_choice || '',
-          selectedTemplate: request.selected_template_id || '',
-          specialRequests: request.special_requests || '',
-          wantsGuestMessages: request.wants_guest_messages || false,
-          contactName: request.contact_name || '',
-          totalPriceShekel: totalShekel,
-          paymentMethod: chargeSucceeded ? 'credit_card' : (request.payment_method || 'bit'),
-          eventUrl,
-          portalUrl,
-        });
+          const approvalEmail = buildClientApprovalEmail({
+            eventType: request.event_type,
+            eventName: eventName,
+            startsAt: request.starts_at,
+            endsAt: request.ends_at,
+            wantsCustomBackground: request.wants_custom_background || false,
+            hasBgImage: !!request.wants_custom_background,
+            posterChoice: request.poster_choice || '',
+            selectedTemplate: request.selected_template_id || '',
+            specialRequests: request.special_requests || '',
+            wantsGuestMessages: request.wants_guest_messages || false,
+            contactName: request.contact_name || '',
+            totalPriceShekel: totalShekel,
+            paymentMethod: chargeSucceeded ? 'credit_card' : (request.payment_method || 'bit'),
+            eventUrl,
+            portalUrl,
+          });
 
-        await transporter.sendMail({
-          from: SMTP_FROM,
-          to: request.contact_email,
-          subject: approvalEmail.subject,
-          html: approvalEmail.html,
-        });
+          await transporter.sendMail({
+            from: SMTP_FROM,
+            to: request.contact_email,
+            subject: approvalEmail.subject,
+            html: approvalEmail.html,
+          });
 
-        // Log to message_log
-        await supabase.from('message_log').insert({
-          event_id: newEvent.id,
-          channel: 'email',
-          message_type: 'approval',
-          recipient_email: request.contact_email,
-          status: 'sent',
-          sent_at: new Date().toISOString(),
-        });
+          // Log to message_log
+          const bgSupabase = getServiceClient();
+          await bgSupabase.from('message_log').insert({
+            event_id: newEvent.id,
+            channel: 'email',
+            message_type: 'approval',
+            recipient_email: request.contact_email,
+            status: 'sent',
+            sent_at: new Date().toISOString(),
+          });
 
-        logger.info('Auto-sent approval email (C4)', {
-          eventId: newEvent.id,
-          to: request.contact_email,
-        });
-      } catch (emailErr) {
-        // Non-fatal - event creation already succeeded
-        logger.warn('[ADMIN_REQUESTS] Failed to send approval email:', emailErr);
+          logger.info('Auto-sent approval email (C4)', {
+            eventId: newEvent.id,
+            to: request.contact_email,
+          });
+        } catch (emailErr) {
+          logger.warn('[ADMIN_REQUESTS] Failed to send approval email:', emailErr);
+        }
       }
-    }
 
-    // ── Send admin charge notification (if card was charged) ──
-    if (chargeSucceeded) {
-      try {
-        const totalShekel = (BASE_PRICE + (request.wants_guest_messages ? MSG_ADDON : 0));
-        const safeName = (request.contact_name || '').replace(/</g, '&lt;');
-        const safeEmail = (request.contact_email || '').replace(/</g, '&lt;');
-        const safeEvent = eventName.replace(/</g, '&lt;');
+      // Send admin charge notification (if card was charged)
+      if (chargeSucceeded) {
+        try {
+          const totalShekel = (BASE_PRICE + (request.wants_guest_messages ? MSG_ADDON : 0));
+          const safeName = (request.contact_name || '').replace(/</g, '&lt;');
+          const safeEmail = (request.contact_email || '').replace(/</g, '&lt;');
+          const safeEvent = eventName.replace(/</g, '&lt;');
 
-        const adminSubject = `חיוב בוצע \u2014 ${eventName} (₪${totalShekel})`;
-        const adminHtml =
-          `<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"></head>` +
-          `<body style="margin:0;padding:20px;background:#f5f3f0;font-family:Arial,sans-serif;">` +
-          `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">` +
-          `<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;">` +
-          `<tr><td dir="rtl" style="text-align:right;padding:24px;background:#e8f5e9;border-radius:12px 12px 0 0;">` +
-          `<div style="font-size:16px;font-weight:700;color:#2e7d32;">חיוב כרטיס אשראי בוצע בהצלחה</div></td></tr>` +
-          `<tr><td dir="rtl" style="text-align:right;padding:20px 24px;font-size:14px;color:#1e1e1e;line-height:1.7;">` +
-          `<div><strong>לקוח:</strong> ${safeName}</div>` +
-          `<div><strong>מייל:</strong> ${safeEmail}</div>` +
-          `<div><strong>טלפון:</strong> ${(request.contact_phone || '').replace(/</g, '&lt;')}</div>` +
-          `<div><strong>אירוע:</strong> ${safeEvent}</div>` +
-          `<div><strong>סכום:</strong> ₪${totalShekel}</div>` +
-          `<div><strong>בקשה:</strong> ${requestId}</div>` +
-          `<div><strong>אירוע:</strong> ${newEvent.id}</div>` +
-          `</td></tr></table></td></tr></table></body></html>`;
+          const adminSubject = `חיוב בוצע \u2014 ${eventName} (₪${totalShekel})`;
+          const adminHtml =
+            `<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"></head>` +
+            `<body style="margin:0;padding:20px;background:#f5f3f0;font-family:Arial,sans-serif;">` +
+            `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">` +
+            `<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;">` +
+            `<tr><td dir="rtl" style="text-align:right;padding:24px;background:#e8f5e9;border-radius:12px 12px 0 0;">` +
+            `<div style="font-size:16px;font-weight:700;color:#2e7d32;">חיוב כרטיס אשראי בוצע בהצלחה</div></td></tr>` +
+            `<tr><td dir="rtl" style="text-align:right;padding:20px 24px;font-size:14px;color:#1e1e1e;line-height:1.7;">` +
+            `<div><strong>לקוח:</strong> ${safeName}</div>` +
+            `<div><strong>מייל:</strong> ${safeEmail}</div>` +
+            `<div><strong>טלפון:</strong> ${(request.contact_phone || '').replace(/</g, '&lt;')}</div>` +
+            `<div><strong>אירוע:</strong> ${safeEvent}</div>` +
+            `<div><strong>סכום:</strong> ₪${totalShekel}</div>` +
+            `<div><strong>בקשה:</strong> ${requestId}</div>` +
+            `<div><strong>אירוע:</strong> ${newEvent.id}</div>` +
+            `</td></tr></table></td></tr></table></body></html>`;
 
-        await transporter.sendMail({
-          from: SMTP_FROM,
-          to: 'contact@eventa.productions',
-          subject: adminSubject,
-          html: adminHtml,
-        });
+          await transporter.sendMail({
+            from: SMTP_FROM,
+            to: 'contact@eventa.productions',
+            subject: adminSubject,
+            html: adminHtml,
+          });
 
-        logger.info('[ADMIN_REQUESTS] Admin charge notification sent', {
-          requestId,
-          eventId: newEvent.id,
-        });
-      } catch (emailErr) {
-        logger.warn('[ADMIN_REQUESTS] Failed to send admin charge notification:', emailErr);
+          logger.info('[ADMIN_REQUESTS] Admin charge notification sent', {
+            requestId,
+            eventId: newEvent.id,
+          });
+        } catch (emailErr) {
+          logger.warn('[ADMIN_REQUESTS] Failed to send admin charge notification:', emailErr);
+        }
       }
-    }
+    });
 
     return NextResponse.json({
       success: true,

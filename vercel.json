@@ -3,6 +3,15 @@
   "functions": {
     "src/app/api/**/*.ts": {
       "maxDuration": 15
+    },
+    "src/app/api/admin/requests/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/cleanup/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/admin/auto-archive/route.ts": {
+      "maxDuration": 60
     }
   },
   "crons": [
