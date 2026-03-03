@@ -95,7 +95,7 @@ export async function DELETE(
     }
     await purge('conversations', { col: 'event_id', val: eventId });
 
-    // 4. Delete independent tables in parallel
+    // 4. Delete independent tables in parallel (includes ALL event-scoped tables)
     await Promise.all([
       purge('likes', { col: 'event_id', val: eventId }),
       purge('blocks', { col: 'event_id', val: eventId }),
@@ -103,6 +103,10 @@ export async function DELETE(
       purge('notifications', { col: 'event_id', val: eventId }),
       purge('activity_log', { col: 'event_id', val: eventId }),
       purge('event_analytics_snapshots', { col: 'event_id', val: eventId }),
+      purge('client_portal_tokens', { col: 'event_id', val: eventId }),
+      purge('otp_verifications', { col: 'event_id', val: eventId }),
+      purge('event_guest_phones', { col: 'event_id', val: eventId }),
+      purge('message_log', { col: 'event_id', val: eventId }),
     ]);
 
     // 5. Delete participants (FK children before parent)

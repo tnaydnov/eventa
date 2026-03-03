@@ -27,6 +27,7 @@ const STATUS_MAP: Record<
   empty:    { emoji: '🔴', label: 'לא הועלו מספרים',              cls: 'portal-status-badge--empty' },
   uploaded: { emoji: '🟡', label: 'הועלו - ההודעות טרם נשלחו',      cls: 'portal-status-badge--uploaded' },
   sent:     { emoji: '🟢', label: 'הודעות נשלחו',                   cls: 'portal-status-badge--sent' },
+  started:  { emoji: '🔒', label: 'האירוע התחיל - הפורטל נעול',     cls: 'portal-status-badge--archived' },
   archived: { emoji: '⚫', label: 'האירוע הסתיים',                  cls: 'portal-status-badge--archived' },
 };
 
@@ -213,7 +214,9 @@ export default function GuestUploadPage({
       {/* Read-only banner */}
       {isReadOnly && (
         <div className="portal-read-only-banner">
-          האירוע הסתיים. הרשימה שלכם נשמרה. תודה! 🎉
+          {data.uploadStatus === 'started'
+            ? 'האירוע התחיל. לא ניתן לעדכן את הרשימה יותר. 🔒'
+            : 'האירוע הסתיים. הרשימה שלכם נשמרה. תודה! 🎉'}
         </div>
       )}
 

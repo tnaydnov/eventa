@@ -129,6 +129,10 @@ export async function POST(
     await purge('conversations');
     await purge('blocks');
     await purge('likes');
+    await purge('client_portal_tokens');
+    await purge('otp_verifications');
+    await purge('event_guest_phones');
+    await purge('message_log');
 
     // Delete participant photos from storage
     const { data: photoRows, error: photoQueryErr } = await supabase

@@ -624,7 +624,7 @@ export async function DELETE(req: NextRequest) {
       }
       await purge('conversations', { col: 'event_id', val: eventId });
 
-      // Independent tables in parallel
+      // Independent tables in parallel (includes ALL event-scoped tables)
       await Promise.all([
         purge('likes', { col: 'event_id', val: eventId }),
         purge('blocks', { col: 'event_id', val: eventId }),
@@ -632,6 +632,10 @@ export async function DELETE(req: NextRequest) {
         purge('notifications', { col: 'event_id', val: eventId }),
         purge('activity_log', { col: 'event_id', val: eventId }),
         purge('event_analytics_snapshots', { col: 'event_id', val: eventId }),
+        purge('client_portal_tokens', { col: 'event_id', val: eventId }),
+        purge('otp_verifications', { col: 'event_id', val: eventId }),
+        purge('event_guest_phones', { col: 'event_id', val: eventId }),
+        purge('message_log', { col: 'event_id', val: eventId }),
       ]);
 
       // Participants

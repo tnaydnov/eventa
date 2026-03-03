@@ -24,7 +24,7 @@ export interface PortalData {
   total: number;
   page: number;
   totalPages: number;
-  uploadStatus: 'empty' | 'uploaded' | 'sent' | 'archived';
+  uploadStatus: 'empty' | 'uploaded' | 'sent' | 'started' | 'archived';
   isReadOnly: boolean;
 }
 

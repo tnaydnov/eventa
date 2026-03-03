@@ -111,8 +111,8 @@ export async function GET(
       return jsonError('Event not found', 404);
     }
 
-    // Check if event is archived
-    const isReadOnly = event.status === 'archived';
+    // Check if event is archived or has already started (portal locked)
+    const isReadOnly = event.status === 'archived' || (event.starts_at && new Date(event.starts_at) <= new Date());
 
     // Pagination & search
     const url = new URL(req.url);
@@ -170,8 +170,11 @@ export async function GET(
 
     // Determine upload status
     let uploadStatus: string;
-    if (isReadOnly) {
+    const eventStarted = event.starts_at && new Date(event.starts_at) <= new Date();
+    if (event.status === 'archived') {
       uploadStatus = 'archived';
+    } else if (eventStarted) {
+      uploadStatus = 'started';
     } else if (!event.guest_list_uploaded || total === 0) {
       uploadStatus = 'empty';
     } else {
@@ -234,15 +237,19 @@ export async function POST(
 
     const eventId = portalData.event_id;
 
-    // Check event is not archived
+    // Check event is not archived and hasn't started yet
     const { data: event } = await supabase
       .from('events')
-      .select('id, status')
+      .select('id, status, starts_at')
       .eq('id', eventId)
       .single();
 
     if (!event || event.status === 'archived') {
       return jsonError('האירוע הסתיים - לא ניתן לעדכן את הרשימה', 400);
+    }
+
+    if (event.starts_at && new Date(event.starts_at) <= new Date()) {
+      return jsonError('האירוע כבר התחיל - לא ניתן לעדכן את הרשימה', 400);
     }
 
     const contentType = req.headers.get('content-type') || '';
@@ -449,15 +456,19 @@ export async function DELETE(
 
     const eventId = portalData.event_id;
 
-    // Check event is not archived
+    // Check event is not archived and hasn't started yet
     const { data: event } = await supabase
       .from('events')
-      .select('id, status')
+      .select('id, status, starts_at')
       .eq('id', eventId)
       .single();
 
     if (!event || event.status === 'archived') {
       return jsonError('האירוע הסתיים - לא ניתן לעדכן את הרשימה', 400);
+    }
+
+    if (event.starts_at && new Date(event.starts_at) <= new Date()) {
+      return jsonError('האירוע כבר התחיל - לא ניתן לעדכן את הרשימה', 400);
     }
 
     const body = await req.json();

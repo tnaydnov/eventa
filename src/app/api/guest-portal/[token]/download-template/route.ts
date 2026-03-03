@@ -45,6 +45,21 @@ export async function GET(
       .update({ last_used_at: new Date().toISOString() })
       .eq('id', data.id);
 
+    // Check event hasn't started yet
+    const { data: event } = await supabase
+      .from('events')
+      .select('id, status, starts_at')
+      .eq('id', data.event_id)
+      .single();
+
+    if (!event || event.status === 'archived') {
+      return NextResponse.json({ error: 'האירוע הסתיים' }, { status: 400 });
+    }
+
+    if (event.starts_at && new Date(event.starts_at) <= new Date()) {
+      return NextResponse.json({ error: 'האירוע כבר התחיל' }, { status: 400 });
+    }
+
     // Generate the template
     const buffer = await generateGuestTemplate();
 
