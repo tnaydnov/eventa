@@ -442,15 +442,57 @@ export function useAdminData() {
     eventId: string,
     files: File[]
   ): Promise<{ ok: boolean; error?: string }> => {
-    const form = new FormData();
-    for (const file of files) form.append('files', file);
-    const res = await authedFetch(`/api/admin/events/${eventId}/send-qr-page`, {
-      method: 'POST',
-      body: form,
-    });
-    if (res.ok) return { ok: true };
-    const err = await res.json().catch(() => ({}));
-    return { ok: false, error: err.error || 'שגיאה בשליחת דף QR' };
+    try {
+      // Step 1: Upload each file to Supabase Storage via signed URLs
+      // (bypasses Vercel's 4.5 MB body limit for serverless functions)
+      const storagePaths: string[] = [];
+      for (const file of files) {
+        // Get a signed upload URL
+        const urlRes = await authedFetch(
+          `/api/admin/events/${eventId}/qr-upload-url`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              filename: file.name,
+              contentType: file.type,
+            }),
+          }
+        );
+        if (!urlRes.ok) {
+          const err = await urlRes.json().catch(() => ({}));
+          return { ok: false, error: err.error || `שגיאה בהעלאת ${file.name}` };
+        }
+        const { signedUrl, storagePath } = await urlRes.json();
+
+        // Upload directly to Supabase (goes to storage, not through Vercel)
+        const uploadRes = await fetch(signedUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': file.type },
+          body: file,
+        });
+        if (!uploadRes.ok) {
+          return { ok: false, error: `שגיאה בהעלאת ${file.name}` };
+        }
+        storagePaths.push(storagePath);
+      }
+
+      // Step 2: Tell the API to send the email with the uploaded files
+      const res = await authedFetch(
+        `/api/admin/events/${eventId}/send-qr-page`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ storagePaths }),
+        }
+      );
+      if (res.ok) return { ok: true };
+      const err = await res.json().catch(() => ({}));
+      return { ok: false, error: err.error || 'שגיאה בשליחת דף QR' };
+    } catch (e) {
+      console.error('[sendQrPage] error:', e);
+      return { ok: false, error: 'שגיאה בשליחת דף QR' };
+    }
   };
 
   /* ─── message log (placeholder for future API) ─── */

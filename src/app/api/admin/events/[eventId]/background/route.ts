@@ -25,7 +25,9 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
-  const denied = adminGuard(req, 'admin-bg-upload', RATE_LIMITS.standard);
+  const denied = adminGuard(req, 'admin-bg-upload', RATE_LIMITS.standard, {
+    maxBodyBytes: MAX_BACKGROUND_SIZE_BYTES + 64 * 1024, // 5 MB file + multipart overhead
+  });
   if (denied) return denied;
 
   const { eventId } = await params;

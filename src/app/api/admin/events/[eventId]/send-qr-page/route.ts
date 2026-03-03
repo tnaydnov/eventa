@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import path from 'path';
 import nodemailer from 'nodemailer';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
@@ -19,27 +20,27 @@ const transporter = nodemailer.createTransport({
 
 const SMTP_FROM = process.env.SMTP_FROM || 'noreply@eventa.productions';
 
-/** Max total size of attachments: 15 MB */
-const MAX_TOTAL_SIZE = 15 * 1024 * 1024;
+/** Max number of attachments per email. */
+const MAX_FILES = 5;
 
-/** Allowed MIME types for QR page attachments. */
-const ALLOWED_TYPES = new Set([
-  'application/pdf',
-  'image/png',
-  'image/jpeg',
-  'image/webp',
-]);
+/** MIME types we infer from the storage path extension. */
+const EXT_TO_MIME: Record<string, string> = {
+  '.pdf': 'application/pdf',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+};
 
 /**
  * POST /api/admin/events/[eventId]/send-qr-page
  *
- * Accepts FormData with file attachments and sends the C8 "QR Page Ready"
- * email to the event's client contact.
+ * Accepts JSON with storage paths (files already uploaded via qr-upload-url)
+ * and sends the C8 "QR Page Ready" email to the event's client contact.
  *
- * FormData fields:
- *   - files: one or more File entries (PDF, PNG, JPG)
+ * Body (JSON): { storagePaths: string[] }
  *
- * Each file is attached to the email as-is with its original filename.
+ * Each file is downloaded from Supabase Storage and attached to the email.
  */
 export async function POST(
   req: NextRequest,
@@ -53,31 +54,22 @@ export async function POST(
   if (inv) return inv;
 
   try {
-    /* ── Parse FormData ── */
-    const formData = await req.formData();
-    const files = formData.getAll('files') as File[];
+    /* ── Parse request ── */
+    const { storagePaths } = await req.json();
 
-    if (!files.length) {
+    if (!Array.isArray(storagePaths) || storagePaths.length === 0) {
       return jsonError('נא לצרף לפחות קובץ אחד', 400);
     }
-
-    // Validate files
-    let totalSize = 0;
-    for (const file of files) {
-      if (!ALLOWED_TYPES.has(file.type)) {
-        return jsonError(
-          `סוג קובץ לא נתמך: ${file.name} (${file.type}). רק PDF, PNG, JPG, WebP.`,
-          400
-        );
-      }
-      totalSize += file.size;
+    if (storagePaths.length > MAX_FILES) {
+      return jsonError(`מקסימום ${MAX_FILES} קבצים`, 400);
     }
 
-    if (totalSize > MAX_TOTAL_SIZE) {
-      return jsonError(
-        `הקבצים גדולים מדי (${(totalSize / 1024 / 1024).toFixed(1)} MB). מקסימום 15 MB.`,
-        400
-      );
+    // Validate all paths belong to this event's qr-temp folder
+    const prefix = `qr-temp/${eventId}/`;
+    for (const p of storagePaths) {
+      if (typeof p !== 'string' || !p.startsWith(prefix)) {
+        return jsonError('Invalid storage path', 400);
+      }
     }
 
     /* ── Load event + contact info ── */
@@ -101,20 +93,35 @@ export async function POST(
       return jsonError('No contact email found for this event', 400);
     }
 
+    /* ── Download files from storage ── */
+    const attachments = await Promise.all(
+      storagePaths.map(async (storagePath: string) => {
+        const { data, error } = await supabase.storage
+          .from('backgrounds')
+          .download(storagePath);
+
+        if (error || !data) {
+          throw new Error(`Failed to download ${storagePath}: ${error?.message}`);
+        }
+
+        const ext = path.extname(storagePath).toLowerCase();
+        const basename = path.basename(storagePath);
+        // Strip the UUID prefix we added during upload (uuid-originalname)
+        const filename = basename.replace(/^[0-9a-f-]{36,37}-/, '');
+
+        return {
+          filename,
+          content: Buffer.from(await data.arrayBuffer()),
+          contentType: EXT_TO_MIME[ext] || 'application/octet-stream',
+        };
+      })
+    );
+
     /* ── Build email ── */
     const email = buildClientQrPageEmail({
       contactName: request.contact_name,
       eventName: event.name,
     });
-
-    /* ── Prepare attachments ── */
-    const attachments = await Promise.all(
-      files.map(async (file) => ({
-        filename: file.name,
-        content: Buffer.from(await file.arrayBuffer()),
-        contentType: file.type,
-      }))
-    );
 
     /* ── Send email ── */
     await transporter.sendMail({
@@ -124,6 +131,9 @@ export async function POST(
       html: email.html,
       attachments,
     });
+
+    /* ── Clean up temp files ── */
+    await supabase.storage.from('backgrounds').remove(storagePaths);
 
     /* ── Log ── */
     await supabase.from('message_log').insert({
@@ -141,7 +151,7 @@ export async function POST(
         eventId,
         type: 'qr_page',
         to: request.contact_email,
-        attachments: files.map((f) => f.name),
+        attachments: attachments.map((a) => a.filename),
       },
       req
     );
@@ -149,7 +159,7 @@ export async function POST(
     return NextResponse.json({
       success: true,
       sentTo: request.contact_email,
-      attachments: files.map((f) => f.name),
+      attachments: attachments.map((a) => a.filename),
     });
   } catch (err) {
     logger.error('[ADMIN_SEND_QR_PAGE] error:', err);
