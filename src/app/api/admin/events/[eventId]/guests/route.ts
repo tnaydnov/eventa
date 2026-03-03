@@ -59,7 +59,7 @@ export async function GET(
 
 /**
  * POST /api/admin/events/[eventId]/guests
- * Import guest phones — supports JSON body or multipart file upload.
+ * Import guest phones - supports JSON body or multipart file upload.
  *
  * JSON body: { guests: [{ phone, name? }] }
  * Multipart: file field with .xlsx or .csv
@@ -114,7 +114,7 @@ export async function POST(
       }
 
       if (file.size > MAX_UPLOAD_FILE_SIZE) {
-        return jsonError('הקובץ גדול מדי — עד 5MB', 400);
+        return jsonError('הקובץ גדול מדי - עד 5MB', 400);
       }
 
       if (!isAllowedUploadFile(file.name)) {
@@ -184,7 +184,7 @@ export async function POST(
         invalidCount++;
         errors.push({
           phone: guest.phone,
-          reason: `"${guest.phone}" — מספר לא תקין`,
+          reason: `"${guest.phone}" - מספר לא תקין`,
         });
         continue;
       }

@@ -21,7 +21,7 @@ CREATE INDEX IF NOT EXISTS idx_event_requests_invoice4u_doc
 CREATE TABLE IF NOT EXISTS invoices (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
-  -- Link to event_request (nullable — some docs may be standalone)
+  -- Link to event_request (nullable - some docs may be standalone)
   event_request_id UUID REFERENCES event_requests(id) ON DELETE SET NULL,
 
   -- Invoice4U fields

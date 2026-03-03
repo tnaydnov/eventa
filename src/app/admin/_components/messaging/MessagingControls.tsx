@@ -12,6 +12,7 @@ interface MessagingControlsProps {
   onToggleWA: (eventId: string, config: Partial<MessagingConfig>) => Promise<{ ok: boolean; error?: string }>;
   onTrigger: (eventId: string, type: 'pre_event' | 'feedback') => Promise<{ ok: boolean; sent?: number; error?: string }>;
   onSendEmail: (eventId: string, type: string, opts?: { subject?: string; body?: string }) => Promise<{ ok: boolean; error?: string }>;
+  onSendQrPage: (eventId: string, files: File[]) => Promise<{ ok: boolean; error?: string }>;
   onRegenerateToken: (eventId: string) => Promise<{ ok: boolean; token?: string; error?: string }>;
   onUpdateConfig: (eventId: string, config: Partial<MessagingConfig>) => Promise<{ ok: boolean; error?: string }>;
   isArchived: boolean;
@@ -38,31 +39,16 @@ interface ActionDef {
 
 const CLIENT_ACTIONS: ActionDef[] = [
   {
-    id: 'upload_instructions',
-    label: 'הוראות העלאה',
-    icon: '📋',
-    target: 'client',
-    channel: 'email',
-    description: 'שולח ללקוח מייל עם הסבר איך להעלות רשימת אורחים דרך הפורטל.',
-    preview: [
-      '📧 מייל אל: הלקוח שהזמין את השירות',
-      '📝 נושא: "האירוע שלך אושר — העלו רשימת אורחים"',
-      '📎 כולל: קישור לפורטל העלאה, הסבר שלב-אחר-שלב, פורמט הקובץ הנדרש',
-    ],
-    confirmLabel: 'שלח הוראות',
-    dangerLevel: 'safe',
-  },
-  {
     id: 'upload_reminder',
     label: 'תזכורת העלאה',
     icon: '⏰',
     target: 'client',
     channel: 'email',
-    description: 'שולח ללקוח תזכורת ידידותית שעדיין לא העלה רשימת אורחים.',
+    description: 'שולח ללקוח תזכורת שעדיין לא העלה רשימת אורחים (תזכורת 7 ימים).',
     preview: [
       '📧 מייל אל: הלקוח שהזמין את השירות',
-      '📝 נושא: "תזכורת — העלו את רשימת האורחים"',
-      '📎 כולל: קישור לפורטל, תאריך האירוע, כמה ימים נותרו',
+      '📝 נושא: "תזכורת - העלו רשימת אורחים"',
+      '📎 כולל: קישור לפורטל, כמה ימים נותרו, מועד שליחת הודעות',
     ],
     confirmLabel: 'שלח תזכורת',
     dangerLevel: 'safe',
@@ -73,7 +59,7 @@ const CLIENT_ACTIONS: ActionDef[] = [
     icon: '📊',
     target: 'client',
     channel: 'email',
-    description: 'שולח ללקוח דו"ח סיכום אחרי האירוע — סטטיסטיקות, התאמות, הודעות.',
+    description: 'שולח ללקוח דו"ח סיכום אחרי האירוע - סטטיסטיקות, התאמות, הודעות.',
     preview: [
       '📧 מייל אל: הלקוח שהזמין את השירות',
       '📝 נושא: "סיכום האירוע שלך"',
@@ -92,9 +78,24 @@ const CLIENT_ACTIONS: ActionDef[] = [
     preview: [
       '📧 מייל אל: הלקוח שהזמין את השירות',
       '📝 נושא: אתה בוחר',
-      '📎 תוכן: אתה כותב — טקסט חופשי',
+      '📎 תוכן: אתה כותב - טקסט חופשי',
     ],
     confirmLabel: 'כתוב ושלח',
+    dangerLevel: 'safe',
+  },
+  {
+    id: 'qr_page',
+    label: 'שלח דף QR',
+    icon: '📎',
+    target: 'client',
+    channel: 'email',
+    description: 'שולח ללקוח את דף ה-A4 עם קוד QR להדפסה, כולל גרסאות שונות (PDF, תמונה, ברקוד בלבד).',
+    preview: [
+      '📧 מייל אל: הלקוח שהזמין את השירות',
+      '📎 צרופות: PDF, PDF עם שוליים, תמונה, ברקוד בלבד',
+      '📝 הסבר: הדפיסו ופזרו באירוע',
+    ],
+    confirmLabel: 'שלח עם קבצים',
     dangerLevel: 'safe',
   },
 ];
@@ -140,7 +141,7 @@ const GUEST_ACTIONS: ActionDef[] = [
 /* ── Helpers ── */
 
 function formatDate(iso: string | null): string {
-  if (!iso) return '—';
+  if (!iso) return '-';
   try {
     return new Date(iso).toLocaleDateString('he-IL', {
       day: 'numeric', month: 'short', year: 'numeric',
@@ -150,7 +151,7 @@ function formatDate(iso: string | null): string {
 }
 
 function fmtDateHe(iso: string): string {
-  if (!iso) return '—';
+  if (!iso) return '-';
   try {
     return new Date(iso).toLocaleDateString('he-IL', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -196,35 +197,6 @@ function generateEmailPreview(actionId: string, eventName: string, eventDate: st
   const uploadLink = '#';
 
   switch (actionId) {
-    case 'upload_instructions': return emailShell('הוראות העלאה', `
-      <tr><td dir="rtl" style="text-align:right;padding:20px 24px 4px;border-bottom:1px solid ${PE.border};background:${PE.card};">
-        <div style="font-size:15px;font-weight:500;">שלום [שם הלקוח],</div>
-        <div style="font-size:13px;color:${PE.muted};margin-top:6px;line-height:1.6;">האירוע <strong>${safeName}</strong> אושר ונוצר בהצלחה!</div>
-        <div style="font-size:13px;color:${PE.muted};line-height:1.6;padding-bottom:16px;">הזמנתם את שירות ההודעות לאורחים — כדי שנוכל לשלוח הודעות <span dir="ltr">WhatsApp</span> לאורחים שלכם, צריך להעלות את רשימת מספרי הטלפון.</div>
-      </td></tr>
-      <tr><td dir="rtl" style="text-align:right;padding:16px 24px 0;background:${PE.card};">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${PE.accent};margin-bottom:10px;">איך זה עובד?</div>
-        <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-          ${peRow('שלב 1', 'הורידו את הטמפלט (Excel)')}
-          ${peRow('שלב 2', 'מלאו את מספרי הטלפון של האורחים')}
-          ${peRow('שלב 3', 'העלו את הקובץ בלינק שלמטה', true)}
-        </table>
-      </td></tr>
-      <tr><td dir="rtl" style="text-align:right;padding:16px 24px 0;background:${PE.card};">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${PE.accent};margin-bottom:10px;">פרטים</div>
-        <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-          ${peRow('תאריך', `${date}${time ? `, ${time}` : ''}`)}
-          ${peRow('פורמט', 'סלולרי ישראלי (05X) בלבד')}
-          ${peRow('דד-ליין', '3 שעות לפני האירוע', true)}
-        </table>
-      </td></tr>
-      <tr><td style="padding:20px 24px 8px;text-align:center;background:${PE.card};">
-        <a href="${uploadLink}" style="display:inline-block;background:${PE.accent};border-radius:10px;padding:14px 28px;color:#fff;font-size:15px;font-weight:700;text-decoration:none;">העלו את רשימת האורחים</a>
-      </td></tr>
-      <tr><td style="padding:8px 24px 20px;text-align:center;background:${PE.card};">
-        <a href="#" style="color:${PE.accent};text-decoration:underline;font-size:13px;">הורידו טמפלט Excel</a>
-      </td></tr>`, 'אירוע אושר');
-
     case 'upload_reminder': return emailShell('תזכורת העלאה', `
       <tr><td dir="rtl" style="text-align:right;padding:20px 24px 4px;border-bottom:1px solid ${PE.border};background:${PE.card};">
         <div style="font-size:15px;font-weight:500;">שלום [שם הלקוח],</div>
@@ -234,7 +206,7 @@ function generateEmailPreview(actionId: string, eventName: string, eventDate: st
       <tr><td style="padding:20px 24px;text-align:center;background:${PE.card};">
         <a href="${uploadLink}" style="display:inline-block;background:${PE.accent};border-radius:10px;padding:14px 28px;color:#fff;font-size:15px;font-weight:700;text-decoration:none;">העלו את הרשימה עכשיו</a>
         <div style="font-size:11px;color:${PE.dim};margin-top:10px;">ההודעות נשלחות 2–3 שעות לפני האירוע. ככל שתעלו מוקדם יותר, כך יותר טוב!</div>
-      </td></tr>`, 'תזכורת ידידותית');
+      </td></tr>`, 'תזכורת מוקדמת');
 
     case 'summary': return emailShell('סיכום אירוע', `
       <tr><td dir="rtl" style="text-align:right;padding:20px 24px 4px;border-bottom:1px solid ${PE.border};background:${PE.card};">
@@ -284,7 +256,7 @@ function generateEmailPreview(actionId: string, eventName: string, eventDate: st
         <div style="text-align:center;font-size:11px;color:${PE.dim};margin-top:10px;">* נשלח לכל האורחים ברשימה שטרם קיבלו הודעה</div>
       </td></tr>`, '');
 
-    case 'send_feedback': return emailShell('פידבק — ' + safeName, `
+    case 'send_feedback': return emailShell('פידבק - ' + safeName, `
       <tr><td dir="rtl" style="text-align:right;padding:20px 24px;background:${PE.card};border-bottom:1px solid ${PE.border};">
         <div style="text-align:center;margin-bottom:12px;"><span style="font-size:28px;">💬</span></div>
         <div style="text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#22c55e;margin-bottom:12px;">WhatsApp Message Preview</div>
@@ -299,6 +271,25 @@ function generateEmailPreview(actionId: string, eventName: string, eventDate: st
         </div>
         <div style="text-align:center;font-size:11px;color:${PE.dim};margin-top:10px;">* נשלח למשתתפים שנתנו הסכמה וטרם קיבלו פידבק</div>
       </td></tr>`, '');
+
+    case 'qr_page': return emailShell('דף QR להדפסה', `
+      <tr><td dir="rtl" style="text-align:right;padding:20px 24px 4px;border-bottom:1px solid ${PE.border};background:${PE.card};">
+        <div style="font-size:15px;font-weight:500;">שלום [שם הלקוח],</div>
+        <div style="font-size:13px;color:${PE.muted};margin-top:6px;line-height:1.6;">דף ה-QR לאירוע <strong>${safeName}</strong> מוכן!</div>
+        <div style="font-size:13px;color:${PE.muted};line-height:1.6;padding-bottom:16px;">הדפיסו את הדף ופזרו אותו באירוע - האורחים סורקים את הקוד ונכנסים ישירות לאירוע.</div>
+      </td></tr>
+      <tr><td dir="rtl" style="text-align:right;padding:16px 24px;background:${PE.card};">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${PE.accent};margin-bottom:10px;">מה מצורף?</div>
+        <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+          ${peRow('1', 'PDF A4 להדפסה רגילה')}
+          ${peRow('2', 'PDF A4 עם שוליים לחיתוך')}
+          ${peRow('3', 'תמונה (PNG/JPG)')}
+          ${peRow('4', 'קוד QR בלבד', true)}
+        </table>
+      </td></tr>
+      <tr><td style="padding:16px 24px 20px;background:${PE.card};">
+        <div style="background:${PE.accentBg};border-right:3px solid ${PE.accent};border-radius:6px;padding:12px 16px;font-size:12px;color:${PE.muted};line-height:1.7;direction:rtl;text-align:right;">ממליצים להדפיס ולפזר באירוע. ככל שיהיו יותר עותקים, כך יותר אורחים יצטרפו!</div>
+      </td></tr>`, 'דף QR מוכן');
 
     default: return null;
   }
@@ -379,7 +370,7 @@ function ActionDialog({ action, onConfirm, onCancel, loading, previewHtml, custo
         {/* Description */}
         <p className="act-dialog__desc">{action.description}</p>
 
-        {/* Custom fields (for custom email) — placed BEFORE preview */}
+        {/* Custom fields (for custom email) - placed BEFORE preview */}
         {customFields}
 
         {/* Real email / WA preview */}
@@ -387,7 +378,7 @@ function ActionDialog({ action, onConfirm, onCancel, loading, previewHtml, custo
           <div className="act-dialog__preview">
             <div className="act-dialog__preview-header">
               <span className="act-dialog__preview-icon">👁</span>
-              <span>תצוגה מקדימה — כך ייראה</span>
+              <span>תצוגה מקדימה - כך ייראה</span>
             </div>
             <div className="act-dialog__preview-body">
               <EmailPreviewFrame html={previewHtml} />
@@ -439,6 +430,7 @@ export default function MessagingControls({
   onToggleWA,
   onTrigger,
   onSendEmail,
+  onSendQrPage,
   onRegenerateToken,
   isArchived,
 }: MessagingControlsProps) {
@@ -446,6 +438,8 @@ export default function MessagingControls({
   const [loading, setLoading] = useState(false);
   const [customSubject, setCustomSubject] = useState('');
   const [customBody, setCustomBody] = useState('');
+  const [qrFiles, setQrFiles] = useState<File[]>([]);
+  const qrInputRef = useRef<HTMLInputElement>(null);
 
   const portalUrl = status.portalToken
     ? `${typeof window !== 'undefined' ? window.location.origin : ''}/guest-upload/${eventSlug}?k=${status.portalToken}`
@@ -457,9 +451,7 @@ export default function MessagingControls({
       let result: { ok: boolean; error?: string; sent?: number; token?: string };
 
       switch (actionId) {
-        case 'upload_instructions':
         case 'upload_reminder':
-        case 'invoice':
         case 'summary':
           result = await onSendEmail(eventId, actionId);
           if (result.ok) alert('✅ נשלח בהצלחה');
@@ -480,6 +472,22 @@ export default function MessagingControls({
             alert('✅ המייל נשלח');
             setCustomSubject('');
             setCustomBody('');
+          } else {
+            alert(result.error || 'שגיאה');
+          }
+          break;
+        }
+
+        case 'qr_page': {
+          if (qrFiles.length === 0) {
+            alert('נא להעלות לפחות קובץ אחד');
+            setLoading(false);
+            return;
+          }
+          result = await onSendQrPage(eventId, qrFiles);
+          if (result.ok) {
+            alert(`✅ דף ה-QR נשלח עם ${qrFiles.length} קבצים`);
+            setQrFiles([]);
           } else {
             alert(result.error || 'שגיאה');
           }
@@ -508,7 +516,7 @@ export default function MessagingControls({
 
         case 'regenerate_token':
           result = await onRegenerateToken(eventId);
-          if (result.ok) alert('✅ טוקן חדש נוצר — שלח ללקוח את הלינק החדש');
+          if (result.ok) alert('✅ טוקן חדש נוצר - שלח ללקוח את הלינק החדש');
           else alert(result.error || 'שגיאה');
           break;
 
@@ -519,13 +527,16 @@ export default function MessagingControls({
       setLoading(false);
       setActiveDialog(null);
     }
-  }, [eventId, onSendEmail, onTrigger, onToggleWA, onRegenerateToken, customSubject, customBody, status.waMessagesEnabled]);
+  }, [eventId, onSendEmail, onSendQrPage, onTrigger, onToggleWA, onRegenerateToken, customSubject, customBody, qrFiles, status.waMessagesEnabled]);
 
   const openAction = (actionId: string) => {
     setActiveDialog(actionId);
     if (actionId === 'custom') {
       setCustomSubject('');
       setCustomBody('');
+    }
+    if (actionId === 'qr_page') {
+      setQrFiles([]);
     }
   };
 
@@ -538,8 +549,8 @@ export default function MessagingControls({
         target: 'guests',
         channel: 'system',
         description: status.waMessagesEnabled
-          ? 'מכבה את שירות ההודעות WhatsApp — לא יישלחו הודעות לאורחים.'
-          : 'מפעיל את שירות ההודעות WhatsApp — יאפשר שליחת הזמנות ופידבק לאורחים.',
+          ? 'מכבה את שירות ההודעות WhatsApp - לא יישלחו הודעות לאורחים.'
+          : 'מפעיל את שירות ההודעות WhatsApp - יאפשר שליחת הזמנות ופידבק לאורחים.',
         preview: status.waMessagesEnabled
           ? ['⚠️ הודעות עתידיות (Pre-Event, פידבק) לא יישלחו', '🔧 ניתן להפעיל מחדש בכל עת']
           : ['✅ יפעיל שליחת הודעות לאורחים ברשימה', '📱 הודעות Pre-Event ופידבק יישלחו לפי לוח הזמנים'],
@@ -554,7 +565,7 @@ export default function MessagingControls({
         icon: '🔄',
         target: 'client',
         channel: 'system',
-        description: 'מייצר טוקן פורטל חדש. הטוקן הישן יפסיק לעבוד — הלקוח יצטרך לינק חדש.',
+        description: 'מייצר טוקן פורטל חדש. הטוקן הישן יפסיק לעבוד - הלקוח יצטרך לינק חדש.',
         preview: [
           '🔧 פעולת מערכת',
           '⚠️ הטוקן הישן של הפורטל יפסיק לעבוד מיד',
@@ -747,6 +758,54 @@ export default function MessagingControls({
                 rows={4}
                 dir="rtl"
               />
+            </div>
+          ) : activeDialog === 'qr_page' ? (
+            <div className="act-dialog__custom">
+              <label className="act-dialog__field-label">העלו קבצים לצירוף (PDF, תמונה, ברקוד)</label>
+              <div className="act-qr-upload">
+                <input
+                  ref={qrInputRef}
+                  type="file"
+                  multiple
+                  accept=".pdf,.png,.jpg,.jpeg,.webp"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    setQrFiles(prev => [...prev, ...files]);
+                    e.target.value = '';
+                  }}
+                />
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--sm admin-btn--ghost"
+                  onClick={() => qrInputRef.current?.click()}
+                >
+                  📎 הוסיפו קבצים
+                </button>
+                {qrFiles.length > 0 && (
+                  <div className="act-qr-files">
+                    {qrFiles.map((f, i) => (
+                      <div key={i} className="act-qr-file">
+                        <span className="act-qr-file__name">
+                          {f.type.startsWith('image/') ? '🖼' : '📄'} {f.name}
+                        </span>
+                        <span className="act-qr-file__size">
+                          {(f.size / 1024).toFixed(0)} KB
+                        </span>
+                        <button
+                          type="button"
+                          className="act-qr-file__remove"
+                          onClick={() => setQrFiles(prev => prev.filter((_, j) => j !== i))}
+                          title="הסר"
+                        >✕</button>
+                      </div>
+                    ))}
+                    <div className="act-qr-files__total">
+                      סה&quot;כ: {qrFiles.length} קבצים ({(qrFiles.reduce((s, f) => s + f.size, 0) / 1024 / 1024).toFixed(1)} MB)
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           ) : undefined}
         />

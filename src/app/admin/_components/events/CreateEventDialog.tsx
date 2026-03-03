@@ -277,7 +277,7 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
             <span className="ced-wa-toggle__icon">📱</span>
             <span className="ced-wa-toggle__text">
               <span className="ced-wa-toggle__label">שירות הודעות WhatsApp</span>
-              <span className="ced-wa-toggle__desc">{waEnabled ? 'מופעל — +₪50' : 'כבוי'}</span>
+              <span className="ced-wa-toggle__desc">{waEnabled ? 'מופעל - +₪50' : 'כבוי'}</span>
             </span>
             <span className={`ced-wa-toggle__switch ${waEnabled ? 'ced-wa-toggle__switch--on' : ''}`}>
               <span className="ced-wa-toggle__switch-thumb" />

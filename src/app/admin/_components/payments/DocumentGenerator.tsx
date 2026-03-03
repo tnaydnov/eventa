@@ -195,7 +195,7 @@ export default function DocumentGenerator({ request, onClose, onCreated }: Docum
   return (
     <div className="admin-overlay" onClick={onClose}>
       <div className="admin-dialog admin-dialog--lg" onClick={e => e.stopPropagation()}>
-        <div className="admin-dialog__title">🧾 הפקת מסמך — Invoice4U</div>
+        <div className="admin-dialog__title">🧾 הפקת מסמך - Invoice4U</div>
 
         <div className="pay-gen">
           {/* Document type */}

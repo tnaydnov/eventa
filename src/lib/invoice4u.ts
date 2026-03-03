@@ -4,11 +4,11 @@
  * Communicates with Invoice4U's WCF/SOAP service for creating and managing
  * Israeli tax documents (invoices, receipts, credit notes, etc.).
  * 
- * Uses raw fetch + XML envelopes — no external SOAP library needed.
+ * Uses raw fetch + XML envelopes - no external SOAP library needed.
  * 
  * Environment variables:
- *   INVOICE4U_API_TOKEN  — GUID token from Invoice4U Settings → API
- *   INVOICE4U_API_URL    — (optional) override for staging/testing
+ *   INVOICE4U_API_TOKEN  - GUID token from Invoice4U Settings → API
+ *   INVOICE4U_API_URL    - (optional) override for staging/testing
  */
 
 import { logger } from './logger';
@@ -110,7 +110,7 @@ export interface CreateDocumentParams {
   sendByEmail?: boolean;               // send copy to customer email
   discountPercent?: number;            // 0-100
   discountAmount?: number;             // flat discount in ILS
-  originalDocId?: string;             // for credit notes — ref to original doc
+  originalDocId?: string;             // for credit notes - ref to original doc
 }
 
 export interface Invoice4UDocument {
@@ -272,7 +272,7 @@ export async function createCustomer(customer: Invoice4UCustomer): Promise<Invoi
     if (id > 0) {
       return { success: true, data: id };
     }
-    return { success: false, error: 'Failed to create customer — invalid response' };
+    return { success: false, error: 'Failed to create customer - invalid response' };
   } catch (err) {
     return { success: false, error: String(err) };
   }
@@ -317,7 +317,7 @@ export async function getOrCreateCustomer(customer: Invoice4UCustomer): Promise<
     );
     if (match?.ID) return { success: true, data: match.ID };
   }
-  // Not found — create new
+  // Not found - create new
   return createCustomer(customer);
 }
 
@@ -546,7 +546,7 @@ export async function getDocuments(params: {
 
 /**
  * Create a credit note (חשבונית זיכוי) for an existing document.
- * This is how cancellations work in Invoice4U — you don't delete documents.
+ * This is how cancellations work in Invoice4U - you don't delete documents.
  */
 export async function createCreditNote(params: {
   originalDocId: string;
@@ -656,7 +656,7 @@ export interface ClearingSessionParams {
   tokenOnly?: boolean;
   /** Clearing company override (leave undefined to use account default). */
   clearingCompany?: ClearingCompany;
-  /** Document language — 'he' (default) or 'en'. */
+  /** Document language - 'he' (default) or 'en'. */
   language?: 'he' | 'en';
 }
 
@@ -688,15 +688,15 @@ export interface ChargeTokenParams {
   docHeadline?: string;
   /** Document comments. */
   docComments?: string;
-  /** Manual item breakdown — names separated by |. */
+  /** Manual item breakdown - names separated by |. */
   docItemNames?: string;
-  /** Manual item breakdown — quantities separated by |. */
+  /** Manual item breakdown - quantities separated by |. */
   docItemQuantities?: string;
-  /** Manual item breakdown — prices separated by |. */
+  /** Manual item breakdown - prices separated by |. */
   docItemPrices?: string;
-  /** Manual item breakdown — tax rates separated by |. */
+  /** Manual item breakdown - tax rates separated by |. */
   docItemTaxRates?: string;
-  /** Document language — 'he' (default) or 'en'. */
+  /** Document language - 'he' (default) or 'en'. */
   language?: 'he' | 'en';
 }
 
@@ -766,7 +766,7 @@ function openInfoValue(
 /**
  * Create a clearing session for card tokenisation.
  * Returns a URL to embed in an iframe; the customer fills in card details.
- * No charge is made — call `chargeWithToken` later to actually charge.
+ * No charge is made - call `chargeWithToken` later to actually charge.
  */
 export async function createClearingSession(
   params: ClearingSessionParams,

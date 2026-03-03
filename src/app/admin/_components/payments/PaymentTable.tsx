@@ -123,7 +123,7 @@ export default function PaymentTable({
                     <td className="et-td">
                       <div className="pay-table__customer">
                         <span className="pay-table__customer-name">
-                          {r.contact_name || '—'}
+                          {r.contact_name || '-'}
                         </span>
                         {r.contact_phone && (
                           <span className="pay-table__customer-phone">{r.contact_phone}</span>
@@ -155,14 +155,14 @@ export default function PaymentTable({
                     <td className="et-td">
                       {r.payment_method
                         ? (PAYMENT_METHOD_LABELS[r.payment_method] || r.payment_method)
-                        : '—'}
+                        : '-'}
                     </td>
 
                     {/* Payment date */}
                     <td className="et-td">
                       {r.paid_at
                         ? new Date(r.paid_at).toLocaleDateString('he-IL')
-                        : '—'}
+                        : '-'}
                     </td>
 
                     {/* Actions */}

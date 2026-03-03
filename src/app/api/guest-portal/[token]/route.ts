@@ -151,7 +151,7 @@ export async function GET(
     const total = count ?? 0;
     const totalPages = Math.ceil(total / PAGE_SIZE);
 
-    // Format phone numbers for display (no masking — client uploaded these)
+    // Format phone numbers for display (no masking - client uploaded these)
     const formattedGuests = (guests || []).map(
       (g: {
         id: string;
@@ -242,7 +242,7 @@ export async function POST(
       .single();
 
     if (!event || event.status === 'archived') {
-      return jsonError('האירוע הסתיים — לא ניתן לעדכן את הרשימה', 400);
+      return jsonError('האירוע הסתיים - לא ניתן לעדכן את הרשימה', 400);
     }
 
     const contentType = req.headers.get('content-type') || '';
@@ -457,7 +457,7 @@ export async function DELETE(
       .single();
 
     if (!event || event.status === 'archived') {
-      return jsonError('האירוע הסתיים — לא ניתן לעדכן את הרשימה', 400);
+      return jsonError('האירוע הסתיים - לא ניתן לעדכן את הרשימה', 400);
     }
 
     const body = await req.json();

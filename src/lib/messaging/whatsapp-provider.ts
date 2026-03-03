@@ -5,7 +5,7 @@
  * Uses Meta's Cloud API through 360dialog's proxy endpoint.
  *
  * Message categories (Meta pricing):
- * - Authentication: OTP codes (not used — we use SMS for OTP)
+ * - Authentication: OTP codes (not used - we use SMS for OTP)
  * - Marketing: pre-event reminders, welcome messages, feedback (~₪0.15/conversation)
  * - Utility: transactional (not used currently)
  *
@@ -13,7 +13,7 @@
  * All our WA messages are Marketing → one window per user per 24h.
  *
  * When WA_PROVIDER_LIVE is false, the provider logs the message
- * and returns a stub success — no real WhatsApp message is sent.
+ * and returns a stub success - no real WhatsApp message is sent.
  */
 import { WA_PROVIDER_LIVE } from '@/lib/config';
 import { logger } from '@/lib/logger';

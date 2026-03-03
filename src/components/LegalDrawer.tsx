@@ -40,7 +40,7 @@ export default function LegalDrawer({
     return () => { document.body.style.overflow = ''; };
   }, [page]);
 
-  /* Close on Escape — handled by useFocusTrap */
+  /* Close on Escape - handled by useFocusTrap */
 
   if (!page) return null;
 

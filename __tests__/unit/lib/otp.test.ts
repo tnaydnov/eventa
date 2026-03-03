@@ -75,7 +75,7 @@ describe('createOtp', () => {
   const eventId = '123e4567-e89b-12d3-a456-426614174000';
 
   it('creates OTP successfully when no cooldown active', async () => {
-    // No recent OTP — cooldown check returns null
+    // No recent OTP - cooldown check returns null
     const mockSelect = vi.fn().mockReturnValue({
       eq: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
@@ -124,7 +124,7 @@ describe('createOtp', () => {
   });
 
   it('returns error when cooldown is active', async () => {
-    // Recent OTP exists — cooldown active
+    // Recent OTP exists - cooldown active
     const mockSelect = vi.fn().mockReturnValue({
       eq: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({

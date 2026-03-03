@@ -1,5 +1,5 @@
 -- Migration 013: Slug recycling for pretty URLs
--- Per design doc §28.7 — allow archived events to free their slugs
+-- Per design doc §28.7 - allow archived events to free their slugs
 
 -- Drop the existing unique constraint on events.slug
 -- (Supabase auto-creates events_slug_key from the UNIQUE in schema.sql)

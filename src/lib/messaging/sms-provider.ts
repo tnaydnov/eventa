@@ -1,24 +1,32 @@
 /**
- * InforUMobile SMS provider for the Israeli market.
+ * TextMe SMS provider for the Israeli market.
  *
- * API docs: https://www.inforu.co.il/api-docs
- * Pricing: ~₪0.04 per domestic SMS
+ * API docs: https://docs.textme.co.il/guide/
  *
  * This provider is used ONLY for OTP codes.
  * WhatsApp is used for all other messages (welcome, pre-event, feedback).
  *
  * When SMS_PROVIDER_LIVE is false, the provider logs the message
- * and returns a stub success — no real SMS is sent.
+ * and returns a stub success - no real SMS is sent.
  */
 import { SMS_PROVIDER_LIVE } from '@/lib/config';
 import { logger } from '@/lib/logger';
 import type { SendSmsParams, SendSmsResult } from './types';
 
-/** InforUMobile API v2 endpoint */
-const API_URL = 'https://api.inforu.co.il/api/v2/SMS/SendSMS';
+/** TextMe Send-SMS endpoint */
+const API_URL = 'https://my.textme.co.il/api';
+
+/** TextMe error-code map (non-zero = failure) */
+const ERROR_CODES: Record<number, string> = {
+  3: 'Authentication failed (invalid token or username)',
+  4: 'No SMS credit remaining',
+  9: 'Invalid phone number (too short/long)',
+  10: 'Expired API token',
+  12: 'Unverified OTP code on TextMe account',
+};
 
 /**
- * Send an SMS via InforUMobile.
+ * Send an SMS via TextMe.
  * In stub mode (SMS_PROVIDER_LIVE=false), logs and returns success.
  */
 export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
@@ -32,23 +40,27 @@ export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
   }
 
   // ── Live mode ──
-  const token = process.env.INFORU_API_TOKEN;
-  const senderName = process.env.INFORU_SENDER_NAME || 'Eventa';
+  const token = process.env.TEXTME_API_TOKEN;
+  const username = process.env.TEXTME_USERNAME;
+  const source = process.env.TEXTME_SENDER_NAME || 'Eventa';
 
-  if (!token) {
-    return { success: false, messageId: null, error: 'INFORU_API_TOKEN not configured' };
+  if (!token || !username) {
+    return {
+      success: false,
+      messageId: null,
+      error: 'TEXTME_API_TOKEN or TEXTME_USERNAME not configured',
+    };
   }
 
-  // InforUMobile expects local format without +972 prefix
+  // TextMe expects local format (05xxxxxxxx or 5xxxxxxxx)
   const localPhone = toLocalFormat(params.to);
 
   const body = {
-    Data: {
-      Message: params.message,
-      Recipients: [{ Phone: localPhone }],
-      Settings: {
-        Sender: senderName,
-      },
+    sms: {
+      user: { username },
+      source,
+      destinations: { phone: localPhone },
+      message: params.message,
     },
   };
 
@@ -57,7 +69,7 @@ export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Basic ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
     });
@@ -69,15 +81,20 @@ export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
 
     const result = await response.json();
 
-    // InforUMobile returns StatusDescription: "OK" on success
-    if (result.StatusDescription === 'OK' || result.Status === 1) {
-      return { success: true, messageId: result.MessageId || null, error: null };
+    // TextMe returns status 0 on success
+    if (result.status === 0) {
+      return {
+        success: true,
+        messageId: result.shipment_id || null,
+        error: null,
+      };
     }
 
+    const knownError = ERROR_CODES[result.status as number];
     return {
       success: false,
       messageId: null,
-      error: result.StatusDescription || 'Unknown SMS error',
+      error: knownError || result.message || `TextMe error (status ${result.status})`,
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';

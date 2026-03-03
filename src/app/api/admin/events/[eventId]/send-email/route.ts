@@ -6,13 +6,10 @@ import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
 import { logger } from '@/lib/logger';
 import { adminSendEmailSchema } from '@/lib/validations';
-import { APP_BASE_URL } from '@/lib/config';
+import { APP_BASE_URL, MSG_TIMING } from '@/lib/config';
 import {
-  buildUploadInstructionsEmail,
-  buildUploadReminderEmail,
-  buildMessagingAddonInvoiceEmail,
-  buildEventSummaryEmail,
-  buildCustomReminderEmail,
+  buildClientUploadReminder7DayEmail,
+  buildClientEventSummaryEmail,
 } from '@/lib/email-templates';
 
 const transporter = nodemailer.createTransport({
@@ -85,105 +82,77 @@ export async function POST(
     const portalUrl = tokenData?.token
       ? `${APP_BASE_URL}/guest-upload/${event.slug}?k=${tokenData.token}`
       : null;
-    const templateUrl = `${APP_BASE_URL}/templates/guest-upload-template.xlsx`;
 
-    // Format event date/time for templates
+    // Format event date for templates
     const eventDate = formatDate(event.starts_at);
-    const eventTime = formatTime(event.starts_at);
 
     // Build email based on type
     let email: { subject: string; html: string };
 
     switch (parsed.data.type) {
-      case 'upload_instructions': {
-        if (!portalUrl) {
-          return jsonError(
-            'No active portal token — generate one first',
-            400
-          );
-        }
-        email = buildUploadInstructionsEmail({
-          contactName,
-          eventName: event.name,
-          eventDate,
-          eventTime,
-          uploadUrl: portalUrl,
-          templateUrl,
-        });
-        break;
-      }
-
       case 'upload_reminder': {
         if (!portalUrl) {
           return jsonError(
-            'No active portal token — generate one first',
+            'No active portal token - generate one first',
             400
           );
         }
-        email = buildUploadReminderEmail({
+        // Compute schedule times for the template
+        const startsMs = new Date(event.starts_at).getTime();
+        const preEventMs = MSG_TIMING.PRE_EVENT_HOURS_BEFORE * 60 * 60 * 1000;
+        const messageSendAt = new Date(startsMs - preEventMs).toISOString();
+        // Upload deadline = same as message send time (must upload before WA goes out)
+        const uploadDeadline = messageSendAt;
+
+        email = buildClientUploadReminder7DayEmail({
           contactName,
           eventName: event.name,
-          eventDate,
           daysLeft: computeDaysUntil(event.starts_at),
           uploadUrl: portalUrl,
-        });
-        break;
-      }
-
-      case 'invoice': {
-        // PayBox & Bit info — stubs for now (Section 27 future phase)
-        const payboxUrl = `${APP_BASE_URL}/pay/${eventId}`;
-        const bitPhone = process.env.BIT_PHONE || '050-0000000';
-        email = buildMessagingAddonInvoiceEmail({
-          contactName,
-          eventName: event.name,
-          payboxUrl,
-          bitPhone,
+          messageSendAt,
+          uploadDeadline,
         });
         break;
       }
 
       case 'summary': {
         // Gather stats for summary email
-        const [participantsRes, logsRes] = await Promise.all([
+        const [participantsRes, matchesRes, convoRes] = await Promise.all([
           supabase
             .from('participants')
-            .select('id, joined_via, feedback_sent, sms_consent')
+            .select('id, gender')
             .eq('event_id', eventId),
           supabase
-            .from('message_log')
-            .select('id, message_type, status')
+            .from('matches')
+            .select('id')
+            .eq('event_id', eventId),
+          supabase
+            .from('conversations')
+            .select('id')
             .eq('event_id', eventId),
         ]);
 
         const parts = participantsRes.data || [];
-        const logs = logsRes.data || [];
-
         const totalParticipants = parts.length;
-        const fromPreEvent = parts.filter(
-          (p: { joined_via: string }) => p.joined_via === 'whatsapp_link'
+        const men = parts.filter(
+          (p: { gender: string }) => p.gender === 'male'
         ).length;
-        const fromQr = totalParticipants - fromPreEvent;
-        const totalMatches = 0; // Matches counted separately if needed
-        const messagesDelivered = logs.filter(
-          (l: { status: string }) => l.status === 'sent'
+        const women = parts.filter(
+          (p: { gender: string }) => p.gender === 'female'
         ).length;
-        const feedbackSent = parts.filter(
-          (p: { feedback_sent: boolean }) => p.feedback_sent
-        ).length;
+        const totalMatches = matchesRes.data?.length || 0;
+        const totalConversations = convoRes.data?.length || 0;
 
-        email = buildEventSummaryEmail({
+        email = buildClientEventSummaryEmail({
           contactName,
           eventName: event.name,
           eventDate,
           stats: {
             totalParticipants,
-            fromPreEvent,
-            fromQr,
+            men,
+            women,
             totalMatches,
-            messagesFromGuests: event.guest_list_count || 0,
-            messagesDelivered,
-            feedbackSent,
+            totalConversations,
           },
         });
         break;
@@ -196,12 +165,21 @@ export async function POST(
             400
           );
         }
-        email = buildCustomReminderEmail({
-          contactName,
-          eventName: event.name,
-          message: parsed.data.customMessage,
-          uploadUrl: portalUrl || undefined,
-        });
+        const safeName = contactName.replace(/</g, '&lt;');
+        const safeEvent = event.name.replace(/</g, '&lt;');
+        const safeMsg = parsed.data.customMessage.replace(/</g, '&lt;');
+        email = {
+          subject: `Eventa \u2014 ${event.name}`,
+          html: `<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Eventa</title></head>` +
+            `<body style="margin:0;padding:20px;background:#f5f3f0;font-family:Arial,Helvetica,sans-serif;">` +
+            `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">` +
+            `<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.06);">` +
+            `<tr><td dir="rtl" style="text-align:right;padding:32px;font-size:15px;color:#1e1e1e;line-height:1.7;">` +
+            `<div style="font-weight:600;margin-bottom:8px;">שלום ${safeName},</div>` +
+            `<div style="color:#6b6b6b;margin-bottom:16px;">בנוגע לאירוע <strong>${safeEvent}</strong>:</div>` +
+            `<div style="background:#faf6f4;border-right:3px solid #b08d7e;border-radius:6px;padding:16px 18px;font-size:15px;color:#1e1e1e;line-height:1.8;white-space:pre-line;">${safeMsg}</div>` +
+            `</td></tr></table></td></tr></table></body></html>`,
+        };
         break;
       }
 
@@ -252,17 +230,6 @@ function formatDate(iso: string): string {
     });
   } catch {
     return iso;
-  }
-}
-
-function formatTime(iso: string): string {
-  try {
-    return new Date(iso).toLocaleTimeString('he-IL', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return '';
   }
 }
 

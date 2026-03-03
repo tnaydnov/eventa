@@ -7,8 +7,8 @@ import { jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 import { APP_BASE_URL, MSG_TIMING } from '@/lib/config';
 import {
-  buildUploadReminderEmail,
-  buildUploadUrgentReminderEmail,
+  buildClientUploadReminder7DayEmail,
+  buildClientUploadReminder3DayEmail,
 } from '@/lib/email-templates';
 
 const transporter = nodemailer.createTransport({
@@ -154,28 +154,29 @@ async function handler(req: NextRequest) {
         ? `${APP_BASE_URL}/guest-upload/${event.slug}?k=${portalToken.token}`
         : `${APP_BASE_URL}/guest-upload/${event.slug}`;
 
-      const eventDate = new Date(event.starts_at).toLocaleDateString('he-IL', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      });
+      // Compute schedule times for template
+      const startsMs = new Date(event.starts_at).getTime();
+      const preEventMs = MSG_TIMING.PRE_EVENT_HOURS_BEFORE * 60 * 60 * 1000;
+      const messageSendAt = new Date(startsMs - preEventMs).toISOString();
+      const uploadDeadline = messageSendAt;
 
       // Build email based on reminder type
       const email =
         reminderType === 'upload_reminder_7d'
-          ? buildUploadReminderEmail({
+          ? buildClientUploadReminder7DayEmail({
               contactName: request.contact_name,
               eventName: event.name,
-              eventDate,
               daysLeft: Math.round(daysUntilEvent),
               uploadUrl,
+              messageSendAt,
+              uploadDeadline,
             })
-          : buildUploadUrgentReminderEmail({
+          : buildClientUploadReminder3DayEmail({
               contactName: request.contact_name,
               eventName: event.name,
-              eventDate,
               uploadUrl,
+              messageSendAt,
+              uploadDeadline,
             });
 
       try {

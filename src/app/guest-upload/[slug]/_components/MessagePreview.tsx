@@ -69,10 +69,10 @@ export default function MessagePreview({ eventName, startsAt }: MessagePreviewPr
                   הם מצאו את אהבתם, עכשיו תורכם! ❤️
                 </p>
                 <p className="wa-msg-text" style={{ marginTop: 4 }}>
-                  באירוע תהיה לכם הזדמנות להצטרף לאפליקציית <strong>Eventa</strong> — ולראות את שאר הרווקים והרווקות שיהיו שם.
+                  באירוע תהיה לכם הזדמנות להצטרף לאפליקציית <strong>Eventa</strong> - ולראות את שאר הרווקים והרווקות שיהיו שם.
                 </p>
                 <p className="wa-msg-text" style={{ marginTop: 4 }}>
-                  אל תדאגו — זו אפליקציה ייעודית רק לאירוע זה, וכל הנתונים שלכם יימחקו כשבוע לאחר האירוע. 🔒
+                  אל תדאגו - זו אפליקציה ייעודית רק לאירוע זה, וכל הנתונים שלכם יימחקו כשבוע לאחר האירוע. 🔒
                 </p>
                 <p className="wa-msg-text" style={{ marginTop: 4 }}>
                   כדאי לכם להיכנס כבר עכשיו ולבדוק את השטח…{'\n'}אולי תשיגו משהו מעניין 😏

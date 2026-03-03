@@ -53,7 +53,13 @@ export default function PrivacyContent() {
         <h2 style={headingStyle}>2. איזה מידע אנו אוספים</h2>
         <p style={textStyle}>אנו אוספים/מעבדים מידע בהתאם לתכונות שבהן נעשה שימוש:</p>
 
-        <h3 style={subHeadingStyle}>א. מידע פרופיל (מסופק על-ידך)</h3>
+        <h3 style={subHeadingStyle}>א. מספר טלפון נייד</h3>
+        <p style={textStyle}>
+          מספר טלפון נייד ישראלי, משמש לאימות זהות באמצעות קוד SMS חד-פעמי (OTP)
+          ולמניעת שימוש כפול. המספר נמחק אוטומטית תוך 7 ימים מסיום האירוע.
+        </p>
+
+        <h3 style={subHeadingStyle}>ב. מידע פרופיל (מסופק על-ידך)</h3>
         <p style={textStyle}>
           שם תצוגה, גיל (דיווח עצמי), מגדר, למי את/ה נמשך/ת (נטייה/העדפה),
           &quot;מחפש/ת&quot;, עיר, ביוגרפיה, ותמונות פרופיל (עד כמות שמוגדרת בשירות).
@@ -70,7 +76,13 @@ export default function PrivacyContent() {
           (למשל עדכון &quot;נראה לאחרונה&quot;, ככל שמופעל בשירות).
         </p>
 
-        <h3 style={subHeadingStyle}>ד. מזהים טכניים</h3>
+        <h3 style={subHeadingStyle}>ד. הסכמות והעדפות תקשורת</h3>
+        <ul style={listStyle}>
+          <li style={liStyle}>הסכמה לקבלת הודעות SMS ו-WhatsApp מהמערכת (אופציונלי, ניתן לשינוי בכל עת).</li>
+          <li style={liStyle}>הסכמה לקבלת הודעת פידבק יום אחרי האירוע (אופציונלי, ניתן לשינוי בכל עת).</li>
+        </ul>
+
+        <h3 style={subHeadingStyle}>ה. מזהים טכניים</h3>
         <ul style={listStyle}>
           <li style={liStyle}>מזהה טכני / UUID הנשמר בדפדפן (למשל לצורך חיבור מחדש, מניעת שימוש כפול / עקיפת חסימות).</li>
           <li style={liStyle}>פרטי אירוע / משתתף מתוך סשן (eventId, participantId וכו&apos;).</li>
@@ -145,6 +157,8 @@ export default function PrivacyContent() {
         <ul style={listStyle}>
           <li style={liStyle}><strong>Supabase</strong> - מסד נתונים, אחסון קבצים, תקשורת בזמן אמת</li>
           <li style={liStyle}><strong>Vercel</strong> - אירוח והפצת האתר (CDN / Serverless)</li>
+          <li style={liStyle}><strong>ספק SMS (לדוגמא TextMe)</strong> - לצורך שליחת קוד אימות (OTP) בלבד. מספר הטלפון מועבר לספק לצורך השליחה בלבד.</li>
+          <li style={liStyle}><strong>WhatsApp Business API (Meta)</strong> - לצורך שליחת הודעות לאורחים (הזמנה לאירוע, פידבק), בכפוף להסכמת המשתמש/ת.</li>
         </ul>
         <p style={boldText}>
           איננו משלבים נכון למועד זה שירותי אנליטיקה / פרסום (כגון Google Analytics, Mixpanel וכו&apos;).

@@ -148,7 +148,7 @@ export default function UploadZone({ onUpload, templateUrl, disabled }: UploadZo
 
           <div className="portal-guide-notes">
             <p>✅ אפשר עם מקף או בלי: <span dir="ltr" className="portal-mono">052-1234567</span> או <span dir="ltr" className="portal-mono">0521234567</span></p>
-            <p>✅ עמודת השם היא אופציונלית — אפשר להשאיר ריק</p>
+            <p>✅ עמודת השם היא אופציונלית - אפשר להשאיר ריק</p>
             <p>✅ רק מספרים ישראליים שמתחילים ב-<span dir="ltr" className="portal-mono">05</span></p>
             <p>✅ עד 500 מספרים בקובץ אחד (אפשר להעלות עוד)</p>
             <p>✅ מספרים כפולים יסוננו אוטומטית</p>

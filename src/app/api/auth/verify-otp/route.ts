@@ -266,7 +266,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Build response — strip sensitive fields
+    // Build response - strip sensitive fields
     const safeParticipant = participant
       ? (({
           device_fingerprint,

@@ -94,14 +94,14 @@ export async function parseGuestFile(buffer: Buffer, filename: string): Promise<
     }
 
     const sheet = workbook.Sheets[sheetName];
-    // Get raw JSON rows — header: 1 means first row is header
+    // Get raw JSON rows - header: 1 means first row is header
     const rawData = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
       defval: '',
       raw: false, // force string conversion
     });
 
     if (rawData.length === 0) {
-      return { rows: [], error: 'הקובץ ריק — אין שורות נתונים' };
+      return { rows: [], error: 'הקובץ ריק - אין שורות נתונים' };
     }
 
     if (rawData.length > MAX_UPLOAD_ROWS) {
@@ -205,7 +205,7 @@ export function validateGuestRows(
       errors.push({
         row: rowNum,
         phone: row.phone,
-        reason: `שורה ${rowNum}: "${row.phone}" — מספר לא תקין (רק סלולרי ישראלי)`,
+        reason: `שורה ${rowNum}: "${row.phone}" - מספר לא תקין (רק סלולרי ישראלי)`,
       });
       continue;
     }
@@ -216,7 +216,7 @@ export function validateGuestRows(
       errors.push({
         row: rowNum,
         phone: row.phone,
-        reason: `שורה ${rowNum}: "${row.phone}" — מספר לא תקין (רק סלולרי ישראלי)`,
+        reason: `שורה ${rowNum}: "${row.phone}" - מספר לא תקין (רק סלולרי ישראלי)`,
       });
       continue;
     }
@@ -285,7 +285,7 @@ export async function processGuestUpload(
       invalid: 0,
       errors: [],
       validGuests: [],
-      parseError: 'הקובץ ריק — אין מספרי טלפון',
+      parseError: 'הקובץ ריק - אין מספרי טלפון',
     };
   }
 
@@ -319,12 +319,12 @@ export async function generateGuestTemplate(): Promise<Buffer> {
     ['הנחיות להעלאת רשימת אורחים'],
     [''],
     ['1. הזינו מספרי טלפון ישראליים (מתחילים ב-05)'],
-    ['2. אפשר עם מקף (052-1234567) או בלי (0521234567) — שניהם תקינים'],
-    ['3. עמודת השם היא אופציונלית — אפשר להשאיר ריק'],
+    ['2. אפשר עם מקף (052-1234567) או בלי (0521234567) - שניהם תקינים'],
+    ['3. עמודת השם היא אופציונלית - אפשר להשאיר ריק'],
     ['4. כל שורה = אורח/ת אחד/ת'],
     ['5. מקסימום 500 אורחים בקובץ'],
     ['6. מספרים כפולים יסוננו אוטומטית'],
-    ['7. אפשר להעלות קבצים נוספים — הם יתווספו לרשימה הקיימת'],
+    ['7. אפשר להעלות קבצים נוספים - הם יתווספו לרשימה הקיימת'],
   ];
   const instrSheet = XLSX.utils.aoa_to_sheet(instructionsData);
   instrSheet['!cols'] = [{ wch: 55 }];

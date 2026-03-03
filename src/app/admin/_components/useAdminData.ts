@@ -423,6 +423,22 @@ export function useAdminData() {
     return { ok: false, error: err.error || 'שגיאה בשליחת אימייל' };
   };
 
+  /* ─── send QR page email with attachments ─── */
+  const sendQrPage = async (
+    eventId: string,
+    files: File[]
+  ): Promise<{ ok: boolean; error?: string }> => {
+    const form = new FormData();
+    for (const file of files) form.append('files', file);
+    const res = await authedFetch(`/api/admin/events/${eventId}/send-qr-page`, {
+      method: 'POST',
+      body: form,
+    });
+    if (res.ok) return { ok: true };
+    const err = await res.json().catch(() => ({}));
+    return { ok: false, error: err.error || 'שגיאה בשליחת דף QR' };
+  };
+
   /* ─── message log (placeholder for future API) ─── */
   const loadMessageLog = useCallback(async (eventId: string) => {
     try {
@@ -495,7 +511,7 @@ export function useAdminData() {
     loadRequests, approveRequest, denyRequest,
     loadMessagingStatus, updateMessagingConfig, triggerMessages,
     loadGuestPhones, adminAddGuestPhone, adminRemoveGuestPhone, adminUploadGuestFile,
-    regeneratePortalToken, sendClientEmail, loadMessageLog,
+    regeneratePortalToken, sendClientEmail, sendQrPage, loadMessageLog,
     markAsPaid, waivePayment, resendPaymentLink,
   };
 }

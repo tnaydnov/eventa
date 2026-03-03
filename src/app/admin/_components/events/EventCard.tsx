@@ -88,7 +88,7 @@ export default function EventRow({
           {event.name}
           {event.wa_messages_enabled && (
             <span className={`et-msg-badge ${event.guest_list_uploaded ? 'et-msg-badge--ok' : 'et-msg-badge--pending'}`}
-              title={event.guest_list_uploaded ? `📱 הודעות — ${event.guest_list_count} מספרים` : '📱 הודעות — ממתין להעלאת רשימה'}
+              title={event.guest_list_uploaded ? `📱 הודעות - ${event.guest_list_count} מספרים` : '📱 הודעות - ממתין להעלאת רשימה'}
             >
               📱 {event.guest_list_uploaded ? event.guest_list_count : '!'}
             </span>

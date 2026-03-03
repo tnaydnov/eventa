@@ -37,7 +37,7 @@ export {
   feedbackVars,
 } from './templates';
 
-// Providers (low-level — prefer using the messaging service)
+// Providers (low-level - prefer using the messaging service)
 export { sendSms } from './sms-provider';
 export { sendWhatsAppTemplate } from './whatsapp-provider';
 

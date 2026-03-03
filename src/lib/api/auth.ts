@@ -21,7 +21,7 @@ export async function sendOtp(params: {
     });
     return res.json();
   } catch {
-    return { success: false, error: 'שגיאה בשליחת הקוד — נסו שוב' };
+    return { success: false, error: 'שגיאה בשליחת הקוד - נסו שוב' };
   }
 }
 
@@ -50,7 +50,7 @@ export async function verifyOtp(params: {
   if (!res.ok) {
     if (res.status === 403) throw new Error('DEVICE_BANNED');
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || 'אימות הקוד נכשל — נסו שוב');
+    throw new Error(body.error || 'אימות הקוד נכשל - נסו שוב');
   }
   return res.json();
 }

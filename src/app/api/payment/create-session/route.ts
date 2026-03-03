@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
   // Check Invoice4U is configured
   if (!isConfigured()) {
-    logger.warn('[PAYMENT] Invoice4U not configured — returning stub');
+    logger.warn('[PAYMENT] Invoice4U not configured - returning stub');
     return NextResponse.json({
       error: 'Payment provider not configured',
       stub: true,
@@ -63,10 +63,10 @@ export async function POST(req: NextRequest) {
     // Build callback URL
     const returnUrl = `${APP_BASE_URL}/api/payment/callback?rid=${requestId}`;
 
-    // Create clearing session (tokenise only — no charge)
+    // Create clearing session (tokenise only - no charge)
     const description = eventName
-      ? `Eventa — ${eventName}`
-      : 'Eventa — חבילת אירוע';
+      ? `Eventa - ${eventName}`
+      : 'Eventa - חבילת אירוע';
 
     const result = await createClearingSession({
       fullName: contactName,
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
 
     if (updateErr) {
       logger.error('[PAYMENT] Failed to save clearing IDs', { error: updateErr.message });
-      // Non-fatal — the session was created, customer can still pay
+      // Non-fatal - the session was created, customer can still pay
     }
 
     logger.info('[PAYMENT] Clearing session created', {

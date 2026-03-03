@@ -57,7 +57,7 @@ async function logMessage(params: {
 
 /**
  * Send OTP code via SMS.
- * Always uses SMS — universal, no WhatsApp dependency for auth.
+ * Always uses SMS - universal, no WhatsApp dependency for auth.
  */
 export async function sendOtp(
   phone: string,
@@ -145,7 +145,7 @@ export async function sendWelcomeMessage(
     .maybeSingle();
 
   if (guestEntry?.wa_pre_event_sent) {
-    logger.info('[MESSAGING] Skipping welcome — pre-event already sent', {
+    logger.info('[MESSAGING] Skipping welcome - pre-event already sent', {
       phone,
       eventId: config.eventId,
     });
@@ -164,7 +164,7 @@ export async function sendWelcomeMessage(
     .maybeSingle();
 
   if (existingMsg) {
-    logger.info('[MESSAGING] Skipping welcome — message already sent', {
+    logger.info('[MESSAGING] Skipping welcome - message already sent', {
       phone,
       eventId: config.eventId,
     });
@@ -205,7 +205,7 @@ export async function sendWelcomeMessage(
 /**
  * Send feedback message via WhatsApp.
  * Only sent if a Marketing window is still open (< 24h since last WA marketing message).
- * If no open window, skip — we don't open a new window just for feedback.
+ * If no open window, skip - we don't open a new window just for feedback.
  */
 export async function sendFeedbackMessage(
   phone: string,
@@ -232,7 +232,7 @@ export async function sendFeedbackMessage(
     .maybeSingle();
 
   if (!recentMsg) {
-    logger.info('[MESSAGING] Skipping feedback — no open WA marketing window', {
+    logger.info('[MESSAGING] Skipping feedback - no open WA marketing window', {
       phone,
       eventId: config.eventId,
     });
@@ -281,7 +281,7 @@ export async function sendFeedbackMessage(
         wa_message_id: result.messageId || null,
       });
     } catch (dcErr) {
-      // Non-fatal — feedback was already sent
+      // Non-fatal - feedback was already sent
       logger.warn('[MESSAGING] Failed to create discount claim', { error: dcErr });
     }
   }

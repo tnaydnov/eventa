@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
     return htmlResponse('שגיאה', 'ההזמנה לא נמצאה.', false);
   }
 
-  // Already captured — idempotent
+  // Already captured - idempotent
   if (request.payment_status === 'card_captured' || request.payment_status === 'paid') {
     return htmlResponse('הצלחה', 'פרטי הכרטיס נשמרו בהצלחה!', true);
   }
@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
   }
 
   if (!verified) {
-    // The clearing log doesn't show success yet — might be eventual consistency.
+    // The clearing log doesn't show success yet - might be eventual consistency.
     // Still mark as captured since the iframe redirected to our callback,
     // which only happens on completion.
     logger.info('[PAYMENT_CALLBACK] Clearing log not verified yet, accepting iframe redirect', { rid });
@@ -90,7 +90,7 @@ export async function GET(req: NextRequest) {
 
   return htmlResponse(
     'הצלחה',
-    'פרטי הכרטיס נשמרו בהצלחה! ההזמנה שלכם בבדיקה — נעדכן אתכם בהקדם.',
+    'פרטי הכרטיס נשמרו בהצלחה! ההזמנה שלכם בבדיקה - נעדכן אתכם בהקדם.',
     verified,
   );
 }
@@ -135,7 +135,7 @@ function htmlResponse(title: string, message: string, success: boolean): NextRes
           success: ${success},
         }, '*');
       }
-    } catch(e) { /* cross-origin — ignore */ }
+    } catch(e) { /* cross-origin - ignore */ }
   </script>
 </body>
 </html>`;

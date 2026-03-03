@@ -148,7 +148,7 @@ test.describe('Guest Upload Portal', () => {
     // Look for file input
     const fileInput = page.locator('input[type="file"]');
     if (await fileInput.count() > 0) {
-      // File input exists — portal is interactive
+      // File input exists - portal is interactive
       await expect(fileInput.first()).toBeAttached();
     }
   });

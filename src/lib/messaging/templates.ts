@@ -1,5 +1,5 @@
 /**
- * Message templates — centralized Hebrew text and WA template names.
+ * Message templates - centralized Hebrew text and WA template names.
  * No hardcoded message strings anywhere else in the codebase.
  */
 import { APP_BASE_URL } from '@/lib/config';

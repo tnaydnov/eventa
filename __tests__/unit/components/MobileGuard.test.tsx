@@ -65,7 +65,7 @@ describe('MobileGuard', () => {
     render(<MobileGuard><div>App content</div></MobileGuard>);
     expect(screen.getByText(/האפליקציה זמינה לנייד בלבד/)).toBeTruthy();
 
-    // Resize to mobile (debounced — advance timers to flush)
+    // Resize to mobile (debounced - advance timers to flush)
     act(() => {
       Object.defineProperty(window, 'innerWidth', { value: 375, configurable: true });
       window.dispatchEvent(new Event('resize'));

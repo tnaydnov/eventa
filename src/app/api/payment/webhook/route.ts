@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (!PAYMENT_PROVIDER_LIVE) {
-    logger.info('[PAYMENT_WEBHOOK] Stub mode — webhook received but not processed');
+    logger.info('[PAYMENT_WEBHOOK] Stub mode - webhook received but not processed');
     return NextResponse.json(
       {
         error: 'Payment provider is in stub mode. Set PAYMENT_PROVIDER_LIVE=true to enable.',

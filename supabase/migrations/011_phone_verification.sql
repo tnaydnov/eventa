@@ -129,5 +129,5 @@ ALTER TABLE message_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE client_portal_tokens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE discount_claims ENABLE ROW LEVEL SECURITY;
 
--- No anon SELECT policies — all access via service_role only.
+-- No anon SELECT policies - all access via service_role only.
 -- These tables contain sensitive phone numbers and tokens.

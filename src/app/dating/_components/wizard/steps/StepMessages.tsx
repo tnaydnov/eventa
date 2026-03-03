@@ -17,7 +17,7 @@ export default function StepMessages({ state, onChange }: Props) {
       <div className="wiz-step__header">
         <h2 className="wiz-step__title">הודעות WhatsApp לאורחים</h2>
         <p className="wiz-step__subtitle">
-          שלחו לאורחים הודעת WhatsApp עם קישור אישי לאפליקציה — בלי צורך ב-QR.
+          שלחו לאורחים הודעת WhatsApp עם קישור אישי לאפליקציה - בלי צורך ב-QR.
         </p>
       </div>
 
@@ -48,7 +48,7 @@ export default function StepMessages({ state, onChange }: Props) {
             <div className="wiz-msg-feature__icon">📱</div>
             <div className="wiz-msg-feature__text">
               <strong>הודעת WhatsApp לפני האירוע</strong>
-              <span>כל אורח מקבל קישור אישי להצטרפות — בלי סריקת QR</span>
+              <span>כל אורח מקבל קישור אישי להצטרפות - בלי סריקת QR</span>
             </div>
           </div>
           <div className="wiz-msg-feature">
@@ -62,7 +62,7 @@ export default function StepMessages({ state, onChange }: Props) {
             <div className="wiz-msg-feature__icon">💬</div>
             <div className="wiz-msg-feature__text">
               <strong>הודעת פידבק + הנחה</strong>
-              <span>יום אחרי האירוע — סקר קצר וקוד הנחה 10% לאירוע הבא</span>
+              <span>יום אחרי האירוע - סקר קצר וקוד הנחה 10% לאירוע הבא</span>
             </div>
           </div>
         </div>
@@ -76,8 +76,8 @@ export default function StepMessages({ state, onChange }: Props) {
         <ol className="wiz-msg-howto__steps">
           <li>לאחר הרכישה תקבלו קישור למערכת העלאת מספרים</li>
           <li>תעלו קובץ Excel עם רשימת הטלפונים (נשלח לכם תבנית מוכנה)</li>
-          <li>כ-3 שעות לפני האירוע — נשלח הודעות WhatsApp אוטומטית</li>
-          <li>יום אחרי האירוע — נשלח פידבק + הנחה (למי שהסכים)</li>
+          <li>כ-3 שעות לפני האירוע - נשלח הודעות WhatsApp אוטומטית</li>
+          <li>יום אחרי האירוע - נשלח פידבק + הנחה (למי שהסכים)</li>
         </ol>
       </div>
     </div>

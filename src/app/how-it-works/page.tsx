@@ -37,7 +37,7 @@ const STAGES: {
   {
     num: '02',
     title: 'שלמו ואשרו',
-    desc: 'לאחר שליחת ההזמנה, תקבלו מייל עם פרטי תשלום. ברגע שהתשלום מאושר - ההזמנה נכנסת לעבודה.',
+    desc: 'לאחר שליחת ההזמנה, תקבלו מייל עם קישור לתשלום מאובטח. ברגע שהתשלום מאושר - ההזמנה נכנסת לעבודה.',
     accent: 'var(--primary-light, #E8C4BB)',
     icon: (
       <svg aria-hidden="true" focusable="false" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -67,7 +67,7 @@ const STAGES: {
   {
     num: '04',
     title: 'האורחים סורקים ונכנסים',
-    desc: 'האורחים סורקים את ה-QR או לוחצים על הקישור, בונים פרופיל תוך דקה (שם, תמונה, ביו קצר) - והם בפנים. בלי הורדה, ישר מהדפדפן.',
+    desc: 'האורחים סורקים את ה-QR, לוחצים על הקישור, או מקבלים הזמנה ב-WhatsApp. אימות מהיר עם קוד SMS, בניית פרופיל תוך דקה - והם בפנים. בלי הורדה, ישר מהדפדפן.',
     accent: 'var(--primary, #D4A59A)',
     icon: (
       <svg aria-hidden="true" focusable="false" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -79,7 +79,7 @@ const STAGES: {
   {
     num: '05',
     title: 'הקסם קורה',
-    desc: 'לייקים, מאצ\'ים, וצ\'אט בין הרווקים והרווקות - הכל קורה בזמן אמת, במהלך האירוע. חוויה שיוצרת באזז אמיתי.',
+    desc: 'לייקים, מאצ\'ים, וצ\'אט בין הרווקים והרווקות - הכל קורה בזמן אמת, במהלך האירוע. מי שרכש תוספת הודעות - האורחים מקבלים WhatsApp עם קישור כמה שעות לפני, ופידבק אחרי.',
     accent: 'var(--primary-light, #E8C4BB)',
     icon: (
       <svg aria-hidden="true" focusable="false" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -148,7 +148,7 @@ export default function HowItWorksPage() {
         </h1>
 
         <p className="hiw__hero-sub">
-          מהרגע שהזמנתם ועד הלילה של האירוע —<br />
+          מהרגע שהזמנתם ועד הלילה של האירוע -<br />
           ככה נראית החוויה, צעד אחרי צעד.
         </p>
       </div>

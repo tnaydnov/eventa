@@ -34,7 +34,7 @@ ALTER TABLE event_requests
     ));
 
 -- 3. Relax paid_at consistency constraint
---    (paid_at may be NULL even for non-paid statuses — no change needed,
+--    (paid_at may be NULL even for non-paid statuses - no change needed,
 --     but the original constraint forced paid_at IS NULL for non-paid.
 --     We keep that but must recreate it so it compiles with new status values.)
 ALTER TABLE event_requests
@@ -47,11 +47,11 @@ ALTER TABLE event_requests
       OR (payment_status != 'paid')
     );
 
--- 4. Relax payment_method consistency — allow NULL for non-paid statuses
+-- 4. Relax payment_method consistency - allow NULL for non-paid statuses
 ALTER TABLE event_requests
   DROP CONSTRAINT IF EXISTS chk_payment_method_consistency;
 
--- (no replacement — payment_method is already nullable and the check above covers it)
+-- (no replacement - payment_method is already nullable and the check above covers it)
 
 -- 5. Extend contact_preference CHECK to include 'pay-now'
 ALTER TABLE event_requests

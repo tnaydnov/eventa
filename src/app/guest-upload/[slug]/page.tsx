@@ -25,7 +25,7 @@ const STATUS_MAP: Record<
   { emoji: string; label: string; cls: string }
 > = {
   empty:    { emoji: '🔴', label: 'לא הועלו מספרים',              cls: 'portal-status-badge--empty' },
-  uploaded: { emoji: '🟡', label: 'הועלו — ההודעות טרם נשלחו',      cls: 'portal-status-badge--uploaded' },
+  uploaded: { emoji: '🟡', label: 'הועלו - ההודעות טרם נשלחו',      cls: 'portal-status-badge--uploaded' },
   sent:     { emoji: '🟢', label: 'הודעות נשלחו',                   cls: 'portal-status-badge--sent' },
   archived: { emoji: '⚫', label: 'האירוע הסתיים',                  cls: 'portal-status-badge--archived' },
 };
@@ -67,7 +67,7 @@ export default function GuestUploadPage({
   const loadData = useCallback(
     async (p = page, search = searchQuery) => {
       if (!token) {
-        setError('קישור לא תקין — חסר טוקן אימות');
+        setError('קישור לא תקין - חסר טוקן אימות');
         setLoading(false);
         return;
       }

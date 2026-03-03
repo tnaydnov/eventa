@@ -252,7 +252,7 @@ async function handler(req: NextRequest) {
       logger.info(`[CLEANUP] Archived event "${event.name}" (${eventId})`);
     }
 
-    // Global OTP cleanup (not event-scoped — cleans all expired OTPs)
+    // Global OTP cleanup (not event-scoped - cleans all expired OTPs)
     const otpsCleaned = await cleanupExpiredOtps();
     if (otpsCleaned > 0) {
       logger.info('[CLEANUP] Cleaned expired OTPs', { count: otpsCleaned });

@@ -53,17 +53,17 @@ vi.mock('nodemailer', () => ({
 }));
 
 vi.mock('@/lib/email-templates', () => ({
-  buildUploadReminderEmail: vi.fn().mockReturnValue({
+  buildClientUploadReminder7DayEmail: vi.fn().mockReturnValue({
     subject: 'Reminder',
     html: '<p>Upload your guest list</p>',
   }),
-  buildUploadUrgentReminderEmail: vi.fn().mockReturnValue({
+  buildClientUploadReminder3DayEmail: vi.fn().mockReturnValue({
     subject: 'Urgent Reminder',
     html: '<p>Time is running out</p>',
   }),
 }));
 
-// Import handler — the file exports GET and POST both pointing to the same handler
+// Import handler - the file exports GET and POST both pointing to the same handler
 import { GET } from '@/app/api/cron/upload-reminders/route';
 
 const CRON_SECRET = 'test-cron-secret-123';

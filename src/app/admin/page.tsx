@@ -226,6 +226,7 @@ export default function AdminPage() {
                 adminUploadGuestFile={admin.adminUploadGuestFile}
                 regeneratePortalToken={admin.regeneratePortalToken}
                 sendClientEmail={admin.sendClientEmail}
+                sendQrPage={admin.sendQrPage}
                 loadMessageLog={admin.loadMessageLog}
               />
             )}

@@ -38,7 +38,7 @@ const sourceLabel = (s: string) =>
   s === 'pre_event_link' ? '📱 WA' : '📸 QR';
 
 const feedbackLabel = (p: AdminParticipant) => {
-  if (!p.phone) return '—';
+  if (!p.phone) return '-';
   if (p.feedback_sent) return '✅ נשלח';
   if (!p.sms_consent) return '❌ סירב';
   return '⏳ ממתין';
@@ -337,7 +337,7 @@ export default function ParticipantsTable({ eventId, isArchived, waMessagesEnabl
                       </td>
                       {waMessagesEnabled && (
                         <td className="pt-td" dir="ltr" style={{ textAlign: 'center' }}>
-                          {p.phone || '—'}
+                          {p.phone || '-'}
                         </td>
                       )}
                       {waMessagesEnabled && (

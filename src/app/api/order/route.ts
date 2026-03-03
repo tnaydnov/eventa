@@ -16,9 +16,12 @@ import {
   MSG_ADDON,
 } from '@/lib/config';
 import {
-  buildAdminNotificationEmail,
-  buildClientPaymentEmail,
-  buildCardCapturedEmail,
+  buildAdminPayNowNotification,
+  buildAdminCallMeBackNotification,
+  buildAdminContactOnlyNotification,
+  buildClientPayNowEmail,
+  buildClientCallMeBackEmail,
+  buildClientPaymentLinkEmail,
 } from '@/lib/email-templates';
 
 const transporter = nodemailer.createTransport({
@@ -159,25 +162,46 @@ export async function POST(request: NextRequest) {
     }
 
     // ── 2. Build & send admin notification email ──
-    const orderData = {
+    const eventFormData = {
       eventType,
       eventName,
       startsAt,
       endsAt,
-      contactName,
-      contactPhone,
-      contactEmail: contactEmail || '',
       wantsCustomBackground: wantsCustomBg,
       hasBgImage,
       posterChoice,
       selectedTemplate,
       specialRequests: specialReqs,
       wantsGuestMessages: wantsMessages,
-      contactPreference: contactPref,
-      isWizard,
     };
 
-    const adminEmail = buildAdminNotificationEmail(orderData);
+    // Pick the right admin template based on contact preference
+    let adminEmail: { subject: string; html: string };
+    if (!isWizard) {
+      // Simple form submission (no event details) → contact-only notification
+      adminEmail = buildAdminContactOnlyNotification({
+        contactName,
+        contactPhone,
+        contactEmail: contactEmail || '',
+      });
+    } else if (contactPref === 'pay-now') {
+      adminEmail = buildAdminPayNowNotification({
+        ...eventFormData,
+        contactName,
+        contactPhone,
+        contactEmail: contactEmail || '',
+        requestId,
+      });
+    } else {
+      // call-me or send-link
+      adminEmail = buildAdminCallMeBackNotification({
+        ...eventFormData,
+        contactName,
+        contactPhone,
+        contactEmail: contactEmail || '',
+        requestId,
+      });
+    }
 
     // If wizard submission includes a background image, attach it
     const attachments: Array<{ filename: string; content: Buffer; cid: string }> = [];
@@ -198,38 +222,45 @@ export async function POST(request: NextRequest) {
       ...(attachments.length > 0 ? { attachments } : {}),
     });
 
-    // ── 3. If client chose "send-link" and has email → send payment email (legacy flow) ──
-    if (isWizard && contactPref === 'send-link' && contactEmail && requestId) {
+    // ── 3. Send confirmation email to client based on contact preference ──
+    if (isWizard && contactEmail && requestId) {
       try {
-        const baseUrl = `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host') || 'eventa.productions'}`;
-        const paymentEmail = buildClientPaymentEmail({
-          contactName,
-          contactEmail,
-          eventType,
-          eventName,
-          startsAt,
-          endsAt,
-          wantsCustomBackground: wantsCustomBg,
-          hasBgImage,
-          posterChoice,
-          selectedTemplate,
-          specialRequests: specialReqs,
-          wantsGuestMessages: wantsMessages,
-          requestId,
-          baseUrl,
-        });
+        let clientEmail: { subject: string; html: string } | null = null;
 
-        await transporter.sendMail({
-          from: `"Eventa" <${process.env.SMTP_USER}>`,
-          to: contactEmail,
-          subject: paymentEmail.subject,
-          html: paymentEmail.html,
-        });
+        if (contactPref === 'send-link') {
+          // Client chose "send me a payment link"
+          const baseUrl = `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host') || 'eventa.productions'}`;
+          clientEmail = buildClientPaymentLinkEmail({
+            ...eventFormData,
+            contactName,
+            paymentUrl: `${baseUrl}/api/payment/checkout?token=${paymentLinkToken}`,
+          });
+        } else if (contactPref === 'pay-now') {
+          // Client paid directly — confirmation email
+          clientEmail = buildClientPayNowEmail({
+            ...eventFormData,
+            contactName,
+          });
+        } else {
+          // Client chose "call me back"
+          clientEmail = buildClientCallMeBackEmail({
+            ...eventFormData,
+            contactName,
+          });
+        }
 
-        logger.info('Payment email sent to client', { contactEmail, requestId });
+        if (clientEmail) {
+          await transporter.sendMail({
+            from: `"Eventa" <${process.env.SMTP_USER}>`,
+            to: contactEmail,
+            subject: clientEmail.subject,
+            html: clientEmail.html,
+          });
+          logger.info('Client confirmation email sent', { contactEmail, requestId, contactPref });
+        }
       } catch (emailErr) {
         // Don't fail the whole request if client email fails
-        logger.error('Failed to send payment email', {
+        logger.error('Failed to send client email', {
           error: emailErr instanceof Error ? emailErr.message : String(emailErr),
         });
       }

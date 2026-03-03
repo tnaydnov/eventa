@@ -230,7 +230,7 @@ export default function RequestsView({ requests, onApprove, onDeny, onReload }: 
                     </div>
                   </div>
 
-                  {/* Payment Status (read-only — manage in Payments tab) */}
+                  {/* Payment Status (read-only - manage in Payments tab) */}
                   {req.payment_status && req.payment_status !== 'not_applicable' && (
                     <div className="req-payment">
                       <div className="req-payment__status">

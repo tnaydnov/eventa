@@ -132,7 +132,7 @@ export default function StepPoster({ state, onChange }: Props) {
         </svg>
         <div>
           <p className="wiz-poster-note__text">
-            <strong>התבניות מוצגות כדוגמה בלבד</strong> — שמות בני הזוג/האירוע וקוד ה-QR המעודכן ישולבו בפוסטר הסופי, שיישלח אליכם כחלק מהסדר.
+            <strong>התבניות מוצגות כדוגמה בלבד</strong> - שמות בני הזוג/האירוע וקוד ה-QR המעודכן ישולבו בפוסטר הסופי, שיישלח אליכם כחלק מהסדר.
           </p>
           <p className="wiz-poster-note__text">
             בנוסף, תקבלו בנפרד את קוד ה-QR עצמו וגם את הקישור (URL) לצורך שיתוף דיגיטלי.
@@ -153,7 +153,7 @@ export default function StepPoster({ state, onChange }: Props) {
         />
       </div>
 
-      {/* Full-screen preview modal — portaled to body to bypass parent transforms */}
+      {/* Full-screen preview modal - portaled to body to bypass parent transforms */}
       {previewSrc && createPortal(
         <div className="wiz-poster-modal" onClick={closePreview}>
           <button type="button" className="wiz-poster-modal__close" onClick={closePreview} aria-label="סגור תצוגה מקדימה">

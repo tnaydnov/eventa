@@ -1,4 +1,4 @@
-# Phone Verification & Messaging System — Complete Design Document
+# Phone Verification & Messaging System - Complete Design Document
 
 > **Date**: February 27, 2026  
 > **Status**: Design (not yet implemented)
@@ -22,7 +22,7 @@
 12. [Scheduled Messaging (Cron Jobs)](#12-scheduled-messaging-cron-jobs)
 
 ### Business Lifecycle (Sections 13–19)
-13. [Admin Dashboard Changes — Overview](#13-admin-dashboard-changes)
+13. [Admin Dashboard Changes - Overview](#13-admin-dashboard-changes)
 14. [Security Considerations](#14-security-considerations)
 15. [Data Privacy & Legal Compliance](#15-data-privacy--legal-compliance)
 16. [Cost Model](#16-cost-model)
@@ -34,7 +34,7 @@
 20. [Purchase & Onboarding Flow](#20-purchase--onboarding-flow)
 21. [Client Guest Management Portal](#21-client-guest-management-portal)
 22. [Email Lifecycle & Templates](#22-email-lifecycle--templates)
-23. [Admin Dashboard — Full Integration](#23-admin-dashboard--full-integration)
+23. [Admin Dashboard - Full Integration](#23-admin-dashboard--full-integration)
 24. [Data Retention & Discount Tracking](#24-data-retention--discount-tracking)
 25. [Complete Message Content](#25-complete-message-content)
 26. [Updated Summary](#26-updated-summary)
@@ -51,7 +51,7 @@
 
 ### 1.1 What We're Building
 
-A phone-based identity layer on top of the existing fingerprint + cookie session system. Phone number becomes the **ultimate fallback identity** — used only when cookies and fingerprints fail to reconnect a user to their participant record.
+A phone-based identity layer on top of the existing fingerprint + cookie session system. Phone number becomes the **ultimate fallback identity** - used only when cookies and fingerprints fail to reconnect a user to their participant record.
 
 Additionally, a messaging system that sends:
 - **OTP codes** via SMS (all events)
@@ -61,13 +61,13 @@ Additionally, a messaging system that sends:
 
 ### 1.2 Design Principles
 
-1. **Phone is a fallback, not a gate** — existing cookie/fingerprint flow stays primary
-2. **SMS for OTP always** — universally supported, no WhatsApp dependency for core auth
-3. **WhatsApp for rich messages** — pre-event, welcome, feedback (high open rates matter)
-4. **No code duplication** — single messaging abstraction layer handles both channels
-5. **Per-number tracking** — welcome message skipped if pre-event was already sent to that number
-6. **All config is dynamic** — no hardcoded phone numbers, messages, or provider URLs
-7. **Graceful degradation** — if SMS/WA fails, the app still works (just without messages)
+1. **Phone is a fallback, not a gate** - existing cookie/fingerprint flow stays primary
+2. **SMS for OTP always** - universally supported, no WhatsApp dependency for core auth
+3. **WhatsApp for rich messages** - pre-event, welcome, feedback (high open rates matter)
+4. **No code duplication** - single messaging abstraction layer handles both channels
+5. **Per-number tracking** - welcome message skipped if pre-event was already sent to that number
+6. **All config is dynamic** - no hardcoded phone numbers, messages, or provider URLs
+7. **Graceful degradation** - if SMS/WA fails, the app still works (just without messages)
 
 ### 1.3 Identity Resolution Priority (Updated)
 
@@ -142,7 +142,7 @@ User visits → has session cookie?
 └────────────────────────────────────────────────────────────────────┘
 ```
 
-### 2.2 Returning User — Cache Intact (No Change)
+### 2.2 Returning User - Cache Intact (No Change)
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
@@ -153,7 +153,7 @@ User visits → has session cookie?
 └────────────────────────────────────────────────────────────────────┘
 ```
 
-### 2.3 Returning User — Cache Cleared
+### 2.3 Returning User - Cache Cleared
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
@@ -315,7 +315,7 @@ ALTER TABLE discount_claims ENABLE ROW LEVEL SECURITY;
 CREATE TABLE IF NOT EXISTS client_portal_tokens (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-  token TEXT NOT NULL UNIQUE,          -- crypto.randomUUID() — the link IS the auth
+  token TEXT NOT NULL UNIQUE,          -- crypto.randomUUID() - the link IS the auth
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   last_used_at TIMESTAMPTZ
@@ -519,7 +519,7 @@ src/
         [token]/
           route.ts              # GET (portal data), POST (upload file), DELETE (remove number)
           download-template/
-            route.ts            # GET — returns the Excel template file
+            route.ts            # GET - returns the Excel template file
 
     guest-upload/
       [eventId]/
@@ -544,7 +544,7 @@ src/
   app/admin/
     _components/
       messaging/
-        MessagingTab.tsx        # New tab in EventAnalyticsView — full messaging panel
+        MessagingTab.tsx        # New tab in EventAnalyticsView - full messaging panel
         GuestListManager.tsx    # Admin guest list view/edit (see all numbers, add/remove)
         MessageLog.tsx          # Message delivery log table
         CrossReferenceTable.tsx # Guest list → actual participants matching
@@ -647,11 +647,11 @@ function toLocalFormat(phone: string): string {
 
 ### 6.2 Key Design Decisions
 
-- **InforUMobile API v2** — REST-based, JSON request/response
-- **Authentication** — Basic auth with API token (provided by InforUMobile dashboard)
-- **Sender name** — configurable via env var, defaults to "Eventa" (max 11 chars for alphanumeric sender IDs in Israel)
-- **Phone format** — internally we store E.164 (+972...), convert to local format only for the API call
-- **Single recipient** — OTPs are always 1:1, so no batch API needed
+- **InforUMobile API v2** - REST-based, JSON request/response
+- **Authentication** - Basic auth with API token (provided by InforUMobile dashboard)
+- **Sender name** - configurable via env var, defaults to "Eventa" (max 11 chars for alphanumeric sender IDs in Israel)
+- **Phone format** - internally we store E.164 (+972...), convert to local format only for the API call
+- **Single recipient** - OTPs are always 1:1, so no batch API needed
 
 ---
 
@@ -856,7 +856,7 @@ export interface EventMessagingConfig {
 
 ```typescript
 /**
- * Message templates — centralized Hebrew text and WA template names.
+ * Message templates - centralized Hebrew text and WA template names.
  * No hardcoded strings anywhere else.
  */
 import type { EventMessagingConfig } from './types';
@@ -1042,7 +1042,7 @@ async function logMessage(params: {
 
 /**
  * Send OTP code via SMS.
- * Always uses SMS — universal, no WhatsApp dependency for auth.
+ * Always uses SMS - universal, no WhatsApp dependency for auth.
  */
 export async function sendOtp(
   phone: string,
@@ -1127,7 +1127,7 @@ export async function sendWelcomeMessage(
     .maybeSingle();
 
   if (guestEntry?.wa_pre_event_sent) {
-    // Already has the link — skip
+    // Already has the link - skip
     logger.info('[MESSAGING] Skipping welcome - pre-event already sent', {
       phone, eventId: config.eventId,
     });
@@ -1184,7 +1184,7 @@ export async function sendWelcomeMessage(
 /**
  * Send feedback message via WhatsApp.
  * Only sent if a Marketing window is still open (< 24h since pre-event or welcome).
- * If no open window, skip — we don't open a new window just for feedback.
+ * If no open window, skip - we don't open a new window just for feedback.
  */
 export async function sendFeedbackMessage(
   phone: string,
@@ -1434,7 +1434,7 @@ export { RESEND_COOLDOWN_S };
 ```
 Purpose: Validate event + phone, generate OTP, send SMS
 Rate limit: auth tier (5/min per IP)
-Auth: None required (public — like the join endpoint)
+Auth: None required (public - like the join endpoint)
 CSRF: Yes
 
 Request body: {
@@ -1520,7 +1520,7 @@ Flow:
 
 ### 10.3 Modified Route: `POST /api/auth/join` (Updated)
 
-The existing join route stays as-is for backward compatibility (fingerprint-based reconnection). **No changes needed** — it continues to handle:
+The existing join route stays as-is for backward compatibility (fingerprint-based reconnection). **No changes needed** - it continues to handle:
 - Users with valid cookies returning
 - Users with fingerprints in localStorage
 
@@ -1579,7 +1579,7 @@ Flow:
      b. Load event config
      c. For each participant:
         - Check if WA marketing window is still open (< 24h)
-        - If open: send feedback via WA (free — same window)
+        - If open: send feedback via WA (free - same window)
         - If closed: skip (don't pay for new window just for feedback)
         - Mark feedback_sent = true regardless (don't retry)
      d. Log summary
@@ -1819,7 +1819,7 @@ Window: events starting between now and now + 3 hours.
   BUT pre-event already sent → skipped (wa_pre_event_sent = true)
 
 Safety: even if cron misses once, the next run will catch it (as long as
-event hasn't started yet). If event already started, skip — too late.
+event hasn't started yet). If event already started, skip - too late.
 ```
 
 ### 12.3 Feedback Message Timing Logic
@@ -1843,9 +1843,9 @@ Feedback at 17:00 = 25 hours later → window closed → SKIP (don't pay) ❌
 ## 13. Admin Dashboard Changes
 
 > **⚠️ This section is an overview.** For the full, comprehensive admin dashboard integration
-> (every button, every tab, every manual override), see **[Section 23: Admin Dashboard — Full Integration](#23-admin-dashboard--full-integration)**.
+> (every button, every tab, every manual override), see **[Section 23: Admin Dashboard - Full Integration](#23-admin-dashboard--full-integration)**.
 
-### 13.1 Event Creation/Edit — New Field
+### 13.1 Event Creation/Edit - New Field
 
 Add to event create/edit form:
 ```
@@ -1887,7 +1887,7 @@ phone,name
 0521234567,יוסי לוי
 ```
 
-### 13.3 Event Analytics — New Metrics
+### 13.3 Event Analytics - New Metrics
 
 Add to event analytics dashboard:
 ```
@@ -1927,7 +1927,7 @@ Add phone to ban checks. When an admin bans a participant:
 
 - Phone numbers are stored **only** in the `participants` table and `event_guest_phones` table
 - Both tables are **service_role only** (no anon RLS policies for write/read on phone column)
-- The `PublicParticipant` type already excludes sensitive fields — add `phone` to the exclusion list
+- The `PublicParticipant` type already excludes sensitive fields - add `phone` to the exclusion list
 - Phone numbers are **deleted** when the event is archived (same as all other participant data)
 - Phone numbers are **never** sent to the client in grid/profile API responses
 - Message log is cleaned up with the event (or kept 30 days max)
@@ -1949,10 +1949,10 @@ Add phone to ban checks. When an admin bans a participant:
 | Threat | Mitigation |
 |--------|-----------|
 | **Token guessing** | UUID v4 = 122 bits entropy. Unguessable by brute force. |
-| **Token sharing** | Accepted risk — client can share the link. Portal only shows their event. |
+| **Token sharing** | Accepted risk - client can share the link. Portal only shows their event. |
 | **Old token access** | Tokens deactivated on regeneration (`is_active=false`). Event archive deactivates all tokens. |
 | **Portal after event ends** | Portal becomes read-only. No new uploads accepted. |
-| **CSRF on portal** | Portal uses token-auth (not cookies) — CSRF not applicable. |
+| **CSRF on portal** | Portal uses token-auth (not cookies) - CSRF not applicable. |
 | **File upload attacks** | File size limit (5MB), file type validation (xlsx/csv only), server-side parsing (no client-side eval). |
 | **Phone number exposure** | Client portal masks phones: `050-***-4567`. Admin sees full phones. |
 | Admin guest upload | 3/min (strict) | `admin-guests:{ip}` |
@@ -1968,7 +1968,7 @@ Add phone to ban checks. When an admin bans a participant:
 | **Privacy Protection Law (5741-1981)** | Consent for data collection | SMS consent checkbox at registration |
 | **Communications Law (Bezeq)** | Opt-in for commercial messages | Separate checkbox: "אני מסכים/ה לקבל הודעות" |
 | **GDPR-like provisions** | Data deletion | Phone deleted with event cleanup (7 days post-event) |
-| **Database Registrar** | Register database with PPA if >10K records | Monitor — unlikely to hit with event-scoped data |
+| **Database Registrar** | Register database with PPA if >10K records | Monitor - unlikely to hit with event-scoped data |
 
 ### 15.2 Privacy Policy Updates
 
@@ -1987,7 +1987,7 @@ Registration:
   ☑ אני מסכים/ה לקבל הודעות SMS ו-WhatsApp       (optional, default checked)
 ```
 
-The messaging consent checkbox is **separate** from the terms agreement. Users can uncheck it and still use the app — they just won't get welcome/feedback messages. OTP is a necessary transactional message and doesn't require marketing consent.
+The messaging consent checkbox is **separate** from the terms agreement. Users can uncheck it and still use the app - they just won't get welcome/feedback messages. OTP is a necessary transactional message and doesn't require marketing consent.
 
 ---
 
@@ -2034,7 +2034,7 @@ The messaging consent checkbox is **separate** from the terms agreement. Users c
 | **Same phone, two browser tabs** | OTP is single-use. First tab to verify wins. Second tab gets "code already used". |
 | **Phone number changes** | Not supported. User can delete account and re-register with new phone. |
 | **Same phone in multiple events** | Allowed. Phone is unique per event, not globally. Each event has its own participant record. |
-| **International phone numbers** | Currently rejected — only Israeli mobile numbers accepted. Can be extended later. |
+| **International phone numbers** | Currently rejected - only Israeli mobile numbers accepted. Can be extended later. |
 | **SMS delivery failure** | Return error to user. Show "שלחו שוב" button with cooldown timer. Max 3 retries per session. |
 | **WhatsApp delivery failure** | Log to message_log with status='failed'. No user-facing error (WA messages are non-critical). |
 | **User clears cache mid-OTP** | OTP is still valid in DB. User refreshes → sees phone input again → enters same phone → gets "wait 45s" or resends. |
@@ -2072,10 +2072,10 @@ The messaging consent checkbox is **separate** from the terms agreement. Users c
 | **Client uploads empty file** | Reject with "הקובץ ריק". |
 | **Client uploads file with >500 rows** | Reject with "מקסימום 500 אורחים בהעלאה אחת. אפשר להעלות קבצים נוספים." |
 | **Client uploads file twice (same data)** | All numbers detected as duplicates. Response: "0 added, 180 duplicates." No harm. |
-| **Client uploads additional file** | New numbers appended to existing list. Not a replacement — additive only. |
+| **Client uploads additional file** | New numbers appended to existing list. Not a replacement - additive only. |
 | **Client removes number after WA sent** | Blocked: "לא ניתן להסיר מספר שכבר נשלחה אליו הודעה". |
 | **Client opens portal after event archived** | Read-only view. "האירוע הסתיים. הרשימה שלכם נשמרה. תודה! 🎉" |
-| **Client shares portal link with guest** | Guest can't do damage — can only add/remove from the list. Low risk, accepted. |
+| **Client shares portal link with guest** | Guest can't do damage - can only add/remove from the list. Low risk, accepted. |
 | **Token regenerated by admin** | Old link returns 401 "Invalid or expired link". Client needs new link (sent via email). |
 | **Multiple uploads in rapid succession** | Rate limited: 3 uploads/min per token. Prevents accidental double-clicks. |
 | **Excel has extra columns** | Ignored. Only columns A (phone) and B (name) are parsed. |
@@ -2087,7 +2087,7 @@ The messaging consent checkbox is **separate** from the terms agreement. Users c
 
 | Edge Case | Handling |
 |-----------|---------|
-| **Admin toggles WA off after pre-event sent** | OK — feedback cron checks wa_messages_enabled. If off, skips feedback too. |
+| **Admin toggles WA off after pre-event sent** | OK - feedback cron checks wa_messages_enabled. If off, skips feedback too. |
 | **Admin manually sends WA when no guest list** | Button disabled if guest_list_count = 0. Shows "אין מספרים ברשימה". |
 | **Admin sends invoice email for already-paid event** | No system-level check. Admin's responsibility. Email just sends. |
 | **Admin changes timing after messages already sent** | No effect on already-sent messages. Only affects future sends. |
@@ -2149,7 +2149,7 @@ The messaging consent checkbox is **separate** from the terms agreement. Users c
 - Existing users with sessions (cookies + fingerprints) continue to work unchanged
 - The phone input only appears for new registrations and cache-cleared recovery
 - Old participants without phone numbers can still use the app normally
-- `phone` column is nullable — no migration of existing data needed
+- `phone` column is nullable - no migration of existing data needed
 - Existing join route (`/api/auth/join`) stays unchanged and functional
 
 ### 18.3 Feature Flags
@@ -2316,10 +2316,10 @@ It's visually disabled and not selectable.
    - Features: MSG_FEATURES array (WhatsApp messages, personal join link, Excel upload)
 ```
 
-The pricing page itself doesn't handle selection — it just links to `/dating/order`.
+The pricing page itself doesn't handle selection - it just links to `/dating/order`.
 The order form handles the `wantsGuestMessages` toggle.
 
-### 20.2 Order Form — wantsGuestMessages Already Integrated
+### 20.2 Order Form - wantsGuestMessages Already Integrated
 
 **Current state** (`src/app/api/order/route.ts`):
 The order form Zod schema already has `wantsGuestMessages: z.boolean()`.
@@ -2328,7 +2328,7 @@ When submitted:
 - Email to admin includes messaging add-on status
 - `priceBlock()` in email renders ₪300 (250+50) when messaging is selected
 
-**No changes needed** to the order flow — it's ready.
+**No changes needed** to the order flow - it's ready.
 
 ### 20.3 Event Approval with Messaging
 
@@ -2353,8 +2353,8 @@ Generate client portal token:
 Build upload portal URL:
   https://eventa.productions/guest-upload/[eventId]?token=[token]
   ↓
-Send "Upload Instructions" email to client:  (Email #1 — see Section 22.2)
-  - Subject: "🎉 האירוע שלכם אושר! — הכינו את רשימת האורחים"
+Send "Upload Instructions" email to client:  (Email #1 - see Section 22.2)
+  - Subject: "🎉 האירוע שלכם אושר! - הכינו את רשימת האורחים"
   - Contains: upload link, instructions, Excel template download link
   - Sent to: contact_email from event_requests
   ↓
@@ -2392,7 +2392,7 @@ Admin can:
 4. Everything else works the same from this point
 ```
 
-This is a manual admin action — there's no self-serve "upgrade" flow. The client calls/texts, admin clicks a few buttons.
+This is a manual admin action - there's no self-serve "upgrade" flow. The client calls/texts, admin clicks a few buttons.
 
 ---
 
@@ -2401,7 +2401,7 @@ This is a manual admin action — there's no self-serve "upgrade" flow. The clie
 ### 21.1 Architecture Overview
 
 The client portal is a **standalone page** at `/guest-upload/[eventId]?token=[secure_token]`.
-It requires **no login** — the token in the URL IS the authentication.
+It requires **no login** - the token in the URL IS the authentication.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -2457,7 +2457,7 @@ await supabase
 - Token auto-deactivates when event is archived
 - Rate limited: 10 requests/minute per token
 
-### 21.3 Portal UI — Full Page Layout
+### 21.3 Portal UI - Full Page Layout
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -2527,7 +2527,7 @@ The downloadable template (`guest-upload-template.xlsx`) has:
 │  3. כל שורה = אורח/ת אחד/ת                                          │
 │  4. מקסימום 500 אורחים                                                │
 │  5. מספרים כפולים יסוננו אוטומטית                                     │
-│  6. אפשר להעלות קבצים נוספים — הם יתווספו לרשימה הקיימת             │
+│  6. אפשר להעלות קבצים נוספים - הם יתווספו לרשימה הקיימת             │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -2536,7 +2536,7 @@ The downloadable template (`guest-upload-template.xlsx`) has:
 - Column B header: "שם (אופציונלי)" (optional)
 - 3 example rows (user should overwrite)
 - Instructions sheet with clear Hebrew guidance
-- Cell validation on Column A: text format (not number — to preserve leading zeros)
+- Cell validation on Column A: text format (not number - to preserve leading zeros)
 
 ### 21.5 Upload Validation & Error Handling
 
@@ -2575,7 +2575,7 @@ interface UploadRowError {
    │   ├── Normalize: "050-1234567" → "0501234567" → "+972501234567"
    │   ├── Must be Israeli mobile (05X pattern): /^05\d{8}$/
    │   ├── Invalid → add to errors:
-   │   │   "שורה 7: '03-1234567' — מספר לא תקין (רק סלולרי ישראלי)"
+   │   │   "שורה 7: '03-1234567' - מספר לא תקין (רק סלולרי ישראלי)"
    │   └── Valid → continue
    ├── Duplicate check (against existing list + this batch):
    │   ├── Already exists → increment duplicates counter, skip
@@ -2601,8 +2601,8 @@ interface UploadRowError {
 │  ✅ 175 מספרים הועלו בהצלחה                                         │
 │  ⚠️  3 מספרים כפולים (כבר ברשימה)                                    │
 │  ❌ 2 מספרים לא תקינים:                                              │
-│    • שורה 7: "03-1234567" — מספר לא תקין (רק סלולרי ישראלי)         │
-│    • שורה 15: "abc" — מספר לא תקין (רק סלולרי ישראלי)               │
+│    • שורה 7: "03-1234567" - מספר לא תקין (רק סלולרי ישראלי)         │
+│    • שורה 15: "abc" - מספר לא תקין (רק סלולרי ישראלי)               │
 │                                                                     │
 │  סה"כ ברשימה: 175 אורחים                                             │
 └─────────────────────────────────────────────────────────────────────┘
@@ -2645,7 +2645,7 @@ The client portal shows a status summary at the top:
 | Status | Meaning |
 |--------|---------|
 | 🔴 לא הועלו מספרים | No numbers uploaded yet |
-| 🟡 הועלו X מספרים — ההודעות טרם נשלחו | Numbers uploaded, messages not sent yet |
+| 🟡 הועלו X מספרים - ההודעות טרם נשלחו | Numbers uploaded, messages not sent yet |
 | 🟢 נשלחו Y הודעות מתוך X | Pre-event messages sent |
 | ⚫ האירוע הסתיים | Event is over, portal is read-only |
 
@@ -2683,7 +2683,7 @@ All emails use the existing email template system in `email-templates.ts`:
 
 **Trigger:** Admin approves event request with `wants_guest_messages = true`
 **Sent to:** `contact_email` from `event_requests`
-**Subject:** `🎉 האירוע שלכם אושר! — הכינו את רשימת האורחים`
+**Subject:** `🎉 האירוע שלכם אושר! - הכינו את רשימת האורחים`
 
 ```typescript
 export function buildUploadInstructionsEmail(params: {
@@ -2701,7 +2701,7 @@ export function buildUploadInstructionsEmail(params: {
 
     <p>האירוע <strong>${escapeHtml(params.eventName)}</strong> אושר ונוצר בהצלחה!</p>
 
-    <p>הזמנתם את שירות ההודעות לאורחים — כדי שנוכל לשלוח הודעות WhatsApp
+    <p>הזמנתם את שירות ההודעות לאורחים - כדי שנוכל לשלוח הודעות WhatsApp
        לאורחים שלכם לפני האירוע, צריך להעלות את רשימת מספרי הטלפון.</p>
 
     <h3>איך זה עובד?</h3>
@@ -2742,7 +2742,7 @@ export function buildUploadInstructionsEmail(params: {
 
 ### 22.3 Email #2: 7-Day Reminder (if no upload)
 
-**Trigger:** Cron job `upload-reminders` — 7 days before event, if `guest_list_uploaded = false`
+**Trigger:** Cron job `upload-reminders` - 7 days before event, if `guest_list_uploaded = false`
 **Subject:** `⏰ תזכורת: העלו את רשימת האורחים ל-"[eventName]"`
 
 ```typescript
@@ -2754,7 +2754,7 @@ export function buildUploadReminderEmail(params: {
   uploadUrl: string;
 }): string {
   return shell(`
-    <h2 style="text-align:center;">⏰ תזכורת ידידותית</h2>
+    <h2 style="text-align:center;">⏰ תזכורת מוקדמת</h2>
 
     <p>היי ${escapeHtml(params.contactName)},</p>
 
@@ -2782,7 +2782,7 @@ export function buildUploadReminderEmail(params: {
 
 ### 22.4 Email #3: 3-Day Urgent Reminder (if no upload)
 
-**Trigger:** Cron job `upload-reminders` — 3 days before event, if `guest_list_uploaded = false`
+**Trigger:** Cron job `upload-reminders` - 3 days before event, if `guest_list_uploaded = false`
 **Subject:** `🚨 אחרון להעלאת רשימת אורחים ל-"[eventName]"!`
 
 ```typescript
@@ -2802,7 +2802,7 @@ export function buildUploadUrgentReminderEmail(params: {
 
     <p><strong>בלי הרשימה, לא נוכל לשלוח הודעות WhatsApp לאורחים.</strong></p>
 
-    <p>אם אתם לא מתכננים להעלות רשימה, זה בסדר — האורחים עדיין יוכלו
+    <p>אם אתם לא מתכננים להעלות רשימה, זה בסדר - האורחים עדיין יוכלו
        להצטרף דרך QR באירוע עצמו.</p>
 
     <div style="text-align:center; margin:24px 0;">
@@ -2810,7 +2810,7 @@ export function buildUploadUrgentReminderEmail(params: {
          style="background:#f44336; color:#fff; padding:14px 32px;
                 border-radius:8px; text-decoration:none; font-size:16px;
                 font-weight:bold; display:inline-block;">
-        📥 העלו עכשיו — לפני שמאוחר!
+        📥 העלו עכשיו - לפני שמאוחר!
       </a>
     </div>
   `);
@@ -2819,7 +2819,7 @@ export function buildUploadUrgentReminderEmail(params: {
 
 ### 22.5 Email #4: Event Summary (post-event)
 
-**Trigger:** Cron job `feedback-messages` — after sending feedback WhatsApp messages
+**Trigger:** Cron job `feedback-messages` - after sending feedback WhatsApp messages
 **Subject:** `📊 סיכום האירוע: "[eventName]"`
 
 ```typescript
@@ -2863,7 +2863,7 @@ export function buildEventSummaryEmail(params: {
 ### 22.6 Email #5: Messaging Add-on Invoice (manual)
 
 **Trigger:** Admin clicks "שלחו חשבונית" for events that add messaging after the fact
-**Subject:** `🧾 חשבון: שירות הודעות ל-"[eventName]" — ₪50`
+**Subject:** `🧾 חשבון: שירות הודעות ל-"[eventName]" - ₪50`
 
 ```typescript
 export function buildMessagingAddonInvoiceEmail(params: {
@@ -2913,7 +2913,7 @@ export function buildCustomReminderEmail(params: {
   contactName: string;
   eventName: string;
   message: string;      // Admin writes custom message text
-  uploadUrl?: string;   // Optional — included if messaging-related
+  uploadUrl?: string;   // Optional - included if messaging-related
 }): string {
   return shell(`
     <h2 style="text-align:center;">📢 תזכורת</h2>
@@ -2955,7 +2955,7 @@ Logic:
      - Calculate days until event
      - If days == 7 → send reminder email (#2)
      - If days == 3 → send urgent reminder email (#3)
-     - (Only send each type once — track in message_log with type 'upload_reminder_7d' / 'upload_reminder_3d')
+     - (Only send each type once - track in message_log with type 'upload_reminder_7d' / 'upload_reminder_3d')
   3. Log results
 ```
 
@@ -2974,7 +2974,7 @@ Logic:
 
 ---
 
-## 23. Admin Dashboard — Full Integration
+## 23. Admin Dashboard - Full Integration
 
 > This section specifies every UI element, tab, button, and action the admin needs
 > for complete control over the messaging system. The philosophy:
@@ -2985,7 +2985,7 @@ Logic:
 Add a new nav item to the existing Sidebar:
 
 ```typescript
-// src/app/admin/_components/Sidebar.tsx — add to navItems:
+// src/app/admin/_components/Sidebar.tsx - add to navItems:
 {
   id: 'messaging',
   label: 'הודעות',
@@ -3020,7 +3020,7 @@ When admin clicks "📱 הודעות" in sidebar, show a bird's-eye view of all 
 │ │ ערב רווקים ת"א          │ 🟢 180 מספרים  │ 180/180   │ [ניהול]    │  │
 │ │ 15/03/2026, 20:00       │ הועלו ב-10/03  │ ✅ נשלחו  │            │  │
 │ │─────────────────────────│────────────────│───────────│────────────│  │
-│ │ ספיד דייטינג חיפה       │ 🔴 לא הועלו   │ —         │ [שלחו      │  │
+│ │ ספיד דייטינג חיפה       │ 🔴 לא הועלו   │ -         │ [שלחו      │  │
 │ │ 20/03/2026, 20:00       │                │           │  תזכורת]   │  │
 │ │─────────────────────────│────────────────│───────────│────────────│  │
 │ │ מסיבת סינגלים           │ 🟡 45 מספרים   │ ⏳ ממתין  │ [ניהול]    │  │
@@ -3031,7 +3031,7 @@ When admin clicks "📱 הודעות" in sidebar, show a bird's-eye view of all 
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 23.3 Event Detail — New "📱 הודעות" Tab
+### 23.3 Event Detail - New "📱 הודעות" Tab
 
 In `EventAnalyticsView.tsx`, add a 5th tab: "📱 הודעות".
 This tab only appears for events where `wa_messages_enabled = true`.
@@ -3046,14 +3046,14 @@ This tab only appears for events where `wa_messages_enabled = true`.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ 📱 ניהול הודעות — "ערב רווקים ת"א"                                     │
+│ 📱 ניהול הודעות - "ערב רווקים ת"א"                                     │
 │                                                                         │
 │ ═══════════════════════════════════════════════════════════════════════  │
 │ שירותים ששולמו                                                          │
 │ ═══════════════════════════════════════════════════════════════════════  │
 │                                                                         │
-│  ✅ חבילה בסיסית — ₪250                                                 │
-│  ✅ הודעות לאורחים — ₪50                                                 │
+│  ✅ חבילה בסיסית - ₪250                                                 │
+│  ✅ הודעות לאורחים - ₪50                                                 │
 │  ─────────────────────                                                  │
 │  💰 סה"כ: ₪300                                                          │
 │                                                                         │
@@ -3090,11 +3090,11 @@ This tab only appears for events where `wa_messages_enabled = true`.
 │ פעולות ידניות                                                           │
 │ ═══════════════════════════════════════════════════════════════════════  │
 │                                                                         │
-│  [📧 שלחו תזכורת להעלאה]     — email reminder to client                 │
-│  [📧 שלחו חשבונית ₪50]       — invoice email for late add-on            │
-│  [📱 שלחו WA עכשיו]          — manually trigger pre-event WA blast      │
-│  [📱 שלחו פידבק עכשיו]       — manually trigger feedback messages       │
-│  [📧 שלחו מייל חופשי]        — custom email to client (opens modal)     │
+│  [📧 שלחו תזכורת להעלאה]     - email reminder to client                 │
+│  [📧 שלחו חשבונית ₪50]       - invoice email for late add-on            │
+│  [📱 שלחו WA עכשיו]          - manually trigger pre-event WA blast      │
+│  [📱 שלחו פידבק עכשיו]       - manually trigger feedback messages       │
+│  [📧 שלחו מייל חופשי]        - custom email to client (opens modal)     │
 │                                                                         │
 │ ═══════════════════════════════════════════════════════════════════════  │
 │ תזמון הודעות                                                            │
@@ -3255,16 +3255,16 @@ export interface AdminParticipant {
 
 | Column | Source | Value |
 |--------|--------|-------|
-| טלפון (phone) | `participants.phone`, masked | `050-***-4567` or `—` if no phone |
+| טלפון (phone) | `participants.phone`, masked | `050-***-4567` or `-` if no phone |
 | מקור (source) | computed from pre-event list | 📱 WA = was in pre-event list, 📸 QR = joined on-spot |
-| פידבק (feedback) | `participants.feedback_sent` + `sms_consent` | ✅ נשלח / ❌ סירב / ⏳ ממתין / — (no phone) |
+| פידבק (feedback) | `participants.feedback_sent` + `sms_consent` | ✅ נשלח / ❌ סירב / ⏳ ממתין / - (no phone) |
 
 **Filter additions:**
 ```
 [הכל] [זכר] [נקבה] [📱 WA] [📸 QR] [הסכימו לפידבק] [חסומים]
 ```
 
-### 23.6 Event Detail Overview — Services & Pricing
+### 23.6 Event Detail Overview - Services & Pricing
 
 In the **Overview** tab of EventAnalyticsView, add a new "שירותים" (Services) section:
 
@@ -3291,13 +3291,13 @@ In the **Overview** tab of EventAnalyticsView, add a new "שירותים" (Servi
 - `special_requests`
 - Price calculation (same as `priceBlock()` in email templates)
 
-### 23.7 Request Cards — Enhanced Messaging Display
+### 23.7 Request Cards - Enhanced Messaging Display
 
 In `RequestsView.tsx`, the `wantsGuestMessages` info already shows as `✅ הודעות לאורחים` or `❌ ללא הודעות` in the request card. Enhance it with pricing:
 
 ```
 ┌─── בקשה חדשה ────────────────────────────────────────────────┐
-│ 🎉 ערב רווקים — תל אביב                                      │
+│ 🎉 ערב רווקים - תל אביב                                      │
 │ 📅 15/03/2026, 20:00-23:00                                    │
 │                                                               │
 │ 💰 חבילה: בסיסית + הודעות = ₪300                              │  ← enhanced
@@ -3315,7 +3315,7 @@ In `RequestsView.tsx`, the `wantsGuestMessages` info already shows as `✅ הו�
 └───────────────────────────────────────────────────────────────┘
 ```
 
-### 23.8 Admin Action Buttons — Complete List
+### 23.8 Admin Action Buttons - Complete List
 
 Every manual action available to the admin, describing WHAT it does and WHEN to use it:
 
@@ -3428,7 +3428,7 @@ export interface EventAnalytics {
 }
 ```
 
-### 23.11 useAdminData Hook — New Functions
+### 23.11 useAdminData Hook - New Functions
 
 Add to `useAdminData.ts`:
 
@@ -3444,7 +3444,7 @@ async function toggleMessaging(eventId: string, enabled: boolean): Promise<void>
 // Load guest phone list (with cross-reference)
 async function loadGuestPhones(eventId: string): Promise<GuestPhoneAdmin[]>
 
-// Upload guest file (Excel/CSV) — admin doing it on behalf of client
+// Upload guest file (Excel/CSV) - admin doing it on behalf of client
 async function uploadGuestFile(eventId: string, file: File): Promise<UploadValidationResult>
 
 // Add single phone
@@ -3498,7 +3498,7 @@ async function updateMessagingConfig(
 │ Event active          │ All data present: participants, guest phones,   │
 │                       │ message log, portal tokens                      │
 │───────────────────────│─────────────────────────────────────────────────│
-│ Event ends            │ No changes — data intact for admin review       │
+│ Event ends            │ No changes - data intact for admin review       │
 │───────────────────────│─────────────────────────────────────────────────│
 │ Event archived        │ Portal tokens deactivated. Guest upload portal  │
 │ (auto, T+7 days)      │ returns "האירוע הסתיים".                        │
@@ -3527,7 +3527,7 @@ INSERT INTO discount_claims (phone, discount_code, event_name, event_date, event
 VALUES (
   '+972501234567',
   'EVENTA10',          -- configurable per campaign
-  'ערב רווקים ת"א',    -- denormalized — survives event deletion
+  'ערב רווקים ת"א',    -- denormalized - survives event deletion
   '2026-03-15',        -- denormalized
   'uuid-of-event',     -- SET NULL on event deletion
   'uuid-of-message-log'
@@ -3571,7 +3571,7 @@ Apply 10% discount to new order
 └───────────────────────────────────────────────────────────────┘
 ```
 
-### 24.4 What Persists After Event Deletion — Complete List
+### 24.4 What Persists After Event Deletion - Complete List
 
 | Data | Table | Behavior on event deletion |
 |------|-------|----|
@@ -3606,7 +3606,7 @@ Length: ~70 chars (well within 160 char SMS limit)
 
 ### 25.2 All WhatsApp Messages
 
-**Message 1: Pre-event (Marketing template — requires Meta approval)**
+**Message 1: Pre-event (Marketing template - requires Meta approval)**
 
 ```
 Template name: eventa_pre_event_invite
@@ -3623,11 +3623,11 @@ Body:
 
 לחצו על הלינק, הזינו מספר טלפון, ותתחילו! 🚀
 
-Footer: Eventa — אירועי היכרויות
+Footer: Eventa - אירועי היכרויות
 Buttons: [הצטרפו עכשיו → {{3}}]
 ```
 
-**Message 2: Welcome (Marketing template — for QR joiners)**
+**Message 2: Welcome (Marketing template - for QR joiners)**
 
 ```
 Template name: eventa_welcome
@@ -3645,7 +3645,7 @@ Body:
 Footer: Eventa
 ```
 
-**Message 3: Feedback (Marketing template — rides on existing window)**
+**Message 3: Feedback (Marketing template - rides on existing window)**
 
 ```
 Template name: eventa_feedback
@@ -3656,9 +3656,9 @@ Body:
 תודה שהשתתפתם ב-{{1}}! 🎉 (event_name)
 
 נהניתם? נשמח לשמוע:
-{{2}} (feedback_link — can be a Google Form or future feedback page)
+{{2}} (feedback_link - can be a Google Form or future feedback page)
 
-כהוקרה — קוד הנחה 10% לאירוע הבא:
+כהוקרה - קוד הנחה 10% לאירוע הבא:
 🏷 {{3}} (discount_code)
 
 נתראה באירוע הבא! 💕
@@ -3841,7 +3841,7 @@ Path B: Admin Manual Creation  (via CreateEventDialog → /api/admin/events)
 
 These paths capture **different amounts of data**, produce events with **different origins**,
 and have **different payment implications**. The resulting `events` row is structurally
-identical — but the metadata around it (who ordered, what they paid, contact info) only
+identical - but the metadata around it (who ordered, what they paid, contact info) only
 exists for Path A events.
 
 #### Path A: Client Purchase Flow (Current)
@@ -3909,9 +3909,9 @@ Event is live ✅
 **Key insight:** The `events` table itself has the **exact same columns** regardless of
 creation path. The difference is that Path A events have a linked `event_requests` row
 containing contact info, payment status, pricing, preferences, and messaging config.
-Path B events have NO linked request — they're created "bare" with just the essentials.
+Path B events have NO linked request - they're created "bare" with just the essentials.
 
-### 27.3 What the Admin Sees — Visual Difference
+### 27.3 What the Admin Sees - Visual Difference
 
 When reviewing an event in the admin dashboard, the **Overview** tab shows different info
 depending on the event's origin:
@@ -3940,7 +3940,7 @@ depending on the event's origin:
 ┌───────────────────────────────────────────────────────────────┐
 │ 📦 מקור: נוצר ידנית על ידי אדמין                               │
 │                                                               │
-│  (אין פרטי הזמנה או תשלום — אירוע שנוצר ישירות)                │
+│  (אין פרטי הזמנה או תשלום - אירוע שנוצר ישירות)                │
 └───────────────────────────────────────────────────────────────┘
 ```
 
@@ -3951,7 +3951,7 @@ If yes → show full purchase info. If no → show "created manually" note.
 
 There are **two contact preference flows**, plus a **switch mechanism**:
 
-#### Flow 1: "שלחו לי לינק" (send-link) — Autonomous Payment
+#### Flow 1: "שלחו לי לינק" (send-link) - Autonomous Payment
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -3964,11 +3964,11 @@ There are **two contact preference flows**, plus a **switch mechanism**:
 │      │      payment_status='awaiting_payment')                          │
 │      │   b. Send admin notification email                               │
 │      │   c. Send payment email to client with:                          │
-│      │      — Order summary (event type, dates, pricing)                │
-│      │      — PayBox button (STUB: href="#")                            │
-│      │      — Bit button (STUB: href="#")                               │
-│      │      — "צרו איתי קשר" fallback button                            │
-│      │      — Payment link token (for future tracking)                  │
+│      │      - Order summary (event type, dates, pricing)                │
+│      │      - PayBox button (STUB: href="#")                            │
+│      │      - Bit button (STUB: href="#")                               │
+│      │      - "צרו איתי קשר" fallback button                            │
+│      │      - Payment link token (for future tracking)                  │
 │  3   │ Client receives email. Three possible outcomes:                  │
 │      │                                                                  │
 │      │   3a. Client clicks PayBox/Bit → [STUB - currently no-op]        │
@@ -3981,13 +3981,13 @@ There are **two contact preference flows**, plus a **switch mechanism**:
 │      │   3c. Client does nothing → request stays pending                │
 │      │       Admin sees it in RequestsView and can call them            │
 │  4   │ Admin reviews request:                                           │
-│      │   — Sees payment_status ('awaiting_payment' / 'paid' / 'waived') │
-│      │   — Can approve regardless of payment status (manual override)   │
-│      │   — On approve: event is created                                 │
+│      │   - Sees payment_status ('awaiting_payment' / 'paid' / 'waived') │
+│      │   - Can approve regardless of payment status (manual override)   │
+│      │   - On approve: event is created                                 │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### Flow 2: "התקשרו אליי" (call-me) — Admin-Assisted Payment
+#### Flow 2: "התקשרו אליי" (call-me) - Admin-Assisted Payment
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -4001,14 +4001,14 @@ There are **two contact preference flows**, plus a **switch mechanism**:
 │      │   b. Send admin notification email (with client phone + name)    │
 │      │   c. NO payment email sent to client                             │
 │  3   │ Admin sees request in dashboard                                  │
-│      │   — Calls client at the phone number they provided               │
-│      │   — Discusses event details, confirms pricing                    │
-│      │   — Payment happens over the phone (credit card) or              │
+│      │   - Calls client at the phone number they provided               │
+│      │   - Discusses event details, confirms pricing                    │
+│      │   - Payment happens over the phone (credit card) or              │
 │      │     in person (cash/Bit transfer)                                │
 │  4   │ Admin records payment in dashboard:                              │
-│      │   — Clicks "סמנו כשולם" button in request card                   │
-│      │   — Selects payment method (paybox/bit/bank/cash)                │
-│      │   — payment_status → 'paid', payment_method → selected           │
+│      │   - Clicks "סמנו כשולם" button in request card                   │
+│      │   - Selects payment method (paybox/bit/bank/cash)                │
+│      │   - payment_status → 'paid', payment_method → selected           │
 │  5   │ Admin approves request → event is created                        │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -4056,10 +4056,10 @@ wants a payment link, the admin sends it manually via the "שלחו מייל ח�
 ```
 
 **Why not on payment?**
-1. Payment services are **stubs right now** — there's no payment webhook to trigger anything
+1. Payment services are **stubs right now** - there's no payment webhook to trigger anything
 2. Even when payment is live, admin should have **final control** over event creation
-3. Some events are **free/promotional** — payment doesn't apply
-4. "call-me" events have **offline payment** — can't automate
+3. Some events are **free/promotional** - payment doesn't apply
+4. "call-me" events have **offline payment** - can't automate
 5. Admin may want to **deny** even paid requests (fraud, spam, bad content)
 
 **Payment verification is advisory, not a gate:**
@@ -4074,7 +4074,7 @@ Future flow (with real PayBox/Bit):
   OR: Client doesn't pay → admin sees ⏳ pending → contacts client → resolves
 ```
 
-### 27.6 The Order Lifecycle — Complete State Machine
+### 27.6 The Order Lifecycle - Complete State Machine
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -4126,7 +4126,7 @@ Future flow (with real PayBox/Bit):
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### 27.7 Payment Status Tracking — New DB Columns
+### 27.7 Payment Status Tracking - New DB Columns
 
 **Add to `event_requests` table (new migration):**
 
@@ -4198,7 +4198,7 @@ export interface EventRequestPayment {
   payment_link_expires_at: string | null;
 }
 
-// Updated EventRequest interface — add these fields:
+// Updated EventRequest interface - add these fields:
 export interface EventRequest {
   // ... all existing fields ...
   payment_status: PaymentStatus;
@@ -4214,8 +4214,8 @@ export interface EventRequest {
 
 ```typescript
 // In config.ts (already exists):
-export const BASE_PRICE = 250;   // ₪250 — base event package
-export const MSG_ADDON  = 50;    // ₪50  — WhatsApp messaging add-on
+export const BASE_PRICE = 250;   // ₪250 - base event package
+export const MSG_ADDON  = 50;    // ₪50  - WhatsApp messaging add-on
 
 // Price calculation (used in order route + email templates):
 function calculateTotalPrice(wantsGuestMessages: boolean): number {
@@ -4235,7 +4235,7 @@ function calculateTotalPrice(wantsGuestMessages: boolean): number {
 4. **Event overview tab**: shows services purchased + total price
 5. **Invoice email** (`buildMessagingAddonInvoiceEmail`): shows ₪50 for late add-on
 
-### 27.10 Updated Order Route — Payment Fields
+### 27.10 Updated Order Route - Payment Fields
 
 **Changes to `POST /api/order`:**
 
@@ -4268,10 +4268,10 @@ const { data: reqRow, error: dbErr } = await supabase
 
 ### 27.11 Payment Link Lifecycle
 
-**Current state:** PayBox/Bit buttons in the payment email have `href="#"` — they are stubs.
+**Current state:** PayBox/Bit buttons in the payment email have `href="#"` - they are stubs.
 The payment link token and expiration are **infrastructure for the future**.
 
-#### Payment Link Token — What It's For
+#### Payment Link Token - What It's For
 
 ```
 When payment services go live:
@@ -4281,7 +4281,7 @@ When payment services go live:
 2. This route:
    a. Looks up event_requests by payment_link_token
    b. Checks payment_link_expires_at > now()
-   c. If expired → show "הלינק פג תוקף — צרו קשר"
+   c. If expired → show "הלינק פג תוקף - צרו קשר"
    d. If valid → redirect to PayBox/Bit checkout page with:
       - Amount: total_price (from event_requests)
       - Reference: payment_link_token (for webhook matching)
@@ -4292,7 +4292,7 @@ When payment services go live:
    a. Verify webhook signature
    b. Find event_requests by payment_link_token (from reference)
    c. Update: payment_status='paid', payment_method='paybox'/'bit', paid_at=now()
-   d. Send admin notification: "לקוח שילם — ₪300 עבור [eventName]"
+   d. Send admin notification: "לקוח שילם - ₪300 עבור [eventName]"
 ```
 
 #### Payment Link Expiration
@@ -4301,7 +4301,7 @@ When payment services go live:
 |---------|-------|-----------|
 | **Link validity** | 7 days from email sent | Gives client a week to decide |
 | **What happens when expired** | Client sees error page + "contact us" | Admin can re-send link |
-| **Can admin extend?** | Yes — "שלחו לינק תשלום חדש" button | Generates new token + new 7-day expiry |
+| **Can admin extend?** | Yes - "שלחו לינק תשלום חדש" button | Generates new token + new 7-day expiry |
 | **After expiration** | Request stays pending | Admin can still approve with 'waived' payment |
 
 **Expiration check (future implementation):**
@@ -4343,8 +4343,8 @@ integration is a `href="#"` stub that gets replaced later.
 | **PayBox checkout page** | 🔴 STUB | `href="#"` in email template |
 | **Bit checkout page** | 🔴 STUB | `href="#"` in email template |
 | **Payment webhook** | 🔴 STUB | Route exists but returns 501 |
-| **SMS sending** | 🔴 STUB | InforUMobile integration — logs message, doesn't send |
-| **WhatsApp sending** | 🔴 STUB | 360dialog integration — logs message, doesn't send |
+| **SMS sending** | 🔴 STUB | InforUMobile integration - logs message, doesn't send |
+| **WhatsApp sending** | 🔴 STUB | 360dialog integration - logs message, doesn't send |
 | `payment_status` column | 🟢 REAL | Tracked in DB, shown in admin UI |
 | `payment_method` column | 🟢 REAL | Set by admin manually (or future webhook) |
 | `total_price` column | 🟢 REAL | Calculated and stored on order |
@@ -4360,7 +4360,7 @@ integration is a `href="#"` stub that gets replaced later.
 The same stub pattern applies to SMS and WhatsApp:
 
 ```typescript
-// src/lib/sms-provider.ts — STUB implementation:
+// src/lib/sms-provider.ts - STUB implementation:
 export async function sendSms(phone: string, message: string): Promise<SendResult> {
   if (process.env.SMS_PROVIDER_LIVE !== 'true') {
     logger.info('[SMS STUB] Would send SMS', { phone: phone.slice(-4), messageLength: message.length });
@@ -4370,7 +4370,7 @@ export async function sendSms(phone: string, message: string): Promise<SendResul
   // ...
 }
 
-// src/lib/whatsapp-provider.ts — STUB implementation:
+// src/lib/whatsapp-provider.ts - STUB implementation:
 export async function sendWhatsApp(phone: string, templateName: string, params: Record<string, string>): Promise<SendResult> {
   if (process.env.WA_PROVIDER_LIVE !== 'true') {
     logger.info('[WA STUB] Would send WhatsApp', { phone: phone.slice(-4), templateName });
@@ -4384,7 +4384,7 @@ export async function sendWhatsApp(phone: string, templateName: string, params: 
 **Environment variables for stub control:**
 
 ```env
-# In .env — set to 'true' to activate real providers:
+# In .env - set to 'true' to activate real providers:
 SMS_PROVIDER_LIVE=false      # InforUMobile SMS
 WA_PROVIDER_LIVE=false       # 360dialog WhatsApp
 PAYMENT_PROVIDER_LIVE=false  # PayBox/Bit payment
@@ -4393,7 +4393,7 @@ PAYMENT_PROVIDER_LIVE=false  # PayBox/Bit payment
 #### Future Payment Webhook Route (Stub)
 
 ```typescript
-// src/app/api/payment/webhook/route.ts — STUB:
+// src/app/api/payment/webhook/route.ts - STUB:
 
 export async function POST(request: NextRequest) {
   if (process.env.PAYMENT_PROVIDER_LIVE !== 'true') {
@@ -4406,13 +4406,13 @@ export async function POST(request: NextRequest) {
 }
 ```
 
-### 27.13 Admin Payment Controls — New UI Elements
+### 27.13 Admin Payment Controls - New UI Elements
 
-#### In RequestsView — Payment Status Badge
+#### In RequestsView - Payment Status Badge
 
 ```
 ┌─── בקשה חדשה ────────────────────────────────────────────────────┐
-│ 🎉 ערב רווקים — תל אביב                                          │
+│ 🎉 ערב רווקים - תל אביב                                          │
 │ 📅 15/03/2026, 20:00-23:00                                        │
 │                                                                   │
 │ 💰 חבילה: בסיסית + הודעות = ₪300                                  │
@@ -4458,7 +4458,7 @@ Selecting a method:
 
 | `payment_status` | Badge | Color |
 |-------------------|-------|-------|
-| `not_applicable` | — (hidden) | — |
+| `not_applicable` | - (hidden) | - |
 | `awaiting_payment` | ⏳ ממתין לתשלום | 🟡 Yellow |
 | `awaiting_contact` | 📞 ממתין ליצירת קשר | 🟡 Yellow |
 | `paid` | ✅ שולם ({method}) | 🟢 Green |
@@ -4495,7 +4495,7 @@ The current approval flow creates an event from request data. Add these steps:
 //    The admin can approve events regardless of payment_status.
 //    The request card shows the payment status, and admin decides.
 //    If payment_status is still 'awaiting_payment' or 'awaiting_contact'
-//    at approval time, that's OK — admin takes responsibility.
+//    at approval time, that's OK - admin takes responsibility.
 ```
 
 ### 27.15 Resending the Payment Link
@@ -4536,7 +4536,7 @@ await transporter.sendMail({ ... });
 | **Replay attack on webhook** | Verify webhook signature (PayBox/Bit provide HMAC) |
 | **Admin spoofing payment** | Audit log: every payment_status change is logged with admin_id + timestamp |
 | **Concurrent payment attempts** | DB transaction: update payment_status only if current status is 'awaiting_*' |
-| **Storing credit card data** | **NEVER** — all payment is handled by PayBox/Bit externally. We only store status. |
+| **Storing credit card data** | **NEVER** - all payment is handled by PayBox/Bit externally. We only store status. |
 | **Payment link sharing** | Token is single-use intent. Even if shared, payment goes to the correct order. |
 | **Expired link abuse** | Check `payment_link_expires_at` before processing any payment action |
 | **Rate limiting on checkout** | Checkout route: 5 requests/minute per IP (prevent enumeration) |
@@ -4549,7 +4549,7 @@ Instead, only the admin receives a notification email with a highlighted "📞 �
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
-│ 📋 הזמנה חדשה — "ערב רווקים ת"א"                              │
+│ 📋 הזמנה חדשה - "ערב רווקים ת"א"                              │
 │                                                               │
 │ [... event details ...]                                       │
 │                                                               │
@@ -4565,7 +4565,7 @@ Instead, only the admin receives a notification email with a highlighted "📞 �
 ```
 
 The admin notification email template already differentiates based on `contactPreference`
-(see current `buildAdminNotificationEmail` — it shows the preference field).
+(see current `buildAdminNotificationEmail` - it shows the preference field).
 The enhancement is adding the ⚠️ callout box when `contactPreference = 'call-me'`.
 
 ### 27.18 Complete Decision Summary
@@ -4582,7 +4582,7 @@ The enhancement is adding the ⚠️ callout box when `contactPreference = 'call
 | **Can a send-link client switch to call-me?** | **Yes.** Via the "צרו איתי קשר" button in the payment email. |
 | **Can a call-me client switch to send-link?** | **No.** Admin sends payment email manually if needed. |
 | **Are admin-created events different from purchased ones?** | **Same `events` table structure.** But purchased events have a linked `event_requests` row with contact/payment/pricing data. Admin-created events don't. |
-| **What fields differ between the two paths?** | See Section 27.2 — admin creates with 5 fields, client purchase has 15+. |
+| **What fields differ between the two paths?** | See Section 27.2 - admin creates with 5 fields, client purchase has 15+. |
 | **Is PayBox/Bit integration needed now?** | **No.** Stubs (`href="#"`) are intentional. Activated by env var later. |
 | **Is SMS/WhatsApp integration needed now?** | **No.** Same stub pattern. Activated by env var later. |
 
@@ -4595,8 +4595,8 @@ The enhancement is adding the ⚠️ callout box when `contactPreference = 'call
 | `src/lib/config.ts` | Modified | Add `PAYMENT_LINK_EXPIRY_DAYS = 7` |
 | `src/app/api/order/route.ts` | Modified | Add payment fields to INSERT, generate payment_link_token |
 | `src/app/api/admin/requests/route.ts` | Modified | Add payment controls, portal token on approval |
-| `src/app/api/payment/webhook/route.ts` | New (stub) | Payment webhook — returns 501 in stub mode |
-| `src/app/api/payment/checkout/route.ts` | New (stub) | Payment checkout redirect — returns 501 in stub mode |
+| `src/app/api/payment/webhook/route.ts` | New (stub) | Payment webhook - returns 501 in stub mode |
+| `src/app/api/payment/checkout/route.ts` | New (stub) | Payment checkout redirect - returns 501 in stub mode |
 | `src/lib/email-templates.ts` | Modified | Add call-me callout in admin email, update payment email links |
 | `src/app/admin/_components/requests/RequestCard.tsx` | Modified | Add payment badge + "mark as paid" dropdown |
 | `src/app/admin/_components/useAdminData.ts` | Modified | Add `markAsPaid()`, `waivePayment()`, `resendPaymentLink()` functions |
@@ -4611,14 +4611,14 @@ The enhancement is adding the ⚠️ callout box when `contactPreference = 'call
 # Part IV: Pretty URLs & Link Reuse
 
 > **Section 28** tackles making event links as short, memorable, and easy to share as possible.
-> The current URLs are long and ugly. We can do much better — especially since events are
+> The current URLs are long and ugly. We can do much better - especially since events are
 > short-lived and archived after 7 days, which opens up slug recycling.
 
 ---
 
 ## 28. Pretty Event URLs & Slug Recycling
 
-### 28.1 Current URL Structure — The Problem
+### 28.1 Current URL Structure - The Problem
 
 The full URL a guest sees when scanning a QR or clicking a link:
 
@@ -4629,21 +4629,21 @@ https://eventa.productions/dating/singles-night-tel-aviv-b2c4?k=a1b2c3d4e5f6g7h8
 ```
 
 **Problems:**
-1. **Slug is long** — Hebrew is stripped, so "ערב רווקים תל אביב" becomes `singles-night-tel-aviv-b2c4` (28 chars)
-2. **Join code is long** — 16 hex chars (`a1b2c3d4e5f6g7h8`) adds clutter
-3. **`?k=` query param** — not clean, harder to type, can get stripped by some apps
-4. **Total URL length** — can exceed 80+ characters. Bad for QR codes (bigger = harder to scan), bad for sharing via text/WhatsApp
-5. **Slug is never freed** — archived events keep their slug forever, wasting nice short slugs
+1. **Slug is long** - Hebrew is stripped, so "ערב רווקים תל אביב" becomes `singles-night-tel-aviv-b2c4` (28 chars)
+2. **Join code is long** - 16 hex chars (`a1b2c3d4e5f6g7h8`) adds clutter
+3. **`?k=` query param** - not clean, harder to type, can get stripped by some apps
+4. **Total URL length** - can exceed 80+ characters. Bad for QR codes (bigger = harder to scan), bad for sharing via text/WhatsApp
+5. **Slug is never freed** - archived events keep their slug forever, wasting nice short slugs
 
 ### 28.2 Design Goals
 
-1. **As short as possible** — ideally under 40 characters total
-2. **Human-readable** — someone should be able to type it from memory or dictation
-3. **No query parameters** — everything in the path
-4. **Slug recycling** — freed slugs should be reusable for future events
-5. **Collision-safe** — no two active events can have the same slug
-6. **QR-optimized** — shorter URLs = smaller QR = easier to scan
-7. **No Hebrew in URL** — browsers handle it but it encodes to ugly `%D7%...` in copy/paste
+1. **As short as possible** - ideally under 40 characters total
+2. **Human-readable** - someone should be able to type it from memory or dictation
+3. **No query parameters** - everything in the path
+4. **Slug recycling** - freed slugs should be reusable for future events
+5. **Collision-safe** - no two active events can have the same slug
+6. **QR-optimized** - shorter URLs = smaller QR = easier to scan
+7. **No Hebrew in URL** - browsers handle it but it encodes to ugly `%D7%...` in copy/paste
 
 ### 28.3 New URL Structure
 
@@ -4664,15 +4664,15 @@ https://eventa.productions/e/tlv-singles
 | Join code in URL | Join code embedded in slug lookup | Auth moved to session/fingerprint |
 | 16-char hex join code | 4-char suffix only if needed | Collision avoidance, not security |
 
-**Result:** `eventa.productions/e/tlv-singles` — **35 chars total** (vs 80+)
+**Result:** `eventa.productions/e/tlv-singles` - **35 chars total** (vs 80+)
 
-### 28.4 The Join Code Problem — Why Remove It from the URL?
+### 28.4 The Join Code Problem - Why Remove It from the URL?
 
 Currently, the join code serves two purposes:
-1. **Event lookup** — finding the right event (slug already does this)
-2. **Authorization** — proving the user was "invited" (scanned the QR)
+1. **Event lookup** - finding the right event (slug already does this)
+2. **Authorization** - proving the user was "invited" (scanned the QR)
 
-But the join code is **not real security** — it's visible in the QR, visible in the URL,
+But the join code is **not real security** - it's visible in the QR, visible in the URL,
 and anyone who has the link has the code. It's security theater.
 
 **What actually matters:**
@@ -4689,7 +4689,7 @@ Current flow:  slug + join_code → find event → create session
 New flow:      slug             → find event → check is_active → create session
 ```
 
-**Security impact:** Minimal. The join code was never real auth — it's a public value
+**Security impact:** Minimal. The join code was never real auth - it's a public value
 printed on QR codes at events. Removing it from the URL doesn't reduce security.
 The real protection is:
 - Event must be `is_active = true`
@@ -4700,7 +4700,7 @@ The real protection is:
 **If we still want a lightweight gate** (prevent random people from joining if they
 guess the slug), we can keep a **short code**. See Section 28.6 for details.
 
-### 28.5 Smart Slug Generation — Short & Memorable
+### 28.5 Smart Slug Generation - Short & Memorable
 
 Instead of slugifying the full Hebrew event name (which produces empty or generic results),
 generate slugs from **structured components**:
@@ -4755,7 +4755,7 @@ const TYPE_CODES: Record<string, string> = {
 async function generatePrettySlug(
   eventName: string,
   eventType: string,
-  startsAt: string,      // ISO date — used for date component
+  startsAt: string,      // ISO date - used for date component
   supabase: SupabaseClient
 ): Promise<string> {
   
@@ -4812,7 +4812,7 @@ async function generatePrettySlug(
 | Rooftop Party | party | `rooftop-party` | `eventa.productions/e/rooftop-party` |
 | (fallback) | singles | `singles-a7` | `eventa.productions/e/singles-a7` |
 
-### 28.6 The Short Join Code — Lightweight Gate (Optional)
+### 28.6 The Short Join Code - Lightweight Gate (Optional)
 
 If we want to keep a basic gate so that knowing just the slug isn't enough to join,
 we can embed a **short code** in the URL path itself (not as a query param):
@@ -4827,7 +4827,7 @@ https://eventa.productions/e/tlv-singles/a7b3
 
 | Option | URL | Length | Security | Recommendation |
 |--------|-----|--------|----------|----------------|
-| A: No code | `/e/tlv-singles` | ~35 chars | Slug is public | ✅ **Recommended** — simplest |
+| A: No code | `/e/tlv-singles` | ~35 chars | Slug is public | ✅ **Recommended** - simplest |
 | B: Short code | `/e/tlv-singles/a7b3` | ~40 chars | 65K combinations | Good balance |
 | C: Current | `/dating/slug-b2c4?k=a1b2...` | ~80+ chars | 16 hex chars | ❌ Too long |
 
@@ -4851,7 +4851,7 @@ function generateShortCode(): string {
 But with rate limiting (5 attempts/minute per IP), that's 218+ hours of guessing.
 And the event only lasts a few hours. So it's effectively secure.
 
-### 28.7 Slug Recycling — Freeing Slugs from Archived Events
+### 28.7 Slug Recycling - Freeing Slugs from Archived Events
 
 This is the key insight: events live for a few hours and are archived 7 days later.
 There's no reason to permanently occupy slugs like `tlv-singles` forever.
@@ -4860,7 +4860,7 @@ There's no reason to permanently occupy slugs like `tlv-singles` forever.
 
 Currently, `slug` is `UNIQUE NOT NULL` on the `events` table. Archived events
 keep their row (status='archived') forever. So `tlv-singles` is **permanently taken**
-after the first use — even though the event ended weeks ago.
+after the first use - even though the event ended weeks ago.
 
 #### The Solution: Partial Unique Index
 
@@ -4874,7 +4874,7 @@ enforces uniqueness among non-archived events:
 ALTER TABLE events DROP CONSTRAINT IF EXISTS events_slug_key;
 DROP INDEX IF EXISTS events_slug_key;
 
--- Step 2: Create partial unique index — only active (non-archived) slugs must be unique
+-- Step 2: Create partial unique index - only active (non-archived) slugs must be unique
 CREATE UNIQUE INDEX idx_events_slug_active
   ON events(slug)
   WHERE status != 'archived';
@@ -4895,13 +4895,13 @@ ALTER TABLE events
 ```
 Timeline:
 
-  Mar 15 — Event "tlv-singles" created   → slug = "tlv-singles"  ✅
-  Mar 15 — Event starts, runs, ends
-  Mar 22 — Cleanup cron archives event:
+  Mar 15 - Event "tlv-singles" created   → slug = "tlv-singles"  ✅
+  Mar 15 - Event starts, runs, ends
+  Mar 22 - Cleanup cron archives event:
              1. original_slug = "tlv-singles"  (preserve for reference)
              2. slug = "tlv-singles--a1b2c3d4"  (append event ID prefix to free the slug)
              3. status = 'archived'
-  Mar 25 — New event "tlv-singles" requested → slug = "tlv-singles"  ✅ Available!
+  Mar 25 - New event "tlv-singles" requested → slug = "tlv-singles"  ✅ Available!
 ```
 
 **The archival step frees the slug** by appending a `--{id_prefix}` suffix.
@@ -4926,7 +4926,7 @@ await supabase
 // ... existing steps 1-4 (snapshot, storage, cascade delete, mark archived) ...
 ```
 
-### 28.8 Slug Availability Check — Active Events Only
+### 28.8 Slug Availability Check - Active Events Only
 
 ```typescript
 async function checkSlugAvailable(slug: string, supabase: SupabaseClient): Promise<boolean> {
@@ -4946,7 +4946,7 @@ This replaces the current uniqueness check in both:
 - `POST /api/admin/events` (admin creation)
 - `POST /api/admin/requests` (request approval)
 
-### 28.9 Event Lookup — Active First, Then Archived
+### 28.9 Event Lookup - Active First, Then Archived
 
 When a user visits `/e/tlv-singles`, the lookup must prioritize **active events**:
 
@@ -4965,7 +4965,7 @@ async function findEventBySlug(slug: string): Promise<Event | null> {
   
   if (active) return active;
   
-  // 2. No active event — check if archived (for "event ended" page)
+  // 2. No active event - check if archived (for "event ended" page)
   //    Check both slug and original_slug for archived events
   const { data: archived } = await supabase
     .from('events')
@@ -5018,7 +5018,7 @@ src/app/e/[slug]/unavailable/page.tsx        → /e/{slug}/unavailable
 **Backward compatibility:** Keep the old `/dating/` routes as **redirects** to `/e/`:
 
 ```typescript
-// src/app/dating/[eventSlug]/page.tsx — change to redirect:
+// src/app/dating/[eventSlug]/page.tsx - change to redirect:
 import { redirect } from 'next/navigation';
 
 export default function DatingLegacyRedirect({
@@ -5043,7 +5043,7 @@ Let admin set a **custom slug** when approving or creating an event:
 
 ```
 ┌─── אישור בקשה ────────────────────────────────────────────────┐
-│ 🎉 ערב רווקים — תל אביב                                      │
+│ 🎉 ערב רווקים - תל אביב                                      │
 │                                                               │
 │ לינק האירוע:                                                  │
 │ eventa.productions/e/ [tlv-singles        ]  ← editable       │
@@ -5074,20 +5074,20 @@ Shorter URLs produce **smaller QR codes** that are easier to scan:
 ```
 Current URL (83 chars):
 https://eventa.productions/dating/singles-night-tel-aviv-b2c4?k=a1b2c3d4e5f6g7h8
-→ QR Version 6 (41×41 modules) — medium, works but dense
+→ QR Version 6 (41×41 modules) - medium, works but dense
 
 New URL (43 chars):
 https://eventa.productions/e/tlv-singles
-→ QR Version 3 (29×29 modules) — small, clean, easy to scan
+→ QR Version 3 (29×29 modules) - small, clean, easy to scan
 
 New URL with short code (48 chars):
 https://eventa.productions/e/tlv-singles/a7b3
-→ QR Version 4 (33×33 modules) — still small and clean
+→ QR Version 4 (33×33 modules) - still small and clean
 ```
 
 **QR version reduction = faster scanning**, especially in low-light event venues.
 
-### 28.13 Pre-Event WhatsApp Link — Impact
+### 28.13 Pre-Event WhatsApp Link - Impact
 
 The pre-event WhatsApp message (Section 25.2) includes a join link.
 With pretty URLs, the message becomes much cleaner:
@@ -5100,7 +5100,7 @@ New message link:
 https://eventa.productions/e/tlv-singles
 ```
 
-This is **much more clickable** in WhatsApp — short links look trustworthy,
+This is **much more clickable** in WhatsApp - short links look trustworthy,
 long links look suspicious.
 
 ### 28.14 Migration Strategy for Pretty URLs
@@ -5159,13 +5159,13 @@ Phase 5: QR + links update
 
 | Question | Answer |
 |----------|--------|
-| **New URL format?** | `/e/{slug}` — short prefix, no query params |
+| **New URL format?** | `/e/{slug}` - short prefix, no query params |
 | **Remove join code from URL?** | **Yes.** Join code stays in DB (admin feature), removed from public URL |
-| **Keep `/dating/` routes?** | **Yes** — as redirects to `/e/` for backward compatibility |
-| **Can slugs be reused?** | **Yes** — archived events free their slug during cleanup cron |
+| **Keep `/dating/` routes?** | **Yes** - as redirects to `/e/` for backward compatibility |
+| **Can slugs be reused?** | **Yes** - archived events free their slug during cleanup cron |
 | **How is uniqueness enforced?** | Partial unique index: only non-archived events must have unique slugs |
 | **Slug generation?** | Smart: city code + event type, then date suffix, then random suffix |
-| **Can admin customize slug?** | **Yes** — editable field pre-filled with auto-generated slug |
+| **Can admin customize slug?** | **Yes** - editable field pre-filled with auto-generated slug |
 | **Max slug length?** | 30 characters |
 | **Min slug length?** | 3 characters |
-| **QR impact?** | Major improvement — smaller QR (Version 3-4 vs 6), faster scanning |
+| **QR impact?** | Major improvement - smaller QR (Version 3-4 vs 6), faster scanning |

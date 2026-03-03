@@ -107,7 +107,7 @@ export default function DocumentHistory({ invoices, loading, onReload }: Documen
                 >
                   <td className="et-td">
                     <span className="pay-docs__doc-number">
-                      {inv.invoice4u_doc_number || '—'}
+                      {inv.invoice4u_doc_number || '-'}
                     </span>
                   </td>
                   <td className="et-td">
@@ -115,7 +115,7 @@ export default function DocumentHistory({ invoices, loading, onReload }: Documen
                       {typeLabel}
                     </span>
                   </td>
-                  <td className="et-td">{inv.customer_name || '—'}</td>
+                  <td className="et-td">{inv.customer_name || '-'}</td>
                   <td className="et-td">
                     <span className={`pay-docs__amount ${inv.total_amount < 0 ? 'pay-docs__amount--negative' : ''}`}>
                       {formatILS(inv.total_amount)}

@@ -14,7 +14,7 @@ vi.mock('@/lib/sanitize', () => ({
   sanitizeWithLimit: (str: string, _limit: number) => str.trim().slice(0, 100),
 }));
 
-// phone-utils is NOT mocked — we test with real normalization
+// phone-utils is NOT mocked - we test with real normalization
 // (it's a pure module with no external deps)
 
 import {
@@ -163,7 +163,7 @@ describe('parseGuestFile', () => {
     const buf = buildXlsx([
       ['טלפון', 'שם'],
       ['0501234567', 'A'],
-      ['', 'B'],   // empty phone — skip
+      ['', 'B'],   // empty phone - skip
       ['0521234568', 'C'],
     ]);
     const { rows } = await parseGuestFile(buf, 'f.xlsx');
@@ -180,7 +180,7 @@ describe('parseGuestFile', () => {
   it('returns error for binary garbage CSV', async () => {
     const buf = Buffer.alloc(10, 0xff);
     const { error, rows } = await parseGuestFile(buf, 'bad.csv');
-    // xlsx lib may parse garbage as empty — either error or no rows
+    // xlsx lib may parse garbage as empty - either error or no rows
     expect(error || rows.length === 0).toBeTruthy();
   });
 });

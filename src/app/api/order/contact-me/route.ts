@@ -3,7 +3,7 @@ import nodemailer from 'nodemailer';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { getServiceClient } from '@/lib/supabase';
-import { buildContactMeInsteadEmail } from '@/lib/email-templates';
+import { buildAdminContactOnlyNotification } from '@/lib/email-templates';
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -56,13 +56,11 @@ export async function GET(request: NextRequest) {
       .eq('id', requestId);
 
     // Send notification email to admin
-    const emailData = buildContactMeInsteadEmail({
+    const emailData = buildAdminContactOnlyNotification({
       contactName: req.contact_name,
       contactPhone: req.contact_phone,
       contactEmail: req.contact_email || '',
-      eventType: req.event_type,
-      eventName: req.event_name || '',
-      requestId,
+      message: `הלקוח ביקש ליצור קשר במקום לשלם.\nסוג אירוע: ${req.event_type}${req.event_name ? `\nשם אירוע: ${req.event_name}` : ''}\nמזהה בקשה: ${requestId}`,
     });
 
     await transporter.sendMail({

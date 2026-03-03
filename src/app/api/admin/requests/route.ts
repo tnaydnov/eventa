@@ -8,9 +8,7 @@ import { logger } from '@/lib/logger';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { APP_BASE_URL, BASE_PRICE, MSG_ADDON } from '@/lib/config';
 import {
-  buildUploadInstructionsEmail,
-  buildApprovalChargeEmail,
-  buildAdminChargeNotificationEmail,
+  buildClientApprovalEmail,
 } from '@/lib/email-templates';
 import { generatePrettySlug } from '@/lib/slug';
 import { chargeWithToken, getClearingLogById } from '@/lib/invoice4u';
@@ -264,6 +262,7 @@ export async function POST(req: NextRequest) {
     logger.info('Event request approved', { requestId, eventId: newEvent.id });
 
     // ── Auto-actions for messaging addon ──
+    let portalUrl: string | undefined;
     if (request.wants_guest_messages) {
       try {
         // 5a. Enable WA messaging on the created event
@@ -282,64 +281,35 @@ export async function POST(req: NextRequest) {
           .from('client_portal_tokens')
           .insert({ event_id: newEvent.id, token: portalToken, is_active: true });
 
-        // 5c. Send upload instructions email to client
-        if (request.contact_email) {
-          const eventDate = formatDate(request.starts_at);
-          const eventTime = formatTime(request.starts_at);
-          const portalUrl = `${APP_BASE_URL}/guest-upload/${newEvent.slug}?k=${portalToken}`;
-          const templateUrl = `${APP_BASE_URL}/templates/guest-upload-template.xlsx`;
-
-          const email = buildUploadInstructionsEmail({
-            contactName: request.contact_name || '',
-            eventName: eventName,
-            eventDate,
-            eventTime,
-            uploadUrl: portalUrl,
-            templateUrl,
-          });
-
-          await transporter.sendMail({
-            from: SMTP_FROM,
-            to: request.contact_email,
-            subject: email.subject,
-            html: email.html,
-          });
-
-          // Log to message_log
-          await supabase.from('message_log').insert({
-            event_id: newEvent.id,
-            channel: 'email',
-            message_type: 'upload_instructions',
-            recipient_email: request.contact_email,
-            status: 'sent',
-            sent_at: new Date().toISOString(),
-          });
-
-          logger.info('Auto-sent upload instructions on approval', {
-            eventId: newEvent.id,
-            to: request.contact_email,
-          });
-        }
+        portalUrl = `${APP_BASE_URL}/guest-upload/${newEvent.slug}?k=${portalToken}`;
       } catch (msgErr) {
-        // Non-fatal — event and approval already succeeded
+        // Non-fatal - event and approval already succeeded
         logger.warn('[ADMIN_REQUESTS] messaging auto-setup error:', msgErr);
       }
     }
 
-    // ── Auto-send emails for credit card charge flow ──
-    if (chargeSucceeded && request.contact_email) {
+    // ── Send C4 approval email to client ──
+    if (request.contact_email) {
       try {
         const totalShekel = (BASE_PRICE + (request.wants_guest_messages ? MSG_ADDON : 0));
-        const eventDate = formatDate(request.starts_at);
         const eventUrl = `${APP_BASE_URL}/e/${newEvent.slug}`;
 
-        // Send approval + charge email to client
-        const approvalEmail = buildApprovalChargeEmail({
+        const approvalEmail = buildClientApprovalEmail({
+          eventType: request.event_type,
+          eventName: eventName,
+          startsAt: request.starts_at,
+          endsAt: request.ends_at,
+          wantsCustomBackground: request.wants_custom_background || false,
+          hasBgImage: !!request.wants_custom_background,
+          posterChoice: request.poster_choice || '',
+          selectedTemplate: request.selected_template_id || '',
+          specialRequests: request.special_requests || '',
+          wantsGuestMessages: request.wants_guest_messages || false,
           contactName: request.contact_name || '',
-          eventName,
-          eventDate,
           totalPriceShekel: totalShekel,
+          paymentMethod: chargeSucceeded ? 'credit_card' : (request.payment_method || 'bit'),
           eventUrl,
+          portalUrl,
         });
 
         await transporter.sendMail({
@@ -349,33 +319,65 @@ export async function POST(req: NextRequest) {
           html: approvalEmail.html,
         });
 
-        // Send admin notification about the charge
-        const adminChargeEmail = buildAdminChargeNotificationEmail({
-          contactName: request.contact_name || '',
-          contactEmail: request.contact_email,
-          contactPhone: request.contact_phone || '',
-          eventName,
-          totalPriceShekel: totalShekel,
-          requestId,
-          eventId: newEvent.id,
-          eventSlug: newEvent.slug,
+        // Log to message_log
+        await supabase.from('message_log').insert({
+          event_id: newEvent.id,
+          channel: 'email',
+          message_type: 'approval',
+          recipient_email: request.contact_email,
+          status: 'sent',
+          sent_at: new Date().toISOString(),
         });
+
+        logger.info('Auto-sent approval email (C4)', {
+          eventId: newEvent.id,
+          to: request.contact_email,
+        });
+      } catch (emailErr) {
+        // Non-fatal - event creation already succeeded
+        logger.warn('[ADMIN_REQUESTS] Failed to send approval email:', emailErr);
+      }
+    }
+
+    // ── Send admin charge notification (if card was charged) ──
+    if (chargeSucceeded) {
+      try {
+        const totalShekel = (BASE_PRICE + (request.wants_guest_messages ? MSG_ADDON : 0));
+        const safeName = (request.contact_name || '').replace(/</g, '&lt;');
+        const safeEmail = (request.contact_email || '').replace(/</g, '&lt;');
+        const safeEvent = eventName.replace(/</g, '&lt;');
+
+        const adminSubject = `חיוב בוצע \u2014 ${eventName} (₪${totalShekel})`;
+        const adminHtml =
+          `<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"></head>` +
+          `<body style="margin:0;padding:20px;background:#f5f3f0;font-family:Arial,sans-serif;">` +
+          `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">` +
+          `<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;">` +
+          `<tr><td dir="rtl" style="text-align:right;padding:24px;background:#e8f5e9;border-radius:12px 12px 0 0;">` +
+          `<div style="font-size:16px;font-weight:700;color:#2e7d32;">חיוב כרטיס אשראי בוצע בהצלחה</div></td></tr>` +
+          `<tr><td dir="rtl" style="text-align:right;padding:20px 24px;font-size:14px;color:#1e1e1e;line-height:1.7;">` +
+          `<div><strong>לקוח:</strong> ${safeName}</div>` +
+          `<div><strong>מייל:</strong> ${safeEmail}</div>` +
+          `<div><strong>טלפון:</strong> ${(request.contact_phone || '').replace(/</g, '&lt;')}</div>` +
+          `<div><strong>אירוע:</strong> ${safeEvent}</div>` +
+          `<div><strong>סכום:</strong> ₪${totalShekel}</div>` +
+          `<div><strong>בקשה:</strong> ${requestId}</div>` +
+          `<div><strong>אירוע:</strong> ${newEvent.id}</div>` +
+          `</td></tr></table></td></tr></table></body></html>`;
 
         await transporter.sendMail({
           from: SMTP_FROM,
           to: 'contact@eventa.productions',
-          subject: adminChargeEmail.subject,
-          html: adminChargeEmail.html,
+          subject: adminSubject,
+          html: adminHtml,
         });
 
-        logger.info('[ADMIN_REQUESTS] Charge emails sent', {
+        logger.info('[ADMIN_REQUESTS] Admin charge notification sent', {
           requestId,
           eventId: newEvent.id,
-          clientEmail: request.contact_email,
         });
       } catch (emailErr) {
-        // Non-fatal — charge and event creation already succeeded
-        logger.warn('[ADMIN_REQUESTS] Failed to send charge emails:', emailErr);
+        logger.warn('[ADMIN_REQUESTS] Failed to send admin charge notification:', emailErr);
       }
     }
 
@@ -428,7 +430,7 @@ export async function PATCH(req: NextRequest) {
     const supabase = getServiceClient();
     const { data: request, error: fetchErr } = await supabase
       .from('event_requests')
-      .select('id, payment_status, contact_email, contact_name, event_name, total_price, payment_link_token')
+      .select('id, payment_status, contact_email, contact_name, event_type, event_name, starts_at, ends_at, wants_custom_background, poster_choice, selected_template_id, special_requests, wants_guest_messages, total_price, payment_link_token')
       .eq('id', requestId)
       .single();
 
@@ -498,23 +500,21 @@ export async function PATCH(req: NextRequest) {
       // Send the payment email to client
       if (request.contact_email) {
         try {
-          const { buildClientPaymentEmail } = await import('@/lib/email-templates');
+          const { buildClientPaymentLinkEmail } = await import('@/lib/email-templates');
           const baseUrl = APP_BASE_URL;
-          const paymentEmail = buildClientPaymentEmail({
+          const paymentEmail = buildClientPaymentLinkEmail({
             contactName: request.contact_name || '',
-            contactEmail: request.contact_email,
-            eventType: '',
+            eventType: request.event_type || '',
             eventName: request.event_name || '',
-            startsAt: '',
-            endsAt: '',
-            wantsCustomBackground: false,
+            startsAt: request.starts_at || '',
+            endsAt: request.ends_at || '',
+            wantsCustomBackground: request.wants_custom_background ?? false,
             hasBgImage: false,
-            posterChoice: '',
-            selectedTemplate: '',
-            specialRequests: '',
-            wantsGuestMessages: true,
-            requestId: request.id,
-            baseUrl,
+            posterChoice: request.poster_choice || '',
+            selectedTemplate: request.selected_template_id || '',
+            specialRequests: request.special_requests || '',
+            wantsGuestMessages: request.wants_guest_messages ?? true,
+            paymentUrl: `${baseUrl}/api/payment/checkout?token=${newToken}`,
           });
           await transporter.sendMail({
             from: SMTP_FROM,
@@ -527,7 +527,7 @@ export async function PATCH(req: NextRequest) {
           logger.warn('[ADMIN_REQUESTS_PATCH] Failed to send payment email', {
             error: emailErr instanceof Error ? emailErr.message : String(emailErr),
           });
-          // Non-fatal — token was already updated
+          // Non-fatal - token was already updated
         }
       }
 

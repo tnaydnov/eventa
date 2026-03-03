@@ -196,7 +196,7 @@ export default function JoinPage({
     if (!joinCode) return;
 
     if (!PHONE_VERIFICATION_ENABLED) {
-      // Bypass phone verification — use fingerprint join
+      // Bypass phone verification - use fingerprint join
       setLoading(true);
       setError('');
       try {
@@ -241,7 +241,7 @@ export default function JoinPage({
     const result = await sendOtp({ phone: fullPhone, eventSlug, joinCode });
 
     if (!result.success) {
-      setError(result.error || 'שגיאה בשליחת הקוד — נסו שוב');
+      setError(result.error || 'שגיאה בשליחת הקוד - נסו שוב');
       setLoading(false);
       return;
     }
@@ -280,7 +280,7 @@ export default function JoinPage({
         if (err instanceof Error && err.message === 'DEVICE_BANNED') {
           setError('המכשיר הזה חסום מלהיכנס לאירוע זה');
         } else {
-          setError(err instanceof Error ? err.message : 'אימות הקוד נכשל — נסו שוב');
+          setError(err instanceof Error ? err.message : 'אימות הקוד נכשל - נסו שוב');
         }
       }
       setLoading(false);

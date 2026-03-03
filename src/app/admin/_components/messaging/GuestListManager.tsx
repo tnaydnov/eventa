@@ -202,18 +202,18 @@ export default function GuestListManager({
             <tbody>
               {filtered.map((g) => (
                 <tr key={g.id}>
-                  <td>{g.name || '—'}</td>
+                  <td>{g.name || '-'}</td>
                   <td dir="ltr" style={{ textAlign: 'left' }}>{g.phone}</td>
                   <td title={g.source}>{sourceLabel(g.source)}</td>
-                  <td>{g.waPreEventSent ? '✅' : '—'}</td>
-                  <td>{g.waFeedbackSent ? '✅' : '—'}</td>
+                  <td>{g.waPreEventSent ? '✅' : '-'}</td>
+                  <td>{g.waFeedbackSent ? '✅' : '-'}</td>
                   {!isArchived && (
                     <td>
                       <button
                         className="admin-btn admin-btn--sm admin-btn--red"
                         onClick={() => handleRemove(g.id)}
                         disabled={g.waPreEventSent || removingId === g.id}
-                        title={g.waPreEventSent ? 'לא ניתן — כבר נשלחה הודעה' : 'הסרה'}
+                        title={g.waPreEventSent ? 'לא ניתן - כבר נשלחה הודעה' : 'הסרה'}
                       >
                         {removingId === g.id ? '…' : '🗑'}
                       </button>

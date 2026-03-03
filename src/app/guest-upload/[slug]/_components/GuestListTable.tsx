@@ -96,7 +96,7 @@ export default function GuestListTable({
             {guests.map((guest) => (
               <div key={guest.id} className="portal-guest-row">
                 <span className="portal-guest-name">
-                  {guest.name || '—'}
+                  {guest.name || '-'}
                 </span>
                 <span className="portal-guest-phone">{guest.phone}</span>
                 <span
@@ -113,7 +113,7 @@ export default function GuestListTable({
                     className="portal-guest-remove"
                     onClick={() => handleRemove(guest.id)}
                     disabled={guest.sent || removingId === guest.id}
-                    title={guest.sent ? 'לא ניתן להסיר — כבר נשלחה הודעה' : 'הסרה'}
+                    title={guest.sent ? 'לא ניתן להסיר - כבר נשלחה הודעה' : 'הסרה'}
                   >
                     {removingId === guest.id ? '…' : '🗑'}
                   </button>

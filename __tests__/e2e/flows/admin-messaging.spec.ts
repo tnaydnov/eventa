@@ -47,7 +47,7 @@ test.describe('Admin Messaging', () => {
       await eventCard.click();
       await page.waitForTimeout(1000);
 
-      // Event detail view should show — check for event name or stats
+      // Event detail view should show - check for event name or stats
       const bodyText = await page.textContent('body');
       expect(bodyText).toContain(mockEvent.name);
     }

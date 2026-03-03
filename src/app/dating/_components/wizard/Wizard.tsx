@@ -170,7 +170,7 @@ export default function Wizard() {
 
       const data = await res.json();
 
-      // If pay-now flow — create clearing session and show payment iframe
+      // If pay-now flow - create clearing session and show payment iframe
       if (data.payNow && data.requestId) {
         try {
           const sessionRes = await fetch('/api/payment/create-session', {
@@ -191,7 +191,7 @@ export default function Wizard() {
             if (sessionData.paymentUrl) {
               setPaymentUrl(sessionData.paymentUrl);
               setSending(false);
-              return; // Don't show success yet — wait for payment
+              return; // Don't show success yet - wait for payment
             }
           }
         } catch {
@@ -321,7 +321,7 @@ export default function Wizard() {
           <h2 className="wiz-success__title">ההזמנה נשלחה בהצלחה!</h2>
           <p className="wiz-success__text">
             {state.contactPreference === 'pay-now'
-              ? 'פרטי הכרטיס נשמרו בהצלחה! ההזמנה בבדיקה — נעדכן אתכם ונחייב רק לאחר אישור.'
+              ? 'פרטי הכרטיס נשמרו בהצלחה! ההזמנה בבדיקה - נעדכן אתכם ונחייב רק לאחר אישור.'
               : state.contactPreference === 'call-me'
                 ? 'קיבלנו את כל הפרטים ונחזור אליכם בהקדם. נפנה אליכם תוך 48 שעות.'
                 : 'קיבלנו את כל הפרטים ונחזור אליכם בהקדם.'}

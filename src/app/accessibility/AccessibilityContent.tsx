@@ -1,6 +1,6 @@
 'use client';
 
-/* Shared inline styles — matches other legal pages */
+/* Shared inline styles - matches other legal pages */
 const sectionStyle: React.CSSProperties = { marginBottom: '36px' };
 const headingStyle: React.CSSProperties = {
   fontSize: '18px', fontWeight: 700, color: '#d4a59a',
@@ -33,51 +33,51 @@ export default function AccessibilityContent() {
         </p>
         <ul style={listStyle}>
           <li style={liStyle}>
-            <strong>טקסט חלופי</strong> — כל התמונות והסמלים באתר מכילים תיאורים חלופיים (alt)
+            <strong>טקסט חלופי</strong> - כל התמונות והסמלים באתר מכילים תיאורים חלופיים (alt)
             המאפשרים לקוראי מסך להציג את תוכנם.
           </li>
           <li style={liStyle}>
-            <strong>ניגודיות צבעים</strong> — יחס הניגודיות עומד ביחס מינימלי של 4.5:1 לטקסט רגיל
+            <strong>ניגודיות צבעים</strong> - יחס הניגודיות עומד ביחס מינימלי של 4.5:1 לטקסט רגיל
             ו-3:1 לטקסט גדול, בהתאם לדרישות התקן.
           </li>
           <li style={liStyle}>
-            <strong>ניווט מקלדת</strong> — ניתן לנווט באתר באופן מלא באמצעות מקלדת בלבד
+            <strong>ניווט מקלדת</strong> - ניתן לנווט באתר באופן מלא באמצעות מקלדת בלבד
             (Tab, Enter, Space, Escape), כולל כל הכפתורים, כרטיסים, טפסים ודיאלוגים.
           </li>
           <li style={liStyle}>
-            <strong>מבנה סמנטי</strong> — האתר בנוי בהתאם לתקנים עם אזורי דף מוגדרים
+            <strong>מבנה סמנטי</strong> - האתר בנוי בהתאם לתקנים עם אזורי דף מוגדרים
             (header, nav, main, footer), כותרות היררכיות (H1–H6), ותיוג ARIA מתאים.
           </li>
           <li style={liStyle}>
-            <strong>תמיכה בקוראי מסך</strong> — כל הכפתורים, שדות הטפסים והדיאלוגים
+            <strong>תמיכה בקוראי מסך</strong> - כל הכפתורים, שדות הטפסים והדיאלוגים
             מתויגים עם aria-label, aria-describedby ו-role מתאימים.
           </li>
           <li style={liStyle}>
-            <strong>פוקוס ויזואלי</strong> — כל אלמנט אינטראקטיבי מציג מסגרת פוקוס ברורה
+            <strong>פוקוס ויזואלי</strong> - כל אלמנט אינטראקטיבי מציג מסגרת פוקוס ברורה
             בעת ניווט עם מקלדת.
           </li>
           <li style={liStyle}>
-            <strong>דילוג לתוכן</strong> — קישור &quot;דלג לתוכן&quot; מופיע בתחילת כל דף
+            <strong>דילוג לתוכן</strong> - קישור &quot;דלג לתוכן&quot; מופיע בתחילת כל דף
             בעת לחיצה על Tab.
           </li>
           <li style={liStyle}>
-            <strong>טפסים נגישים</strong> — כל שדה טופס מקושר לתווית (label), שגיאות מסומנות
+            <strong>טפסים נגישים</strong> - כל שדה טופס מקושר לתווית (label), שגיאות מסומנות
             באמצעות aria-invalid ומוכרזות לקוראי מסך באמצעות role=&quot;alert&quot;.
           </li>
           <li style={liStyle}>
-            <strong>הפחתת תנועה</strong> — האתר מכבד את הגדרת &quot;prefers-reduced-motion&quot;
+            <strong>הפחתת תנועה</strong> - האתר מכבד את הגדרת &quot;prefers-reduced-motion&quot;
             ומבטל אנימציות עבור משתמשים שביקשו זאת.
           </li>
           <li style={liStyle}>
-            <strong>זום</strong> — האתר ניתן להגדלה עד 200% ללא שבירת תצוגה,
+            <strong>זום</strong> - האתר ניתן להגדלה עד 200% ללא שבירת תצוגה,
             ואינו חוסם זום בהגדרות ה-viewport.
           </li>
           <li style={liStyle}>
-            <strong>התראות בזמן אמת</strong> — הודעות מערכת, שגיאות וסטטוס רשת
+            <strong>התראות בזמן אמת</strong> - הודעות מערכת, שגיאות וסטטוס רשת
             מוכרזים באמצעות aria-live לקוראי מסך.
           </li>
           <li style={liStyle}>
-            <strong>דיאלוגים</strong> — כל חלון מודלי מסומן כ-dialog עם aria-modal,
+            <strong>דיאלוגים</strong> - כל חלון מודלי מסומן כ-dialog עם aria-modal,
             כולל נעילת פוקוס (focus trap) ותמיכה בסגירה עם Escape.
           </li>
         </ul>
@@ -98,7 +98,7 @@ export default function AccessibilityContent() {
         <p style={textStyle}>
           אנו עושים כמיטב יכולתנו להנגיש את כל חלקי האתר.
           עם זאת, ייתכנו רכיבים שטרם הונגשו באופן מלא.
-          אם נתקלתם בבעיית נגישות — נשמח לשמוע ולתקן בהקדם.
+          אם נתקלתם בבעיית נגישות - נשמח לשמוע ולתקן בהקדם.
         </p>
       </div>
 

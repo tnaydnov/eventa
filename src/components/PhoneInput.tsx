@@ -40,7 +40,7 @@ function isValidLocalMobile(digits: string): boolean {
 }
 
 /**
- * PhoneInput — Israeli mobile phone input with fixed +972 prefix.
+ * PhoneInput - Israeli mobile phone input with fixed +972 prefix.
  *
  * The user types the local part (without leading 0) and the value
  * emitted via `onChange` is the raw local digits (e.g. "501234567").

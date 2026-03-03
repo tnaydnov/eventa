@@ -27,7 +27,7 @@ interface OtpInputProps {
 const DIGIT_RE = /^\d$/;
 
 /**
- * OtpInput — 6-box one-time-password input with auto-advance,
+ * OtpInput - 6-box one-time-password input with auto-advance,
  * backspace navigation, paste support, and auto-submit on completion.
  *
  * Renders each digit in its own <input> for a polished mobile UX.

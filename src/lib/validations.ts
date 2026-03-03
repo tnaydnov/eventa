@@ -16,10 +16,11 @@ const envSchema = z.object({
   ADMIN_PASSWORD: z.string().min(12).optional(),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters').optional(),
   CRON_SECRET: z.string().min(16).optional(),
-  // SMS provider (optional — stubs used when absent)
-  INFORU_API_TOKEN: z.string().min(1).optional(),
-  INFORU_SENDER_NAME: z.string().min(1).max(11).optional(),
-  // WhatsApp provider (optional — stubs used when absent)
+  // SMS provider (optional - stubs used when absent)
+  TEXTME_API_TOKEN: z.string().min(1).optional(),
+  TEXTME_USERNAME: z.string().min(1).optional(),
+  TEXTME_SENDER_NAME: z.string().min(1).max(11).optional(),
+  // WhatsApp provider (optional - stubs used when absent)
   WA_API_KEY: z.string().min(1).optional(),
   WA_PHONE_NUMBER_ID: z.string().min(1).optional(),
 });
@@ -33,8 +34,9 @@ export function validateEnv() {
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
     JWT_SECRET: process.env.JWT_SECRET,
     CRON_SECRET: process.env.CRON_SECRET,
-    INFORU_API_TOKEN: process.env.INFORU_API_TOKEN,
-    INFORU_SENDER_NAME: process.env.INFORU_SENDER_NAME,
+    TEXTME_API_TOKEN: process.env.TEXTME_API_TOKEN,
+    TEXTME_USERNAME: process.env.TEXTME_USERNAME,
+    TEXTME_SENDER_NAME: process.env.TEXTME_SENDER_NAME,
     WA_API_KEY: process.env.WA_API_KEY,
     WA_PHONE_NUMBER_ID: process.env.WA_PHONE_NUMBER_ID,
   });
@@ -74,11 +76,10 @@ export const guestPhoneImportSchema = z.object({
 
 /** Manual admin email send types. */
 export const adminEmailTypeValues = [
-  'upload_instructions',
   'upload_reminder',
-  'invoice',
   'summary',
   'custom',
+  'qr_page',
 ] as const;
 
 export const adminSendEmailSchema = z.object({

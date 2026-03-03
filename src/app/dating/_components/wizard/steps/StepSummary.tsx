@@ -100,7 +100,7 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
             <div className="wiz-summary__card-label">הודעות לאורחים</div>
             <div className={`wiz-summary__card-value${state.wantsGuestMessages ? '' : ' wiz-summary__card-value--muted'}`}>
               <WizardIcon name="chat" size={14} className="wiz-summary__inline-icon" />
-              {state.wantsGuestMessages ? 'WhatsApp + Excel — כלול' : 'לא נבחר'}
+              {state.wantsGuestMessages ? 'WhatsApp + Excel - כלול' : 'לא נבחר'}
             </div>
           </div>
           <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(4)}>

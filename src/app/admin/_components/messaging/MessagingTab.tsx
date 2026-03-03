@@ -26,6 +26,7 @@ interface MessagingTabProps {
   adminUploadGuestFile: (eventId: string, file: File) => Promise<{ ok: boolean; result?: unknown; error?: string }>;
   regeneratePortalToken: (eventId: string) => Promise<{ ok: boolean; token?: string; error?: string }>;
   sendClientEmail: (eventId: string, type: string, opts?: { subject?: string; body?: string }) => Promise<{ ok: boolean; error?: string }>;
+  sendQrPage: (eventId: string, files: File[]) => Promise<{ ok: boolean; error?: string }>;
   loadMessageLog: (eventId: string) => Promise<void>;
 }
 
@@ -43,6 +44,7 @@ export default function MessagingTab({
   adminUploadGuestFile,
   regeneratePortalToken,
   sendClientEmail,
+  sendQrPage,
   loadMessageLog,
 }: MessagingTabProps) {
   const isArchived = event.status === 'archived';
@@ -75,6 +77,7 @@ export default function MessagingTab({
         onToggleWA={updateMessagingConfig}
         onTrigger={triggerMessages}
         onSendEmail={sendClientEmail}
+        onSendQrPage={sendQrPage}
         onRegenerateToken={regeneratePortalToken}
         onUpdateConfig={updateMessagingConfig}
         isArchived={isArchived}

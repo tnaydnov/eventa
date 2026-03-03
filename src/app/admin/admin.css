@@ -3281,7 +3281,7 @@
 }
 
 /* ══════════════════════════════════════════
-   Action Center — grouped action cards
+   Action Center - grouped action cards
    ══════════════════════════════════════════ */
 
 /* Group wrapper */
@@ -3665,6 +3665,66 @@
 
 .act-dialog__textarea:focus {
   border-color: var(--admin-accent, #7c3aed);
+}
+
+/* QR page file upload */
+.act-qr-upload {
+  margin-top: 8px;
+}
+
+.act-qr-files {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.act-qr-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--admin-bg-darker, #111);
+  border: 1px solid var(--admin-border, #333);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+}
+
+.act-qr-file__name {
+  flex: 1;
+  color: var(--admin-text, #e0e0e0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.act-qr-file__size {
+  color: var(--admin-text-dim, #999);
+  font-size: 0.72rem;
+  flex-shrink: 0;
+}
+
+.act-qr-file__remove {
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+
+.act-qr-file__remove:hover {
+  opacity: 1;
+}
+
+.act-qr-files__total {
+  font-size: 0.72rem;
+  color: var(--admin-text-dim, #999);
+  text-align: left;
+  padding-top: 4px;
 }
 
 /* Dialog action buttons */

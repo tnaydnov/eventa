@@ -50,7 +50,7 @@ export default function UploadResultDisplay({
           <strong>פירוט שגיאות:</strong>
           {errors.slice(0, 10).map((err, i) => (
             <div key={i} className="portal-result-error-item">
-              שורה {err.row}: {err.phone || '(ריק)'} — {err.reason}
+              שורה {err.row}: {err.phone || '(ריק)'} - {err.reason}
             </div>
           ))}
           {errors.length > 10 && (

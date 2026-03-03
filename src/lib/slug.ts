@@ -84,7 +84,7 @@ export function isValidSlug(slug: string): boolean {
 
 /**
  * Hebrew-to-English transliteration map (common names / words).
- * Not exhaustive — just enough for event names.
+ * Not exhaustive - just enough for event names.
  */
 const HE_TRANSLIT: Record<string, string> = {
   'א': 'a', 'ב': 'b', 'ג': 'g', 'ד': 'd', 'ה': 'h',

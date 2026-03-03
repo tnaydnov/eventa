@@ -279,7 +279,7 @@ test.describe('Phone Join Flow', () => {
     // Go without ?k= parameter
     await page.goto(`/dating/${TEST_EVENT_SLUG}/join`);
 
-    // Accept terms — should show error about missing join code
+    // Accept terms - should show error about missing join code
     const checkbox = page.locator('[role="checkbox"]').first();
     if (await checkbox.isVisible({ timeout: 3000 })) {
       await checkbox.click();

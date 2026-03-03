@@ -1,14 +1,31 @@
 /**
- * Email templates for the order system.
+ * Email templates for Eventa.
  *
- * Key design rules for email HTML RTL:
+ * 11 templates total:
+ *
+ *   Client-facing (8):
+ *     C1. Call Me Back - client filled the form, wants a callback
+ *     C2. Pay Now - client filled the form, paid with credit card
+ *     C3. Contact Only - client left contact details without filling event form
+ *     C4. Approval - order approved, charged, event created
+ *     C5. Upload Reminder (7-day) - WhatsApp guest list upload reminder
+ *     C6. Upload Reminder (3-day) - urgent WhatsApp guest list upload reminder
+ *     C7. Event Summary - post-event stats (day after)
+ *     C8. QR Page Ready - A4 print page with QR code attachments
+ *
+ *   Admin-facing (3):
+ *     A1. Pay Now - client paid online, needs admin approval
+ *     A2. Call Me Back - client filled form, wants callback
+ *     A3. Contact Only - client wants contact, no event form filled
+ *
+ * Design rules for email HTML RTL:
  *  - Gmail strips dir from <html>/<body>, so EVERY <td> gets dir="rtl" + text-align:right
  *  - Table-based layout only (no flexbox/grid) for Outlook + Gmail
- *  - No emojis
+ *  - No emojis in email body
  *  - English words (brand, phone, email) in dir="ltr" spans with unicode-bidi:isolate
  *  - Logo from https://www.eventa.productions/icons/Eventa_Logo.png
  *
- * Design system v2 — consistent across all emails:
+ * Design system:
  *  - Card shadow, pill-shaped CTAs, accent section titles, step pills
  *  - Responsive: max-width 600px card, 100% on mobile
  *  - Typography: base 15px, titles 18px bold, labels 14px semi-bold, values 15px
@@ -23,23 +40,28 @@ const LOGO_DARK  = 'https://www.eventa.productions/icons/Eventa_Logo_Dark.png';
 
 /* ─── Shared palette ─── */
 const C = {
-  bg:       '#f5f3f0',
-  card:     '#ffffff',
-  text:     '#1e1e1e',
-  muted:    '#6b6b6b',
-  dim:      '#999999',
-  border:   '#ece7e4',
-  accent:   '#b08d7e',
-  accentBg: '#faf6f4',
-  rowAlt:   '#faf7f4',
-  paybox:   '#004aad',
-  bit:      '#1aab4a',
-  warn:     '#c27816',
-  warnBg:   '#fef9f0',
+  bg:        '#f5f3f0',
+  card:      '#ffffff',
+  text:      '#1e1e1e',
+  muted:     '#6b6b6b',
+  dim:       '#999999',
+  border:    '#ece7e4',
+  accent:    '#b08d7e',
+  accentBg:  '#faf6f4',
+  rowAlt:    '#faf7f4',
+  success:   '#2e7d32',
+  successBg: '#e8f5e9',
+  warn:      '#c27816',
+  warnBg:    '#fef9f0',
 } as const;
 
 /** Shorthand: every <td> in the email needs this for RTL to work in Gmail. */
 const RTL = 'dir="rtl" style="text-align:right;"';
+
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILITY FUNCTIONS
+   ═══════════════════════════════════════════════════════════════ */
 
 /** Escape HTML special characters. */
 export function escapeHtml(str: string): string {
@@ -74,8 +96,41 @@ function fmtTime(iso: string): string {
   } catch { return ''; }
 }
 
+/** Format ISO datetime → "יום רביעי, 15 באפריל 2026 בשעה 19:00". */
+function fmtDateTime(iso: string): string {
+  if (!iso) return '\u2014';
+  const d = fmtDate(iso);
+  const t = fmtTime(iso);
+  return t ? `${d} \u05D1\u05E9\u05E2\u05D4 ${ltr(t)}` : d;
+}
 
-/* ─── Design-system helpers ─── */
+/**
+ * Schedule info block: shows WhatsApp send time and upload deadline.
+ * Returns a full <tr> with a table inside an accentBg box.
+ */
+function scheduleBlock(messageSendAt: string, uploadDeadline: string): string {
+  return `
+        <tr>
+          <td ${RTL} style="text-align:right;padding:20px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05DC\u05D5\u05D7 \u05D6\u05DE\u05E0\u05D9\u05DD')}
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;background-color:${C.accentBg};border-radius:8px;overflow:hidden;">
+              <tr>
+                <td dir="rtl" style="text-align:right;padding:14px 18px;border-bottom:1px solid ${C.border};background-color:${C.accentBg};color:${C.muted};font-size:14px;font-weight:600;width:140px;vertical-align:top;line-height:1.5;">\u05D3\u05D3\u05DC\u05D9\u05D9\u05DF \u05DC\u05D4\u05E2\u05DC\u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05D4</td>
+                <td dir="rtl" style="text-align:right;padding:14px 18px;border-bottom:1px solid ${C.border};background-color:${C.accentBg};color:${C.text};font-size:15px;line-height:1.5;font-weight:600;">${fmtDateTime(uploadDeadline)}</td>
+              </tr>
+              <tr>
+                <td dir="rtl" style="text-align:right;padding:14px 18px;background-color:${C.accentBg};color:${C.muted};font-size:14px;font-weight:600;width:140px;vertical-align:top;line-height:1.5;">\u05E9\u05DC\u05D9\u05D7\u05EA \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA</td>
+                <td dir="rtl" style="text-align:right;padding:14px 18px;background-color:${C.accentBg};color:${C.text};font-size:15px;line-height:1.5;font-weight:600;">${fmtDateTime(messageSendAt)}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>`;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN-SYSTEM HELPERS
+   ═══════════════════════════════════════════════════════════════ */
 
 /** Build a two-column info row: label | value. Both cells are RTL. */
 function row(label: string, value: string, isLast = false): string {
@@ -120,7 +175,7 @@ function ctaBtn(href: string, text: string, bgColor: string = C.accent): string 
         </tr>`;
 }
 
-/** Section divider — a soft horizontal line with spacing. */
+/** Section divider - a soft horizontal line with spacing. */
 function divider(): string {
   return `
         <tr>
@@ -150,7 +205,7 @@ function supportRow(): string {
         <tr>
           <td dir="rtl" style="direction:rtl;text-align:center;padding:0 32px 24px;background-color:${C.card};">
             <div dir="rtl" style="direction:rtl;text-align:center;font-size:13px;color:${C.dim};">
-              לשאלות ניתן לפנות אלינו&rlm;: <a href="mailto:contact@eventa.productions" style="color:${C.accent};text-decoration:none;" dir="ltr">contact@eventa.productions</a>
+              \u05DC\u05E9\u05D0\u05DC\u05D5\u05EA \u05E0\u05D9\u05EA\u05DF \u05DC\u05E4\u05E0\u05D5\u05EA \u05D0\u05DC\u05D9\u05E0\u05D5&rlm;: <a href="mailto:contact@eventa.productions" style="color:${C.accent};text-decoration:none;" dir="ltr">contact@eventa.productions</a>
             </div>
           </td>
         </tr>`;
@@ -161,7 +216,7 @@ function greeting(name: string, ...lines: string[]): string {
   return `
         <tr>
           <td ${RTL} style="text-align:right;padding:28px 32px 4px;border-bottom:1px solid ${C.border};background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:17px;color:${C.text};font-weight:600;line-height:1.5;">שלום ${name}&rlm;,</div>
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:17px;color:${C.text};font-weight:600;line-height:1.5;">\u05E9\u05DC\u05D5\u05DD ${name}&rlm;,</div>
             ${lines.map((l, i) => `<div dir="rtl" style="direction:rtl;text-align:right;font-size:15px;color:${C.muted};${i === 0 ? 'margin-top:8px;' : ''}line-height:1.6;${i === lines.length - 1 ? 'padding-bottom:20px;' : ''}">${l}</div>`).join('\n            ')}
           </td>
         </tr>`;
@@ -172,17 +227,17 @@ function contactCard(name: string, phone: string, email: string): string {
   return `
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" class="em-row-alt" style="direction:rtl;border-collapse:collapse;background-color:${C.rowAlt};border-radius:8px;overflow:hidden;">
               <tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:${C.rowAlt};color:#555555;font-size:14px;font-weight:600;width:70px;">שם</td>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:${C.rowAlt};color:#555555;font-size:14px;font-weight:600;width:70px;">\u05E9\u05DD</td>
                 <td dir="rtl" style="text-align:right;padding:12px 16px;border-bottom:1px solid ${C.border};background-color:${C.rowAlt};color:${C.text};font-size:15px;font-weight:600;">${name}</td>
               </tr>
               <tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;${email ? `border-bottom:1px solid ${C.border};` : ''}background-color:${C.rowAlt};color:#555555;font-size:14px;font-weight:600;">טלפון</td>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;${email ? `border-bottom:1px solid ${C.border};` : ''}background-color:${C.rowAlt};color:#555555;font-size:14px;font-weight:600;">\u05D8\u05DC\u05E4\u05D5\u05DF</td>
                 <td dir="rtl" style="text-align:right;padding:12px 16px;${email ? `border-bottom:1px solid ${C.border};` : ''}background-color:${C.rowAlt};">
                   <a href="tel:${phone}" style="color:${C.accent};font-size:15px;font-weight:600;text-decoration:none;" dir="ltr">${phone}</a>
                 </td>
               </tr>
               ${email ? `<tr>
-                <td dir="rtl" style="text-align:right;padding:12px 16px;background-color:${C.rowAlt};color:#555555;font-size:14px;font-weight:600;">אימייל</td>
+                <td dir="rtl" style="text-align:right;padding:12px 16px;background-color:${C.rowAlt};color:#555555;font-size:14px;font-weight:600;">\u05D0\u05D9\u05DE\u05D9\u05D9\u05DC</td>
                 <td dir="rtl" style="text-align:right;padding:12px 16px;background-color:${C.rowAlt};">
                   <a href="mailto:${email}" style="color:${C.accent};font-size:15px;text-decoration:none;" dir="ltr">${email}</a>
                 </td>
@@ -190,23 +245,34 @@ function contactCard(name: string, phone: string, email: string): string {
             </table>`;
 }
 
+/** Colored status banner at the top of an email. */
+function statusBanner(text: string, subtext: string | null, bgColor: string, textColor: string): string {
+  return `
+        <tr>
+          <td ${RTL} style="text-align:right;background-color:${bgColor} !important;padding:16px 32px;border-bottom:1px solid ${C.border};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:15px;font-weight:700;color:${textColor};">${text}</div>
+            ${subtext ? `<div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};margin-top:6px;line-height:1.5;">${subtext}</div>` : ''}
+          </td>
+        </tr>`;
+}
 
-interface OrderData {
+
+/* ═══════════════════════════════════════════════════════════════
+   DATA INTERFACE & SHARED BLOCKS
+   ═══════════════════════════════════════════════════════════════ */
+
+/** Event form data used by shared helpers (eventDetailsBlock, priceBlock). */
+interface EventFormData {
   eventType: string;
   eventName: string;
   startsAt: string;
   endsAt: string;
-  contactName: string;
-  contactPhone: string;
-  contactEmail: string;
   wantsCustomBackground: boolean;
   hasBgImage: boolean;
   posterChoice: string;
   selectedTemplate: string;
   specialRequests: string;
   wantsGuestMessages: boolean;
-  contactPreference: string;
-  isWizard: boolean;
 }
 
 /* ─── Shared email shell ─── */
@@ -226,8 +292,7 @@ function shell(title: string, inner: string, subtitle?: string): string {
       body, table, td, div, p, a, span { background-color: ${C.bg} !important; color: ${C.text} !important; }
       .em-card { background-color: ${C.card} !important; }
       .em-row-alt { background-color: ${C.rowAlt} !important; }
-      .em-paybox { background-color: ${C.paybox} !important; }
-      .em-bit { background-color: ${C.bit} !important; }
+      .em-success { background-color: ${C.successBg} !important; }
       .em-warn { background-color: ${C.warnBg} !important; }
       .em-logo-dark  { display: none !important; }
       .em-logo-light { display: inline-block !important; }
@@ -323,7 +388,7 @@ function priceBlock(wantsGuestMessages: boolean): string {
 }
 
 /** Build the event details + options sections shared by admin & client emails. */
-function eventDetailsBlock(data: OrderData): string {
+function eventDetailsBlock(data: EventFormData): string {
   const s = {
     eventLabel: escapeHtml(EVENT_TYPE_LABELS[data.eventType] || data.eventType),
     eventName: escapeHtml(data.eventName),
@@ -356,7 +421,7 @@ function eventDetailsBlock(data: OrderData): string {
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
               ${row('\u05E8\u05E7\u05E2', data.wantsCustomBackground ? `\u05E8\u05E7\u05E2 \u05DE\u05D5\u05EA\u05D0\u05DD \u05D0\u05D9\u05E9\u05D9\u05EA${data.hasBgImage ? ' (\u05EA\u05DE\u05D5\u05E0\u05D4 \u05DE\u05E6\u05D5\u05E8\u05E4\u05EA)' : ''}` : '\u05D1\u05E8\u05D9\u05E8\u05EA \u05DE\u05D7\u05D3\u05DC')}
               ${row('\u05E4\u05D5\u05E1\u05D8\u05E8', data.posterChoice === 'qr-only' ? `${ltr('QR')} \u05D1\u05DC\u05D1\u05D3` : `\u05EA\u05D1\u05E0\u05D9\u05EA&rlm;: ${s.template}`)}
-              ${row('\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA', data.wantsGuestMessages ? '\u05DB\u05DF' : '\u05DC\u05D0', true)}
+              ${row('\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD', data.wantsGuestMessages ? '\u05DB\u05DF' : '\u05DC\u05D0', true)}
             </table>
           </td>
         </tr>
@@ -375,375 +440,397 @@ function eventDetailsBlock(data: OrderData): string {
 
 
 /* ═══════════════════════════════════════════════════════════════
-   1. ADMIN NOTIFICATION EMAIL
-   Sent to contact@eventa.productions when someone submits a request.
+   C1. CLIENT - CALL ME BACK
+   Client filled the full event form and wants to be contacted.
+   Shows event summary + "we'll contact you within 48 hours".
    ═══════════════════════════════════════════════════════════════ */
 
-export function buildAdminNotificationEmail(data: OrderData): { subject: string; html: string } {
-  const s = {
-    eventLabel: escapeHtml(EVENT_TYPE_LABELS[data.eventType] || data.eventType),
-    name: escapeHtml(data.contactName),
-    phone: escapeHtml(data.contactPhone),
-    email: data.contactEmail ? escapeHtml(data.contactEmail) : '',
-  };
+export function buildClientCallMeBackEmail(data: EventFormData & {
+  contactName: string;
+}): { subject: string; html: string } {
+  const safeName = escapeHtml(data.contactName);
+  const safeEvent = escapeHtml(data.eventName);
 
-  const contactPrefLabel = data.contactPreference === 'call-me'
-    ? '\u05D4\u05EA\u05E7\u05E9\u05E8\u05D5 \u05D0\u05DC\u05D9\u05D9'
-    : data.contactPreference === 'pay-now'
-      ? '\u05EA\u05E9\u05DC\u05D5\u05DD \u05D1\u05D0\u05EA\u05E8 (\u05DB\u05E8\u05D8\u05D9\u05E1 \u05D0\u05E9\u05E8\u05D0\u05D9)'
-      : '\u05E9\u05DC\u05D7\u05D5 \u05DC\u05D9\u05E0\u05E7 \u05DC\u05EA\u05E9\u05DC\u05D5\u05DD';
-
-  const subject = `\u05D1\u05E7\u05E9\u05D4 \u05D7\u05D3\u05E9\u05D4 \u2014 ${s.eventLabel} | ${data.contactName}`;
+  const subject = `Eventa \u2014 \u05E7\u05D9\u05D1\u05DC\u05E0\u05D5 \u05D0\u05EA \u05D4\u05D1\u05E7\u05E9\u05D4 \u05E9\u05DC\u05DA`;
 
   const inner = `
-        <!-- Contact preference banner -->
-        <tr>
-          <td ${RTL} style="text-align:right;background-color:${data.contactPreference === 'pay-now' ? '#e8f5e9' : data.contactPreference === 'send-link' ? '#eef4ff' : C.accentBg} !important;padding:16px 32px;border-bottom:1px solid ${C.border};font-size:15px;font-weight:600;color:${data.contactPreference === 'pay-now' ? '#2e7d32' : data.contactPreference === 'send-link' ? C.paybox : C.accent};">
-            ${data.contactPreference === 'pay-now' ? '\u05D4\u05DC\u05E7\u05D5\u05D7 \u05E9\u05D9\u05DC\u05DD \u05D1\u05D0\u05EA\u05E8 (\u05DB\u05E8\u05D8\u05D9\u05E1 \u05D0\u05E9\u05E8\u05D0\u05D9)' : data.contactPreference === 'send-link' ? '\u05D4\u05DC\u05E7\u05D5\u05D7 \u05D1\u05D9\u05E7\u05E9 \u05DC\u05E7\u05D1\u05DC \u05DC\u05D9\u05E0\u05E7 \u05DC\u05EA\u05E9\u05DC\u05D5\u05DD' : '\u05D4\u05DC\u05E7\u05D5\u05D7 \u05DE\u05D1\u05E7\u05E9 \u05E9\u05E0\u05D7\u05D6\u05D5\u05E8 \u05D0\u05DC\u05D9\u05D5'}
-          </td>
-        </tr>
+        ${greeting(
+          safeName,
+          `\u05E7\u05D9\u05D1\u05DC\u05E0\u05D5 \u05D0\u05EA \u05D4\u05D1\u05E7\u05E9\u05D4 \u05E9\u05DC\u05DA \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong>.`,
+          `\u05D4\u05E4\u05E8\u05D8\u05D9\u05DD \u05D4\u05D5\u05E2\u05D1\u05E8\u05D5 \u05DC\u05E6\u05D5\u05D5\u05EA \u05E9\u05DC\u05E0\u05D5 \u05D5\u05E0\u05D9\u05E6\u05D5\u05E8 \u05D0\u05D9\u05EA\u05DA \u05E7\u05E9\u05E8 \u05EA\u05D5\u05DA 48 \u05E9\u05E2\u05D5\u05EA.`,
+        )}
 
         ${eventDetailsBlock(data)}
 
         ${priceBlock(data.wantsGuestMessages)}
 
-        <!-- Contact preference row -->
-        <tr>
-          <td ${RTL} style="text-align:right;padding:0 32px 4px;background-color:${C.card};">
-            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('\u05D4\u05E2\u05D3\u05E4\u05EA \u05E7\u05E9\u05E8', `<strong>${contactPrefLabel}</strong>`, true)}
-            </table>
-          </td>
-        </tr>
-
-        <!-- Contact section -->
-        <tr>
-          <td ${RTL} style="text-align:right;padding:32px 32px 28px;background-color:${C.card};">
-            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9 \u05DC\u05E7\u05D5\u05D7')}
-            ${contactCard(s.name, s.phone, s.email)}
-          </td>
-        </tr>`;
-
-  return { subject, html: shell(subject, inner, '\u05D1\u05E7\u05E9\u05EA \u05D0\u05D9\u05E8\u05D5\u05E2 \u05D7\u05D3\u05E9\u05D4') };
-}
-
-
-/* ═══════════════════════════════════════════════════════════════
-   2. CLIENT PAYMENT EMAIL
-   Sent to the client when they choose "send-link" payment option.
-   Includes PayBox, Bit buttons + full order summary + "contact
-   me instead" fallback.
-   ═══════════════════════════════════════════════════════════════ */
-
-export function buildClientPaymentEmail(data: {
-  contactName: string;
-  contactEmail: string;
-  eventType: string;
-  eventName: string;
-  startsAt: string;
-  endsAt: string;
-  wantsCustomBackground: boolean;
-  hasBgImage: boolean;
-  posterChoice: string;
-  selectedTemplate: string;
-  specialRequests: string;
-  wantsGuestMessages: boolean;
-  requestId: string;
-  baseUrl: string;
-}): { subject: string; html: string } {
-  const safeName = escapeHtml(data.contactName);
-  const contactMeUrl = `${data.baseUrl}/api/order/contact-me?id=${data.requestId}`;
-
-  const subject = `${ltr('Eventa')} \u2014 \u05E4\u05E8\u05D8\u05D9 \u05EA\u05E9\u05DC\u05D5\u05DD \u05E2\u05D1\u05D5\u05E8 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E9\u05DC\u05DA`;
-
-  // Cast partial data to OrderData shape for the shared event-details builder
-  const orderLike: OrderData = {
-    eventType: data.eventType,
-    eventName: data.eventName,
-    startsAt: data.startsAt,
-    endsAt: data.endsAt,
-    contactName: data.contactName,
-    contactPhone: '',
-    contactEmail: data.contactEmail,
-    wantsCustomBackground: data.wantsCustomBackground,
-    hasBgImage: data.hasBgImage,
-    posterChoice: data.posterChoice,
-    selectedTemplate: data.selectedTemplate,
-    specialRequests: data.specialRequests,
-    wantsGuestMessages: data.wantsGuestMessages,
-    contactPreference: 'send-link',
-    isWizard: true,
-  };
-
-  const inner = `
-        <!-- Greeting -->
-        ${greeting(
-          safeName,
-          '\u05D4\u05D1\u05E7\u05E9\u05D4 \u05E9\u05DC\u05DA \u05D4\u05EA\u05E7\u05D1\u05DC\u05D4 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4.',
-          '\u05E0\u05D9\u05EA\u05DF \u05DC\u05D4\u05E9\u05DC\u05D9\u05DD \u05D0\u05EA \u05D4\u05EA\u05E9\u05DC\u05D5\u05DD \u05D1\u05D0\u05D7\u05EA \u05D4\u05D3\u05E8\u05DB\u05D9\u05DD \u05D4\u05D1\u05D0\u05D5\u05EA&rlm;:',
-        )}
-
-        <!-- Payment buttons -->
-        <tr>
-          <td style="padding:28px 32px 24px;text-align:center;background-color:${C.card};">
-            <!-- PayBox -->
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
-              <tr>
-                <td align="center">
-                  <a href="#" style="display:block;text-decoration:none;" target="_blank">
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td align="center" class="em-paybox" style="background-color:${C.paybox} !important;border-radius:12px;padding:18px 24px;">
-                          <div style="font-size:18px;font-weight:700;color:#ffffff;letter-spacing:0.5px;">${ltr('PayBox')}</div>
-                          <div dir="rtl" style="direction:rtl;font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">\u05EA\u05E9\u05DC\u05D5\u05DD \u05DE\u05D0\u05D5\u05D1\u05D8\u05D7</div>
-                        </td>
-                      </tr>
-                    </table>
-                  </a>
-                </td>
-              </tr>
-            </table>
-            <!-- Bit -->
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td align="center">
-                  <a href="#" style="display:block;text-decoration:none;" target="_blank">
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td align="center" class="em-bit" style="background-color:${C.bit} !important;border-radius:12px;padding:18px 24px;">
-                          <div style="font-size:18px;font-weight:700;color:#ffffff;letter-spacing:0.5px;">${ltr('Bit')}</div>
-                          <div dir="rtl" style="direction:rtl;font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">\u05EA\u05E9\u05DC\u05D5\u05DD \u05DE\u05D0\u05D5\u05D1\u05D8\u05D7</div>
-                        </td>
-                      </tr>
-                    </table>
-                  </a>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-
-        ${divider()}
-
-        ${eventDetailsBlock(orderLike)}
-
-        ${priceBlock(data.wantsGuestMessages)}
-
-        ${divider()}
-
-        <!-- Contact me instead -->
-        <tr>
-          <td dir="rtl" style="direction:rtl;text-align:center;padding:24px 32px 32px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:14px;color:${C.muted};margin-bottom:16px;">\u05DE\u05E2\u05D3\u05D9\u05E4\u05D9\u05DD \u05E9\u05E0\u05D9\u05E6\u05D5\u05E8 \u05D0\u05D9\u05EA\u05DB\u05DD \u05E7\u05E9\u05E8&rlm;?</div>
-            <a href="${contactMeUrl}" style="display:inline-block;text-decoration:none;border:2px solid ${C.accent};border-radius:999px;padding:12px 28px;color:${C.accent};font-size:15px;font-weight:600;" target="_blank">
-              \u05E6\u05E8\u05D5 \u05D0\u05D9\u05EA\u05D9 \u05E7\u05E9\u05E8
-            </a>
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:13px;color:${C.dim};margin-top:12px;">\u05E0\u05D7\u05D6\u05D5\u05E8 \u05D0\u05DC\u05D9\u05DB\u05DD \u05EA\u05D5\u05DA 48 \u05E9\u05E2\u05D5\u05EA</div>
-          </td>
-        </tr>
+        ${tipBox(`<strong>\u05DE\u05D4 \u05E2\u05DB\u05E9\u05D9\u05D5?</strong> \u05D0\u05D9\u05DF \u05E6\u05D5\u05E8\u05DA \u05DC\u05E2\u05E9\u05D5\u05EA \u05D3\u05D1\u05E8 \u2014 \u05E0\u05D9\u05E6\u05D5\u05E8 \u05D0\u05D9\u05EA\u05DA \u05E7\u05E9\u05E8 \u05EA\u05D5\u05DA 48 \u05E9\u05E2\u05D5\u05EA \u05DE\u05E8\u05D2\u05E2 \u05E7\u05D1\u05DC\u05EA \u05D4\u05E4\u05E0\u05D9\u05D9\u05D4.`)}
 
         ${supportRow()}`;
 
-  return { subject, html: shell(subject, inner) };
+  return { subject, html: shell(subject, inner, '\u05D4\u05D1\u05E7\u05E9\u05D4 \u05D4\u05EA\u05E7\u05D1\u05DC\u05D4') };
 }
 
 
 /* ═══════════════════════════════════════════════════════════════
-   3. CONTACT-ME-INSTEAD NOTIFICATION EMAIL
-   Sent to admin when a client clicks "I want you to contact me"
-   from the payment email (they changed their mind).
+   C2. CLIENT - PAY NOW
+   Client filled the form and paid with credit card. Card NOT
+   charged yet - will be charged on approval.
    ═══════════════════════════════════════════════════════════════ */
 
-export function buildContactMeInsteadEmail(data: {
+export function buildClientPayNowEmail(data: EventFormData & {
   contactName: string;
-  contactPhone: string;
-  contactEmail: string;
-  eventType: string;
-  eventName: string;
-  requestId: string;
 }): { subject: string; html: string } {
-  const s = {
-    name: escapeHtml(data.contactName),
-    phone: escapeHtml(data.contactPhone),
-    email: data.contactEmail ? escapeHtml(data.contactEmail) : '',
-    eventLabel: escapeHtml(EVENT_TYPE_LABELS[data.eventType] || data.eventType),
-    eventName: data.eventName ? escapeHtml(data.eventName) : '',
-  };
+  const safeName = escapeHtml(data.contactName);
+  const safeEvent = escapeHtml(data.eventName);
 
-  const subject = `\u05DC\u05E7\u05D5\u05D7 \u05DE\u05D1\u05E7\u05E9 \u05E9\u05E0\u05D9\u05E6\u05D5\u05E8 \u05E7\u05E9\u05E8 \u2014 ${data.contactName}`;
+  const subject = `Eventa \u2014 \u05D4\u05D1\u05E7\u05E9\u05D4 \u05D4\u05EA\u05E7\u05D1\u05DC\u05D4, \u05E4\u05E8\u05D8\u05D9 \u05D4\u05EA\u05E9\u05DC\u05D5\u05DD \u05E0\u05E9\u05DE\u05E8\u05D5`;
 
   const inner = `
-        <!-- Alert banner -->
+        ${greeting(
+          safeName,
+          `\u05E7\u05D9\u05D1\u05DC\u05E0\u05D5 \u05D0\u05EA \u05D4\u05D1\u05E7\u05E9\u05D4 \u05E9\u05DC\u05DA \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong> \u05D5\u05E4\u05E8\u05D8\u05D9 \u05D4\u05EA\u05E9\u05DC\u05D5\u05DD \u05E9\u05DC\u05DA \u05E0\u05E9\u05DE\u05E8\u05D5 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4.`,
+        )}
+
+        ${tipBox(`<strong>\u05D7\u05E9\u05D5\u05D1 \u05DC\u05D3\u05E2\u05EA:</strong> \u05D4\u05DB\u05E8\u05D8\u05D9\u05E1 \u05E9\u05DC\u05DA <u>\u05DC\u05D0 \u05D7\u05D5\u05D9\u05D1</u> \u05D1\u05E9\u05DC\u05D1 \u05D6\u05D4. \u05D4\u05D7\u05D9\u05D5\u05D1 \u05D9\u05EA\u05D1\u05E6\u05E2 \u05E8\u05E7 \u05DC\u05D0\u05D7\u05E8 \u05E9\u05E0\u05D1\u05D3\u05D5\u05E7 \u05D5\u05E0\u05D0\u05E9\u05E8 \u05D0\u05EA \u05D4\u05D4\u05D6\u05DE\u05E0\u05D4.`)}
+
+        ${eventDetailsBlock(data)}
+
+        ${priceBlock(data.wantsGuestMessages)}
+
+        <!-- What happens now -->
         <tr>
-          <td ${RTL} class="em-warn" style="text-align:right;background-color:${C.warnBg} !important;padding:18px 32px;border-bottom:1px solid ${C.border};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:15px;font-weight:700;color:${C.warn};">\u05DC\u05E7\u05D5\u05D7 \u05E9\u05D9\u05E0\u05D4 \u05D4\u05E2\u05D3\u05E4\u05D4 \u2014 \u05DE\u05D1\u05E7\u05E9 \u05E9\u05E0\u05D9\u05E6\u05D5\u05E8 \u05E7\u05E9\u05E8</div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};margin-top:6px;line-height:1.5;">
-              \u05D4\u05DC\u05E7\u05D5\u05D7 \u05E7\u05D9\u05D1\u05DC \u05DC\u05D9\u05E0\u05E7 \u05DC\u05EA\u05E9\u05DC\u05D5\u05DD \u05D0\u05D1\u05DC \u05D1\u05D7\u05E8 \u05DC\u05D1\u05E7\u05E9 \u05E9\u05E0\u05D7\u05D6\u05D5\u05E8 \u05D0\u05DC\u05D9\u05D5.
-            </div>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05DE\u05D4 \u05E7\u05D5\u05E8\u05D4 \u05E2\u05DB\u05E9\u05D9\u05D5?')}
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
+              ${stepRow(1, '\u05D0\u05E0\u05D7\u05E0\u05D5 \u05D1\u05D5\u05D3\u05E7\u05D9\u05DD \u05D0\u05EA \u05D4\u05D1\u05E7\u05E9\u05D4 \u05E9\u05DC\u05DA')}
+              ${stepRow(2, '\u05DC\u05D0\u05D7\u05E8 \u05D0\u05D9\u05E9\u05D5\u05E8 \u2014 \u05D4\u05DB\u05E8\u05D8\u05D9\u05E1 \u05D9\u05D7\u05D5\u05D9\u05D1')}
+              ${stepRow(3, '\u05EA\u05E7\u05D1\u05DC\u05D5 \u05D0\u05D9\u05DE\u05D9\u05D9\u05DC \u05D0\u05D9\u05E9\u05D5\u05E8 \u05D5\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05D9\u05D9\u05E6\u05D0 \u05DC\u05D0\u05D5\u05D5\u05D9\u05E8', true)}
+            </table>
           </td>
         </tr>
 
-        <!-- Details -->
+        <!-- Bottom spacing -->
+        <tr><td style="padding:16px 0;background-color:${C.card};">&nbsp;</td></tr>
+
+        ${supportRow()}`;
+
+  return { subject, html: shell(subject, inner, '\u05D4\u05D1\u05E7\u05E9\u05D4 \u05D1\u05D1\u05D3\u05D9\u05E7\u05D4') };
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   C2b. CLIENT - PAYMENT LINK
+   Client chose "send-link" — receives a payment link by email.
+   Shows event summary + price + CTA to payment page.
+   Also used when admin resends a payment link.
+   ═══════════════════════════════════════════════════════════════ */
+
+export function buildClientPaymentLinkEmail(data: EventFormData & {
+  contactName: string;
+  paymentUrl: string;
+}): { subject: string; html: string } {
+  const safeName = escapeHtml(data.contactName);
+  const safeEvent = escapeHtml(data.eventName);
+
+  const subject = `Eventa \u2014 \u05E7\u05D9\u05E9\u05D5\u05E8 \u05DC\u05EA\u05E9\u05DC\u05D5\u05DD`;
+
+  const inner = `
+        ${greeting(
+          safeName,
+          safeEvent
+            ? `\u05E7\u05D9\u05D1\u05DC\u05E0\u05D5 \u05D0\u05EA \u05D4\u05D1\u05E7\u05E9\u05D4 \u05E9\u05DC\u05DA \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong>.`
+            : `\u05E7\u05D9\u05D1\u05DC\u05E0\u05D5 \u05D0\u05EA \u05D4\u05D1\u05E7\u05E9\u05D4 \u05E9\u05DC\u05DA.`,
+          `\u05DC\u05D7\u05E6\u05D5 \u05E2\u05DC \u05D4\u05DB\u05E4\u05EA\u05D5\u05E8 \u05DC\u05DE\u05E2\u05D1\u05E8 \u05DC\u05D3\u05E3 \u05D4\u05EA\u05E9\u05DC\u05D5\u05DD \u05D4\u05DE\u05D0\u05D5\u05D1\u05D8\u05D7.`,
+        )}
+
+        ${eventDetailsBlock(data)}
+
+        ${priceBlock(data.wantsGuestMessages)}
+
+        ${ctaBtn(data.paymentUrl, '\u05DC\u05EA\u05E9\u05DC\u05D5\u05DD \u05DE\u05D0\u05D5\u05D1\u05D8\u05D7')}
+
+        ${tipBox(`\u05DC\u05D0\u05D7\u05E8 \u05D4\u05EA\u05E9\u05DC\u05D5\u05DD \u05E4\u05E8\u05D8\u05D9 \u05D4\u05D0\u05E9\u05E8\u05D0\u05D9 \u05E0\u05E9\u05DE\u05E8\u05D9\u05DD. \u05D4\u05DB\u05E8\u05D8\u05D9\u05E1 \u05DC\u05D0 \u05D9\u05D7\u05D5\u05D9\u05D1 \u05E2\u05D3 \u05DC\u05D0\u05D9\u05E9\u05D5\u05E8 \u05D4\u05D4\u05D6\u05DE\u05E0\u05D4.`)}
+
+        ${supportRow()}`;
+
+  return { subject, html: shell(subject, inner, '\u05E7\u05D9\u05E9\u05D5\u05E8 \u05DC\u05EA\u05E9\u05DC\u05D5\u05DD') };
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   C3. CLIENT - CONTACT ONLY
+   Client left contact details without filling the event form.
+   Simple confirmation: "we got your details, we'll contact you".
+   ═══════════════════════════════════════════════════════════════ */
+
+export function buildClientContactOnlyEmail(data: {
+  contactName: string;
+  contactPhone: string;
+  contactEmail?: string;
+}): { subject: string; html: string } {
+  const safeName = escapeHtml(data.contactName);
+  const safePhone = escapeHtml(data.contactPhone);
+  const safeEmail = data.contactEmail ? escapeHtml(data.contactEmail) : '';
+
+  const subject = `Eventa \u2014 \u05E7\u05D9\u05D1\u05DC\u05E0\u05D5 \u05D0\u05EA \u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05E9\u05DC\u05DA`;
+
+  const inner = `
+        ${greeting(
+          safeName,
+          `\u05EA\u05D5\u05D3\u05D4 \u05E9\u05E4\u05E0\u05D9\u05EA \u05D0\u05DC\u05D9\u05E0\u05D5!`,
+          `\u05E7\u05D9\u05D1\u05DC\u05E0\u05D5 \u05D0\u05EA \u05D4\u05E4\u05E8\u05D8\u05D9\u05DD \u05E9\u05DC\u05DA \u05D5\u05E0\u05D9\u05E6\u05D5\u05E8 \u05D0\u05D9\u05EA\u05DA \u05E7\u05E9\u05E8 \u05EA\u05D5\u05DA 48 \u05E9\u05E2\u05D5\u05EA.`,
+        )}
+
+        <!-- Details you entered -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:28px 32px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:15px;color:${C.text};line-height:1.7;margin-bottom:24px;">
-              <strong>${s.name}</strong> \u05D1\u05D9\u05E7\u05E9/\u05D4 \u05DC\u05D9\u05E6\u05D5\u05E8 \u05E7\u05E9\u05E8 \u05D8\u05DC\u05E4\u05D5\u05E0\u05D9 \u05D1\u05DE\u05E7\u05D5\u05DD \u05EA\u05E9\u05DC\u05D5\u05DD \u05D0\u05D5\u05E0\u05DC\u05D9\u05D9\u05DF \u05E2\u05D1\u05D5\u05E8 ${s.eventLabel}${s.eventName ? ` (${s.eventName})` : ''}.
-            </div>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05D4\u05E4\u05E8\u05D8\u05D9\u05DD \u05E9\u05D4\u05D6\u05E0\u05EA')}
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
+              ${row('\u05E9\u05DD', safeName)}
+              ${row('\u05D8\u05DC\u05E4\u05D5\u05DF', ltr(safePhone), !safeEmail)}
+              ${safeEmail ? row('\u05D0\u05D9\u05DE\u05D9\u05D9\u05DC', ltr(safeEmail), true) : ''}
+            </table>
+          </td>
+        </tr>
 
-            ${contactCard(s.name, s.phone, s.email)}
+        ${tipBox(`\u05D0\u05D9\u05DF \u05E6\u05D5\u05E8\u05DA \u05DC\u05E2\u05E9\u05D5\u05EA \u05D3\u05D1\u05E8 \u05E0\u05D5\u05E1\u05E3 \u2014 \u05D4\u05E6\u05D5\u05D5\u05EA \u05E9\u05DC\u05E0\u05D5 \u05D9\u05D9\u05E6\u05D5\u05E8 \u05D0\u05D9\u05EA\u05DA \u05E7\u05E9\u05E8 \u05D1\u05D4\u05E7\u05D3\u05DD.`)}
 
-            <div dir="rtl" style="direction:rtl;text-align:right;margin-top:16px;font-size:13px;color:${C.dim};">
-              \u05DE\u05D6\u05D4\u05D4 \u05D1\u05E7\u05E9\u05D4&rlm;: ${ltr(escapeHtml(data.requestId))}
+        ${supportRow()}`;
+
+  return { subject, html: shell(subject, inner, '\u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05D4\u05EA\u05E7\u05D1\u05DC\u05D4') };
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   C4. CLIENT - APPROVAL
+   Order approved + charged + event created.
+   Full order details + payment confirmation.
+   If WhatsApp messaging: portal link + explanation + reminders info.
+   ═══════════════════════════════════════════════════════════════ */
+
+export function buildClientApprovalEmail(params: EventFormData & {
+  contactName: string;
+  totalPriceShekel: number;
+  paymentMethod: string;
+  eventUrl: string;
+  portalUrl?: string;
+  messageSendAt?: string;
+  uploadDeadline?: string;
+}): { subject: string; html: string } {
+  const safeName = escapeHtml(params.contactName);
+  const safeEvent = escapeHtml(params.eventName);
+
+  const subject = `Eventa \u2014 \u05D4\u05D4\u05D6\u05DE\u05E0\u05D4 \u05D0\u05D5\u05E9\u05E8\u05D4 \u05D5\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E0\u05D5\u05E6\u05E8!`;
+
+  /* Payment confirmation section */
+  const paymentSection = `
+        <tr>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9 \u05EA\u05E9\u05DC\u05D5\u05DD')}
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
+              ${row('\u05E1\u05D8\u05D8\u05D5\u05E1', `<strong style="color:${C.success};">\u05E9\u05D5\u05DC\u05DD \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4</strong>`)}
+              ${row('\u05E1\u05DB\u05D5\u05DD', ltr(`\u20AA${params.totalPriceShekel}`))}
+              ${row('\u05D0\u05DE\u05E6\u05E2\u05D9 \u05EA\u05E9\u05DC\u05D5\u05DD', escapeHtml(params.paymentMethod))}
+              ${row('\u05EA\u05D0\u05E8\u05D9\u05DA \u05D7\u05D9\u05D5\u05D1', fmtDate(new Date().toISOString()), true)}
+            </table>
+          </td>
+        </tr>
+
+        <!-- Invoice note -->
+        <tr>
+          <td dir="rtl" style="direction:rtl;text-align:right;padding:12px 32px 0;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:13px;color:${C.dim};">
+              \u05D7\u05E9\u05D1\u05D5\u05E0\u05D9\u05EA \u05D3\u05D9\u05D2\u05D9\u05D8\u05DC\u05D9\u05EA \u05DE\u05E6\u05D5\u05E8\u05E4\u05EA \u05DC\u05DE\u05D9\u05D9\u05DC \u05D6\u05D4.
             </div>
           </td>
         </tr>`;
 
-  return { subject, html: shell(subject, inner) };
-}
+  /* WhatsApp messaging section (only if chosen) */
+  const waSection = params.wantsGuestMessages && params.portalUrl ? `
+        ${divider()}
 
+        <!-- WhatsApp messaging info -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle(`\u05E9\u05D9\u05E8\u05D5\u05EA \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD`)}
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:15px;color:${C.muted};line-height:1.7;margin-bottom:20px;">
+              \u05D4\u05D6\u05DE\u05E0\u05EA\u05DD \u05D0\u05EA \u05E9\u05D9\u05E8\u05D5\u05EA \u05D4\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD. \u05DB\u05D3\u05D9 \u05E9\u05E0\u05D5\u05DB\u05DC \u05DC\u05E9\u05DC\u05D5\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E9\u05DC\u05DB\u05DD \u05DC\u05E4\u05E0\u05D9 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2, \u05D9\u05E9 \u05DC\u05D4\u05E2\u05DC\u05D5\u05EA \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05DE\u05E1\u05E4\u05E8\u05D9 \u05D4\u05D8\u05DC\u05E4\u05D5\u05DF \u05D3\u05E8\u05DA \u05E4\u05D5\u05E8\u05D8\u05DC \u05D4\u05DC\u05E7\u05D5\u05D7.
+            </div>
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
+              ${stepRow(1, `\u05D4\u05D9\u05DB\u05E0\u05E1\u05D5 \u05DC\u05E4\u05D5\u05E8\u05D8\u05DC \u05D4\u05DC\u05E7\u05D5\u05D7`)}
+              ${stepRow(2, `\u05D4\u05D5\u05E8\u05D9\u05D3\u05D5 \u05D0\u05EA \u05D4\u05D8\u05DE\u05E4\u05DC\u05D8 (${ltr('Excel')})`)}
+              ${stepRow(3, '\u05DE\u05DC\u05D0\u05D5 \u05D0\u05EA \u05DE\u05E1\u05E4\u05E8\u05D9 \u05D4\u05D8\u05DC\u05E4\u05D5\u05DF \u05E9\u05DC \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD')}
+              ${stepRow(4, '\u05D4\u05E2\u05DC\u05D5 \u05D0\u05EA \u05D4\u05E7\u05D5\u05D1\u05E5 \u05D3\u05E8\u05DA \u05D4\u05E4\u05D5\u05E8\u05D8\u05DC', true)}
+            </table>
+          </td>
+        </tr>
 
-/* ═══════════════════════════════════════════════════════════════
-   4. UPLOAD INSTRUCTIONS EMAIL
-   Sent to the client when their event is approved with messaging.
-   Explains how to upload a guest phone list.
-   ═══════════════════════════════════════════════════════════════ */
+        ${ctaBtn(params.portalUrl, '\u05DB\u05E0\u05D9\u05E1\u05D4 \u05DC\u05E4\u05D5\u05E8\u05D8\u05DC \u05D4\u05DC\u05E7\u05D5\u05D7')}
 
-export function buildUploadInstructionsEmail(params: {
-  contactName: string;
-  eventName: string;
-  eventDate: string;
-  eventTime: string;
-  uploadUrl: string;
-  templateUrl: string;
-}): { subject: string; html: string } {
-  const safeName = escapeHtml(params.contactName);
-  const safeEvent = escapeHtml(params.eventName);
+        ${params.messageSendAt && params.uploadDeadline ? scheduleBlock(params.messageSendAt, params.uploadDeadline) : ''}
 
-  const subject = `\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E9\u05DC\u05DB\u05DD \u05D0\u05D5\u05E9\u05E8 \u2014 \u05D4\u05DB\u05D9\u05E0\u05D5 \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD`;
+        ${tipBox(`\u05D4\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05E0\u05E9\u05DC\u05D7\u05D5\u05EA 2\u20133 \u05E9\u05E2\u05D5\u05EA \u05DC\u05E4\u05E0\u05D9 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2. \u05DB\u05DB\u05DC \u05E9\u05EA\u05E2\u05DC\u05D5 \u05DE\u05D5\u05E7\u05D3\u05DD \u05D9\u05D5\u05EA\u05E8, \u05DB\u05DA \u05D9\u05D5\u05EA\u05E8 \u05D8\u05D5\u05D1!<br/><br/>\u05EA\u05E7\u05D1\u05DC\u05D5 \u05EA\u05D6\u05DB\u05D5\u05E8\u05EA \u05D1\u05D0\u05D9\u05DE\u05D9\u05D9\u05DC <strong>\u05E9\u05D1\u05D5\u05E2 \u05DC\u05E4\u05E0\u05D9</strong> \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05D5-<strong>3 \u05D9\u05DE\u05D9\u05DD \u05DC\u05E4\u05E0\u05D9</strong> \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2.`)}
+  ` : '';
 
   const inner = `
-        <!-- Greeting -->
         ${greeting(
           safeName,
-          `\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong> \u05D0\u05D5\u05E9\u05E8 \u05D5\u05E0\u05D5\u05E6\u05E8 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4!`,
-          `\u05D4\u05D6\u05DE\u05E0\u05EA\u05DD \u05D0\u05EA \u05E9\u05D9\u05E8\u05D5\u05EA \u05D4\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD &mdash; \u05DB\u05D3\u05D9 \u05E9\u05E0\u05D5\u05DB\u05DC \u05DC\u05E9\u05DC\u05D5\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E9\u05DC\u05DB\u05DD \u05DC\u05E4\u05E0\u05D9 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2, \u05E6\u05E8\u05D9\u05DA \u05DC\u05D4\u05E2\u05DC\u05D5\u05EA \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05DE\u05E1\u05E4\u05E8\u05D9 \u05D4\u05D8\u05DC\u05E4\u05D5\u05DF.`,
+          `\u05D4\u05D4\u05D6\u05DE\u05E0\u05D4 \u05E9\u05DC\u05DA \u05E2\u05D1\u05D5\u05E8 <strong>${safeEvent}</strong> \u05D0\u05D5\u05E9\u05E8\u05D4 \u05D5\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E0\u05D5\u05E6\u05E8 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4!`,
         )}
 
-        <!-- How it works -->
+        ${paymentSection}
+
+        ${eventDetailsBlock(params)}
+
+        ${priceBlock(params.wantsGuestMessages)}
+
+        <!-- Event link for guests -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
-            ${sectionTitle('\u05D0\u05D9\u05DA \u05D6\u05D4 \u05E2\u05D5\u05D1\u05D3?')}
-            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${stepRow(1, `\u05D4\u05D5\u05E8\u05D9\u05D3\u05D5 \u05D0\u05EA \u05D4\u05D8\u05DE\u05E4\u05DC\u05D8 (${ltr('Excel')})`)}
-              ${stepRow(2, '\u05DE\u05DC\u05D0\u05D5 \u05D0\u05EA \u05DE\u05E1\u05E4\u05E8\u05D9 \u05D4\u05D8\u05DC\u05E4\u05D5\u05DF \u05E9\u05DC \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD')}
-              ${stepRow(3, '\u05D4\u05E2\u05DC\u05D5 \u05D0\u05EA \u05D4\u05E7\u05D5\u05D1\u05E5 \u05D1\u05DC\u05D9\u05E0\u05E7 \u05E9\u05DC\u05DE\u05D8\u05D4', true)}
-            </table>
+          <td dir="rtl" style="direction:rtl;text-align:right;padding:24px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05E7\u05D9\u05E9\u05D5\u05E8 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2')}
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};line-height:1.6;margin-bottom:10px;">
+              \u05D4\u05E7\u05D9\u05E9\u05D5\u05E8 \u05D4\u05D1\u05D0 \u05DE\u05D9\u05D5\u05E2\u05D3 \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E9\u05DC\u05DB\u05DD \u2014 \u05D3\u05E8\u05DB\u05D5 \u05D4\u05DD \u05E0\u05DB\u05E0\u05E1\u05D9\u05DD \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2&rlm;:
+            </div>
+            <div dir="ltr" style="text-align:left;background-color:${C.accentBg};border-radius:8px;padding:12px 16px;font-size:14px;word-break:break-all;">
+              <a href="${escapeHtml(params.eventUrl)}" style="color:${C.accent};text-decoration:none;" target="_blank">${escapeHtml(params.eventUrl)}</a>
+            </div>
           </td>
         </tr>
 
-        <!-- Event info -->
+        <!-- A4 QR page note -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
-            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9\u05DD')}
-            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('\u05EA\u05D0\u05E8\u05D9\u05DA \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2', `${escapeHtml(params.eventDate)}${params.eventTime ? `&rlm;, ${ltr(escapeHtml(params.eventTime))}` : ''}`)}
-              ${row('\u05DE\u05E1\u05E4\u05E8\u05D9 \u05D8\u05DC\u05E4\u05D5\u05DF', '\u05E1\u05DC\u05D5\u05DC\u05E8\u05D9 \u05D9\u05E9\u05E8\u05D0\u05DC\u05D9 (05X) \u05D1\u05DC\u05D1\u05D3')}
-              ${row('\u05D3\u05D3-\u05DC\u05D9\u05D9\u05DF \u05DC\u05D4\u05E2\u05DC\u05D0\u05D4', '3 \u05E9\u05E2\u05D5\u05EA \u05DC\u05E4\u05E0\u05D9 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2', true)}
-            </table>
+          <td dir="rtl" style="direction:rtl;text-align:right;padding:24px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05D3\u05E3 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05DC\u05D4\u05D3\u05E4\u05E1\u05D4')}
+            <div dir="rtl" style="direction:rtl;text-align:right;background-color:${C.accentBg};border-radius:8px;padding:16px 18px;font-size:14px;color:${C.muted};line-height:1.7;">
+              \u05D0\u05E0\u05D7\u05E0\u05D5 \u05DE\u05DB\u05D9\u05E0\u05D9\u05DD \u05E2\u05D1\u05D5\u05E8\u05DB\u05DD \u05D3\u05E3 \u05D1\u05D2\u05D5\u05D3\u05DC ${ltr('A4')} \u05E2\u05DD \u05E7\u05D5\u05D3 ${ltr('QR')} \u05D9\u05D9\u05D7\u05D5\u05D3\u05D9 \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E9\u05DC\u05DB\u05DD.
+              <br/>\u05D4\u05D3\u05E3 \u05D9\u05D9\u05E9\u05DC\u05D7 \u05D0\u05DC\u05D9\u05DB\u05DD \u05D1\u05D0\u05D9\u05DE\u05D9\u05D9\u05DC \u05E0\u05E4\u05E8\u05D3 <strong>\u05D1\u05D4\u05E7\u05D3\u05DD \u05D4\u05D0\u05E4\u05E9\u05E8\u05D9</strong>, \u05DE\u05D5\u05DB\u05DF \u05DC\u05D4\u05D3\u05E4\u05E1\u05D4 \u05D5\u05DC\u05E4\u05D9\u05D6\u05D5\u05E8 \u05D1\u05D0\u05D9\u05E8\u05D5\u05E2.
+            </div>
           </td>
         </tr>
 
-        <!-- CTA buttons -->
-        ${ctaBtn(params.uploadUrl, '\u05D4\u05E2\u05DC\u05D5 \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD')}
+        ${waSection}
 
-        <tr>
-          <td style="padding:0 32px 8px;text-align:center;background-color:${C.card};">
-            <a href="${escapeHtml(params.templateUrl)}" style="color:${C.accent};text-decoration:underline;font-size:14px;" target="_blank">
-              \u05D4\u05D5\u05E8\u05D9\u05D3\u05D5 \u05D8\u05DE\u05E4\u05DC\u05D8 ${ltr('Excel')}
-            </a>
-          </td>
-        </tr>
+        ${supportRow()}`;
 
-        ${tipBox(`<strong>\u05D8\u05D9\u05E4:</strong> \u05EA\u05D5\u05DB\u05DC\u05D5 \u05DC\u05D4\u05D5\u05E1\u05D9\u05E3, \u05DC\u05D4\u05E1\u05D9\u05E8, \u05D5\u05DC\u05D4\u05E2\u05DC\u05D5\u05EA \u05DE\u05E1\u05E4\u05E8\u05D9\u05DD \u05E0\u05D5\u05E1\u05E4\u05D9\u05DD \u05D1\u05DB\u05DC \u05E9\u05DC\u05D1 \u05D3\u05E8\u05DA \u05D4\u05DC\u05D9\u05E0\u05E7 \u05D4\u05D6\u05D4. \u05D4\u05E4\u05D5\u05E8\u05D8\u05DC \u05E4\u05EA\u05D5\u05D7 \u05E2\u05D3 \u05E1\u05D9\u05D5\u05DD \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2.`)}`;
-
-  return { subject, html: shell(subject, inner, '\u05D0\u05D9\u05E8\u05D5\u05E2 \u05D0\u05D5\u05E9\u05E8') };
+  return { subject, html: shell(subject, inner, '\u05D0\u05D9\u05E9\u05D5\u05E8 \u05D4\u05D6\u05DE\u05E0\u05D4') };
 }
 
 
 /* ═══════════════════════════════════════════════════════════════
-   5. UPLOAD REMINDER EMAIL (7-day)
-   Sent when event is ~7 days away and guest list not yet uploaded.
+   C8. CLIENT - QR PAGE READY
+   Sent when the admin has prepared the A4 page with QR code.
+   Email includes explanation about attached files.
+   Attachments (PDF, PDF-cropped, image, QR-only) are handled
+   by the send-email API, not by this template function.
    ═══════════════════════════════════════════════════════════════ */
 
-export function buildUploadReminderEmail(params: {
+export function buildClientQrPageEmail(params: {
   contactName: string;
   eventName: string;
-  eventDate: string;
-  daysLeft: number;
-  uploadUrl: string;
 }): { subject: string; html: string } {
   const safeName = escapeHtml(params.contactName);
   const safeEvent = escapeHtml(params.eventName);
 
-  const subject = `\u05EA\u05D6\u05DB\u05D5\u05E8\u05EA: \u05D4\u05E2\u05DC\u05D5 \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05DC-\u201C${params.eventName}\u201D`;
+  const subject = `Eventa \u2014 \u05D3\u05E3 \u05D4-${ltr('QR')} \u05E9\u05DC\u05DB\u05DD \u05DE\u05D5\u05DB\u05DF!`;
 
   const inner = `
-        <!-- Greeting -->
+        ${greeting(
+          safeName,
+          `\u05D3\u05E3 \u05D4-${ltr('QR')} \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong> \u05DE\u05D5\u05DB\u05DF!`,
+          `\u05D4\u05DB\u05E0\u05D5 \u05D0\u05EA \u05D4\u05D3\u05E3 \u05D5\u05E4\u05D6\u05E8\u05D5 \u05D0\u05D5\u05EA\u05D5 \u05D1\u05D0\u05D9\u05E8\u05D5\u05E2 \u2014 \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E1\u05D5\u05E8\u05E7\u05D9\u05DD \u05D0\u05EA \u05D4\u05E7\u05D5\u05D3 \u05D5\u05E0\u05DB\u05E0\u05E1\u05D9\u05DD \u05D9\u05E9\u05D9\u05E8\u05D5\u05EA \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2.`,
+        )}
+
+        <!-- Explanation -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:28px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05DE\u05D4 \u05DE\u05E6\u05D5\u05E8\u05E3 \u05DC\u05DE\u05D9\u05D9\u05DC \u05D4\u05D6\u05D4?')}
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:15px;color:${C.muted};line-height:1.7;margin-bottom:16px;">
+              \u05E6\u05D9\u05E8\u05E4\u05E0\u05D5 \u05DC\u05DE\u05D9\u05D9\u05DC \u05D4\u05D6\u05D4 <strong>4 \u05E7\u05D1\u05E6\u05D9\u05DD</strong> \u05DC\u05E0\u05D5\u05D7\u05D9\u05D5\u05EA\u05DB\u05DD&rlm;:
+            </div>
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
+              ${stepRow(1, `<strong>\u05D3\u05E3 ${ltr('A4')} \u05DC\u05D4\u05D3\u05E4\u05E1\u05D4</strong> (${ltr('PDF')}) \u2014 \u05DE\u05D5\u05DB\u05DF \u05DC\u05D4\u05D3\u05E4\u05E1\u05D4 \u05D9\u05E9\u05D9\u05E8\u05D5\u05EA \u05E2\u05DC \u05D3\u05E3 ${ltr('A4')} \u05E8\u05D2\u05D9\u05DC`)}
+              ${stepRow(2, `<strong>\u05D3\u05E3 ${ltr('A4')} \u05E2\u05DD \u05E9\u05D5\u05DC\u05D9\u05D9\u05DD</strong> (${ltr('PDF')}) \u2014 \u05D2\u05E8\u05E1\u05D4 \u05E2\u05DD \u05E9\u05D5\u05DC\u05D9\u05D9\u05DD \u05DC\u05D7\u05D9\u05EA\u05D5\u05DA \u05DE\u05D3\u05D5\u05D9\u05E7`)}
+              ${stepRow(3, `<strong>\u05EA\u05DE\u05D5\u05E0\u05D4</strong> (${ltr('PNG / JPG')}) \u2014 \u05DC\u05E9\u05D9\u05EA\u05D5\u05E3 \u05D1\u05E8\u05E9\u05EA\u05D5\u05EA \u05D7\u05D1\u05E8\u05EA\u05D9\u05D5\u05EA \u05D0\u05D5 \u05DC\u05E9\u05DC\u05D9\u05D7\u05D4 \u05D1\u05D2\u05E8\u05D5\u05E4\u05D5\u05EA`)}
+              ${stepRow(4, `<strong>\u05E7\u05D5\u05D3 ${ltr('QR')} \u05D1\u05DC\u05D1\u05D3</strong> \u2014 \u05D0\u05DD \u05EA\u05E8\u05E6\u05D5 \u05DC\u05E2\u05E6\u05D1 \u05DE\u05E9\u05D4\u05D5 \u05DE\u05E9\u05DC\u05DB\u05DD \u05D0\u05D5 \u05DC\u05D4\u05D3\u05E4\u05D9\u05E1 \u05E8\u05E7 \u05D0\u05EA \u05D4\u05D1\u05E8\u05E7\u05D5\u05D3`, true)}
+            </table>
+          </td>
+        </tr>
+
+        ${tipBox(`\u05DE\u05DE\u05DC\u05D9\u05E6\u05D9\u05DD \u05DC\u05D4\u05D3\u05E4\u05D9\u05E1 \u05E2\u05D5\u05EA\u05E7\u05D9\u05DD \u05DE\u05D4\u05D3\u05E3 \u05D5\u05DC\u05E4\u05D6\u05E8 \u05D1\u05D0\u05D9\u05E8\u05D5\u05E2 \u2014 \u05D1\u05DB\u05E0\u05D9\u05E1\u05D4, \u05D1\u05D1\u05D0\u05E8, \u05E2\u05DC \u05D4\u05E9\u05D5\u05DC\u05D7\u05E0\u05D5\u05EA \u2014 \u05D1\u05DB\u05DC \u05DE\u05E7\u05D5\u05DD \u05E0\u05D2\u05D9\u05E9 \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD.<br/><br/>\u05DB\u05DB\u05DC \u05E9\u05D9\u05D4\u05D9\u05D5 \u05D9\u05D5\u05EA\u05E8 \u05E2\u05D5\u05EA\u05E7\u05D9\u05DD, \u05DB\u05DA \u05D9\u05D5\u05EA\u05E8 \u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05D9\u05E6\u05D8\u05E8\u05E4\u05D5!`)}
+
+        ${supportRow()}`;
+
+  return { subject, html: shell(subject, inner, '\u05D3\u05E3 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E9\u05DC\u05DB\u05DD') };
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   C5. CLIENT - UPLOAD REMINDER (7-DAY)
+   Sent 7 days before the event when guest list not yet uploaded.
+   ═══════════════════════════════════════════════════════════════ */
+
+export function buildClientUploadReminder7DayEmail(params: {
+  contactName: string;
+  eventName: string;
+  daysLeft: number;
+  uploadUrl: string;
+  messageSendAt: string;
+  uploadDeadline: string;
+}): { subject: string; html: string } {
+  const safeName = escapeHtml(params.contactName);
+  const safeEvent = escapeHtml(params.eventName);
+
+  const subject = `\u05EA\u05D6\u05DB\u05D5\u05E8\u05EA: \u05D4\u05E2\u05DC\u05D5 \u05E8\u05E9\u05D9\u05DE\u05EA \u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05DC-\u201C${params.eventName}\u201D`;
+
+  const inner = `
         ${greeting(
           safeName,
           `\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong> \u05D1\u05E2\u05D5\u05D3 <strong>${ltr(String(params.daysLeft))}</strong> \u05D9\u05DE\u05D9\u05DD \u05D5\u05E2\u05D3\u05D9\u05D9\u05DF \u05DC\u05D0 \u05D4\u05E2\u05DC\u05D9\u05EA\u05DD \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD.`,
-          `\u05DB\u05D3\u05D9 \u05E9\u05E0\u05D5\u05DB\u05DC \u05DC\u05E9\u05DC\u05D5\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E9\u05DC\u05DB\u05DD, \u05D0\u05E0\u05D7\u05E0\u05D5 \u05E6\u05E8\u05D9\u05DB\u05D9\u05DD \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05DE\u05E1\u05E4\u05E8\u05D9 \u05D4\u05D8\u05DC\u05E4\u05D5\u05DF. \u05D0\u05E4\u05E9\u05E8 \u05DC\u05D4\u05E2\u05DC\u05D5\u05EA \u05E7\u05D5\u05D1\u05E5 ${ltr('Excel')} \u05D0\u05D5 \u05DC\u05D4\u05D5\u05E1\u05D9\u05E3 \u05DE\u05E1\u05E4\u05E8\u05D9\u05DD \u05D9\u05D3\u05E0\u05D9\u05EA.`,
+          `\u05DB\u05D3\u05D9 \u05E9\u05E0\u05D5\u05DB\u05DC \u05DC\u05E9\u05DC\u05D5\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E9\u05DC\u05DB\u05DD, \u05D0\u05E0\u05D7\u05E0\u05D5 \u05E6\u05E8\u05D9\u05DB\u05D9\u05DD \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05DE\u05E1\u05E4\u05E8\u05D9 \u05D4\u05D8\u05DC\u05E4\u05D5\u05DF.`,
         )}
+
+        ${scheduleBlock(params.messageSendAt, params.uploadDeadline)}
 
         ${ctaBtn(params.uploadUrl, '\u05D4\u05E2\u05DC\u05D5 \u05D0\u05EA \u05D4\u05E8\u05E9\u05D9\u05DE\u05D4 \u05E2\u05DB\u05E9\u05D9\u05D5')}
 
-        <!-- Note -->
-        <tr>
-          <td dir="rtl" style="direction:rtl;text-align:center;padding:8px 32px 28px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:13px;color:${C.dim};line-height:1.5;">
-              \u05D4\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05E0\u05E9\u05DC\u05D7\u05D5\u05EA 2&ndash;3 \u05E9\u05E2\u05D5\u05EA \u05DC\u05E4\u05E0\u05D9 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2. \u05DB\u05DB\u05DC \u05E9\u05EA\u05E2\u05DC\u05D5 \u05DE\u05D5\u05E7\u05D3\u05DD \u05D9\u05D5\u05EA\u05E8, \u05DB\u05DA \u05D9\u05D5\u05EA\u05E8 \u05D8\u05D5\u05D1!
-            </div>
-          </td>
-        </tr>`;
+        ${supportRow()}`;
 
   return { subject, html: shell(subject, inner, '\u05EA\u05D6\u05DB\u05D5\u05E8\u05EA \u05D9\u05D3\u05D9\u05D3\u05D5\u05EA\u05D9\u05EA') };
 }
 
 
 /* ═══════════════════════════════════════════════════════════════
-   6. UPLOAD URGENT REMINDER EMAIL (3-day)
-   Sent when event is ~3 days away and guest list still missing.
+   C6. CLIENT - UPLOAD REMINDER (3-DAY)
+   Urgent reminder 3 days before the event.
    ═══════════════════════════════════════════════════════════════ */
 
-export function buildUploadUrgentReminderEmail(params: {
+export function buildClientUploadReminder3DayEmail(params: {
   contactName: string;
   eventName: string;
-  eventDate: string;
   uploadUrl: string;
+  messageSendAt: string;
+  uploadDeadline: string;
 }): { subject: string; html: string } {
   const safeName = escapeHtml(params.contactName);
   const safeEvent = escapeHtml(params.eventName);
 
-  const subject = `\u05D0\u05D7\u05E8\u05D5\u05DF \u05DC\u05D4\u05E2\u05DC\u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05DC-\u201C${params.eventName}\u201D!`;
+  const subject = `\u05EA\u05D6\u05DB\u05D5\u05E8\u05EA \u05D0\u05D7\u05E8\u05D5\u05E0\u05D4! \u05E8\u05E9\u05D9\u05DE\u05EA \u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05DC-\u201C${params.eventName}\u201D`;
 
   const inner = `
         <!-- Urgent banner -->
-        <tr>
-          <td ${RTL} class="em-warn" style="text-align:right;background-color:${C.warnBg} !important;padding:18px 32px;border-bottom:1px solid ${C.border};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:15px;font-weight:700;color:${C.warn};">\u05EA\u05D6\u05DB\u05D5\u05E8\u05EA \u05D0\u05D7\u05E8\u05D5\u05E0\u05D4</div>
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};margin-top:6px;line-height:1.5;">
-              \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05D1\u05E2\u05D5\u05D3 3 \u05D9\u05DE\u05D9\u05DD \u05D5\u05E2\u05D3\u05D9\u05D9\u05DF \u05D0\u05D9\u05DF \u05E8\u05E9\u05D9\u05DE\u05EA \u05D0\u05D5\u05E8\u05D7\u05D9\u05DD
-            </div>
-          </td>
-        </tr>
+        ${statusBanner(
+          '\u05EA\u05D6\u05DB\u05D5\u05E8\u05EA \u05D0\u05D7\u05E8\u05D5\u05E0\u05D4',
+          '\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05D1\u05E2\u05D5\u05D3 3 \u05D9\u05DE\u05D9\u05DD \u05D5\u05E2\u05D3\u05D9\u05D9\u05DF \u05D0\u05D9\u05DF \u05E8\u05E9\u05D9\u05DE\u05EA \u05D0\u05D5\u05E8\u05D7\u05D9\u05DD',
+          C.warnBg, C.warn,
+        )}
 
-        <!-- Greeting -->
         ${greeting(
           safeName,
           `\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong> \u05DB\u05D1\u05E8 \u05D1\u05E2\u05D5\u05D3 <strong>3 \u05D9\u05DE\u05D9\u05DD</strong> \u05D5\u05E2\u05D3\u05D9\u05D9\u05DF \u05D0\u05D9\u05DF \u05DC\u05E0\u05D5 \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD.`,
         )}
 
-        <!-- Warning -->
+        <!-- Warning text -->
         <tr>
           <td ${RTL} style="text-align:right;padding:0 32px;background-color:${C.card};">
             <div dir="rtl" style="direction:rtl;text-align:right;font-size:15px;color:${C.warn};font-weight:600;line-height:1.6;">
@@ -752,41 +839,42 @@ export function buildUploadUrgentReminderEmail(params: {
           </td>
         </tr>
 
+        ${scheduleBlock(params.messageSendAt, params.uploadDeadline)}
+
         ${tipBox(`\u05D0\u05DD \u05D0\u05EA\u05DD \u05DC\u05D0 \u05DE\u05EA\u05DB\u05E0\u05E0\u05D9\u05DD \u05DC\u05D4\u05E2\u05DC\u05D5\u05EA \u05E8\u05E9\u05D9\u05DE\u05D4, \u05D6\u05D4 \u05D1\u05E1\u05D3\u05E8 &mdash; \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E2\u05D3\u05D9\u05D9\u05DF \u05D9\u05D5\u05DB\u05DC\u05D5 \u05DC\u05D4\u05E6\u05D8\u05E8\u05E3 \u05D3\u05E8\u05DA ${ltr('QR')} \u05D1\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E2\u05E6\u05DE\u05D5.`)}
 
-        ${ctaBtn(params.uploadUrl, '\u05D4\u05E2\u05DC\u05D5 \u05E2\u05DB\u05E9\u05D9\u05D5 \u2014 \u05DC\u05E4\u05E0\u05D9 \u05E9\u05DE\u05D0\u05D5\u05D7\u05E8!', C.warn)}`;
+        ${ctaBtn(params.uploadUrl, '\u05D4\u05E2\u05DC\u05D5 \u05E2\u05DB\u05E9\u05D9\u05D5 \u2014 \u05DC\u05E4\u05E0\u05D9 \u05E9\u05DE\u05D0\u05D5\u05D7\u05E8!', C.warn)}
+
+        ${supportRow()}`;
 
   return { subject, html: shell(subject, inner, '\u05EA\u05D6\u05DB\u05D5\u05E8\u05EA \u05D3\u05D7\u05D5\u05E4\u05D4') };
 }
 
 
 /* ═══════════════════════════════════════════════════════════════
-   7. EVENT SUMMARY EMAIL
-   Sent to the client after the event ends with stats overview.
+   C7. CLIENT - EVENT SUMMARY
+   Sent the day after the event with stats.
    ═══════════════════════════════════════════════════════════════ */
 
-export function buildEventSummaryEmail(params: {
+export function buildClientEventSummaryEmail(params: {
   contactName: string;
   eventName: string;
   eventDate: string;
   stats: {
     totalParticipants: number;
-    fromPreEvent: number;
-    fromQr: number;
+    men: number;
+    women: number;
     totalMatches: number;
-    messagesFromGuests: number;
-    messagesDelivered: number;
-    feedbackSent: number;
+    totalConversations: number;
   };
 }): { subject: string; html: string } {
   const safeName = escapeHtml(params.contactName);
   const safeEvent = escapeHtml(params.eventName);
   const s = params.stats;
 
-  const subject = `\u05E1\u05D9\u05DB\u05D5\u05DD \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2: \u201C${params.eventName}\u201D`;
+  const subject = `Eventa \u2014 \u05E1\u05D9\u05DB\u05D5\u05DD \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u201C${params.eventName}\u201D`;
 
   const inner = `
-        <!-- Greeting -->
         ${greeting(
           safeName,
           `\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong> \u05D4\u05E1\u05EA\u05D9\u05D9\u05DD! \u05D4\u05E0\u05D4 \u05E1\u05D9\u05DB\u05D5\u05DD \u05E7\u05E6\u05E8&rlm;:`,
@@ -797,12 +885,11 @@ export function buildEventSummaryEmail(params: {
           <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
             ${sectionTitle('\u05E0\u05EA\u05D5\u05E0\u05D9 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2')}
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('\u05DE\u05E9\u05EA\u05EA\u05E4\u05D9\u05DD', ltr(String(s.totalParticipants)))}
-              ${row(`\u05D4\u05D2\u05D9\u05E2\u05D5 \u05DE-${ltr('WhatsApp')}`, ltr(String(s.fromPreEvent)))}
-              ${row(`\u05D4\u05D2\u05D9\u05E2\u05D5 \u05DE-${ltr('QR')}`, ltr(String(s.fromQr)))}
+              ${row('\u05E1\u05D4\u05F4\u05DB \u05DE\u05E9\u05EA\u05EA\u05E4\u05D9\u05DD', ltr(String(s.totalParticipants)))}
+              ${row('\u05D2\u05D1\u05E8\u05D9\u05DD', ltr(String(s.men)))}
+              ${row('\u05E0\u05E9\u05D9\u05DD', ltr(String(s.women)))}
               ${row(`\u05D4\u05EA\u05D0\u05DE\u05D5\u05EA (${ltr('Matches')})`, ltr(String(s.totalMatches)))}
-              ${row('\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05E9\u05E0\u05E9\u05DC\u05D7\u05D5', ltr(`${s.messagesDelivered}/${s.messagesFromGuests}`))}
-              ${row('\u05E4\u05D9\u05D3\u05D1\u05E7\u05D9\u05DD \u05E9\u05E0\u05E9\u05DC\u05D7\u05D5', ltr(String(s.feedbackSent)), true)}
+              ${row('\u05E9\u05D9\u05D7\u05D5\u05EA', ltr(String(s.totalConversations)), true)}
             </table>
           </td>
         </tr>
@@ -814,293 +901,166 @@ export function buildEventSummaryEmail(params: {
               \u05EA\u05D5\u05D3\u05D4 \u05E9\u05D1\u05D7\u05E8\u05EA\u05DD \u05D1-${ltr('Eventa')}!<br/>\u05E0\u05E9\u05DE\u05D7 \u05DC\u05D0\u05E8\u05D7 \u05D0\u05EA\u05DB\u05DD \u05E9\u05D5\u05D1.
             </div>
           </td>
-        </tr>`;
+        </tr>
+
+        ${supportRow()}`;
 
   return { subject, html: shell(subject, inner, '\u05E1\u05D9\u05DB\u05D5\u05DD \u05D0\u05D9\u05E8\u05D5\u05E2') };
 }
 
 
 /* ═══════════════════════════════════════════════════════════════
-   8. MESSAGING ADD-ON INVOICE EMAIL
-   Sent when admin enables messaging for an event after the fact —
-   50 shekel add-on invoice with PayBox + Bit payment options.
+   A1. ADMIN - PAY NOW NOTIFICATION
+   Client paid online. Needs admin approval to charge the card.
    ═══════════════════════════════════════════════════════════════ */
 
-export function buildMessagingAddonInvoiceEmail(params: {
+export function buildAdminPayNowNotification(data: EventFormData & {
   contactName: string;
-  eventName: string;
-  payboxUrl: string;
-  bitPhone: string;
-}): { subject: string; html: string } {
-  const safeName = escapeHtml(params.contactName);
-  const safeEvent = escapeHtml(params.eventName);
-  const addonPrice = 50;
-
-  const subject = `\u05D7\u05E9\u05D1\u05D5\u05DF: \u05E9\u05D9\u05E8\u05D5\u05EA \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05DC-\u201C${params.eventName}\u201D \u2014 \u20AA${addonPrice}`;
-
-  const inner = `
-        <!-- Greeting -->
-        ${greeting(
-          safeName,
-          `\u05D4\u05D5\u05E1\u05E4\u05E0\u05D5 \u05D0\u05EA \u05E9\u05D9\u05E8\u05D5\u05EA \u05D4\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong>.`,
-        )}
-
-        <!-- Invoice details -->
-        <tr>
-          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
-            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9 \u05D7\u05E9\u05D1\u05D5\u05DF')}
-            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('\u05E9\u05D9\u05E8\u05D5\u05EA', `\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD`)}
-              <tr>
-                <td dir="rtl" style="text-align:right;padding:14px 0 14px 12px;background-color:${C.card};color:${C.accent};font-size:16px;font-weight:700;width:100px;border-top:2px solid ${C.accent};vertical-align:top;">\u05E1\u05D4\u05F4\u05DB</td>
-                <td dir="rtl" style="text-align:right;padding:14px 12px 14px 0;background-color:${C.card};color:${C.text};font-size:20px;font-weight:700;border-top:2px solid ${C.accent};">${ltr(`\u20AA${addonPrice}`)}</td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-
-        <!-- Payment buttons -->
-        <tr>
-          <td style="padding:28px 32px 24px;text-align:center;background-color:${C.card};">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
-              <tr>
-                <td align="center">
-                  <a href="${escapeHtml(params.payboxUrl)}" style="display:block;text-decoration:none;" target="_blank">
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td align="center" class="em-paybox" style="background-color:${C.paybox} !important;border-radius:12px;padding:18px 24px;">
-                          <div style="font-size:18px;font-weight:700;color:#ffffff;letter-spacing:0.5px;">\u05E9\u05DC\u05DE\u05D5 \u05E2\u05DB\u05E9\u05D9\u05D5 (${ltr('PayBox')})</div>
-                          <div dir="rtl" style="direction:rtl;font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">\u05EA\u05E9\u05DC\u05D5\u05DD \u05DE\u05D0\u05D5\u05D1\u05D8\u05D7</div>
-                        </td>
-                      </tr>
-                    </table>
-                  </a>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-
-        <!-- Bit alternative -->
-        <tr>
-          <td dir="rtl" style="direction:rtl;text-align:center;padding:0 32px 28px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:14px;color:${C.muted};">
-              \u05D0\u05D5 \u05D4\u05E2\u05D1\u05D9\u05E8\u05D5 ${ltr(`\u20AA${addonPrice}`)} \u05D1-${ltr('Bit')}&rlm;: ${ltr(escapeHtml(params.bitPhone))}
-            </div>
-          </td>
-        </tr>
-
-        ${supportRow()}`;
-
-  return { subject, html: shell(subject, inner, '\u05D7\u05E9\u05D1\u05D5\u05DF \u05E9\u05D9\u05E8\u05D5\u05EA \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA') };
-}
-
-
-/* ═══════════════════════════════════════════════════════════════
-   9. CUSTOM REMINDER EMAIL
-   Flexible admin-triggered email for any manual reminders.
-   ═══════════════════════════════════════════════════════════════ */
-
-export function buildCustomReminderEmail(params: {
-  contactName: string;
-  eventName: string;
-  message: string;
-  uploadUrl?: string;
-}): { subject: string; html: string } {
-  const safeName = escapeHtml(params.contactName);
-  const safeEvent = escapeHtml(params.eventName);
-  const safeMessage = escapeHtml(params.message);
-
-  const subject = `\u05EA\u05D6\u05DB\u05D5\u05E8\u05EA \u05DE-Eventa: \u201C${params.eventName}\u201D`;
-
-  const inner = `
-        <!-- Greeting -->
-        ${greeting(
-          safeName,
-          `\u05D1\u05E0\u05D5\u05D2\u05E2 \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong>&rlm;:`,
-        )}
-
-        <!-- Message body -->
-        ${tipBox(safeMessage)}
-
-        ${params.uploadUrl ? ctaBtn(params.uploadUrl, '\u05DC\u05E4\u05D5\u05E8\u05D8\u05DC \u05D4\u05E2\u05DC\u05D0\u05EA \u05D0\u05D5\u05E8\u05D7\u05D9\u05DD') : `
-        <!-- Bottom padding -->
-        <tr>
-          <td style="padding:0 0 16px;background-color:${C.card};">&nbsp;</td>
-        </tr>`}
-
-        ${supportRow()}`;
-
-  return { subject, html: shell(subject, inner, '\u05EA\u05D6\u05DB\u05D5\u05E8\u05EA') };
-}
-
-
-/* ═══════════════════════════════════════════════════════════════
-   10. CARD CAPTURED CONFIRMATION EMAIL
-   Sent to the client right after they enter their credit card
-   on the website. Tells them card is saved, charge only on approval.
-   ═══════════════════════════════════════════════════════════════ */
-
-export function buildCardCapturedEmail(params: {
-  contactName: string;
-  eventName: string;
-  totalPriceShekel: number;
-}): { subject: string; html: string } {
-  const safeName = escapeHtml(params.contactName);
-  const safeEvent = escapeHtml(params.eventName);
-
-  const subject = `${ltr('Eventa')} \u2014 \u05E4\u05E8\u05D8\u05D9 \u05D4\u05DB\u05E8\u05D8\u05D9\u05E1 \u05E0\u05E9\u05DE\u05E8\u05D5 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4`;
-
-  const inner = `
-        <!-- Greeting -->
-        ${greeting(
-          safeName,
-          `\u05E4\u05E8\u05D8\u05D9 \u05DB\u05E8\u05D8\u05D9\u05E1 \u05D4\u05D0\u05E9\u05E8\u05D0\u05D9 \u05E9\u05DC\u05DA \u05E0\u05E9\u05DE\u05E8\u05D5 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4 \u05E2\u05D1\u05D5\u05E8 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong>.`,
-        )}
-
-        <!-- Info box -->
-        ${tipBox(`<strong>\u05D7\u05E9\u05D5\u05D1 \u05DC\u05D3\u05E2\u05EA:</strong> \u05D4\u05DB\u05E8\u05D8\u05D9\u05E1 <u>\u05DC\u05D0 \u05D7\u05D5\u05D9\u05D1</u> \u05D1\u05E9\u05DC\u05D1 \u05D6\u05D4.<br/>
-              \u05D4\u05D7\u05D9\u05D5\u05D1 \u05D9\u05EA\u05D1\u05E6\u05E2 \u05E8\u05E7 \u05DC\u05D0\u05D7\u05E8 \u05E9\u05E0\u05D1\u05D3\u05D5\u05E7 \u05D5\u05E0\u05D0\u05E9\u05E8 \u05D0\u05EA \u05D4\u05D4\u05D6\u05DE\u05E0\u05D4 \u05E9\u05DC\u05DA.<br/>
-              \u05E1\u05DB\u05D5\u05DD \u05DC\u05D7\u05D9\u05D5\u05D1: ${ltr(`\u20AA${params.totalPriceShekel}`)}`)}
-
-        <!-- What happens next -->
-        <tr>
-          <td ${RTL} style="text-align:right;padding:0 32px 28px;background-color:${C.card};">
-            ${sectionTitle('\u05DE\u05D4 \u05E7\u05D5\u05E8\u05D4 \u05E2\u05DB\u05E9\u05D9\u05D5?')}
-            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${stepRow(1, '\u05D0\u05E0\u05D7\u05E0\u05D5 \u05D1\u05D5\u05D3\u05E7\u05D9\u05DD \u05D0\u05EA \u05D4\u05D1\u05E7\u05E9\u05D4 \u05E9\u05DC\u05DA')}
-              ${stepRow(2, '\u05DC\u05D0\u05D7\u05E8 \u05D0\u05D9\u05E9\u05D5\u05E8 \u2014 \u05D4\u05DB\u05E8\u05D8\u05D9\u05E1 \u05D9\u05D7\u05D5\u05D9\u05D1')}
-              ${stepRow(3, '\u05EA\u05E7\u05D1\u05DC\u05D5 \u05E7\u05D1\u05DC\u05D4 \u05D1\u05DE\u05D9\u05D9\u05DC + \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05D9\u05D9\u05E6\u05D0 \u05DC\u05D0\u05D5\u05D5\u05D9\u05E8', true)}
-            </table>
-          </td>
-        </tr>
-
-        ${supportRow()}`;
-
-  return { subject, html: shell(subject, inner, '\u05D0\u05D9\u05E9\u05D5\u05E8 \u05DB\u05E8\u05D8\u05D9\u05E1') };
-}
-
-
-/* ═══════════════════════════════════════════════════════════════
-   11. APPROVAL + CHARGE EMAIL
-   Sent to the client when admin approves the request and the
-   credit card charge goes through. Includes receipt info.
-   ═══════════════════════════════════════════════════════════════ */
-
-export function buildApprovalChargeEmail(params: {
-  contactName: string;
-  eventName: string;
-  eventDate: string;
-  totalPriceShekel: number;
-  eventUrl: string;
-}): { subject: string; html: string } {
-  const safeName = escapeHtml(params.contactName);
-  const safeEvent = escapeHtml(params.eventName);
-
-  const subject = `${ltr('Eventa')} \u2014 \u05D4\u05D4\u05D6\u05DE\u05E0\u05D4 \u05D0\u05D5\u05E9\u05E8\u05D4 \u05D5\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E0\u05D5\u05E6\u05E8!`;
-
-  const inner = `
-        <!-- Greeting -->
-        ${greeting(
-          safeName,
-          `\u05D4\u05D4\u05D6\u05DE\u05E0\u05D4 \u05E9\u05DC\u05DA \u05E2\u05D1\u05D5\u05E8 <strong>${safeEvent}</strong> <strong>\u05D0\u05D5\u05E9\u05E8\u05D4</strong> \u05D5\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E0\u05D5\u05E6\u05E8 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4!`,
-        )}
-
-        <!-- Payment confirmation -->
-        <tr>
-          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
-            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9 \u05EA\u05E9\u05DC\u05D5\u05DD')}
-            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('\u05E1\u05D8\u05D8\u05D5\u05E1', '<strong style="color:#2e7d32;">\u05E9\u05D5\u05DC\u05DD \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4</strong>')}
-              ${row('\u05E1\u05DB\u05D5\u05DD', ltr(`\u20AA${params.totalPriceShekel}`))}
-              ${row('\u05D0\u05DE\u05E6\u05E2\u05D9 \u05EA\u05E9\u05DC\u05D5\u05DD', '\u05DB\u05E8\u05D8\u05D9\u05E1 \u05D0\u05E9\u05E8\u05D0\u05D9')}
-              ${row('\u05EA\u05D0\u05E8\u05D9\u05DA \u05D7\u05D9\u05D5\u05D1', fmtDate(new Date().toISOString()), true)}
-            </table>
-          </td>
-        </tr>
-
-        <!-- Event info -->
-        <tr>
-          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
-            ${sectionTitle('\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E9\u05DC\u05DA')}
-            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('\u05E9\u05DD \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2', safeEvent)}
-              ${row('\u05EA\u05D0\u05E8\u05D9\u05DA', escapeHtml(params.eventDate), true)}
-            </table>
-          </td>
-        </tr>
-
-        ${ctaBtn(params.eventUrl, '\u05E6\u05E4\u05D9\u05D9\u05D4 \u05D1\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E9\u05DC\u05DA')}
-
-        <!-- Receipt note -->
-        <tr>
-          <td dir="rtl" style="direction:rtl;text-align:center;padding:8px 32px 28px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:14px;color:${C.muted};">
-              \u05E7\u05D1\u05DC\u05D4 \u05D3\u05D9\u05D2\u05D9\u05D8\u05DC\u05D9\u05EA \u05EA\u05D9\u05E9\u05DC\u05D7 \u05D1\u05E0\u05E4\u05E8\u05D3 \u05DC\u05DB\u05EA\u05D5\u05D1\u05EA \u05D4\u05DE\u05D9\u05D9\u05DC \u05E9\u05DC\u05DA.
-            </div>
-          </td>
-        </tr>
-
-        ${supportRow()}`;
-
-  return { subject, html: shell(subject, inner, '\u05D0\u05D9\u05E9\u05D5\u05E8 \u05D4\u05D6\u05DE\u05E0\u05D4') };
-}
-
-
-/* ═══════════════════════════════════════════════════════════════
-   12. ADMIN CHARGE NOTIFICATION EMAIL
-   Sent to admin after auto-charge on approval so they have a
-   record of the charge.
-   ═══════════════════════════════════════════════════════════════ */
-
-export function buildAdminChargeNotificationEmail(params: {
-  contactName: string;
-  contactEmail: string;
   contactPhone: string;
-  eventName: string;
-  totalPriceShekel: number;
+  contactEmail: string;
   requestId: string;
-  eventId: string;
-  eventSlug: string;
 }): { subject: string; html: string } {
   const s = {
-    name: escapeHtml(params.contactName),
-    email: escapeHtml(params.contactEmail),
-    phone: escapeHtml(params.contactPhone),
-    event: escapeHtml(params.eventName),
+    name: escapeHtml(data.contactName),
+    phone: escapeHtml(data.contactPhone),
+    email: data.contactEmail ? escapeHtml(data.contactEmail) : '',
+    eventLabel: escapeHtml(EVENT_TYPE_LABELS[data.eventType] || data.eventType),
   };
 
-  const subject = `\u05D7\u05D9\u05D5\u05D1 \u05D1\u05D5\u05E6\u05E2 \u2014 ${params.contactName} | ${ltr(`\u20AA${params.totalPriceShekel}`)}`;
+  const subject = `\u05D1\u05E7\u05E9\u05D4 \u05D7\u05D3\u05E9\u05D4 + \u05EA\u05E9\u05DC\u05D5\u05DD \u05D1\u05D0\u05EA\u05E8 \u2014 ${data.contactName} | ${EVENT_TYPE_LABELS[data.eventType] || data.eventType}`;
 
   const inner = `
-        <!-- Success banner -->
-        <tr>
-          <td ${RTL} style="text-align:right;background-color:#e8f5e9 !important;padding:18px 32px;border-bottom:1px solid ${C.border};font-size:15px;font-weight:700;color:#2e7d32;">
-            \u05D7\u05D9\u05D5\u05D1 \u05D1\u05D5\u05E6\u05E2 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4 + \u05D0\u05D9\u05E8\u05D5\u05E2 \u05E0\u05D5\u05E6\u05E8
-          </td>
-        </tr>
+        ${statusBanner(
+          '\u05D4\u05DC\u05E7\u05D5\u05D7 \u05E9\u05D9\u05DC\u05DD \u05D1\u05D0\u05EA\u05E8 \u2014 \u05DE\u05DE\u05EA\u05D9\u05DF \u05DC\u05D0\u05D9\u05E9\u05D5\u05E8 \u05E1\u05D5\u05E4\u05D9',
+          null,
+          C.successBg, C.success,
+        )}
 
-        <!-- Details -->
+        <!-- Contact info -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
-            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9 \u05D4\u05D4\u05D6\u05DE\u05E0\u05D4')}
-            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('\u05DC\u05E7\u05D5\u05D7', s.name)}
-              ${row('\u05D0\u05D9\u05E8\u05D5\u05E2', s.event)}
-              ${row('\u05E1\u05DB\u05D5\u05DD \u05D7\u05D9\u05D5\u05D1', ltr(`\u20AA${params.totalPriceShekel}`))}
-              ${row('\u05D0\u05DE\u05E6\u05E2\u05D9', `\u05DB\u05E8\u05D8\u05D9\u05E1 \u05D0\u05E9\u05E8\u05D0\u05D9 (${ltr('Invoice4U Clearing')})`)}
-              ${row('\u05D0\u05D9\u05E8\u05D5\u05E2 ID', ltr(escapeHtml(params.eventId)), true)}
-            </table>
-          </td>
-        </tr>
-
-        <!-- Contact -->
-        <tr>
-          <td ${RTL} style="text-align:right;padding:32px 32px 28px;background-color:${C.card};">
+          <td ${RTL} style="text-align:right;padding:28px 32px;background-color:${C.card};">
             ${sectionTitle('\u05E4\u05E8\u05D8\u05D9 \u05DC\u05E7\u05D5\u05D7')}
             ${contactCard(s.name, s.phone, s.email)}
           </td>
+        </tr>
+
+        ${eventDetailsBlock(data)}
+
+        ${priceBlock(data.wantsGuestMessages)}
+
+        ${tipBox(`<strong>\u05E4\u05E2\u05D5\u05DC\u05D4 \u05E0\u05D3\u05E8\u05E9\u05EA:</strong> \u05DC\u05D0\u05D7\u05E8 \u05D0\u05D9\u05E9\u05D5\u05E8, \u05D4\u05DB\u05E8\u05D8\u05D9\u05E1 \u05D9\u05D7\u05D5\u05D9\u05D1 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA \u05D5\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05D9\u05D9\u05D5\u05D5\u05E6\u05E8.`)}
+
+        <!-- Request ID -->
+        <tr>
+          <td dir="rtl" style="direction:rtl;text-align:right;padding:0 32px 24px;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:13px;color:${C.dim};">
+              \u05DE\u05D6\u05D4\u05D4 \u05D1\u05E7\u05E9\u05D4&rlm;: ${ltr(escapeHtml(data.requestId))}
+            </div>
+          </td>
         </tr>`;
 
-  return { subject, html: shell(subject, inner, '\u05D7\u05D9\u05D5\u05D1 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9') };
+  return { subject, html: shell(subject, inner, '\u05D4\u05D6\u05DE\u05E0\u05D4 \u05D7\u05D3\u05E9\u05D4') };
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   A2. ADMIN - CALL ME BACK NOTIFICATION
+   Client filled the full form and wants to be contacted.
+   ═══════════════════════════════════════════════════════════════ */
+
+export function buildAdminCallMeBackNotification(data: EventFormData & {
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+  requestId: string;
+}): { subject: string; html: string } {
+  const s = {
+    name: escapeHtml(data.contactName),
+    phone: escapeHtml(data.contactPhone),
+    email: data.contactEmail ? escapeHtml(data.contactEmail) : '',
+    eventLabel: escapeHtml(EVENT_TYPE_LABELS[data.eventType] || data.eventType),
+  };
+
+  const subject = `\u05D1\u05E7\u05E9\u05D4 \u05D7\u05D3\u05E9\u05D4 (\u05DE\u05DE\u05EA\u05D9\u05DF \u05DC\u05E9\u05D9\u05D7\u05D4) \u2014 ${data.contactName} | ${EVENT_TYPE_LABELS[data.eventType] || data.eventType}`;
+
+  const inner = `
+        ${statusBanner(
+          '\u05D4\u05DC\u05E7\u05D5\u05D7 \u05DE\u05D9\u05DC\u05D0 \u05D4\u05D6\u05DE\u05E0\u05D4 \u05DE\u05DC\u05D0\u05D4 \u05D5\u05DE\u05D1\u05E7\u05E9 \u05E9\u05E0\u05D9\u05E6\u05D5\u05E8 \u05D0\u05D9\u05EA\u05D5 \u05E7\u05E9\u05E8',
+          null,
+          C.accentBg, C.accent,
+        )}
+
+        <!-- Contact info -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:28px 32px;background-color:${C.card};">
+            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9 \u05DC\u05E7\u05D5\u05D7')}
+            ${contactCard(s.name, s.phone, s.email)}
+          </td>
+        </tr>
+
+        ${eventDetailsBlock(data)}
+
+        ${priceBlock(data.wantsGuestMessages)}
+
+        <!-- Request ID -->
+        <tr>
+          <td dir="rtl" style="direction:rtl;text-align:right;padding:16px 32px 24px;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:13px;color:${C.dim};">
+              \u05DE\u05D6\u05D4\u05D4 \u05D1\u05E7\u05E9\u05D4&rlm;: ${ltr(escapeHtml(data.requestId))}
+            </div>
+          </td>
+        </tr>`;
+
+  return { subject, html: shell(subject, inner, '\u05D1\u05E7\u05E9\u05D4 \u05D7\u05D3\u05E9\u05D4') };
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   A3. ADMIN - CONTACT ONLY NOTIFICATION
+   Client wants to be contacted. No event form filled.
+   ═══════════════════════════════════════════════════════════════ */
+
+export function buildAdminContactOnlyNotification(data: {
+  contactName: string;
+  contactPhone: string;
+  contactEmail?: string;
+  message?: string;
+}): { subject: string; html: string } {
+  const s = {
+    name: escapeHtml(data.contactName),
+    phone: escapeHtml(data.contactPhone),
+    email: data.contactEmail ? escapeHtml(data.contactEmail) : '',
+  };
+
+  const subject = `\u05E4\u05E0\u05D9\u05D9\u05D4 \u05D7\u05D3\u05E9\u05D4 (\u05DC\u05DC\u05D0 \u05D8\u05D5\u05E4\u05E1) \u2014 ${data.contactName}`;
+
+  const inner = `
+        ${statusBanner(
+          '\u05D4\u05DC\u05E7\u05D5\u05D7 \u05E8\u05D5\u05E6\u05D4 \u05E9\u05E0\u05D9\u05E6\u05D5\u05E8 \u05D0\u05D9\u05EA\u05D5 \u05E7\u05E9\u05E8 \u2014 \u05DC\u05D0 \u05DE\u05D9\u05DC\u05D0 \u05E4\u05E8\u05D8\u05D9 \u05D0\u05D9\u05E8\u05D5\u05E2',
+          null,
+          C.warnBg, C.warn,
+        )}
+
+        <!-- Contact info -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:28px 32px;background-color:${C.card};">
+            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9 \u05DC\u05E7\u05D5\u05D7')}
+            ${contactCard(s.name, s.phone, s.email)}
+          </td>
+        </tr>
+
+        ${data.message ? `
+        <!-- Client message -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:0 32px 24px;background-color:${C.card};">
+            ${sectionTitle('\u05D4\u05D5\u05D3\u05E2\u05D4 \u05DE\u05D4\u05DC\u05E7\u05D5\u05D7')}
+            <div dir="rtl" style="direction:rtl;text-align:right;background-color:${C.accentBg};border-right:3px solid ${C.accent};border-radius:8px;padding:16px 18px;font-size:15px;color:${C.text};line-height:1.7;">
+              ${escapeHtml(data.message)}
+            </div>
+          </td>
+        </tr>` : `
+        <!-- Bottom spacing -->
+        <tr><td style="padding:0 0 16px;background-color:${C.card};">&nbsp;</td></tr>`}`;
+
+  return { subject, html: shell(subject, inner, '\u05E4\u05E0\u05D9\u05D9\u05D4 \u05D7\u05D3\u05E9\u05D4') };
 }

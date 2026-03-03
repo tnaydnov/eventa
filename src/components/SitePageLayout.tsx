@@ -59,7 +59,7 @@ export default function SitePageLayout({
         {children}
       </main>
 
-      {/* Footer — matches /dating landing footer */}
+      {/* Footer - matches /dating landing footer */}
       <footer className="site-page__footer">
         <div className="site-page__footer-brand">
           <Image

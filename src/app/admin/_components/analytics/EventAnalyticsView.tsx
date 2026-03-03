@@ -35,6 +35,7 @@ interface EventAnalyticsViewProps {
   adminUploadGuestFile: (eventId: string, file: File) => Promise<{ ok: boolean; result?: unknown; error?: string }>;
   regeneratePortalToken: (eventId: string) => Promise<{ ok: boolean; token?: string; error?: string }>;
   sendClientEmail: (eventId: string, type: string, opts?: { subject?: string; body?: string }) => Promise<{ ok: boolean; error?: string }>;
+  sendQrPage: (eventId: string, files: File[]) => Promise<{ ok: boolean; error?: string }>;
   loadMessageLog: (eventId: string) => Promise<void>;
 }
 
@@ -76,7 +77,7 @@ export default function EventAnalyticsView({
   messagingStatus, guestPhones, messageLog,
   loadMessagingStatus, updateMessagingConfig, triggerMessages,
   loadGuestPhones, adminAddGuestPhone, adminRemoveGuestPhone, adminUploadGuestFile,
-  regeneratePortalToken, sendClientEmail, loadMessageLog,
+  regeneratePortalToken, sendClientEmail, sendQrPage, loadMessageLog,
 }: EventAnalyticsViewProps) {
   const [analytics, setAnalytics] = useState<EventAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -242,6 +243,7 @@ export default function EventAnalyticsView({
           adminUploadGuestFile={adminUploadGuestFile}
           regeneratePortalToken={regeneratePortalToken}
           sendClientEmail={sendClientEmail}
+          sendQrPage={sendQrPage}
           loadMessageLog={loadMessageLog}
         />
       )}

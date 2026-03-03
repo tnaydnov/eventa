@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
 
     // ── Stub mode ──
     if (!PAYMENT_PROVIDER_LIVE) {
-      logger.info('[PAYMENT_CHECKOUT] Stub mode — checkout accessed', {
+      logger.info('[PAYMENT_CHECKOUT] Stub mode - checkout accessed', {
         requestId: request.id,
         totalPrice: request.total_price,
       });

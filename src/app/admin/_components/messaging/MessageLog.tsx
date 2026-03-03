@@ -75,7 +75,7 @@ export default function MessageLog({ entries }: MessageLogProps) {
                     <span className={`admin-badge admin-badge--sm ${st.cls}`}>{st.label}</span>
                   </td>
                   <td className="msg-error-cell">
-                    {entry.errorMessage || '—'}
+                    {entry.errorMessage || '-'}
                   </td>
                 </tr>
               );

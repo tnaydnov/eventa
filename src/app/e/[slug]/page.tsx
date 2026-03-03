@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { getServiceClient } from '@/lib/supabase';
 
 /**
- * /e/[slug] — Short pretty URL redirect.
+ * /e/[slug] - Short pretty URL redirect.
  *
  * Looks up the event by slug and redirects to the canonical
  * /dating/[eventSlug] path. This keeps all existing pages/components
@@ -42,7 +42,7 @@ export default async function ShortUrlPage({
     .maybeSingle();
 
   if (archived) {
-    // The slug was recycled — event no longer available
+    // The slug was recycled - event no longer available
     redirect(`/not-found`);
   }
 

@@ -23,10 +23,10 @@ import {
  * GET /api/admin/invoices
  * 
  * Query parameters:
- *   ?action=status       — Check Invoice4U configuration status
- *   ?action=documents    — Fetch documents from Invoice4U (requires fromDate, toDate)
- *   ?action=local        — Fetch locally stored invoices from DB
- *   ?action=summary      — Get payment summary stats
+ *   ?action=status       - Check Invoice4U configuration status
+ *   ?action=documents    - Fetch documents from Invoice4U (requires fromDate, toDate)
+ *   ?action=local        - Fetch locally stored invoices from DB
+ *   ?action=summary      - Get payment summary stats
  */
 export async function GET(req: NextRequest) {
   const denied = adminGuard(req, 'admin-invoices-get', RATE_LIMITS.standard);
@@ -58,9 +58,9 @@ export async function GET(req: NextRequest) {
  * POST /api/admin/invoices
  * 
  * Body:
- *   { action: 'create_document', ... }  — Create a new Invoice4U document
- *   { action: 'credit_note', ... }      — Create a credit note for an existing document
- *   { action: 'verify_auth' }           — Verify Invoice4U API token
+ *   { action: 'create_document', ... }  - Create a new Invoice4U document
+ *   { action: 'credit_note', ... }      - Create a credit note for an existing document
+ *   { action: 'verify_auth' }           - Verify Invoice4U API token
  */
 export async function POST(req: NextRequest) {
   const denied = adminGuard(req, 'admin-invoices-post', RATE_LIMITS.strict);
@@ -263,7 +263,7 @@ async function handleCreateDocument(body: Record<string, unknown>, req: NextRequ
     return jsonError('Invalid document type', 400);
   }
 
-  // Build customer — try to find/create in Invoice4U
+  // Build customer - try to find/create in Invoice4U
   const customer: Invoice4UCustomer = {
     Name: customerName,
     Email: customerEmail,
@@ -330,7 +330,7 @@ async function handleCreateDocument(body: Record<string, unknown>, req: NextRequ
 
   if (insertErr) {
     logger.error('[ADMIN_INVOICES] Failed to save invoice locally:', insertErr.message);
-    // Don't fail — document was created in Invoice4U successfully
+    // Don't fail - document was created in Invoice4U successfully
   }
 
   // If linked to a request, update the request's invoice fields
