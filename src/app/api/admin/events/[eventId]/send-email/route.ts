@@ -169,7 +169,7 @@ export async function POST(
         const safeEvent = event.name.replace(/</g, '&lt;');
         const safeMsg = parsed.data.customMessage.replace(/</g, '&lt;');
         email = {
-          subject: `Eventa \u2014 ${event.name}`,
+          subject: `Eventa - ${event.name}`,
           html: `<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Eventa</title></head>` +
             `<body style="margin:0;padding:20px;background:#f5f3f0;font-family:Arial,Helvetica,sans-serif;">` +
             `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">` +

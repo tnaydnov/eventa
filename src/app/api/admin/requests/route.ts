@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { after } from 'next/server';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
       return jsonError('Request already processed', 400);
     }
 
-    // ── DENY ──
+    // ג”€ג”€ DENY ג”€ג”€
     if (action === 'deny') {
       const { error: updateErr } = await supabase
         .from('event_requests')
@@ -115,9 +115,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, action: 'denied' });
     }
 
-    // ── APPROVE ── Create the event automatically
+    // ג”€ג”€ APPROVE ג”€ג”€ Create the event automatically
 
-    // ── Charge credit card if card was captured via clearing ──
+    // ג”€ג”€ Charge credit card if card was captured via clearing ג”€ג”€
     let chargeSucceeded = false;
     const isCardCaptured = request.payment_status === 'card_captured';
 
@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
           sum: totalShekel,
           description: `Eventa - ${request.event_name || request.event_type}`,
           createDocument: true,
-          docHeadline: `אירוע: ${request.event_name || request.event_type}`,
+          docHeadline: `׳׳™׳¨׳•׳¢: ${request.event_name || request.event_type}`,
         });
 
         if (!chargeResult.success) {
@@ -263,7 +263,7 @@ export async function POST(req: NextRequest) {
     adminAuditLog('REQUEST_APPROVE', { requestId, eventId: newEvent.id, slug }, req);
     logger.info('Event request approved', { requestId, eventId: newEvent.id });
 
-    // ── Auto-actions for messaging addon ──
+    // ג”€ג”€ Auto-actions for messaging addon ג”€ג”€
     let portalUrl: string | undefined;
     if (request.wants_guest_messages) {
       try {
@@ -290,7 +290,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ── Defer email sending to run AFTER the response is returned ──
+    // ג”€ג”€ Defer email sending to run AFTER the response is returned ג”€ג”€
     // This prevents SMTP calls from causing 504 gateway timeouts.
     after(async () => {
       // Send C4 approval email to client
@@ -352,22 +352,22 @@ export async function POST(req: NextRequest) {
           const safeEmail = (request.contact_email || '').replace(/</g, '&lt;');
           const safeEvent = eventName.replace(/</g, '&lt;');
 
-          const adminSubject = `חיוב בוצע \u2014 ${eventName} (₪${totalShekel})`;
+          const adminSubject = `׳—׳™׳•׳‘ ׳‘׳•׳¦׳¢ - ${eventName} (ג‚×${totalShekel})`;
           const adminHtml =
             `<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"></head>` +
             `<body style="margin:0;padding:20px;background:#f5f3f0;font-family:Arial,sans-serif;">` +
             `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">` +
             `<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;">` +
             `<tr><td dir="rtl" style="text-align:right;padding:24px;background:#e8f5e9;border-radius:12px 12px 0 0;">` +
-            `<div style="font-size:16px;font-weight:700;color:#2e7d32;">חיוב כרטיס אשראי בוצע בהצלחה</div></td></tr>` +
+            `<div style="font-size:16px;font-weight:700;color:#2e7d32;">׳—׳™׳•׳‘ ׳›׳¨׳˜׳™׳¡ ׳׳©׳¨׳׳™ ׳‘׳•׳¦׳¢ ׳‘׳”׳¦׳׳—׳”</div></td></tr>` +
             `<tr><td dir="rtl" style="text-align:right;padding:20px 24px;font-size:14px;color:#1e1e1e;line-height:1.7;">` +
-            `<div><strong>לקוח:</strong> ${safeName}</div>` +
-            `<div><strong>מייל:</strong> ${safeEmail}</div>` +
-            `<div><strong>טלפון:</strong> ${(request.contact_phone || '').replace(/</g, '&lt;')}</div>` +
-            `<div><strong>אירוע:</strong> ${safeEvent}</div>` +
-            `<div><strong>סכום:</strong> ₪${totalShekel}</div>` +
-            `<div><strong>בקשה:</strong> ${requestId}</div>` +
-            `<div><strong>אירוע:</strong> ${newEvent.id}</div>` +
+            `<div><strong>׳׳§׳•׳—:</strong> ${safeName}</div>` +
+            `<div><strong>׳׳™׳™׳:</strong> ${safeEmail}</div>` +
+            `<div><strong>׳˜׳׳₪׳•׳:</strong> ${(request.contact_phone || '').replace(/</g, '&lt;')}</div>` +
+            `<div><strong>׳׳™׳¨׳•׳¢:</strong> ${safeEvent}</div>` +
+            `<div><strong>׳¡׳›׳•׳:</strong> ג‚×${totalShekel}</div>` +
+            `<div><strong>׳‘׳§׳©׳”:</strong> ${requestId}</div>` +
+            `<div><strong>׳׳™׳¨׳•׳¢:</strong> ${newEvent.id}</div>` +
             `</td></tr></table></td></tr></table></body></html>`;
 
           await transporter.sendMail({
@@ -398,7 +398,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// ─── Helpers ────────────────────────────────────────────
+// ג”€ג”€ג”€ Helpers ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
 function formatDate(iso: string): string {
   try {
@@ -582,7 +582,7 @@ export async function DELETE(req: NextRequest) {
     const isPending = request.status === 'pending';
     const eventId = request.approved_event_id as string | null;
 
-    // For pending requests with an associated event → cascade-delete the event
+    // For pending requests with an associated event ג†’ cascade-delete the event
     if (isPending && eventId) {
       const warnings: string[] = [];
 
@@ -598,7 +598,7 @@ export async function DELETE(req: NextRequest) {
         }
       };
 
-      // Participant photos → storage + DB
+      // Participant photos ג†’ storage + DB
       const { data: parts } = await supabase.from('participants').select('id').eq('event_id', eventId);
       const pIds = (parts || []).map((p: { id: string }) => p.id);
 

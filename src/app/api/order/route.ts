@@ -236,7 +236,7 @@ export async function POST(request: NextRequest) {
             paymentUrl: `${baseUrl}/api/payment/checkout?token=${paymentLinkToken}`,
           });
         } else if (contactPref === 'pay-now') {
-          // Client paid directly — confirmation email
+          // Client paid directly - confirmation email
           clientEmail = buildClientPayNowEmail({
             ...eventFormData,
             contactName,

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Email templates for Eventa.
  *
  * 11 templates total:
@@ -38,7 +38,7 @@ const LOGO_LIGHT = 'https://www.eventa.productions/icons/Eventa_Logo.png';
 /** Dark logo (shown on light backgrounds / light mode). */
 const LOGO_DARK  = 'https://www.eventa.productions/icons/Eventa_Logo_Dark.png';
 
-/* ─── Shared palette ─── */
+/* ג”€ג”€ג”€ Shared palette ג”€ג”€ג”€ */
 const C = {
   bg:        '#f5f3f0',
   card:      '#ffffff',
@@ -59,9 +59,9 @@ const C = {
 const RTL = 'dir="rtl" style="text-align:right;"';
 
 
-/* ═══════════════════════════════════════════════════════════════
+/* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
    UTILITY FUNCTIONS
-   ═══════════════════════════════════════════════════════════════ */
+   ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
 
 /** Escape HTML special characters. */
 export function escapeHtml(str: string): string {
@@ -78,9 +78,9 @@ function ltr(s: string): string {
   return `<span dir="ltr" style="unicode-bidi:isolate;">${s}</span>`;
 }
 
-/** Format ISO datetime → Hebrew date string. */
+/** Format ISO datetime ג†’ Hebrew date string. */
 function fmtDate(iso: string): string {
-  if (!iso) return '\u2014';
+  if (!iso) return '-';
   try {
     return new Date(iso).toLocaleDateString('he-IL', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -88,7 +88,7 @@ function fmtDate(iso: string): string {
   } catch { return iso; }
 }
 
-/** Format ISO datetime → HH:MM. */
+/** Format ISO datetime ג†’ HH:MM. */
 function fmtTime(iso: string): string {
   if (!iso) return '';
   try {
@@ -96,9 +96,9 @@ function fmtTime(iso: string): string {
   } catch { return ''; }
 }
 
-/** Format ISO datetime → "יום רביעי, 15 באפריל 2026 בשעה 19:00". */
+/** Format ISO datetime ג†’ "׳™׳•׳ ׳¨׳‘׳™׳¢׳™, 15 ׳‘׳׳₪׳¨׳™׳ 2026 ׳‘׳©׳¢׳” 19:00". */
 function fmtDateTime(iso: string): string {
-  if (!iso) return '\u2014';
+  if (!iso) return '-';
   const d = fmtDate(iso);
   const t = fmtTime(iso);
   return t ? `${d} \u05D1\u05E9\u05E2\u05D4 ${ltr(t)}` : d;
@@ -128,9 +128,9 @@ function scheduleBlock(messageSendAt: string, uploadDeadline: string): string {
 }
 
 
-/* ═══════════════════════════════════════════════════════════════
+/* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
    DESIGN-SYSTEM HELPERS
-   ═══════════════════════════════════════════════════════════════ */
+   ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
 
 /** Build a two-column info row: label | value. Both cells are RTL. */
 function row(label: string, value: string, isLast = false): string {
@@ -257,9 +257,9 @@ function statusBanner(text: string, subtext: string | null, bgColor: string, tex
 }
 
 
-/* ═══════════════════════════════════════════════════════════════
+/* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
    DATA INTERFACE & SHARED BLOCKS
-   ═══════════════════════════════════════════════════════════════ */
+   ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
 
 /** Event form data used by shared helpers (eventDetailsBlock, priceBlock). */
 interface EventFormData {
@@ -275,7 +275,7 @@ interface EventFormData {
   wantsGuestMessages: boolean;
 }
 
-/* ─── Shared email shell ─── */
+/* ג”€ג”€ג”€ Shared email shell ג”€ג”€ג”€ */
 /** Wrap template body inside a full HTML email with the correct RTL + logo header. */
 function shell(title: string, inner: string, subtitle?: string): string {
   return `<!DOCTYPE html>
@@ -439,11 +439,11 @@ function eventDetailsBlock(data: EventFormData): string {
 }
 
 
-/* ═══════════════════════════════════════════════════════════════
+/* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
    C1. CLIENT - CALL ME BACK
    Client filled the full event form and wants to be contacted.
    Shows event summary + "we'll contact you within 48 hours".
-   ═══════════════════════════════════════════════════════════════ */
+   ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
 
 export function buildClientCallMeBackEmail(data: EventFormData & {
   contactName: string;
@@ -451,7 +451,7 @@ export function buildClientCallMeBackEmail(data: EventFormData & {
   const safeName = escapeHtml(data.contactName);
   const safeEvent = escapeHtml(data.eventName);
 
-  const subject = `Eventa \u2014 \u05E7\u05D9\u05D1\u05DC\u05E0\u05D5 \u05D0\u05EA \u05D4\u05D1\u05E7\u05E9\u05D4 \u05E9\u05DC\u05DA`;
+  const subject = `Eventa - \u05E7\u05D9\u05D1\u05DC\u05E0\u05D5 \u05D0\u05EA \u05D4\u05D1\u05E7\u05E9\u05D4 \u05E9\u05DC\u05DA`;
 
   const inner = `
         ${greeting(
@@ -464,7 +464,7 @@ export function buildClientCallMeBackEmail(data: EventFormData & {
 
         ${priceBlock(data.wantsGuestMessages)}
 
-        ${tipBox(`<strong>\u05DE\u05D4 \u05E2\u05DB\u05E9\u05D9\u05D5?</strong> \u05D0\u05D9\u05DF \u05E6\u05D5\u05E8\u05DA \u05DC\u05E2\u05E9\u05D5\u05EA \u05D3\u05D1\u05E8 \u2014 \u05E0\u05D9\u05E6\u05D5\u05E8 \u05D0\u05D9\u05EA\u05DA \u05E7\u05E9\u05E8 \u05EA\u05D5\u05DA 48 \u05E9\u05E2\u05D5\u05EA \u05DE\u05E8\u05D2\u05E2 \u05E7\u05D1\u05DC\u05EA \u05D4\u05E4\u05E0\u05D9\u05D9\u05D4.`)}
+        ${tipBox(`<strong>\u05DE\u05D4 \u05E2\u05DB\u05E9\u05D9\u05D5?</strong> \u05D0\u05D9\u05DF \u05E6\u05D5\u05E8\u05DA \u05DC\u05E2\u05E9\u05D5\u05EA \u05D3\u05D1\u05E8 - \u05E0\u05D9\u05E6\u05D5\u05E8 \u05D0\u05D9\u05EA\u05DA \u05E7\u05E9\u05E8 \u05EA\u05D5\u05DA 48 \u05E9\u05E2\u05D5\u05EA \u05DE\u05E8\u05D2\u05E2 \u05E7\u05D1\u05DC\u05EA \u05D4\u05E4\u05E0\u05D9\u05D9\u05D4.`)}
 
         ${supportRow()}`;
 
@@ -472,11 +472,11 @@ export function buildClientCallMeBackEmail(data: EventFormData & {
 }
 
 
-/* ═══════════════════════════════════════════════════════════════
+/* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
    C2. CLIENT - PAY NOW
    Client filled the form and paid with credit card. Card NOT
    charged yet - will be charged on approval.
-   ═══════════════════════════════════════════════════════════════ */
+   ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
 
 export function buildClientPayNowEmail(data: EventFormData & {
   contactName: string;
@@ -484,7 +484,7 @@ export function buildClientPayNowEmail(data: EventFormData & {
   const safeName = escapeHtml(data.contactName);
   const safeEvent = escapeHtml(data.eventName);
 
-  const subject = `Eventa \u2014 \u05D4\u05D1\u05E7\u05E9\u05D4 \u05D4\u05EA\u05E7\u05D1\u05DC\u05D4, \u05E4\u05E8\u05D8\u05D9 \u05D4\u05EA\u05E9\u05DC\u05D5\u05DD \u05E0\u05E9\u05DE\u05E8\u05D5`;
+  const subject = `Eventa - \u05D4\u05D1\u05E7\u05E9\u05D4 \u05D4\u05EA\u05E7\u05D1\u05DC\u05D4, \u05E4\u05E8\u05D8\u05D9 \u05D4\u05EA\u05E9\u05DC\u05D5\u05DD \u05E0\u05E9\u05DE\u05E8\u05D5`;
 
   const inner = `
         ${greeting(
@@ -504,7 +504,7 @@ export function buildClientPayNowEmail(data: EventFormData & {
             ${sectionTitle('\u05DE\u05D4 \u05E7\u05D5\u05E8\u05D4 \u05E2\u05DB\u05E9\u05D9\u05D5?')}
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
               ${stepRow(1, '\u05D0\u05E0\u05D7\u05E0\u05D5 \u05D1\u05D5\u05D3\u05E7\u05D9\u05DD \u05D0\u05EA \u05D4\u05D1\u05E7\u05E9\u05D4 \u05E9\u05DC\u05DA')}
-              ${stepRow(2, '\u05DC\u05D0\u05D7\u05E8 \u05D0\u05D9\u05E9\u05D5\u05E8 \u2014 \u05D4\u05DB\u05E8\u05D8\u05D9\u05E1 \u05D9\u05D7\u05D5\u05D9\u05D1')}
+              ${stepRow(2, '\u05DC\u05D0\u05D7\u05E8 \u05D0\u05D9\u05E9\u05D5\u05E8 - \u05D4\u05DB\u05E8\u05D8\u05D9\u05E1 \u05D9\u05D7\u05D5\u05D9\u05D1')}
               ${stepRow(3, '\u05EA\u05E7\u05D1\u05DC\u05D5 \u05D0\u05D9\u05DE\u05D9\u05D9\u05DC \u05D0\u05D9\u05E9\u05D5\u05E8 \u05D5\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05D9\u05D9\u05E6\u05D0 \u05DC\u05D0\u05D5\u05D5\u05D9\u05E8', true)}
             </table>
           </td>
@@ -519,12 +519,12 @@ export function buildClientPayNowEmail(data: EventFormData & {
 }
 
 
-/* ═══════════════════════════════════════════════════════════════
+/* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
    C2b. CLIENT - PAYMENT LINK
-   Client chose "send-link" — receives a payment link by email.
+   Client chose "send-link" - receives a payment link by email.
    Shows event summary + price + CTA to payment page.
    Also used when admin resends a payment link.
-   ═══════════════════════════════════════════════════════════════ */
+   ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
 
 export function buildClientPaymentLinkEmail(data: EventFormData & {
   contactName: string;
@@ -533,7 +533,7 @@ export function buildClientPaymentLinkEmail(data: EventFormData & {
   const safeName = escapeHtml(data.contactName);
   const safeEvent = escapeHtml(data.eventName);
 
-  const subject = `Eventa \u2014 \u05E7\u05D9\u05E9\u05D5\u05E8 \u05DC\u05EA\u05E9\u05DC\u05D5\u05DD`;
+  const subject = `Eventa - \u05E7\u05D9\u05E9\u05D5\u05E8 \u05DC\u05EA\u05E9\u05DC\u05D5\u05DD`;
 
   const inner = `
         ${greeting(
@@ -558,11 +558,11 @@ export function buildClientPaymentLinkEmail(data: EventFormData & {
 }
 
 
-/* ═══════════════════════════════════════════════════════════════
+/* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
    C3. CLIENT - CONTACT ONLY
    Client left contact details without filling the event form.
    Simple confirmation: "we got your details, we'll contact you".
-   ═══════════════════════════════════════════════════════════════ */
+   ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
 
 export function buildClientContactOnlyEmail(data: {
   contactName: string;
@@ -573,7 +573,7 @@ export function buildClientContactOnlyEmail(data: {
   const safePhone = escapeHtml(data.contactPhone);
   const safeEmail = data.contactEmail ? escapeHtml(data.contactEmail) : '';
 
-  const subject = `Eventa \u2014 \u05E7\u05D9\u05D1\u05DC\u05E0\u05D5 \u05D0\u05EA \u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05E9\u05DC\u05DA`;
+  const subject = `Eventa - \u05E7\u05D9\u05D1\u05DC\u05E0\u05D5 \u05D0\u05EA \u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05E9\u05DC\u05DA`;
 
   const inner = `
         ${greeting(
@@ -594,7 +594,7 @@ export function buildClientContactOnlyEmail(data: {
           </td>
         </tr>
 
-        ${tipBox(`\u05D0\u05D9\u05DF \u05E6\u05D5\u05E8\u05DA \u05DC\u05E2\u05E9\u05D5\u05EA \u05D3\u05D1\u05E8 \u05E0\u05D5\u05E1\u05E3 \u2014 \u05D4\u05E6\u05D5\u05D5\u05EA \u05E9\u05DC\u05E0\u05D5 \u05D9\u05D9\u05E6\u05D5\u05E8 \u05D0\u05D9\u05EA\u05DA \u05E7\u05E9\u05E8 \u05D1\u05D4\u05E7\u05D3\u05DD.`)}
+        ${tipBox(`\u05D0\u05D9\u05DF \u05E6\u05D5\u05E8\u05DA \u05DC\u05E2\u05E9\u05D5\u05EA \u05D3\u05D1\u05E8 \u05E0\u05D5\u05E1\u05E3 - \u05D4\u05E6\u05D5\u05D5\u05EA \u05E9\u05DC\u05E0\u05D5 \u05D9\u05D9\u05E6\u05D5\u05E8 \u05D0\u05D9\u05EA\u05DA \u05E7\u05E9\u05E8 \u05D1\u05D4\u05E7\u05D3\u05DD.`)}
 
         ${supportRow()}`;
 
@@ -602,12 +602,12 @@ export function buildClientContactOnlyEmail(data: {
 }
 
 
-/* ═══════════════════════════════════════════════════════════════
+/* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
    C4. CLIENT - APPROVAL
    Order approved + charged + event created.
    Full order details + payment confirmation.
    If WhatsApp messaging: portal link + explanation + reminders info.
-   ═══════════════════════════════════════════════════════════════ */
+   ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
 
 export function buildClientApprovalEmail(params: EventFormData & {
   contactName: string;
@@ -621,7 +621,7 @@ export function buildClientApprovalEmail(params: EventFormData & {
   const safeName = escapeHtml(params.contactName);
   const safeEvent = escapeHtml(params.eventName);
 
-  const subject = `Eventa \u2014 \u05D4\u05D4\u05D6\u05DE\u05E0\u05D4 \u05D0\u05D5\u05E9\u05E8\u05D4 \u05D5\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E0\u05D5\u05E6\u05E8!`;
+  const subject = `Eventa - \u05D4\u05D4\u05D6\u05DE\u05E0\u05D4 \u05D0\u05D5\u05E9\u05E8\u05D4 \u05D5\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E0\u05D5\u05E6\u05E8!`;
 
   /* Payment confirmation section */
   const paymentSection = `
@@ -690,7 +690,7 @@ export function buildClientApprovalEmail(params: EventFormData & {
           <td dir="rtl" style="direction:rtl;text-align:right;padding:24px 32px 0;background-color:${C.card};">
             ${sectionTitle('\u05E7\u05D9\u05E9\u05D5\u05E8 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2')}
             <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};line-height:1.6;margin-bottom:10px;">
-              \u05D4\u05E7\u05D9\u05E9\u05D5\u05E8 \u05D4\u05D1\u05D0 \u05DE\u05D9\u05D5\u05E2\u05D3 \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E9\u05DC\u05DB\u05DD \u2014 \u05D3\u05E8\u05DB\u05D5 \u05D4\u05DD \u05E0\u05DB\u05E0\u05E1\u05D9\u05DD \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2&rlm;:
+              \u05D4\u05E7\u05D9\u05E9\u05D5\u05E8 \u05D4\u05D1\u05D0 \u05DE\u05D9\u05D5\u05E2\u05D3 \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E9\u05DC\u05DB\u05DD - \u05D3\u05E8\u05DB\u05D5 \u05D4\u05DD \u05E0\u05DB\u05E0\u05E1\u05D9\u05DD \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2&rlm;:
             </div>
             <div dir="ltr" style="text-align:left;background-color:${C.accentBg};border-radius:8px;padding:12px 16px;font-size:14px;word-break:break-all;">
               <a href="${escapeHtml(params.eventUrl)}" style="color:${C.accent};text-decoration:none;" target="_blank">${escapeHtml(params.eventUrl)}</a>
@@ -717,13 +717,13 @@ export function buildClientApprovalEmail(params: EventFormData & {
 }
 
 
-/* ═══════════════════════════════════════════════════════════════
+/* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
    C8. CLIENT - QR PAGE READY
    Sent when the admin has prepared the A4 page with QR code.
    Email includes explanation about attached files.
    Attachments (PDF, PDF-cropped, image, QR-only) are handled
    by the send-email API, not by this template function.
-   ═══════════════════════════════════════════════════════════════ */
+   ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
 
 export function buildClientQrPageEmail(params: {
   contactName: string;
@@ -732,13 +732,13 @@ export function buildClientQrPageEmail(params: {
   const safeName = escapeHtml(params.contactName);
   const safeEvent = escapeHtml(params.eventName);
 
-  const subject = `Eventa \u2014 \u05D3\u05E3 \u05D4-${ltr('QR')} \u05E9\u05DC\u05DB\u05DD \u05DE\u05D5\u05DB\u05DF!`;
+  const subject = `Eventa - \u05D3\u05E3 \u05D4-${ltr('QR')} \u05E9\u05DC\u05DB\u05DD \u05DE\u05D5\u05DB\u05DF!`;
 
   const inner = `
         ${greeting(
           safeName,
           `\u05D3\u05E3 \u05D4-${ltr('QR')} \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong> \u05DE\u05D5\u05DB\u05DF!`,
-          `\u05D4\u05DB\u05E0\u05D5 \u05D0\u05EA \u05D4\u05D3\u05E3 \u05D5\u05E4\u05D6\u05E8\u05D5 \u05D0\u05D5\u05EA\u05D5 \u05D1\u05D0\u05D9\u05E8\u05D5\u05E2 \u2014 \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E1\u05D5\u05E8\u05E7\u05D9\u05DD \u05D0\u05EA \u05D4\u05E7\u05D5\u05D3 \u05D5\u05E0\u05DB\u05E0\u05E1\u05D9\u05DD \u05D9\u05E9\u05D9\u05E8\u05D5\u05EA \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2.`,
+          `\u05D4\u05DB\u05E0\u05D5 \u05D0\u05EA \u05D4\u05D3\u05E3 \u05D5\u05E4\u05D6\u05E8\u05D5 \u05D0\u05D5\u05EA\u05D5 \u05D1\u05D0\u05D9\u05E8\u05D5\u05E2 - \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E1\u05D5\u05E8\u05E7\u05D9\u05DD \u05D0\u05EA \u05D4\u05E7\u05D5\u05D3 \u05D5\u05E0\u05DB\u05E0\u05E1\u05D9\u05DD \u05D9\u05E9\u05D9\u05E8\u05D5\u05EA \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2.`,
         )}
 
         <!-- Explanation -->
@@ -749,15 +749,15 @@ export function buildClientQrPageEmail(params: {
               \u05E6\u05D9\u05E8\u05E4\u05E0\u05D5 \u05DC\u05DE\u05D9\u05D9\u05DC \u05D4\u05D6\u05D4 <strong>4 \u05E7\u05D1\u05E6\u05D9\u05DD</strong> \u05DC\u05E0\u05D5\u05D7\u05D9\u05D5\u05EA\u05DB\u05DD&rlm;:
             </div>
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${stepRow(1, `<strong>\u05D3\u05E3 ${ltr('A4')} \u05DC\u05D4\u05D3\u05E4\u05E1\u05D4</strong> (${ltr('PDF')}) \u2014 \u05DE\u05D5\u05DB\u05DF \u05DC\u05D4\u05D3\u05E4\u05E1\u05D4 \u05D9\u05E9\u05D9\u05E8\u05D5\u05EA \u05E2\u05DC \u05D3\u05E3 ${ltr('A4')} \u05E8\u05D2\u05D9\u05DC`)}
-              ${stepRow(2, `<strong>\u05D3\u05E3 ${ltr('A4')} \u05E2\u05DD \u05E9\u05D5\u05DC\u05D9\u05D9\u05DD</strong> (${ltr('PDF')}) \u2014 \u05D2\u05E8\u05E1\u05D4 \u05E2\u05DD \u05E9\u05D5\u05DC\u05D9\u05D9\u05DD \u05DC\u05D7\u05D9\u05EA\u05D5\u05DA \u05DE\u05D3\u05D5\u05D9\u05E7`)}
-              ${stepRow(3, `<strong>\u05EA\u05DE\u05D5\u05E0\u05D4</strong> (${ltr('PNG / JPG')}) \u2014 \u05DC\u05E9\u05D9\u05EA\u05D5\u05E3 \u05D1\u05E8\u05E9\u05EA\u05D5\u05EA \u05D7\u05D1\u05E8\u05EA\u05D9\u05D5\u05EA \u05D0\u05D5 \u05DC\u05E9\u05DC\u05D9\u05D7\u05D4 \u05D1\u05D2\u05E8\u05D5\u05E4\u05D5\u05EA`)}
-              ${stepRow(4, `<strong>\u05E7\u05D5\u05D3 ${ltr('QR')} \u05D1\u05DC\u05D1\u05D3</strong> \u2014 \u05D0\u05DD \u05EA\u05E8\u05E6\u05D5 \u05DC\u05E2\u05E6\u05D1 \u05DE\u05E9\u05D4\u05D5 \u05DE\u05E9\u05DC\u05DB\u05DD \u05D0\u05D5 \u05DC\u05D4\u05D3\u05E4\u05D9\u05E1 \u05E8\u05E7 \u05D0\u05EA \u05D4\u05D1\u05E8\u05E7\u05D5\u05D3`, true)}
+              ${stepRow(1, `<strong>\u05D3\u05E3 ${ltr('A4')} \u05DC\u05D4\u05D3\u05E4\u05E1\u05D4</strong> (${ltr('PDF')}) - \u05DE\u05D5\u05DB\u05DF \u05DC\u05D4\u05D3\u05E4\u05E1\u05D4 \u05D9\u05E9\u05D9\u05E8\u05D5\u05EA \u05E2\u05DC \u05D3\u05E3 ${ltr('A4')} \u05E8\u05D2\u05D9\u05DC`)}
+              ${stepRow(2, `<strong>\u05D3\u05E3 ${ltr('A4')} \u05E2\u05DD \u05E9\u05D5\u05DC\u05D9\u05D9\u05DD</strong> (${ltr('PDF')}) - \u05D2\u05E8\u05E1\u05D4 \u05E2\u05DD \u05E9\u05D5\u05DC\u05D9\u05D9\u05DD \u05DC\u05D7\u05D9\u05EA\u05D5\u05DA \u05DE\u05D3\u05D5\u05D9\u05E7`)}
+              ${stepRow(3, `<strong>\u05EA\u05DE\u05D5\u05E0\u05D4</strong> (${ltr('PNG / JPG')}) - \u05DC\u05E9\u05D9\u05EA\u05D5\u05E3 \u05D1\u05E8\u05E9\u05EA\u05D5\u05EA \u05D7\u05D1\u05E8\u05EA\u05D9\u05D5\u05EA \u05D0\u05D5 \u05DC\u05E9\u05DC\u05D9\u05D7\u05D4 \u05D1\u05D2\u05E8\u05D5\u05E4\u05D5\u05EA`)}
+              ${stepRow(4, `<strong>\u05E7\u05D5\u05D3 ${ltr('QR')} \u05D1\u05DC\u05D1\u05D3</strong> - \u05D0\u05DD \u05EA\u05E8\u05E6\u05D5 \u05DC\u05E2\u05E6\u05D1 \u05DE\u05E9\u05D4\u05D5 \u05DE\u05E9\u05DC\u05DB\u05DD \u05D0\u05D5 \u05DC\u05D4\u05D3\u05E4\u05D9\u05E1 \u05E8\u05E7 \u05D0\u05EA \u05D4\u05D1\u05E8\u05E7\u05D5\u05D3`, true)}
             </table>
           </td>
         </tr>
 
-        ${tipBox(`\u05DE\u05DE\u05DC\u05D9\u05E6\u05D9\u05DD \u05DC\u05D4\u05D3\u05E4\u05D9\u05E1 \u05E2\u05D5\u05EA\u05E7\u05D9\u05DD \u05DE\u05D4\u05D3\u05E3 \u05D5\u05DC\u05E4\u05D6\u05E8 \u05D1\u05D0\u05D9\u05E8\u05D5\u05E2 \u2014 \u05D1\u05DB\u05E0\u05D9\u05E1\u05D4, \u05D1\u05D1\u05D0\u05E8, \u05E2\u05DC \u05D4\u05E9\u05D5\u05DC\u05D7\u05E0\u05D5\u05EA \u2014 \u05D1\u05DB\u05DC \u05DE\u05E7\u05D5\u05DD \u05E0\u05D2\u05D9\u05E9 \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD.<br/><br/>\u05DB\u05DB\u05DC \u05E9\u05D9\u05D4\u05D9\u05D5 \u05D9\u05D5\u05EA\u05E8 \u05E2\u05D5\u05EA\u05E7\u05D9\u05DD, \u05DB\u05DA \u05D9\u05D5\u05EA\u05E8 \u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05D9\u05E6\u05D8\u05E8\u05E4\u05D5!`)}
+        ${tipBox(`\u05DE\u05DE\u05DC\u05D9\u05E6\u05D9\u05DD \u05DC\u05D4\u05D3\u05E4\u05D9\u05E1 \u05E2\u05D5\u05EA\u05E7\u05D9\u05DD \u05DE\u05D4\u05D3\u05E3 \u05D5\u05DC\u05E4\u05D6\u05E8 \u05D1\u05D0\u05D9\u05E8\u05D5\u05E2 - \u05D1\u05DB\u05E0\u05D9\u05E1\u05D4, \u05D1\u05D1\u05D0\u05E8, \u05E2\u05DC \u05D4\u05E9\u05D5\u05DC\u05D7\u05E0\u05D5\u05EA - \u05D1\u05DB\u05DC \u05DE\u05E7\u05D5\u05DD \u05E0\u05D2\u05D9\u05E9 \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD.<br/><br/>\u05DB\u05DB\u05DC \u05E9\u05D9\u05D4\u05D9\u05D5 \u05D9\u05D5\u05EA\u05E8 \u05E2\u05D5\u05EA\u05E7\u05D9\u05DD, \u05DB\u05DA \u05D9\u05D5\u05EA\u05E8 \u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05D9\u05E6\u05D8\u05E8\u05E4\u05D5!`)}
 
         ${supportRow()}`;
 
@@ -765,10 +765,10 @@ export function buildClientQrPageEmail(params: {
 }
 
 
-/* ═══════════════════════════════════════════════════════════════
+/* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
    C5. CLIENT - UPLOAD REMINDER (7-DAY)
    Sent 7 days before the event when guest list not yet uploaded.
-   ═══════════════════════════════════════════════════════════════ */
+   ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
 
 export function buildClientUploadReminder7DayEmail(params: {
   contactName: string;
@@ -800,10 +800,10 @@ export function buildClientUploadReminder7DayEmail(params: {
 }
 
 
-/* ═══════════════════════════════════════════════════════════════
+/* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
    C6. CLIENT - UPLOAD REMINDER (3-DAY)
    Urgent reminder 3 days before the event.
-   ═══════════════════════════════════════════════════════════════ */
+   ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
 
 export function buildClientUploadReminder3DayEmail(params: {
   contactName: string;
@@ -843,7 +843,7 @@ export function buildClientUploadReminder3DayEmail(params: {
 
         ${tipBox(`\u05D0\u05DD \u05D0\u05EA\u05DD \u05DC\u05D0 \u05DE\u05EA\u05DB\u05E0\u05E0\u05D9\u05DD \u05DC\u05D4\u05E2\u05DC\u05D5\u05EA \u05E8\u05E9\u05D9\u05DE\u05D4, \u05D6\u05D4 \u05D1\u05E1\u05D3\u05E8 &mdash; \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E2\u05D3\u05D9\u05D9\u05DF \u05D9\u05D5\u05DB\u05DC\u05D5 \u05DC\u05D4\u05E6\u05D8\u05E8\u05E3 \u05D3\u05E8\u05DA ${ltr('QR')} \u05D1\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E2\u05E6\u05DE\u05D5.`)}
 
-        ${ctaBtn(params.uploadUrl, '\u05D4\u05E2\u05DC\u05D5 \u05E2\u05DB\u05E9\u05D9\u05D5 \u2014 \u05DC\u05E4\u05E0\u05D9 \u05E9\u05DE\u05D0\u05D5\u05D7\u05E8!', C.warn)}
+        ${ctaBtn(params.uploadUrl, '\u05D4\u05E2\u05DC\u05D5 \u05E2\u05DB\u05E9\u05D9\u05D5 - \u05DC\u05E4\u05E0\u05D9 \u05E9\u05DE\u05D0\u05D5\u05D7\u05E8!', C.warn)}
 
         ${supportRow()}`;
 
@@ -851,10 +851,10 @@ export function buildClientUploadReminder3DayEmail(params: {
 }
 
 
-/* ═══════════════════════════════════════════════════════════════
+/* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
    C7. CLIENT - EVENT SUMMARY
    Sent the day after the event with stats.
-   ═══════════════════════════════════════════════════════════════ */
+   ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
 
 export function buildClientEventSummaryEmail(params: {
   contactName: string;
@@ -872,7 +872,7 @@ export function buildClientEventSummaryEmail(params: {
   const safeEvent = escapeHtml(params.eventName);
   const s = params.stats;
 
-  const subject = `Eventa \u2014 \u05E1\u05D9\u05DB\u05D5\u05DD \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u201C${params.eventName}\u201D`;
+  const subject = `Eventa - \u05E1\u05D9\u05DB\u05D5\u05DD \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u201C${params.eventName}\u201D`;
 
   const inner = `
         ${greeting(
@@ -909,10 +909,10 @@ export function buildClientEventSummaryEmail(params: {
 }
 
 
-/* ═══════════════════════════════════════════════════════════════
+/* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
    A1. ADMIN - PAY NOW NOTIFICATION
    Client paid online. Needs admin approval to charge the card.
-   ═══════════════════════════════════════════════════════════════ */
+   ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
 
 export function buildAdminPayNowNotification(data: EventFormData & {
   contactName: string;
@@ -927,11 +927,11 @@ export function buildAdminPayNowNotification(data: EventFormData & {
     eventLabel: escapeHtml(EVENT_TYPE_LABELS[data.eventType] || data.eventType),
   };
 
-  const subject = `\u05D1\u05E7\u05E9\u05D4 \u05D7\u05D3\u05E9\u05D4 + \u05EA\u05E9\u05DC\u05D5\u05DD \u05D1\u05D0\u05EA\u05E8 \u2014 ${data.contactName} | ${EVENT_TYPE_LABELS[data.eventType] || data.eventType}`;
+  const subject = `\u05D1\u05E7\u05E9\u05D4 \u05D7\u05D3\u05E9\u05D4 + \u05EA\u05E9\u05DC\u05D5\u05DD \u05D1\u05D0\u05EA\u05E8 - ${data.contactName} | ${EVENT_TYPE_LABELS[data.eventType] || data.eventType}`;
 
   const inner = `
         ${statusBanner(
-          '\u05D4\u05DC\u05E7\u05D5\u05D7 \u05E9\u05D9\u05DC\u05DD \u05D1\u05D0\u05EA\u05E8 \u2014 \u05DE\u05DE\u05EA\u05D9\u05DF \u05DC\u05D0\u05D9\u05E9\u05D5\u05E8 \u05E1\u05D5\u05E4\u05D9',
+          '\u05D4\u05DC\u05E7\u05D5\u05D7 \u05E9\u05D9\u05DC\u05DD \u05D1\u05D0\u05EA\u05E8 - \u05DE\u05DE\u05EA\u05D9\u05DF \u05DC\u05D0\u05D9\u05E9\u05D5\u05E8 \u05E1\u05D5\u05E4\u05D9',
           null,
           C.successBg, C.success,
         )}
@@ -963,10 +963,10 @@ export function buildAdminPayNowNotification(data: EventFormData & {
 }
 
 
-/* ═══════════════════════════════════════════════════════════════
+/* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
    A2. ADMIN - CALL ME BACK NOTIFICATION
    Client filled the full form and wants to be contacted.
-   ═══════════════════════════════════════════════════════════════ */
+   ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
 
 export function buildAdminCallMeBackNotification(data: EventFormData & {
   contactName: string;
@@ -981,7 +981,7 @@ export function buildAdminCallMeBackNotification(data: EventFormData & {
     eventLabel: escapeHtml(EVENT_TYPE_LABELS[data.eventType] || data.eventType),
   };
 
-  const subject = `\u05D1\u05E7\u05E9\u05D4 \u05D7\u05D3\u05E9\u05D4 (\u05DE\u05DE\u05EA\u05D9\u05DF \u05DC\u05E9\u05D9\u05D7\u05D4) \u2014 ${data.contactName} | ${EVENT_TYPE_LABELS[data.eventType] || data.eventType}`;
+  const subject = `\u05D1\u05E7\u05E9\u05D4 \u05D7\u05D3\u05E9\u05D4 (\u05DE\u05DE\u05EA\u05D9\u05DF \u05DC\u05E9\u05D9\u05D7\u05D4) - ${data.contactName} | ${EVENT_TYPE_LABELS[data.eventType] || data.eventType}`;
 
   const inner = `
         ${statusBanner(
@@ -1015,10 +1015,10 @@ export function buildAdminCallMeBackNotification(data: EventFormData & {
 }
 
 
-/* ═══════════════════════════════════════════════════════════════
+/* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
    A3. ADMIN - CONTACT ONLY NOTIFICATION
    Client wants to be contacted. No event form filled.
-   ═══════════════════════════════════════════════════════════════ */
+   ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
 
 export function buildAdminContactOnlyNotification(data: {
   contactName: string;
@@ -1032,11 +1032,11 @@ export function buildAdminContactOnlyNotification(data: {
     email: data.contactEmail ? escapeHtml(data.contactEmail) : '',
   };
 
-  const subject = `\u05E4\u05E0\u05D9\u05D9\u05D4 \u05D7\u05D3\u05E9\u05D4 (\u05DC\u05DC\u05D0 \u05D8\u05D5\u05E4\u05E1) \u2014 ${data.contactName}`;
+  const subject = `\u05E4\u05E0\u05D9\u05D9\u05D4 \u05D7\u05D3\u05E9\u05D4 (\u05DC\u05DC\u05D0 \u05D8\u05D5\u05E4\u05E1) - ${data.contactName}`;
 
   const inner = `
         ${statusBanner(
-          '\u05D4\u05DC\u05E7\u05D5\u05D7 \u05E8\u05D5\u05E6\u05D4 \u05E9\u05E0\u05D9\u05E6\u05D5\u05E8 \u05D0\u05D9\u05EA\u05D5 \u05E7\u05E9\u05E8 \u2014 \u05DC\u05D0 \u05DE\u05D9\u05DC\u05D0 \u05E4\u05E8\u05D8\u05D9 \u05D0\u05D9\u05E8\u05D5\u05E2',
+          '\u05D4\u05DC\u05E7\u05D5\u05D7 \u05E8\u05D5\u05E6\u05D4 \u05E9\u05E0\u05D9\u05E6\u05D5\u05E8 \u05D0\u05D9\u05EA\u05D5 \u05E7\u05E9\u05E8 - \u05DC\u05D0 \u05DE\u05D9\u05DC\u05D0 \u05E4\u05E8\u05D8\u05D9 \u05D0\u05D9\u05E8\u05D5\u05E2',
           null,
           C.warnBg, C.warn,
         )}

@@ -54,7 +54,7 @@ export default function EventRow({
     let top = rect.bottom + 4;
     const left = rect.left;
     // If the menu would overflow the viewport bottom, open above instead
-    // Estimate menu height (~320px) — will be corrected after mount
+    // Estimate menu height (~320px) - will be corrected after mount
     const estimatedHeight = 320;
     if (top + estimatedHeight > window.innerHeight) {
       top = rect.top - estimatedHeight - 4;
