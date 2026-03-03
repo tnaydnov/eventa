@@ -72,8 +72,7 @@ export default function StepMessages({ state, onChange }: Props) {
       </div>
 
       {/* Tip: Why choose this */}
-      {enabled && (
-        <div className="wiz-msg-tip">
+      <div className="wiz-msg-tip">
           <div className="wiz-msg-tip__icon">💡</div>
           <div className="wiz-msg-tip__text">
             <strong>למה כדאי?</strong> מהניסיון שלנו, חלק מהאורחים מפספסים את השלטים באירוע
@@ -81,11 +80,9 @@ export default function StepMessages({ state, onChange }: Props) {
             להסתכל מי יהיה שם... וככה הרבה יותר אורחים מצטרפים בפועל.
           </div>
         </div>
-      )}
 
       {/* WA Message Preview */}
-      {enabled && (
-        <div className="wiz-msg-preview-section">
+      <div className="wiz-msg-preview-section">
           <button
             type="button"
             className="wiz-msg-preview-toggle"
@@ -123,7 +120,6 @@ export default function StepMessages({ state, onChange }: Props) {
             </div>
           )}
         </div>
-      )}
 
       {/* How it works */}
       <div className="wiz-msg-howto">
