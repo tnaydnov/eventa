@@ -55,6 +55,10 @@ export interface Event {
   guest_list_count: number;
   original_slug: string | null;
   qr_page_sent: boolean;
+  client_name: string | null;
+  client_email: string | null;
+  client_phone: string | null;
+  communication_preference: string | null;
 }
 
 export interface Participant {

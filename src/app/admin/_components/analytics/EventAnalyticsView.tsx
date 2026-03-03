@@ -38,6 +38,7 @@ interface EventAnalyticsViewProps {
   sendClientEmail: (eventId: string, type: string, opts?: { subject?: string; body?: string }) => Promise<{ ok: boolean; error?: string }>;
   sendQrPage: (eventId: string, files: File[], qrOnly?: boolean) => Promise<{ ok: boolean; error?: string }>;
   loadMessageLog: (eventId: string) => Promise<void>;
+  updateEventDetails?: (eventId: string, updates: Record<string, unknown>) => Promise<{ ok: boolean; error?: string }>;
 }
 
 type DetailTab = 'overview' | 'analytics' | 'participants' | 'messaging' | 'settings';
@@ -79,6 +80,7 @@ export default function EventAnalyticsView({
   loadMessagingStatus, updateMessagingConfig, triggerMessages,
   loadGuestPhones, adminAddGuestPhone, adminRemoveGuestPhone, adminUploadGuestFile,
   regeneratePortalToken, sendClientEmail, sendQrPage, loadMessageLog,
+  updateEventDetails,
 }: EventAnalyticsViewProps) {
   const [analytics, setAnalytics] = useState<EventAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -176,7 +178,13 @@ export default function EventAnalyticsView({
           {event.description && <p className="ea-description">{event.description}</p>}
 
           {/* Services & pricing + contact details */}
-          <EventServicesInfo eventId={event.id} />
+          <EventServicesInfo
+            event={event}
+            onUpdateDetails={updateEventDetails
+              ? async (updates) => updateEventDetails(event.id, updates)
+              : undefined
+            }
+          />
 
           {/* Client email actions - always visible */}
           <ClientActionsPanel

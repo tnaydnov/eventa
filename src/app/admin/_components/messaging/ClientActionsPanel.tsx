@@ -36,6 +36,18 @@ const CLIENT_ACTIONS: ActionDef[] = [
     confirmLabel: 'שלח תזכורת',
   },
   {
+    id: 'upload_urgent',
+    label: 'תזכורת דחופה',
+    icon: '🚨',
+    description: 'תזכורת אחרונה ודחופה 3 ימים לפני האירוע - הלקוח עדיין לא העלה רשימה.',
+    preview: [
+      '📧 מייל אל: הלקוח שהזמין את השירות',
+      '📝 נושא: "תזכורת אחרונה! - רשימת אורחים"',
+      '📎 כולל: קישור לפורטל, אזהרה שבלי רשימה לא יישלחו הודעות',
+    ],
+    confirmLabel: 'שלח תזכורת דחופה',
+  },
+  {
     id: 'summary',
     label: 'סיכום אירוע',
     icon: '📊',
@@ -131,6 +143,20 @@ function generateEmailPreview(actionId: string, eventName: string, eventDate: st
         <a href="${uploadLink}" style="display:inline-block;background:${PE.accent};border-radius:10px;padding:14px 28px;color:#fff;font-size:15px;font-weight:700;text-decoration:none;">העלו את הרשימה עכשיו</a>
         <div style="font-size:11px;color:${PE.dim};margin-top:10px;">ההודעות נשלחות 2-3 שעות לפני האירוע. ככל שתעלו מוקדם יותר, כך יותר טוב!</div>
       </td></tr>`, 'תזכורת מוקדמת');
+
+    case 'upload_urgent': return emailShell('תזכורת אחרונה!', `
+      <tr><td dir="rtl" style="text-align:right;padding:20px 24px;background:#fff3e0;border-bottom:2px solid #ff9800;">
+        <div style="font-size:16px;font-weight:700;color:#e65100;">⚠️ תזכורת אחרונה</div>
+        <div style="font-size:13px;color:#bf360c;margin-top:4px;">האירוע בעוד 3 ימים ועדיין אין רשימת אורחים</div>
+      </td></tr>
+      <tr><td dir="rtl" style="text-align:right;padding:20px 24px 4px;border-bottom:1px solid ${PE.border};background:${PE.card};">
+        <div style="font-size:15px;font-weight:500;">שלום [שם הלקוח],</div>
+        <div style="font-size:13px;color:${PE.muted};margin-top:6px;line-height:1.6;">האירוע <strong>${safeName}</strong> כבר בעוד <strong>3 ימים</strong> ועדיין אין לנו את רשימת האורחים.</div>
+        <div style="font-size:14px;color:#e65100;font-weight:600;line-height:1.6;padding-bottom:16px;">בלי הרשימה, לא נוכל לשלוח הודעות WhatsApp לאורחים.</div>
+      </td></tr>
+      <tr><td style="padding:20px 24px;text-align:center;background:${PE.card};">
+        <a href="${uploadLink}" style="display:inline-block;background:#ff9800;border-radius:10px;padding:14px 28px;color:#fff;font-size:15px;font-weight:700;text-decoration:none;">העלו עכשיו - לפני שמאוחר!</a>
+      </td></tr>`, 'תזכורת דחופה');
 
     case 'summary': return emailShell('סיכום אירוע', `
       <tr><td dir="rtl" style="text-align:right;padding:20px 24px 4px;border-bottom:1px solid ${PE.border};background:${PE.card};">

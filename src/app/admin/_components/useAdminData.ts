@@ -590,6 +590,28 @@ export function useAdminData() {
     }
   };
 
+  /* ─── update event details (client info, etc.) ─── */
+  const updateEventDetails = async (
+    id: string,
+    updates: { client_name?: string | null; client_email?: string | null; client_phone?: string | null; communication_preference?: string | null }
+  ): Promise<{ ok: boolean; error?: string }> => {
+    try {
+      const res = await authedFetch(`/api/admin/events/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(updates),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        return { ok: false, error: d.error || 'שגיאה בעדכון' };
+      }
+      // Update local state
+      setEvents(prev => prev.map(e => e.id === id ? { ...e, ...updates } as typeof e : e));
+      return { ok: true };
+    } catch {
+      return { ok: false, error: 'שגיאת תקשורת' };
+    }
+  };
+
   return {
     authed, events, loading, stats, requests,
     selectedEvent, participants,
@@ -603,5 +625,6 @@ export function useAdminData() {
     loadGuestPhones, adminAddGuestPhone, adminRemoveGuestPhone, adminUploadGuestFile,
     regeneratePortalToken, sendClientEmail, sendQrPage, loadMessageLog,
     markAsPaid, waivePayment, resendPaymentLink, toggleQrSent,
+    updateEventDetails,
   };
 }

@@ -9,6 +9,7 @@ import { adminSendEmailSchema } from '@/lib/validations';
 import { APP_BASE_URL, MSG_TIMING } from '@/lib/config';
 import {
   buildClientUploadReminder7DayEmail,
+  buildClientUploadReminder3DayEmail,
   buildClientEventSummaryEmail,
 } from '@/lib/email-templates';
 
@@ -46,30 +47,34 @@ export async function POST(
 
     const supabase = getServiceClient();
 
-    // Load event + event_request for contact info
+    // Load event (now includes client contact fields)
     const { data: event, error: evErr } = await supabase
       .from('events')
       .select(
-        'id, name, slug, starts_at, ends_at, wa_messages_enabled, guest_list_count'
+        'id, name, slug, starts_at, ends_at, wa_messages_enabled, guest_list_count, client_name, client_email, client_phone'
       )
       .eq('id', eventId)
       .single();
 
     if (evErr || !event) return jsonError('Event not found', 404);
 
-    // Find the event_request to get contact info
-    const { data: request } = await supabase
-      .from('event_requests')
-      .select('contact_name, contact_email, contact_phone')
-      .eq('approved_event_id', eventId)
-      .single();
+    // Use client fields from event; fallback to event_requests for legacy events
+    let contactName = event.client_name;
+    let contactEmail = event.client_email;
 
-    if (!request?.contact_email) {
-      return jsonError('No contact email found for this event', 400);
+    if (!contactEmail) {
+      const { data: request } = await supabase
+        .from('event_requests')
+        .select('contact_name, contact_email')
+        .eq('approved_event_id', eventId)
+        .single();
+
+      if (!request?.contact_email) {
+        return jsonError('No contact email found for this event. Add client email in event settings.', 400);
+      }
+      contactName = request.contact_name;
+      contactEmail = request.contact_email;
     }
-
-    const contactName = request.contact_name;
-    const contactEmail = request.contact_email;
 
     // Build portal URL for upload-related emails
     const { data: tokenData } = await supabase
@@ -111,6 +116,28 @@ export async function POST(
           uploadUrl: portalUrl,
           messageSendAt,
           uploadDeadline,
+        });
+        break;
+      }
+
+      case 'upload_urgent': {
+        if (!portalUrl) {
+          return jsonError(
+            'No active portal token - generate one first',
+            400
+          );
+        }
+        const startsMs2 = new Date(event.starts_at).getTime();
+        const preEventMs2 = MSG_TIMING.PRE_EVENT_HOURS_BEFORE * 60 * 60 * 1000;
+        const messageSendAt2 = new Date(startsMs2 - preEventMs2).toISOString();
+        const uploadDeadline2 = messageSendAt2;
+
+        email = buildClientUploadReminder3DayEmail({
+          contactName,
+          eventName: event.name,
+          uploadUrl: portalUrl,
+          messageSendAt: messageSendAt2,
+          uploadDeadline: uploadDeadline2,
         });
         break;
       }

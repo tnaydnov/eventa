@@ -1139,6 +1139,47 @@
   transform: translateX(-18px);
 }
 
+/* Section divider */
+.ced-section-divider {
+  margin: 16px 0 8px;
+  padding: 0;
+  border-top: 1px solid var(--admin-border);
+  position: relative;
+  text-align: right;
+}
+.ced-section-divider__label {
+  display: inline-block;
+  background: var(--admin-card);
+  padding: 0 8px;
+  position: relative;
+  top: -10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+/* Pricing summary */
+.ced-pricing {
+  margin-top: 12px;
+  background: var(--admin-bg);
+  border-radius: var(--admin-radius-sm);
+  padding: 10px 14px;
+  font-size: 13px;
+}
+.ced-pricing__row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  color: var(--admin-muted);
+}
+.ced-pricing__row--total {
+  border-top: 1px solid var(--admin-border);
+  margin-top: 4px;
+  padding-top: 8px;
+  font-weight: 700;
+  color: var(--admin-text);
+}
+
 /* Error banner */
 .ced-error {
   background: rgba(244, 67, 54, 0.12);

@@ -48,7 +48,11 @@ CREATE TABLE IF NOT EXISTS events (
   background_image TEXT,
   archived_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  qr_page_sent BOOLEAN NOT NULL DEFAULT false
+  qr_page_sent BOOLEAN NOT NULL DEFAULT false,
+  client_name TEXT,
+  client_email TEXT,
+  client_phone TEXT,
+  communication_preference TEXT DEFAULT 'email'
 );
 
 -- Participants

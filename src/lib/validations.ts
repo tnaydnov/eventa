@@ -77,6 +77,7 @@ export const guestPhoneImportSchema = z.object({
 /** Manual admin email send types. */
 export const adminEmailTypeValues = [
   'upload_reminder',
+  'upload_urgent',
   'summary',
   'custom',
   'qr_page',
@@ -201,6 +202,10 @@ export const createEventSchema = z.object({
   starts_at: z.string().datetime().optional(),
   ends_at: z.string().datetime().optional(),
   wa_messages_enabled: z.boolean().optional(),
+  client_name: z.string().max(100).optional(),
+  client_email: z.string().email().max(200).optional(),
+  client_phone: z.string().max(20).optional(),
+  communication_preference: z.enum(['email', 'phone', 'whatsapp', 'call-me']).optional(),
 });
 
 /* ---- Admin update event schema ---- */
@@ -214,6 +219,10 @@ export const updateEventSchema = z.object({
   status: z.enum(updateableStatusValues).optional(),
   description: z.string().max(500).nullable().optional(),
   background_image: z.string().url().max(500).nullable().optional(),
+  client_name: z.string().max(100).nullable().optional(),
+  client_email: z.string().email().max(200).nullable().optional(),
+  client_phone: z.string().max(20).nullable().optional(),
+  communication_preference: z.enum(['email', 'phone', 'whatsapp', 'call-me']).nullable().optional(),
 });
 
 /* ---- Message schema ---- */

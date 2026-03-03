@@ -200,6 +200,11 @@ export async function POST(req: NextRequest) {
         starts_at: request.starts_at,
         ends_at: request.ends_at,
         is_active: true,
+        wa_messages_enabled: request.wants_guest_messages || false,
+        client_name: request.contact_name || null,
+        client_email: request.contact_email || null,
+        client_phone: request.contact_phone || null,
+        communication_preference: request.contact_preference || 'email',
       })
       .select('id, slug')
       .single();

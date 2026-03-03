@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
@@ -12,7 +12,7 @@ import {
   isAllowedUploadFile,
 } from '@/lib/guest-upload';
 
-// ─── Helpers ────────────────────────────────────────────
+// ג”€ג”€ג”€ Helpers ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
@@ -70,7 +70,7 @@ async function updateGuestListStatus(
     .eq('id', eventId);
 }
 
-// ─── GET: Portal data + guest list ──────────────────────
+// ג”€ג”€ג”€ GET: Portal data + guest list ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
 /**
  * GET /api/guest-portal/[token]
@@ -111,6 +111,11 @@ export async function GET(
       return jsonError('Event not found', 404);
     }
 
+    // Block portal access if WA messaging is disabled for this event
+    if (!event.wa_messages_enabled) {
+      return jsonError('שירות ההודעות אינו פעיל עבור אירוע זה - הפורטל לא זמין', 403);
+    }
+
     // Check if event is archived or has already started (portal locked)
     const isReadOnly = event.status === 'archived' || (event.starts_at && new Date(event.starts_at) <= new Date());
 
@@ -129,7 +134,7 @@ export async function GET(
       .eq('event_id', eventId);
 
     if (search) {
-      // Normalize local phone input (0505752650 → +972505752650) for DB match
+      // Normalize local phone input (0505752650 ג†’ +972505752650) for DB match
       const normalized = normalizePhone(search);
       const digits = search.replace(/[^\d]/g, '');
       if (normalized) {
@@ -207,7 +212,7 @@ export async function GET(
   }
 }
 
-// ─── POST: Upload file or add single phone ──────────────
+// ג”€ג”€ג”€ POST: Upload file or add single phone ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
 /**
  * POST /api/guest-portal/[token]
@@ -237,19 +242,23 @@ export async function POST(
 
     const eventId = portalData.event_id;
 
-    // Check event is not archived and hasn't started yet
-    const { data: event } = await supabase
+    // Check event is not archived, not started, and WA enabled
+    const { data: evPost } = await supabase
       .from('events')
-      .select('id, status, starts_at')
+      .select('id, status, starts_at, wa_messages_enabled')
       .eq('id', eventId)
       .single();
 
-    if (!event || event.status === 'archived') {
-      return jsonError('האירוע הסתיים - לא ניתן לעדכן את הרשימה', 400);
+    if (!evPost || evPost.status === 'archived') {
+      return jsonError('׳”׳׳™׳¨׳•׳¢ ׳”׳¡׳×׳™׳™׳ - ׳׳ ׳ ׳™׳×׳ ׳׳¢׳“׳›׳ ׳׳× ׳”׳¨׳©׳™׳׳”', 400);
     }
 
-    if (event.starts_at && new Date(event.starts_at) <= new Date()) {
-      return jsonError('האירוע כבר התחיל - לא ניתן לעדכן את הרשימה', 400);
+    if (!evPost.wa_messages_enabled) {
+      return jsonError('שירות ההודעות אינו פעיל עבור אירוע זה - הפורטל לא זמין', 403);
+    }
+
+    if (evPost.starts_at && new Date(evPost.starts_at) <= new Date()) {
+      return jsonError('׳”׳׳™׳¨׳•׳¢ ׳›׳‘׳¨ ׳”׳×׳—׳™׳ - ׳׳ ׳ ׳™׳×׳ ׳׳¢׳“׳›׳ ׳׳× ׳”׳¨׳©׳™׳׳”', 400);
     }
 
     const contentType = req.headers.get('content-type') || '';
@@ -278,11 +287,11 @@ async function handleFileUpload(
   }
 
   if (file.size > MAX_UPLOAD_FILE_SIZE) {
-    return jsonError('הקובץ גדול מדי (מקסימום 5MB)', 400);
+    return jsonError('׳”׳§׳•׳‘׳¥ ׳’׳“׳•׳ ׳׳“׳™ (׳׳§׳¡׳™׳׳•׳ 5MB)', 400);
   }
 
   if (!isAllowedUploadFile(file.name)) {
-    return jsonError('הקובץ חייב להיות בפורמט Excel (.xlsx) או CSV (.csv)', 400);
+    return jsonError('׳”׳§׳•׳‘׳¥ ׳—׳™׳™׳‘ ׳׳”׳™׳•׳× ׳‘׳₪׳•׳¨׳׳˜ Excel (.xlsx) ׳׳• CSV (.csv)', 400);
   }
 
   // Check current count
@@ -293,7 +302,7 @@ async function handleFileUpload(
 
   if ((currentCount ?? 0) >= MAX_GUEST_PHONES_PER_EVENT) {
     return jsonError(
-      `הגעתם למקסימום ${MAX_GUEST_PHONES_PER_EVENT} אורחים`,
+      `׳”׳’׳¢׳×׳ ׳׳׳§׳¡׳™׳׳•׳ ${MAX_GUEST_PHONES_PER_EVENT} ׳׳•׳¨׳—׳™׳`,
       400
     );
   }
@@ -364,12 +373,12 @@ async function handleSingleAdd(
   const body = await req.json();
   const parsed = guestPhoneSchema.safeParse(body);
   if (!parsed.success) {
-    return jsonError('מספר הטלפון לא תקין', 400);
+    return jsonError('׳׳¡׳₪׳¨ ׳”׳˜׳׳₪׳•׳ ׳׳ ׳×׳§׳™׳', 400);
   }
 
   const normalized = normalizePhone(parsed.data.phone);
   if (!normalized || !isValidIsraeliMobile(normalized)) {
-    return jsonError('רק מספרי סלולר ישראלי (05X) נתמכים', 400);
+    return jsonError('׳¨׳§ ׳׳¡׳₪׳¨׳™ ׳¡׳׳•׳׳¨ ׳™׳©׳¨׳׳׳™ (05X) ׳ ׳×׳׳›׳™׳', 400);
   }
 
   // Check current count
@@ -380,7 +389,7 @@ async function handleSingleAdd(
 
   if ((currentCount ?? 0) >= MAX_GUEST_PHONES_PER_EVENT) {
     return jsonError(
-      `הגעתם למקסימום ${MAX_GUEST_PHONES_PER_EVENT} אורחים`,
+      `׳”׳’׳¢׳×׳ ׳׳׳§׳¡׳™׳׳•׳ ${MAX_GUEST_PHONES_PER_EVENT} ׳׳•׳¨׳—׳™׳`,
       400
     );
   }
@@ -394,7 +403,7 @@ async function handleSingleAdd(
     .maybeSingle();
 
   if (dup) {
-    return jsonError('המספר כבר קיים ברשימה', 409);
+    return jsonError('׳”׳׳¡׳₪׳¨ ׳›׳‘׳¨ ׳§׳™׳™׳ ׳‘׳¨׳©׳™׳׳”', 409);
   }
 
   const nameVal = parsed.data.name ?? '';
@@ -428,7 +437,7 @@ async function handleSingleAdd(
   });
 }
 
-// ─── DELETE: Remove phone from list ─────────────────────
+// ג”€ג”€ג”€ DELETE: Remove phone from list ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
 /**
  * DELETE /api/guest-portal/[token]
@@ -456,19 +465,24 @@ export async function DELETE(
 
     const eventId = portalData.event_id;
 
-    // Check event is not archived and hasn't started yet
-    const { data: event } = await supabase
+
+    // Check event is not archived, not started, and WA enabled
+    const { data: evDel } = await supabase
       .from('events')
-      .select('id, status, starts_at')
+      .select('id, status, starts_at, wa_messages_enabled')
       .eq('id', eventId)
       .single();
 
-    if (!event || event.status === 'archived') {
-      return jsonError('האירוע הסתיים - לא ניתן לעדכן את הרשימה', 400);
+    if (!evDel || evDel.status === 'archived') {
+      return jsonError('׳”׳׳™׳¨׳•׳¢ ׳”׳¡׳×׳™׳™׳ - ׳׳ ׳ ׳™׳×׳ ׳׳¢׳“׳›׳ ׳׳× ׳”׳¨׳©׳™׳׳”', 400);
     }
 
-    if (event.starts_at && new Date(event.starts_at) <= new Date()) {
-      return jsonError('האירוע כבר התחיל - לא ניתן לעדכן את הרשימה', 400);
+    if (!evDel.wa_messages_enabled) {
+      return jsonError('שירות ההודעות אינו פעיל עבור אירוע זה - הפורטל לא זמין', 403);
+    }
+
+    if (evDel.starts_at && new Date(evDel.starts_at) <= new Date()) {
+      return jsonError('׳”׳׳™׳¨׳•׳¢ ׳›׳‘׳¨ ׳”׳×׳—׳™׳ - ׳׳ ׳ ׳™׳×׳ ׳׳¢׳“׳›׳ ׳׳× ׳”׳¨׳©׳™׳׳”', 400);
     }
 
     const body = await req.json();
@@ -498,7 +512,7 @@ export async function DELETE(
 
     if (phone.wa_pre_event_sent) {
       return jsonError(
-        'לא ניתן להסיר מספר שכבר נשלחה אליו הודעה',
+        '׳׳ ׳ ׳™׳×׳ ׳׳”׳¡׳™׳¨ ׳׳¡׳₪׳¨ ׳©׳›׳‘׳¨ ׳ ׳©׳׳—׳” ׳׳׳™׳• ׳”׳•׳“׳¢׳”',
         400
       );
     }

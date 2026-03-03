@@ -13,6 +13,10 @@ export interface CreateEventData {
   starts_at: string;
   ends_at: string;
   wa_messages_enabled: boolean;
+  client_name: string;
+  client_email: string;
+  client_phone: string;
+  communication_preference: string;
 }
 
 interface CreateEventDialogProps {
@@ -62,6 +66,10 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [waEnabled, setWaEnabled] = useState(false);
+  const [clientName, setClientName] = useState('');
+  const [clientEmail, setClientEmail] = useState('');
+  const [clientPhone, setClientPhone] = useState('');
+  const [commPref, setCommPref] = useState('email');
 
   /* ─── Derived slug preview ─── */
   const slugPreview = useMemo(() => {
@@ -75,8 +83,10 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
     if (!name.trim()) return false;
     if (!startsAt || !endsAt) return false;
     if (new Date(endsAt) <= new Date(startsAt)) return false;
+    if (!clientName.trim()) return false;
+    if (!clientEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail.trim())) return false;
     return true;
-  }, [name, startsAt, endsAt]);
+  }, [name, startsAt, endsAt, clientName, clientEmail]);
 
   /* ─── Reset form ─── */
   const reset = useCallback(() => {
@@ -89,6 +99,10 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
     setSubmitting(false);
     setError('');
     setWaEnabled(false);
+    setClientName('');
+    setClientEmail('');
+    setClientPhone('');
+    setCommPref('email');
   }, []);
 
   /* ─── Handlers ─── */
@@ -120,6 +134,10 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
         starts_at: new Date(startsAt).toISOString(),
         ends_at: new Date(endsAt).toISOString(),
         wa_messages_enabled: waEnabled,
+        client_name: clientName.trim(),
+        client_email: clientEmail.trim(),
+        client_phone: clientPhone.trim(),
+        communication_preference: commPref,
       });
 
       if (result.ok) {
@@ -251,6 +269,63 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
           </div>
         </div>
 
+        {/* Client contact details */}
+        <div className="ced-section-divider">
+          <span className="ced-section-divider__label">📞 פרטי הלקוח</span>
+        </div>
+
+        <div className="admin-grid-2">
+          <div className="ced-field">
+            <label className="admin-label">שם מלא *</label>
+            <input
+              className="admin-input"
+              type="text"
+              placeholder="שם הלקוח"
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+              maxLength={100}
+            />
+          </div>
+          <div className="ced-field">
+            <label className="admin-label">אימייל *</label>
+            <input
+              className="admin-input admin-input--ltr"
+              type="email"
+              placeholder="client@example.com"
+              value={clientEmail}
+              onChange={(e) => setClientEmail(e.target.value)}
+              maxLength={200}
+            />
+          </div>
+        </div>
+
+        <div className="admin-grid-2">
+          <div className="ced-field">
+            <label className="admin-label">טלפון</label>
+            <input
+              className="admin-input admin-input--ltr"
+              type="tel"
+              placeholder="050-0000000"
+              value={clientPhone}
+              onChange={(e) => setClientPhone(e.target.value)}
+              maxLength={20}
+            />
+          </div>
+          <div className="ced-field">
+            <label className="admin-label">העדפת תקשורת</label>
+            <select
+              className="admin-input"
+              value={commPref}
+              onChange={(e) => setCommPref(e.target.value)}
+            >
+              <option value="email">📧 אימייל</option>
+              <option value="phone">📞 טלפון</option>
+              <option value="whatsapp">📱 WhatsApp</option>
+              <option value="call-me">🔙 חזרו אליי</option>
+            </select>
+          </div>
+        </div>
+
         {/* Description */}
         <div className="ced-field">
           <label className="admin-label">תיאור (אופציונלי)</label>
@@ -283,6 +358,23 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
               <span className="ced-wa-toggle__switch-thumb" />
             </span>
           </button>
+          {/* Pricing summary */}
+          <div className="ced-pricing">
+            <div className="ced-pricing__row">
+              <span>אירוע בסיסי</span>
+              <span>₪250</span>
+            </div>
+            {waEnabled && (
+              <div className="ced-pricing__row">
+                <span>הודעות WhatsApp</span>
+                <span>₪50</span>
+              </div>
+            )}
+            <div className="ced-pricing__row ced-pricing__row--total">
+              <span>סה״כ</span>
+              <span>₪{waEnabled ? 300 : 250}</span>
+            </div>
+          </div>
         </div>
 
         {/* Error message */}

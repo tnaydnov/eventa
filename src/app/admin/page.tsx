@@ -229,6 +229,7 @@ export default function AdminPage() {
                 sendClientEmail={admin.sendClientEmail}
                 sendQrPage={admin.sendQrPage}
                 loadMessageLog={admin.loadMessageLog}
+                updateEventDetails={admin.updateEventDetails}
               />
             )}
 
