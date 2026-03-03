@@ -272,6 +272,20 @@ export function useAdminData() {
     return { ok: false, error: err.error || 'שגיאה בדחיית הבקשה' };
   };
 
+  const deleteRequest = async (requestId: string): Promise<{ ok: boolean; error?: string }> => {
+    const res = await authedFetch('/api/admin/requests', {
+      method: 'DELETE',
+      body: JSON.stringify({ requestId }),
+    });
+    if (res.ok) {
+      loadRequests();
+      loadEvents();
+      return { ok: true };
+    }
+    const err = await res.json().catch(() => ({}));
+    return { ok: false, error: err.error || 'שגיאה במחיקת הבקשה' };
+  };
+
   // Load requests on mount alongside events
   useEffect(() => {
     if (authed) loadRequests();
@@ -508,7 +522,7 @@ export function useAdminData() {
     createEvent, toggleEvent, rotateJoinCode, deleteEvent,
     loadStats, loadParticipants, banParticipant, closeParticipants,
     uploadBackground, removeBackground, updateStatus, archiveEvent,
-    loadRequests, approveRequest, denyRequest,
+    loadRequests, approveRequest, denyRequest, deleteRequest,
     loadMessagingStatus, updateMessagingConfig, triggerMessages,
     loadGuestPhones, adminAddGuestPhone, adminRemoveGuestPhone, adminUploadGuestFile,
     regeneratePortalToken, sendClientEmail, sendQrPage, loadMessageLog,

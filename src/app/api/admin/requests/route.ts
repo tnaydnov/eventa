@@ -12,6 +12,7 @@ import {
 } from '@/lib/email-templates';
 import { generatePrettySlug } from '@/lib/slug';
 import { chargeWithToken, getClearingLogById } from '@/lib/invoice4u';
+import { evictEventStatusCache } from '@/lib/route-helpers';
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -539,5 +540,129 @@ export async function PATCH(req: NextRequest) {
   } catch (err) {
     logger.error('[ADMIN_REQUESTS_PATCH] error:', err);
     return jsonError('Failed to update payment', 500);
+  }
+}
+
+/**
+ * DELETE /api/admin/requests
+ * Delete a request.
+ * - Approved/denied requests: only the request record is removed (event stays).
+ * - Pending requests: the request AND its associated event (if any) are
+ *   cascade-deleted, as if the request was never submitted.
+ * Body: { requestId: string }
+ */
+export async function DELETE(req: NextRequest) {
+  const denied = adminGuard(req, 'admin-requests-delete', RATE_LIMITS.standard);
+  if (denied) return denied;
+
+  try {
+    const { requestId } = await req.json();
+    if (!requestId || typeof requestId !== 'string') {
+      return jsonError('Missing requestId', 400);
+    }
+
+    const supabase = getServiceClient();
+
+    // Fetch the request
+    const { data: request, error: fetchErr } = await supabase
+      .from('event_requests')
+      .select('id, status, approved_event_id')
+      .eq('id', requestId)
+      .single();
+
+    if (fetchErr || !request) {
+      return jsonError('Request not found', 404);
+    }
+
+    const isPending = request.status === 'pending';
+    const eventId = request.approved_event_id as string | null;
+
+    // For pending requests with an associated event → cascade-delete the event
+    if (isPending && eventId) {
+      const warnings: string[] = [];
+
+      const purge = async (table: string, filter: { col: string; val: string | string[]; op?: 'eq' | 'in' }) => {
+        const query = supabase.from(table).delete();
+        const q = filter.op === 'in'
+          ? query.in(filter.col, filter.val as string[])
+          : query.eq(filter.col, filter.val as string);
+        const { error } = await q;
+        if (error) {
+          logger.error(`[ADMIN_REQUEST_DELETE] ${table} delete error:`, error.message);
+          warnings.push(`${table}: ${error.message}`);
+        }
+      };
+
+      // Participant photos → storage + DB
+      const { data: parts } = await supabase.from('participants').select('id').eq('event_id', eventId);
+      const pIds = (parts || []).map((p: { id: string }) => p.id);
+
+      if (pIds.length > 0) {
+        const { data: photos } = await supabase
+          .from('participant_photos')
+          .select('storage_path')
+          .in('participant_id', pIds);
+        if (photos && photos.length > 0) {
+          await supabase.storage.from('photos').remove(photos.map((p: { storage_path: string }) => p.storage_path));
+        }
+        await purge('participant_photos', { col: 'participant_id', val: pIds, op: 'in' });
+      }
+
+      // Chat media + conversations
+      const { data: convos } = await supabase.from('conversations').select('id').eq('event_id', eventId);
+      const cIds = (convos || []).map((c: { id: string }) => c.id);
+      if (cIds.length > 0) {
+        const { data: chatMedia } = await supabase
+          .from('messages')
+          .select('media_path')
+          .in('conversation_id', cIds)
+          .not('media_path', 'is', null);
+        if (chatMedia && chatMedia.length > 0) {
+          await supabase.storage.from('photos').remove(chatMedia.map((m: { media_path: string }) => m.media_path));
+        }
+        await purge('messages', { col: 'conversation_id', val: cIds, op: 'in' });
+      }
+      await purge('conversations', { col: 'event_id', val: eventId });
+
+      // Independent tables in parallel
+      await Promise.all([
+        purge('likes', { col: 'event_id', val: eventId }),
+        purge('blocks', { col: 'event_id', val: eventId }),
+        purge('banned_devices', { col: 'event_id', val: eventId }),
+        purge('notifications', { col: 'event_id', val: eventId }),
+        purge('activity_log', { col: 'event_id', val: eventId }),
+        purge('event_analytics_snapshots', { col: 'event_id', val: eventId }),
+      ]);
+
+      // Participants
+      await purge('participants', { col: 'event_id', val: eventId });
+
+      // Background storage (best effort)
+      await supabase.storage.from('backgrounds').remove(
+        ['jpg', 'png', 'webp'].map(ext => `${eventId}/bg.${ext}`)
+      );
+
+      // Delete event row
+      const { error: eventDelErr } = await supabase.from('events').delete().eq('id', eventId);
+      if (eventDelErr) {
+        logger.error('[ADMIN_REQUEST_DELETE] event delete error:', eventDelErr.message);
+        return jsonError('Failed to delete associated event', 500);
+      }
+
+      evictEventStatusCache(eventId);
+    }
+
+    // Delete the request record
+    const { error: reqDelErr } = await supabase.from('event_requests').delete().eq('id', requestId);
+    if (reqDelErr) {
+      logger.error('[ADMIN_REQUEST_DELETE] request delete error:', reqDelErr.message);
+      return jsonError('Failed to delete request', 500);
+    }
+
+    adminAuditLog('REQUEST_DELETE', { requestId, status: request.status, eventDeleted: isPending && !!eventId }, req);
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    logger.error('[ADMIN_REQUEST_DELETE] error:', err);
+    return jsonError('Failed to delete request', 500);
   }
 }

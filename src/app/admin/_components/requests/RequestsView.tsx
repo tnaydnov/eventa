@@ -31,10 +31,11 @@ interface Props {
   requests: EventRequest[];
   onApprove: (requestId: string, adminNotes?: string) => Promise<{ ok: boolean; error?: string }>;
   onDeny: (requestId: string, adminNotes?: string) => Promise<{ ok: boolean; error?: string }>;
+  onDelete: (requestId: string) => Promise<{ ok: boolean; error?: string }>;
   onReload: () => void;
 }
 
-export default function RequestsView({ requests, onApprove, onDeny, onReload }: Props) {
+export default function RequestsView({ requests, onApprove, onDeny, onDelete, onReload }: Props) {
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -82,6 +83,21 @@ export default function RequestsView({ requests, onApprove, onDeny, onReload }: 
       alert('❌ הבקשה נדחתה');
     } else {
       alert(result.error || 'שגיאה בדחיית הבקשה');
+    }
+  };
+
+  const handleDelete = async (req: EventRequest) => {
+    const msg = req.status === 'pending'
+      ? 'למחוק את הבקשה? הבקשה והאירוע המשויך יימחקו לצמיתות.'
+      : 'למחוק את הבקשה? רק רשומת הבקשה תימחק, האירוע יישאר.';
+    if (!confirm(msg)) return;
+    setProcessingId(req.id);
+    const result = await onDelete(req.id);
+    setProcessingId(null);
+    if (result.ok) {
+      alert('🗑️ הבקשה נמחקה');
+    } else {
+      alert(result.error || 'שגיאה במחיקת הבקשה');
     }
   };
 
@@ -341,6 +357,14 @@ export default function RequestsView({ requests, onApprove, onDeny, onReload }: 
                       >
                         {isProcessing ? '⏳ מעבד...' : '❌ דחה'}
                       </button>
+                      <button
+                        className="admin-btn admin-btn--red"
+                        onClick={() => handleDelete(req)}
+                        disabled={isProcessing}
+                        style={{ opacity: 0.75 }}
+                      >
+                        {isProcessing ? '⏳ מעבד...' : '🗑️ מחק הכל'}
+                      </button>
                     </div>
                   )}
 
@@ -348,6 +372,20 @@ export default function RequestsView({ requests, onApprove, onDeny, onReload }: 
                   {req.status === 'approved' && req.approved_event_id && (
                     <div className="req-approved-link">
                       ✅ אירוע נוצר - ניתן למצוא אותו בעמוד האירועים
+                    </div>
+                  )}
+
+                  {/* Delete for processed requests */}
+                  {req.status !== 'pending' && (
+                    <div className="req-actions" style={{ marginTop: 8 }}>
+                      <button
+                        className="admin-btn admin-btn--red"
+                        onClick={() => handleDelete(req)}
+                        disabled={isProcessing}
+                        style={{ opacity: 0.75, fontSize: '0.85rem' }}
+                      >
+                        {isProcessing ? '⏳ מעבד...' : '🗑️ מחק בקשה'}
+                      </button>
                     </div>
                   )}
                 </div>

@@ -240,6 +240,7 @@ export default function AdminPage() {
                 requests={admin.requests}
                 onApprove={admin.approveRequest}
                 onDeny={admin.denyRequest}
+                onDelete={admin.deleteRequest}
                 onReload={admin.loadRequests}
               />
             )}
