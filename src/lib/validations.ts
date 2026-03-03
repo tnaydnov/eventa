@@ -84,7 +84,8 @@ export const adminEmailTypeValues = [
 
 export const adminSendEmailSchema = z.object({
   type: z.enum(adminEmailTypeValues),
-  customMessage: z.string().max(2000).optional(),
+  subject: z.string().max(200).optional(),
+  body: z.string().max(2000).optional(),
 });
 
 /** Admin messaging toggle / manual trigger schema. */

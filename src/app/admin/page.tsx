@@ -185,6 +185,7 @@ export default function AdminPage() {
                 onRemoveBg={admin.removeBackground}
                 onViewDetails={handleViewDetails}
                 onUpdateStatus={admin.updateStatus}
+                onToggleQrSent={admin.toggleQrSent}
                 onCreateEvent={handleCreateEvent}
               />
             )}

@@ -54,6 +54,7 @@ export interface Event {
   guest_list_uploaded_at: string | null;
   guest_list_count: number;
   original_slug: string | null;
+  qr_page_sent: boolean;
 }
 
 export interface Participant {

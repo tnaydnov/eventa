@@ -8,6 +8,7 @@ import { adminFetch, type EventAnalytics, type EventMessagingStatus, type GuestP
 import StatCard from './StatCard';
 import ParticipantsTable from '../participants/ParticipantsTable';
 import EventServicesInfo from '../messaging/EventServicesInfo';
+import ClientActionsPanel from '../messaging/ClientActionsPanel';
 
 const AnalyticsDashboard = dynamic(() => import('./AnalyticsDashboard'), { ssr: false });
 const MessagingTab = dynamic(() => import('../messaging/MessagingTab'), { ssr: false });
@@ -35,7 +36,7 @@ interface EventAnalyticsViewProps {
   adminUploadGuestFile: (eventId: string, file: File) => Promise<{ ok: boolean; result?: unknown; error?: string }>;
   regeneratePortalToken: (eventId: string) => Promise<{ ok: boolean; token?: string; error?: string }>;
   sendClientEmail: (eventId: string, type: string, opts?: { subject?: string; body?: string }) => Promise<{ ok: boolean; error?: string }>;
-  sendQrPage: (eventId: string, files: File[]) => Promise<{ ok: boolean; error?: string }>;
+  sendQrPage: (eventId: string, files: File[], qrOnly?: boolean) => Promise<{ ok: boolean; error?: string }>;
   loadMessageLog: (eventId: string) => Promise<void>;
 }
 
@@ -110,10 +111,8 @@ export default function EventAnalyticsView({
   const statusLabel = EVENT_STATUS_LABELS[event.status] || event.status;
   const isArchived = event.status === 'archived';
 
-  // Only show messaging tab when WA is enabled for this event
-  const TABS = event.wa_messages_enabled
-    ? BASE_TABS
-    : BASE_TABS.filter(t => t.key !== 'messaging');
+  // Always show all tabs
+  const TABS = BASE_TABS;
 
   return (
     <div className="ea-root admin-animate-in">
@@ -179,6 +178,16 @@ export default function EventAnalyticsView({
           {/* Services & pricing + contact details */}
           <EventServicesInfo eventId={event.id} />
 
+          {/* Client email actions - always visible */}
+          <ClientActionsPanel
+            eventId={event.id}
+            eventName={event.name}
+            eventDate={event.starts_at}
+            onSendEmail={sendClientEmail}
+            onSendQrPage={sendQrPage}
+            isArchived={isArchived}
+          />
+
           {!isArchived && (
             <div className="ea-quick-actions">
               <span className="ea-quick-actions__label">פעולות מהירות:</span>
@@ -228,24 +237,39 @@ export default function EventAnalyticsView({
       )}
 
       {/* ═══ TAB: Messaging ═══ */}
-      {activeTab === 'messaging' && event.wa_messages_enabled && (
-        <MessagingTab
-          event={event}
-          messagingStatus={messagingStatus}
-          guestPhones={guestPhones}
-          messageLog={messageLog}
-          loadMessagingStatus={loadMessagingStatus}
-          updateMessagingConfig={updateMessagingConfig}
-          triggerMessages={triggerMessages}
-          loadGuestPhones={loadGuestPhones}
-          adminAddGuestPhone={adminAddGuestPhone}
-          adminRemoveGuestPhone={adminRemoveGuestPhone}
-          adminUploadGuestFile={adminUploadGuestFile}
-          regeneratePortalToken={regeneratePortalToken}
-          sendClientEmail={sendClientEmail}
-          sendQrPage={sendQrPage}
-          loadMessageLog={loadMessageLog}
-        />
+      {activeTab === 'messaging' && (
+        event.wa_messages_enabled ? (
+          <MessagingTab
+            event={event}
+            messagingStatus={messagingStatus}
+            guestPhones={guestPhones}
+            messageLog={messageLog}
+            loadMessagingStatus={loadMessagingStatus}
+            updateMessagingConfig={updateMessagingConfig}
+            triggerMessages={triggerMessages}
+            loadGuestPhones={loadGuestPhones}
+            adminAddGuestPhone={adminAddGuestPhone}
+            adminRemoveGuestPhone={adminRemoveGuestPhone}
+            adminUploadGuestFile={adminUploadGuestFile}
+            regeneratePortalToken={regeneratePortalToken}
+            loadMessageLog={loadMessageLog}
+          />
+        ) : (
+          <div className="ea-section" style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>📩</div>
+            <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8, color: 'var(--admin-text)' }}>הודעות WhatsApp כבויות</h3>
+            <p style={{ fontSize: 14, color: 'var(--admin-muted)', marginBottom: 20, lineHeight: 1.6 }}>
+              שירות ההודעות לא פעיל עבור אירוע זה.<br/>
+              הפעילו כדי לשלוח הזמנות ופידבק לאורחים דרך WhatsApp.
+            </p>
+            <button
+              className="admin-btn admin-btn--primary"
+              onClick={() => updateMessagingConfig(event.id, { waMessagesEnabled: true })}
+            >
+              ✅ הפעל הודעות WhatsApp
+            </button>
+          </div>
+        )
       )}
 
       {/* ═══ TAB: Settings ═══ */}

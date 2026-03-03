@@ -16,6 +16,7 @@ interface EventsViewProps {
   onRemoveBg: (eventId: string) => void;
   onViewDetails: (event: Event) => void;
   onUpdateStatus: (id: string, status: string) => void;
+  onToggleQrSent: (id: string, sent: boolean) => void;
   onCreateEvent: () => void;
   title?: string;
   subtitle?: string;
@@ -26,7 +27,7 @@ export default function EventsView({
   onRotate, onDelete,
   onGenerateQR, onCopyUrl,
   onUploadBg, onRemoveBg, onViewDetails, onUpdateStatus,
-  onCreateEvent, title, subtitle,
+  onToggleQrSent, onCreateEvent, title, subtitle,
 }: EventsViewProps) {
   const [search, setSearch] = useState('');
   const [statusTab, setStatusTab] = useState<StatusTab>('all');
@@ -112,6 +113,7 @@ export default function EventsView({
                   onRemoveBg={onRemoveBg}
                   onRotate={onRotate}
                   onUpdateStatus={onUpdateStatus}
+                  onToggleQrSent={onToggleQrSent}
                   onDelete={onDelete}
                 />
               ))}

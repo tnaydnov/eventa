@@ -315,11 +315,29 @@ export function useAdminData() {
   }, [authedFetch]);
 
   const updateMessagingConfig = async (eventId: string, config: Partial<MessagingConfig>): Promise<{ ok: boolean; error?: string }> => {
+    // Convert camelCase client config → snake_case API format
+    const apiPayload: Record<string, unknown> = {};
+    if (config.waMessagesEnabled !== undefined) {
+      apiPayload.wa_messages_enabled = config.waMessagesEnabled;
+    }
+    if (config.preEventHoursBefore !== undefined || config.feedbackHoursAfter !== undefined) {
+      apiPayload.messaging_config = {
+        ...(config.preEventHoursBefore !== undefined && { pre_event_hours_before: config.preEventHoursBefore }),
+        ...(config.feedbackHoursAfter !== undefined && { feedback_hours_after: config.feedbackHoursAfter }),
+      };
+    }
+
     const res = await authedFetch(`/api/admin/events/${eventId}/messaging`, {
       method: 'PATCH',
-      body: JSON.stringify(config),
+      body: JSON.stringify(apiPayload),
     });
     if (res.ok) {
+      // Update local events state immediately if WA toggle changed
+      if (config.waMessagesEnabled !== undefined) {
+        setEvents(prev => prev.map(e =>
+          e.id === eventId ? { ...e, wa_messages_enabled: config.waMessagesEnabled! } : e
+        ));
+      }
       await loadMessagingStatus(eventId);
       return { ok: true };
     }
@@ -440,7 +458,8 @@ export function useAdminData() {
   /* ─── send QR page email with attachments ─── */
   const sendQrPage = async (
     eventId: string,
-    files: File[]
+    files: File[],
+    qrOnly?: boolean
   ): Promise<{ ok: boolean; error?: string }> => {
     try {
       // Step 1: Upload each file to Supabase Storage via signed URLs
@@ -483,10 +502,13 @@ export function useAdminData() {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ storagePaths }),
+          body: JSON.stringify({ storagePaths, qrOnly: !!qrOnly }),
         }
       );
-      if (res.ok) return { ok: true };
+      if (res.ok) {
+        setEvents(prev => prev.map(e => e.id === eventId ? { ...e, qr_page_sent: true } : e));
+        return { ok: true };
+      }
       const err = await res.json().catch(() => ({}));
       return { ok: false, error: err.error || 'שגיאה בשליחת דף QR' };
     } catch (e) {
@@ -556,6 +578,18 @@ export function useAdminData() {
     return { ok: false, error: err.error || 'שגיאה בשליחת קישור תשלום' };
   };
 
+  /* ─── toggle QR page sent indicator ─── */
+  const toggleQrSent = async (eventId: string, sent: boolean) => {
+    const res = await authedFetch(`/api/admin/events/${eventId}/qr-sent`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sent }),
+    });
+    if (res.ok) {
+      setEvents(prev => prev.map(e => e.id === eventId ? { ...e, qr_page_sent: sent } : e));
+    }
+  };
+
   return {
     authed, events, loading, stats, requests,
     selectedEvent, participants,
@@ -568,6 +602,6 @@ export function useAdminData() {
     loadMessagingStatus, updateMessagingConfig, triggerMessages,
     loadGuestPhones, adminAddGuestPhone, adminRemoveGuestPhone, adminUploadGuestFile,
     regeneratePortalToken, sendClientEmail, sendQrPage, loadMessageLog,
-    markAsPaid, waivePayment, resendPaymentLink,
+    markAsPaid, waivePayment, resendPaymentLink, toggleQrSent,
   };
 }

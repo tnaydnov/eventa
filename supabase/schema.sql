@@ -47,7 +47,8 @@ CREATE TABLE IF NOT EXISTS events (
   is_active BOOLEAN NOT NULL DEFAULT true,
   background_image TEXT,
   archived_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  qr_page_sent BOOLEAN NOT NULL DEFAULT false
 );
 
 -- Participants

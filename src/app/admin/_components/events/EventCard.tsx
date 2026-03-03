@@ -14,6 +14,7 @@ interface EventRowProps {
   onRemoveBg: (eventId: string) => void;
   onRotate: (id: string) => void;
   onUpdateStatus: (id: string, status: string) => void;
+  onToggleQrSent: (id: string, sent: boolean) => void;
   onDelete: (id: string) => void;
 }
 
@@ -36,7 +37,7 @@ const shortDate = (iso: string) => {
 
 export default function EventRow({
   event, onViewDetails, onGenerateQR, onCopyUrl,
-  onUploadBg, onRemoveBg, onRotate, onUpdateStatus, onDelete,
+  onUploadBg, onRemoveBg, onRotate, onUpdateStatus, onToggleQrSent, onDelete,
 }: EventRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -118,6 +119,12 @@ export default function EventRow({
               📱 {event.guest_list_uploaded ? event.guest_list_count : '!'}
             </span>
           )}
+          <span
+            className={`et-msg-badge ${event.qr_page_sent ? 'et-msg-badge--ok' : 'et-msg-badge--pending'}`}
+            title={event.qr_page_sent ? 'דף QR נשלח ✅' : 'דף QR טרם נשלח'}
+          >
+            {event.qr_page_sent ? '✅' : '⏳'} QR
+          </span>
         </div>
         <div className="et-slug">/{event.slug}</div>
       </td>
@@ -156,6 +163,12 @@ export default function EventRow({
                       ✖ הסר רקע
                     </button>
                   )}
+                  <button
+                    className="et-dropdown__item"
+                    onClick={() => act(() => onToggleQrSent(event.id, !event.qr_page_sent))}
+                  >
+                    {event.qr_page_sent ? '↩ סמן QR כלא נשלח' : '✅ סמן QR כנשלח'}
+                  </button>
                   <div className="et-dropdown__divider" />
                   {event.status === 'active' ? (
                     <button className="et-dropdown__item et-dropdown__item--warning" onClick={() => act(() => onUpdateStatus(event.id, 'paused'))}>

@@ -55,7 +55,7 @@ export async function POST(
 
   try {
     /* ── Parse request ── */
-    const { storagePaths } = await req.json();
+    const { storagePaths, qrOnly } = await req.json();
 
     if (!Array.isArray(storagePaths) || storagePaths.length === 0) {
       return jsonError('נא לצרף לפחות קובץ אחד', 400);
@@ -121,6 +121,7 @@ export async function POST(
     const email = buildClientQrPageEmail({
       contactName: request.contact_name,
       eventName: event.name,
+      qrOnly: !!qrOnly,
     });
 
     /* ── Send email ── */
@@ -134,6 +135,9 @@ export async function POST(
 
     /* ── Clean up temp files ── */
     await supabase.storage.from('backgrounds').remove(storagePaths);
+
+    /* ── Mark event as QR page sent ── */
+    await supabase.from('events').update({ qr_page_sent: true }).eq('id', eventId);
 
     /* ── Log ── */
     await supabase.from('message_log').insert({
