@@ -145,7 +145,6 @@ export const verifyOtpSchema = z.object({
   fingerprint: z.string().max(64).optional(),
   hardwareFingerprint: z.string().max(128).optional(),
   smsConsent: z.boolean(),
-  feedbackConsent: z.boolean().optional().default(false),
 });
 
 /* ---- Profile setup schema ---- */

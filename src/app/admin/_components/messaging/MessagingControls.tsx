@@ -150,15 +150,17 @@ function generateEmailPreview(actionId: string, eventName: string, eventDate: st
         <div style="text-align:center;margin-bottom:12px;"><span style="font-size:28px;">💬</span></div>
         <div style="text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#22c55e;margin-bottom:12px;">WhatsApp Message Preview</div>
         <div style="background:#0b3d2e;border-radius:12px;padding:16px;color:#e0e0e0;font-size:13px;line-height:1.7;direction:rtl;">
-          <div>היי [שם המשתתף]! 💫</div>
-          <div style="margin-top:8px;">תודה שהשתתפת באירוע <strong>${safeName}</strong>!</div>
-          <div style="margin-top:8px;">נשמח לשמוע מה חשבת:</div>
-          <div>⭐ איך היה האירוע?</div>
-          <div>💝 הכרת מישהו מעניין?</div>
-          <div style="margin-top:8px;">🎁 קוד הנחה לאירוע הבא: <strong>EVENTA10</strong></div>
-          <div style="margin-top:6px;"><a href="#" style="color:#60a5fa;text-decoration:underline;">📝 מלאו שאלון קצר</a></div>
+          <div>איזו חתונה הייתה אתמול… וואו 😍</div>
+          <div style="margin-top:8px;">אנחנו מקווים שגם לכם יצא להדליק איזה ניצוץ דרך אפליקציית <strong>Eventa</strong> 😉</div>
+          <div>(ואם לא - תמיד יש את התמונות… מי יודע 🤭)</div>
+          <div style="margin-top:8px;">נשמח לשמוע איך הייתה החוויה שלכם באירוע ובאפליקציה:</div>
+          <div style="margin-top:6px;"><a href="#" style="color:#60a5fa;text-decoration:underline;">🔗 קישור למשוב קצר</a></div>
+          <div style="margin-top:8px;">לכל שאלה או יצירת קשר עם הצוות שלנו:</div>
+          <div><a href="#" style="color:#60a5fa;text-decoration:underline;">🌐 https://www.eventa.productions/dating</a></div>
+          <div style="margin-top:8px;">שמחנו להיות חלק מהרגעים שלכם,</div>
+          <div>צוות Eventa 💙</div>
         </div>
-        <div style="text-align:center;font-size:11px;color:${PE.dim};margin-top:10px;">* נשלח למשתתפים שנתנו הסכמה וטרם קיבלו פידבק</div>
+        <div style="text-align:center;font-size:11px;color:${PE.dim};margin-top:10px;">* נשלח למשתתפים שנתנו הסכמה לקבלת הודעות</div>
       </td></tr>`, '');
 
     default: return null;

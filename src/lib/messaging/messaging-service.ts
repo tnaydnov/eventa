@@ -6,7 +6,6 @@
 import { getServiceClient } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
 import { WA_MARKETING_WINDOW_HOURS } from '@/lib/config';
-import { DEFAULT_DISCOUNT_CODE } from '@/lib/constants';
 import { sendSms } from './sms-provider';
 import { sendWhatsAppTemplate } from './whatsapp-provider';
 import {
@@ -266,25 +265,6 @@ export async function sendFeedbackMessage(
     providerMessageId: result.messageId,
     errorMessage: result.error,
   });
-
-  // Create discount claim record on successful feedback delivery
-  if (result.success) {
-    try {
-      const supabase = getServiceClient();
-      const eventDate = new Date().toISOString().slice(0, 10);
-      await supabase.from('discount_claims').insert({
-        phone,
-        discount_code: DEFAULT_DISCOUNT_CODE,
-        event_name: config.eventName,
-        event_date: eventDate,
-        event_id: config.eventId,
-        wa_message_id: result.messageId || null,
-      });
-    } catch (dcErr) {
-      // Non-fatal - feedback was already sent
-      logger.warn('[MESSAGING] Failed to create discount claim', { error: dcErr });
-    }
-  }
 
   return {
     success: result.success,

@@ -79,7 +79,7 @@ export default function PrivacyContent() {
         <h3 style={subHeadingStyle}>ד. הסכמות והעדפות תקשורת</h3>
         <ul style={listStyle}>
           <li style={liStyle}>הסכמה לקבלת הודעות SMS ו-WhatsApp מהמערכת (אופציונלי, ניתן לשינוי בכל עת).</li>
-          <li style={liStyle}>הסכמה לקבלת הודעת פידבק יום אחרי האירוע (אופציונלי, ניתן לשינוי בכל עת).</li>
+          <li style={liStyle}>הודעת פידבק לאחר האירוע עשויה להישלח למשתתפים שנתנו הסכמה לקבלת הודעות.</li>
         </ul>
 
         <h3 style={subHeadingStyle}>ה. מזהים טכניים</h3>

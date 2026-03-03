@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { WizardFormState } from '../wizard-config';
 import { MSG_ADDON } from '@/lib/config';
 import WizardIcon from '../WizardIcons';
@@ -11,6 +12,8 @@ interface Props {
 
 export default function StepMessages({ state, onChange }: Props) {
   const enabled = state.wantsGuestMessages;
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const eventName = state.eventName || 'האירוע שלכם';
 
   return (
     <div className="wiz-step">
@@ -61,12 +64,66 @@ export default function StepMessages({ state, onChange }: Props) {
           <div className="wiz-msg-feature">
             <div className="wiz-msg-feature__icon">💬</div>
             <div className="wiz-msg-feature__text">
-              <strong>הודעת פידבק + הנחה</strong>
-              <span>יום אחרי האירוע - סקר קצר וקוד הנחה 10% לאירוע הבא</span>
+              <strong>הודעת פידבק יום אחרי</strong>
+              <span>נשלח לאורחים הודעה עם קישור למשוב קצר על החוויה</span>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Tip: Why choose this */}
+      {enabled && (
+        <div className="wiz-msg-tip">
+          <div className="wiz-msg-tip__icon">💡</div>
+          <div className="wiz-msg-tip__text">
+            <strong>למה כדאי?</strong> מהניסיון שלנו, חלק מהאורחים מפספסים את השלטים באירוע
+            או מתביישים לסרוק QR מול אנשים. שליחת הודעה מראש נותנת להם זמן להיכנס, להירשם,
+            להסתכל מי יהיה שם... וככה הרבה יותר אורחים מצטרפים בפועל.
+          </div>
+        </div>
+      )}
+
+      {/* WA Message Preview */}
+      {enabled && (
+        <div className="wiz-msg-preview-section">
+          <button
+            type="button"
+            className="wiz-msg-preview-toggle"
+            onClick={() => setPreviewOpen((v) => !v)}
+            aria-expanded={previewOpen}
+          >
+            <span>{previewOpen ? '▲' : '▼'} 👀 איך ההודעה נראית?</span>
+          </button>
+
+          {previewOpen && (
+            <div className="wiz-msg-wa-frame">
+              {/* Mini WA header */}
+              <div className="wiz-msg-wa-header">
+                <div className="wiz-msg-wa-avatar">E</div>
+                <div className="wiz-msg-wa-name">Eventa</div>
+              </div>
+              {/* Chat bubble */}
+              <div className="wiz-msg-wa-chat">
+                <div className="wiz-msg-wa-bubble">
+                  <p>מגיעים ל{eventName}? את/ה רווק/ה? 💍</p>
+                  <p>הם מצאו את אהבתם, עכשיו תורכם! ❤️</p>
+                  <p style={{ marginTop: 4 }}>
+                    באירוע תהיה לכם הזדמנות להצטרף לאפליקציית <strong>Eventa</strong> - ולראות את שאר הרווקים והרווקות שיהיו שם.
+                  </p>
+                  <p style={{ marginTop: 4 }}>
+                    אל תדאגו - זו אפליקציה ייעודית רק לאירוע זה, וכל הנתונים שלכם יימחקו כשבוע לאחר האירוע. 🔒
+                  </p>
+                  <p style={{ marginTop: 4 }}>
+                    כדאי לכם להיכנס כבר עכשיו ולבדוק את השטח…{'\n'}אולי תשיגו משהו מעניין 😏
+                  </p>
+                  <p className="wiz-msg-wa-link">🔗 קישור להצטרפות לאירוע</p>
+                </div>
+              </div>
+              <p className="wiz-msg-wa-note">* התוכן המדויק עשוי להשתנות מעט</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* How it works */}
       <div className="wiz-msg-howto">
@@ -77,7 +134,7 @@ export default function StepMessages({ state, onChange }: Props) {
           <li>לאחר הרכישה תקבלו קישור למערכת העלאת מספרים</li>
           <li>תעלו קובץ Excel עם רשימת הטלפונים (נשלח לכם תבנית מוכנה)</li>
           <li>כ-3 שעות לפני האירוע - נשלח הודעות WhatsApp אוטומטית</li>
-          <li>יום אחרי האירוע - נשלח פידבק + הנחה (למי שהסכים)</li>
+          <li>יום אחרי האירוע - נשלח הודעת פידבק עם קישור למשוב קצר</li>
         </ol>
       </div>
     </div>

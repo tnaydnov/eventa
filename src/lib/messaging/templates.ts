@@ -26,7 +26,7 @@ export function otpSmsText(code: string): string {
 export const WA_TEMPLATES = {
   PRE_EVENT: 'eventa_pre_event',
   WELCOME: 'eventa_welcome',
-  FEEDBACK: 'eventa_feedback',
+  FEEDBACK: 'eventa_feedback_v2',
 } as const;
 
 /** Build WA template variables for pre-event message */
@@ -51,12 +51,11 @@ export function welcomeVars(
   ];
 }
 
-/** Build WA template variables for feedback message */
+/** Build WA template variables for feedback message (v2 - no discount) */
 export function feedbackVars(
   config: EventMessagingConfig
 ): WaTemplateParam[] {
   return [
-    { type: 'text', text: config.eventName },
     { type: 'text', text: buildFeedbackUrl(config.eventId) },
   ];
 }

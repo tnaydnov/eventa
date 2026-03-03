@@ -40,7 +40,6 @@ const sourceLabel = (s: string) =>
 const feedbackLabel = (p: AdminParticipant) => {
   if (!p.phone) return '-';
   if (p.feedback_sent) return '✅ נשלח';
-  if (!p.sms_consent) return '❌ סירב';
   return '⏳ ממתין';
 };
 
