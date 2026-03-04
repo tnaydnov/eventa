@@ -13,6 +13,7 @@ import MobileGuard from '@/components/MobileGuard';
 import LegalDrawer from '@/components/LegalDrawer';
 import PhoneInput from '@/components/PhoneInput';
 import OtpInput from '@/components/OtpInput';
+import OnboardingSlides from '@/components/OnboardingSlides';
 
 /** Detect in-app browsers / QR scanner WebViews that don't persist cookies */
 function isInAppBrowser(): boolean {
@@ -48,7 +49,7 @@ const stepVariants = {
   exit: { opacity: 0, x: -40, transition: { duration: 0.15, ease: 'easeIn' as const } },
 };
 
-type JoinStep = 'terms' | 'phone' | 'otp';
+type JoinStep = 'terms' | 'phone' | 'otp' | 'onboarding';
 
 export default function JoinPage({
   params,
@@ -77,6 +78,9 @@ export default function JoinPage({
   const [otpValue, setOtpValue] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
   const resendTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // ─── Onboarding state ─────────────────────────────────────
+  const pendingNav = useRef<string | null>(null);
 
   // ─── Lifecycle effects ────────────────────────────────────
 
@@ -162,15 +166,33 @@ export default function JoinPage({
       setSession(session);
 
       if (result.participant && result.participant.display_name) {
+        // Returning user - skip onboarding
         setParticipant(result.participant as Parameters<typeof setParticipant>[0]);
         localStorage.setItem(`profile_setup_${result.participantId}`, 'true');
         router.replace(`/dating/${eventSlug}`);
       } else {
-        router.replace(`/dating/${eventSlug}/setup`);
+        // New user - show onboarding slides first, then go to setup
+        const onboardingKey = `onboarding_seen_${result.participantId}`;
+        if (localStorage.getItem(onboardingKey)) {
+          router.replace(`/dating/${eventSlug}/setup`);
+        } else {
+          pendingNav.current = `/dating/${eventSlug}/setup`;
+          setStep('onboarding');
+        }
       }
     },
     [eventSlug, router, setSession, setParticipant],
   );
+
+  /** Called when onboarding slides are completed */
+  const handleOnboardingComplete = useCallback(() => {
+    const session = useSessionStore.getState().session;
+    if (session?.participantId) {
+      localStorage.setItem(`onboarding_seen_${session.participantId}`, 'true');
+    }
+    const nav = pendingNav.current || `/dating/${eventSlug}/setup`;
+    router.replace(nav);
+  }, [eventSlug, router]);
 
   /** Start the resend cooldown timer */
   const startResendTimer = useCallback(() => {
@@ -492,7 +514,7 @@ export default function JoinPage({
                   />
 
                   <Checkbox checked={smsConsent} onChange={() => setSmsConsent(!smsConsent)}>
-                    אני מסכים/ה לקבל הודעות SMS ו-WhatsApp
+                    אני מאשר/ת קבלת הודעות SMS או WhatsApp הקשורות לשימוש בשירות Eventa, כולל קודי אימות ועדכונים.
                   </Checkbox>
 
                   {error && (
@@ -601,6 +623,11 @@ export default function JoinPage({
       </PageTransition>
 
       <LegalDrawer page={legalPage} onClose={() => setLegalPage(null)} />
+
+      {/* Onboarding slides overlay for new users */}
+      {step === 'onboarding' && (
+        <OnboardingSlides onComplete={handleOnboardingComplete} />
+      )}
     </MobileGuard>
   );
 }
