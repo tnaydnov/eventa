@@ -4,7 +4,7 @@ import nodemailer from 'nodemailer';
 import { createEventSchema } from '@/lib/validations';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
-import { getServiceClient, generateJoinCode } from '@/lib/supabase';
+import { getServiceClient, generateJoinCode, generateShortCode } from '@/lib/supabase';
 import { adminGuard, jsonError } from '../_helpers';
 import { logger } from '@/lib/logger';
 import { APP_BASE_URL } from '@/lib/config';
@@ -173,6 +173,22 @@ export async function POST(req: NextRequest) {
 
     adminAuditLog('EVENT_CREATE', { eventId: data.id, slug, eventType: parsed.data.event_type }, req);
 
+    // ── Auto-setup for messaging addon ──
+    let portalUrl: string | undefined;
+    if (data.wa_messages_enabled) {
+      try {
+        const portalToken = generateShortCode(6);
+        await supabase
+          .from('client_portal_tokens')
+          .insert({ event_id: data.id, token: portalToken, is_active: true });
+
+        portalUrl = `${APP_BASE_URL}/guest-upload/${data.slug}?k=${portalToken}`;
+        logger.info('[ADMIN_EVENTS_POST] Auto-created portal token', { eventId: data.id });
+      } catch (portalErr) {
+        logger.warn('[ADMIN_EVENTS_POST] Failed to auto-create portal token:', portalErr);
+      }
+    }
+
     // ── Defer email sending to run AFTER the response is returned ──
     after(async () => {
       if (!data.client_email) return;
@@ -187,6 +203,7 @@ export async function POST(req: NextRequest) {
           endsAt: data.ends_at,
           wantsGuestMessages: data.wa_messages_enabled || false,
           eventUrl,
+          portalUrl,
         });
 
         await transporter.sendMail({

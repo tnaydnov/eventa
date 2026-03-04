@@ -733,6 +733,7 @@ export function buildEventCreatedEmail(params: {
   endsAt: string;
   wantsGuestMessages: boolean;
   eventUrl: string;
+  portalUrl?: string;
 }): { subject: string; html: string } {
   const safeName = escapeHtml(params.contactName || '');
   const safeEvent = escapeHtml(params.eventName);
@@ -740,6 +741,29 @@ export function buildEventCreatedEmail(params: {
   const subject = `Eventa - \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E9\u05DC\u05DB\u05DD \u05E0\u05D5\u05E6\u05E8!`;
 
   const eventLabel = escapeHtml(EVENT_TYPE_LABELS[params.eventType] || params.eventType);
+
+  /* WhatsApp messaging section (only if addon chosen + portal exists) */
+  const waSection = params.wantsGuestMessages && params.portalUrl ? `
+        ${divider()}
+
+        <!-- WhatsApp messaging info -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle(`\u05E9\u05D9\u05E8\u05D5\u05EA \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD`)}
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:15px;color:${C.muted};line-height:1.7;margin-bottom:20px;">
+              \u05D4\u05D6\u05DE\u05E0\u05EA\u05DD \u05D0\u05EA \u05E9\u05D9\u05E8\u05D5\u05EA \u05D4\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD. \u05DB\u05D3\u05D9 \u05E9\u05E0\u05D5\u05DB\u05DC \u05DC\u05E9\u05DC\u05D5\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E9\u05DC\u05DB\u05DD \u05DC\u05E4\u05E0\u05D9 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2, \u05D9\u05E9 \u05DC\u05D4\u05E2\u05DC\u05D5\u05EA \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05DE\u05E1\u05E4\u05E8\u05D9 \u05D4\u05D8\u05DC\u05E4\u05D5\u05DF \u05D3\u05E8\u05DA \u05E4\u05D5\u05E8\u05D8\u05DC \u05D4\u05DC\u05E7\u05D5\u05D7.
+            </div>
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
+              ${stepRow(1, `\u05D4\u05D9\u05DB\u05E0\u05E1\u05D5 \u05DC\u05E4\u05D5\u05E8\u05D8\u05DC \u05D4\u05DC\u05E7\u05D5\u05D7`)}
+              ${stepRow(2, `\u05D4\u05D5\u05E8\u05D9\u05D3\u05D5 \u05D0\u05EA \u05D4\u05D8\u05DE\u05E4\u05DC\u05D8 (${ltr('Excel')})`)}
+              ${stepRow(3, '\u05DE\u05DC\u05D0\u05D5 \u05D0\u05EA \u05DE\u05E1\u05E4\u05E8\u05D9 \u05D4\u05D8\u05DC\u05E4\u05D5\u05DF \u05E9\u05DC \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD')}
+              ${stepRow(4, '\u05D4\u05E2\u05DC\u05D5 \u05D0\u05EA \u05D4\u05E7\u05D5\u05D1\u05E5 \u05D3\u05E8\u05DA \u05D4\u05E4\u05D5\u05E8\u05D8\u05DC', true)}
+            </table>
+          </td>
+        </tr>
+
+        ${ctaBtn(params.portalUrl, '\u05DB\u05E0\u05D9\u05E1\u05D4 \u05DC\u05E4\u05D5\u05E8\u05D8\u05DC \u05D4\u05DC\u05E7\u05D5\u05D7')}
+  ` : '';
 
   const inner = `
         ${greeting(
@@ -785,6 +809,8 @@ export function buildEventCreatedEmail(params: {
             </div>
           </td>
         </tr>
+
+        ${waSection}
 
         ${supportRow()}`;
 
