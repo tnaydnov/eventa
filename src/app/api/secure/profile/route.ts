@@ -68,7 +68,7 @@ export async function PATCH(req: NextRequest) {
 
     if (error) {
       logger.error('[PROFILE] update error:', { message: error.message, code: error.code, details: error.details });
-      return jsonError(`Failed to update profile: ${error.message}`, 400);
+      return jsonError('Failed to update profile', 400);
     }
     if (!rows || rows.length === 0) {
       logger.error('[PROFILE] update matched 0 rows - sub=' + session.sub + ' eid=' + session.eid);

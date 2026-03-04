@@ -134,18 +134,21 @@ export async function GET(
       .eq('event_id', eventId);
 
     if (search) {
-      // Normalize local phone input (0505752650 ג†’ +972505752650) for DB match
-      const normalized = normalizePhone(search);
-      const digits = search.replace(/[^\d]/g, '');
+      // Sanitize search input to prevent PostgREST filter injection
+      // The .or() method parses commas as OR separators and dots as operators
+      const sanitized = search.replace(/[,.()\\/]/g, '');
+      // Normalize local phone input (0505752650 → +972505752650) for DB match
+      const normalized = normalizePhone(sanitized);
+      const digits = sanitized.replace(/[^\d]/g, '');
       if (normalized) {
         // Exact E.164 match or name search
-        guestQuery = guestQuery.or(`guest_name.ilike.%${search}%,phone.eq.${normalized}`);
+        guestQuery = guestQuery.or(`guest_name.ilike.%${sanitized}%,phone.eq.${normalized}`);
       } else if (digits.length >= 3) {
         // Partial digit search or name search
-        guestQuery = guestQuery.or(`guest_name.ilike.%${search}%,phone.like.%${digits}%`);
+        guestQuery = guestQuery.or(`guest_name.ilike.%${sanitized}%,phone.like.%${digits}%`);
       } else {
         // Name-only search
-        guestQuery = guestQuery.ilike('guest_name', `%${search}%`);
+        guestQuery = guestQuery.ilike('guest_name', `%${sanitized}%`);
       }
     }
 

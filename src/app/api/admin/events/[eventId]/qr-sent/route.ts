@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * PATCH /api/admin/events/[eventId]/qr-sent
@@ -33,11 +34,13 @@ export async function PATCH(
       .eq('id', eventId);
 
     if (error) {
+      logger.error('[ADMIN_QR_SENT] DB error:', error.message);
       return jsonError('Failed to update', 500);
     }
 
     return NextResponse.json({ success: true, qr_page_sent: sent });
-  } catch {
+  } catch (err) {
+    logger.error('[ADMIN_QR_SENT] error:', err instanceof Error ? err.message : String(err));
     return jsonError('Failed to update QR sent status', 500);
   }
 }

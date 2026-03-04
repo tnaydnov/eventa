@@ -30,11 +30,18 @@ export async function GET(req: NextRequest) {
     .from('participants')
     .select('is_banned')
     .eq('id', session.sub)
-    .single();
+    .maybeSingle();
 
   if (participantError) {
-    logger.error('[AUTH_VERIFY] participant lookup failed:', participantError);
+    logger.error('[AUTH_VERIFY] participant lookup failed', { error: participantError.message });
     return jsonError('Server error', 500);
+  }
+
+  if (!participant) {
+    // Participant deleted (e.g. self-deletion) — clear stale session
+    const response = NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    response.headers.set('Set-Cookie', clearSessionCookieHeader());
+    return response;
   }
 
   if (participant?.is_banned) {
@@ -48,10 +55,10 @@ export async function GET(req: NextRequest) {
     .from('events')
     .select('status, is_active')
     .eq('id', session.eid)
-    .single();
+    .maybeSingle();
 
   if (eventError) {
-    logger.error('[AUTH_VERIFY] event lookup failed:', eventError);
+    logger.error('[AUTH_VERIFY] event lookup failed', { error: eventError.message });
     return jsonError('Server error', 500);
   }
 

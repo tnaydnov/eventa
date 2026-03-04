@@ -10,7 +10,8 @@ import { verifyOtp } from '@/lib/otp';
 import { sendWelcomeMessage } from '@/lib/messaging';
 import type { EventMessagingConfig } from '@/lib/messaging';
 
-/** Fingerprint hex/UUID pattern, max 64 chars for regular, 128 for hardware */
+/** Fingerprint hex/UUID pattern, max 64 chars for regular, 128 for hardware.
+ *  NOTE: duplicated in /api/auth/join/route.ts — keep in sync until extracted to shared util. */
 const FP_PATTERN = /^[a-f0-9-]+$/i;
 
 /**

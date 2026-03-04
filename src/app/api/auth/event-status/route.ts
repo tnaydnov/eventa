@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (!event) {
-      return NextResponse.json({ status: 'not_found' });
+      return NextResponse.json({ status: 'not_found' }, { status: 404 });
     }
 
     // Return the raw status - let the client decide how to handle it

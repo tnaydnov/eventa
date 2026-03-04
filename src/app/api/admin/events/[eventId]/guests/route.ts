@@ -5,7 +5,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
 import { logger } from '@/lib/logger';
 import { guestPhoneImportSchema } from '@/lib/validations';
-import { normalizePhone, isValidIsraeliMobile, maskPhone } from '@/lib/messaging/phone-utils';
+import { normalizePhone, isValidIsraeliMobile } from '@/lib/messaging/phone-utils';
 import { sanitizeWithLimit } from '@/lib/sanitize';
 import { MAX_GUEST_NAME_LENGTH, MAX_GUEST_PHONES_PER_EVENT } from '@/lib/config';
 import {

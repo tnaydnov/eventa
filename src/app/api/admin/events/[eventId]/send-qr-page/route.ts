@@ -1,24 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
-import nodemailer from 'nodemailer';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
 import { logger } from '@/lib/logger';
 import { buildClientQrPageEmail } from '@/lib/email-templates';
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: Number(process.env.SMTP_PORT) === 465,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
-
-const SMTP_FROM = `"Eventa" <${process.env.SMTP_USER}>`;
+import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
 
 /** Max number of attachments per email. */
 const MAX_FILES = 5;
@@ -128,14 +116,14 @@ export async function POST(
 
     /* ── Build email ── */
     const email = buildClientQrPageEmail({
-      contactName,
+      contactName: contactName ?? '',
       eventName: event.name,
       qrOnly: !!qrOnly,
     });
 
     /* ── Send email ── */
-    await transporter.sendMail({
-      from: SMTP_FROM,
+    await getMailTransporter().sendMail({
+      from: getSmtpFrom(),
       to: contactEmail,
       subject: email.subject,
       html: email.html,

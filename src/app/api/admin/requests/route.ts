@@ -1,7 +1,6 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { after } from 'next/server';
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient, generateJoinCode, generateShortCode } from '@/lib/supabase';
 import { adminGuard, jsonError } from '../_helpers';
@@ -14,14 +13,7 @@ import {
 import { generatePrettySlug } from '@/lib/slug';
 import { chargeWithToken, getClearingLogById } from '@/lib/invoice4u';
 import { evictEventStatusCache } from '@/lib/route-helpers';
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: Number(process.env.SMTP_PORT) === 465,
-  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-});
-const SMTP_FROM = `"Eventa" <${process.env.SMTP_USER}>`;
+import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
 
 /**
  * GET /api/admin/requests
@@ -322,8 +314,8 @@ export async function POST(req: NextRequest) {
             portalUrl,
           });
 
-          await transporter.sendMail({
-            from: SMTP_FROM,
+          await getMailTransporter().sendMail({
+            from: getSmtpFrom(),
             to: request.contact_email,
             subject: approvalEmail.subject,
             html: approvalEmail.html,
@@ -375,8 +367,8 @@ export async function POST(req: NextRequest) {
             `<div><strong>׳׳™׳¨׳•׳¢:</strong> ${newEvent.id}</div>` +
             `</td></tr></table></td></tr></table></body></html>`;
 
-          await transporter.sendMail({
-            from: SMTP_FROM,
+          await getMailTransporter().sendMail({
+            from: getSmtpFrom(),
             to: 'contact@eventa.productions',
             subject: adminSubject,
             html: adminHtml,
@@ -403,23 +395,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// ג”€ג”€ג”€ Helpers ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
-
-function formatDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleDateString('he-IL', {
-      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-    });
-  } catch { return iso; }
-}
-
-function formatTime(iso: string): string {
-  try {
-    return new Date(iso).toLocaleTimeString('he-IL', {
-      hour: '2-digit', minute: '2-digit',
-    });
-  } catch { return ''; }
-}
 
 /**
  * PATCH /api/admin/requests
@@ -527,8 +502,8 @@ export async function PATCH(req: NextRequest) {
             wantsGuestMessages: request.wants_guest_messages ?? true,
             paymentUrl: `${baseUrl}/api/payment/checkout?token=${newToken}`,
           });
-          await transporter.sendMail({
-            from: SMTP_FROM,
+          await getMailTransporter().sendMail({
+            from: getSmtpFrom(),
             to: request.contact_email,
             subject: paymentEmail.subject,
             html: paymentEmail.html,

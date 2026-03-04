@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse, after } from 'next/server';
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
 import { createEventSchema } from '@/lib/validations';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
@@ -9,14 +8,7 @@ import { adminGuard, jsonError } from '../_helpers';
 import { logger } from '@/lib/logger';
 import { APP_BASE_URL } from '@/lib/config';
 import { buildEventCreatedEmail } from '@/lib/email-templates';
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: Number(process.env.SMTP_PORT) === 465,
-  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-});
-const SMTP_FROM = `"Eventa" <${process.env.SMTP_USER}>`;
+import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
 
 /** Default event duration when no end date is provided (24 hours). */
 const DEFAULT_DURATION_MS = 86_400_000;
@@ -206,8 +198,8 @@ export async function POST(req: NextRequest) {
           portalUrl,
         });
 
-        await transporter.sendMail({
-          from: SMTP_FROM,
+        await getMailTransporter().sendMail({
+          from: getSmtpFrom(),
           to: data.client_email,
           subject: email.subject,
           html: email.html,
@@ -236,6 +228,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ event: data });
   } catch (err) {
     logger.error('[ADMIN_EVENTS_POST] error:', err);
-    return jsonError('Bad request', 400);
+    return jsonError('Server error', 500);
   }
 }

@@ -29,11 +29,15 @@ export async function GET(
       .from('events')
       .select('status')
       .eq('id', eventId)
-      .single();
+      .maybeSingle();
 
     if (eventErr) {
       logger.error('[ADMIN_ANALYTICS] event lookup error:', eventErr.message);
       return jsonError('Failed to fetch event', 500);
+    }
+
+    if (!event) {
+      return jsonError('Event not found', 404);
     }
 
     if (event?.status === 'archived') {
@@ -41,7 +45,7 @@ export async function GET(
         .from('event_analytics_snapshots')
         .select('snapshot')
         .eq('event_id', eventId)
-        .single();
+        .maybeSingle();
 
       if (snapErr) {
         logger.error('[ADMIN_ANALYTICS] snapshot lookup error:', snapErr.message);

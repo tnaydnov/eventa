@@ -82,17 +82,19 @@ export async function POST(
       }
     } catch {
       // If internal fetch fails, do basic counts
-      const [pCount, lCount, cCount, mCount] = await Promise.all([
+      const [pCount, lCount, cCount, mCount, bCount] = await Promise.all([
         supabase.from('participants').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
         supabase.from('likes').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
         supabase.from('conversations').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
         supabase.from('messages').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
+        supabase.from('blocks').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
       ]);
       snapshot = {
         totalParticipants: pCount.count || 0,
         totalLikes: lCount.count || 0,
         totalConversations: cCount.count || 0,
         totalMessages: mCount.count || 0,
+        totalBlocks: bCount.count || 0,
       };
     }
 
@@ -125,6 +127,26 @@ export async function POST(
 
     await purge('notifications');
     await purge('activity_log');
+
+    // Clean up chat media files from storage before deleting message rows
+    const { data: mediaRows, error: mediaQueryErr } = await supabase
+      .from('messages')
+      .select('media_path')
+      .eq('event_id', eventId)
+      .not('media_path', 'is', null);
+
+    if (mediaQueryErr) {
+      logger.error('[ARCHIVE] chat media query error:', mediaQueryErr.message);
+      purgeWarnings.push('chat_media_query');
+    } else if (mediaRows && mediaRows.length > 0) {
+      const mediaPaths = mediaRows.map((m: { media_path: string }) => m.media_path);
+      const { error: storageErr } = await supabase.storage.from('chat-media').remove(mediaPaths);
+      if (storageErr) {
+        logger.error('[ARCHIVE] chat media storage cleanup error:', storageErr.message);
+        purgeWarnings.push('chat_media_storage');
+      }
+    }
+
     await purge('messages');
     await purge('conversations');
     await purge('blocks');

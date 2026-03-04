@@ -1,19 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { getServiceClient } from '@/lib/supabase';
 import { buildAdminContactOnlyNotification } from '@/lib/email-templates';
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: Number(process.env.SMTP_PORT) === 465,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
 
 /**
  * GET /api/order/contact-me?id=<requestId>
@@ -42,7 +32,7 @@ export async function GET(request: NextRequest) {
       .from('event_requests')
       .select('id, event_type, event_name, contact_name, contact_phone, contact_email, contact_preference')
       .eq('id', requestId)
-      .single();
+      .maybeSingle();
 
     if (error || !req) {
       logger.warn('Contact-me: request not found', { requestId });
@@ -63,8 +53,8 @@ export async function GET(request: NextRequest) {
       message: `הלקוח ביקש ליצור קשר במקום לשלם.\nסוג אירוע: ${req.event_type}${req.event_name ? `\nשם אירוע: ${req.event_name}` : ''}\nמזהה בקשה: ${requestId}`,
     });
 
-    await transporter.sendMail({
-      from: `"Eventa" <${process.env.SMTP_USER}>`,
+    await getMailTransporter().sendMail({
+      from: getSmtpFrom(),
       to: 'contact@eventa.productions',
       subject: emailData.subject,
       html: emailData.html,

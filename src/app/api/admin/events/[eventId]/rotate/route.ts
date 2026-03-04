@@ -26,12 +26,16 @@ export async function POST(
       .from('events')
       .update({ join_code: generateJoinCode() })
       .eq('id', eventId)
-      .select()
-      .single();
+      .select('id, join_code, slug')
+      .maybeSingle();
 
     if (error) {
       logger.error('[ADMIN_ROTATE] DB error:', error.message);
       return jsonError('Failed to rotate code', 500);
+    }
+
+    if (!data) {
+      return jsonError('Event not found', 404);
     }
 
     adminAuditLog('JOIN_CODE_ROTATE', { eventId }, req);

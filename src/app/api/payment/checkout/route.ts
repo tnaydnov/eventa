@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
       .from('event_requests')
       .select('id, payment_status, payment_link_expires_at, total_price, event_name, contact_name')
       .eq('payment_link_token', token)
-      .single();
+      .maybeSingle();
 
     if (fetchErr || !request) {
       logger.warn('[PAYMENT_CHECKOUT] Unknown token', { token });

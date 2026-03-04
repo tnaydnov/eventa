@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     .from('event_requests')
     .select('id, payment_status, clearing_log_id, clearing_payment_id')
     .eq('id', rid)
-    .single();
+    .maybeSingle();
 
   if (fetchErr || !request) {
     logger.warn('[PAYMENT_CALLBACK] Request not found', { rid });
@@ -66,9 +66,10 @@ export async function GET(req: NextRequest) {
 
   if (!verified) {
     // The clearing log doesn't show success yet - might be eventual consistency.
-    // Still mark as captured since the iframe redirected to our callback,
-    // which only happens on completion.
-    logger.info('[PAYMENT_CALLBACK] Clearing log not verified yet, accepting iframe redirect', { rid });
+    // Accept anyway since the iframe only redirects here after card entry completion.
+    // NOTE: This means `verified` is always true. The check above is best-effort
+    // verification - in production, the charge happens later via admin approval.
+    logger.warn('[PAYMENT_CALLBACK] Clearing log not verified, accepting iframe redirect', { rid });
     verified = true;
   }
 

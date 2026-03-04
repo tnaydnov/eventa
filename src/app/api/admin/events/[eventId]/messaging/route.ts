@@ -42,7 +42,7 @@ export async function GET(
         supabase
           .from('events')
           .select(
-            'id, wa_messages_enabled, guest_list_uploaded, guest_list_uploaded_at, guest_list_count'
+            'id, wa_messages_enabled, guest_list_uploaded, guest_list_uploaded_at, guest_list_count, messaging_config'
           )
           .eq('id', eventId)
           .single(),
@@ -106,16 +106,9 @@ export async function GET(
     ).length;
     const estimatedCost = waMessages * 0.15 + smsMessages * 0.04;
 
-    // Try to read messaging_config (column may not exist yet in DB)
-    let msgConfig: Record<string, unknown> | null = null;
-    const { data: cfgRow, error: cfgErr } = await supabase
-      .from('events')
-      .select('messaging_config')
-      .eq('id', eventId)
-      .single();
-    if (!cfgErr && cfgRow) {
-      msgConfig = (cfgRow.messaging_config as Record<string, unknown>) ?? null;
-    }
+    // messaging_config included in the event query above
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSON column
+    const msgConfig = ((event as any).messaging_config as Record<string, unknown>) ?? null;
 
     return NextResponse.json({
       wa_messages_enabled: event.wa_messages_enabled,

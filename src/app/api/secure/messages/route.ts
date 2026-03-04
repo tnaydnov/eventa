@@ -86,10 +86,10 @@ export async function POST(req: NextRequest) {
       if (!isSafePath(mediaPath)) {
         return jsonError('Invalid media path', 400);
       }
-      const isOwnPath =
-        mediaPath.startsWith(`chat/${session.eid}/`) ||
-        mediaPath.startsWith(`${session.eid}/${session.sub}/`);
-      if (!isOwnPath) {
+      // Chat media must be scoped to this conversation within this event
+      const isOwnChatMedia = mediaPath.startsWith(`chat/${session.eid}/${conversationId}/`);
+      const isOwnProfilePhoto = mediaPath.startsWith(`${session.eid}/${session.sub}/`);
+      if (!isOwnChatMedia && !isOwnProfilePhoto) {
         return jsonError('Invalid media path', 400);
       }
     }

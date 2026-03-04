@@ -40,12 +40,33 @@ export async function POST(req: NextRequest) {
 
     // Validate the path is scoped to this participant or their event's chat
     const isProfilePhoto = path.startsWith(`${session.eid}/${session.sub}/`);
-    const isChatMedia = path.startsWith(`chat/${session.eid}/`);
+    // Chat media must include conversation ID - verified via query below
+    const chatPrefix = `chat/${session.eid}/`;
+    const isChatMedia = path.startsWith(chatPrefix);
     if (!isProfilePhoto && !isChatMedia) {
       return jsonError('Invalid upload path', 403);
     }
 
     const supabase = getServiceClient();
+
+    // For chat media, verify the user is a member of the referenced conversation
+    if (isChatMedia) {
+      const conversationId = path.slice(chatPrefix.length).split('/')[0];
+      if (!conversationId) {
+        return jsonError('Invalid chat media path', 403);
+      }
+      const { data: conv } = await supabase
+        .from('conversations')
+        .select('a_participant_id, b_participant_id')
+        .eq('id', conversationId)
+        .eq('event_id', session.eid)
+        .maybeSingle();
+
+      if (!conv || (conv.a_participant_id !== session.sub && conv.b_participant_id !== session.sub)) {
+        return jsonError('Invalid upload path', 403);
+      }
+    }
+
     const { data, error } = await supabase.storage
       .from('photos')
       .createSignedUploadUrl(path);

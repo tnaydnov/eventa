@@ -39,11 +39,15 @@ export async function PATCH(
       .update(parsed.data)
       .eq('id', eventId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       logger.error('[ADMIN_EVENT_PATCH] DB error:', error.message);
       return jsonError('Failed to update event', 500);
+    }
+
+    if (!data) {
+      return jsonError('Event not found', 404);
     }
 
     // Evict event status cache if status or is_active changed
@@ -55,6 +59,6 @@ export async function PATCH(
     return NextResponse.json({ event: data });
   } catch (err) {
     logger.error('[ADMIN_EVENT_PATCH] error:', err);
-    return jsonError('Bad request', 400);
+    return jsonError('Server error', 500);
   }
 }

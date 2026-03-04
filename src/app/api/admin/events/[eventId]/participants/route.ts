@@ -114,10 +114,8 @@ export async function PATCH(
 
     if (error) return jsonError('Failed to update participant', 400);
 
-    // Immediately evict the ban cache so subsequent API calls are blocked
-    if (is_banned) {
-      evictBanCache(participantId);
-    }
+    // Immediately evict the ban cache so subsequent API calls reflect the change
+    evictBanCache(participantId);
 
     adminAuditLog(is_banned ? 'PARTICIPANT_BAN' : 'PARTICIPANT_UNBAN', { eventId, participantId }, req);
 

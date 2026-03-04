@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       .from('event_requests')
       .select('id, payment_status')
       .eq('id', requestId)
-      .single();
+      .maybeSingle();
 
     if (fetchErr || !request) {
       return NextResponse.json({ error: 'Request not found' }, { status: 404 });

@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   }
 
   const ip = getClientIp(req.headers);
-  const rl = checkRateLimit(`join:${ip}`, RATE_LIMITS.standard);
+  const rl = checkRateLimit(`join:${ip}`, RATE_LIMITS.auth);
   if (!rl.allowed) {
     return jsonError('Too many requests', 429);
   }
@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
     const { eventSlug, joinCode } = parsed.data;
 
     // Fingerprint format: hex string or UUID-like, max 64 chars
+    // NOTE: duplicated in /api/auth/verify-otp/route.ts — keep in sync until extracted to shared util.
     const FP_PATTERN = /^[a-f0-9-]+$/i;
 
     // Fingerprint is optional - sanitize to plain string or null
@@ -66,10 +67,10 @@ export async function POST(req: NextRequest) {
       .eq('slug', eventSlug)
       .eq('join_code', joinCode)
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
 
     if (eventError) {
-      logger.error('[AUTH_JOIN] event lookup failed:', eventError);
+      logger.error('[AUTH_JOIN] event lookup failed', { error: eventError.message });
       return jsonError('Server error', 500);
     }
 

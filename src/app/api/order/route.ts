@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
 import { checkCsrf } from '@/lib/session';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { getServiceClient } from '@/lib/supabase';
+import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
 import {
   ORDER_NAME_MAX_LENGTH,
   ORDER_PHONE_MAX_LENGTH,
@@ -14,6 +14,7 @@ import {
   PAYMENT_LINK_EXPIRY_DAYS,
   BASE_PRICE,
   MSG_ADDON,
+  APP_BASE_URL,
 } from '@/lib/config';
 import {
   buildAdminPayNowNotification,
@@ -23,16 +24,6 @@ import {
   buildClientCallMeBackEmail,
   buildClientPaymentLinkEmail,
 } from '@/lib/email-templates';
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: Number(process.env.SMTP_PORT) === 465,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
 
 /** Zod schema for order form - validates and sanitizes all inputs. */
 const orderSchema = z.object({
@@ -155,10 +146,9 @@ export async function POST(request: NextRequest) {
 
       if (dbErr) {
         logger.error('Failed to save event request to DB', { error: dbErr.message });
-        // Continue even if DB save fails - email is still important
-      } else {
-        requestId = reqRow.id;
+        return NextResponse.json({ error: 'Failed to save order' }, { status: 500 });
       }
+      requestId = reqRow.id;
     }
 
     // ── 2. Build & send admin notification email ──
@@ -214,8 +204,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    await transporter.sendMail({
-      from: `"Eventa" <${process.env.SMTP_USER}>`,
+    await getMailTransporter().sendMail({
+      from: getSmtpFrom(),
       to: 'contact@eventa.productions',
       subject: adminEmail.subject,
       html: adminEmail.html,
@@ -229,7 +219,7 @@ export async function POST(request: NextRequest) {
 
         if (contactPref === 'send-link') {
           // Client chose "send me a payment link"
-          const baseUrl = `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host') || 'eventa.productions'}`;
+          const baseUrl = APP_BASE_URL;
           clientEmail = buildClientPaymentLinkEmail({
             ...eventFormData,
             contactName,
@@ -250,8 +240,8 @@ export async function POST(request: NextRequest) {
         }
 
         if (clientEmail) {
-          await transporter.sendMail({
-            from: `"Eventa" <${process.env.SMTP_USER}>`,
+          await getMailTransporter().sendMail({
+            from: getSmtpFrom(),
             to: contactEmail,
             subject: clientEmail.subject,
             html: clientEmail.html,

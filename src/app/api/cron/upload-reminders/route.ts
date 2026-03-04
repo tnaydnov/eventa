@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
 import { getServiceClient } from '@/lib/supabase';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { jsonError } from '@/lib/route-helpers';
@@ -10,19 +9,7 @@ import {
   buildClientUploadReminder7DayEmail,
   buildClientUploadReminder3DayEmail,
 } from '@/lib/email-templates';
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: Number(process.env.SMTP_PORT) === 465,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
-
-/** Template download URL (static asset). */
-const TEMPLATE_URL = `${APP_BASE_URL}/templates/guest-upload-template.xlsx`;
+import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
 
 /**
  * Determine which reminder type (if any) should be sent based on days until event.
@@ -172,7 +159,7 @@ async function handler(req: NextRequest) {
       const email =
         reminderType === 'upload_reminder_7d'
           ? buildClientUploadReminder7DayEmail({
-              contactName,
+              contactName: contactName ?? '',
               eventName: event.name,
               daysLeft: Math.round(daysUntilEvent),
               uploadUrl,
@@ -180,7 +167,7 @@ async function handler(req: NextRequest) {
               uploadDeadline,
             })
           : buildClientUploadReminder3DayEmail({
-              contactName,
+              contactName: contactName ?? '',
               eventName: event.name,
               uploadUrl,
               messageSendAt,
@@ -188,8 +175,8 @@ async function handler(req: NextRequest) {
             });
 
       try {
-        await transporter.sendMail({
-          from: `"Eventa" <${process.env.SMTP_USER}>`,
+        await getMailTransporter().sendMail({
+          from: getSmtpFrom(),
           to: contactEmail,
           subject: email.subject,
           html: email.html,

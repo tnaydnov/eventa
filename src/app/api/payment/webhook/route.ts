@@ -15,7 +15,7 @@ const PAYMENT_PROVIDER_LIVE = process.env.PAYMENT_PROVIDER_LIVE === 'true';
  */
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req.headers);
-  const rl = checkRateLimit(`payment-webhook:${ip}`, RATE_LIMITS.standard);
+  const rl = checkRateLimit(`payment-webhook:${ip}`, RATE_LIMITS.strict);
   if (!rl.allowed) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
@@ -32,12 +32,20 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Live mode: process webhook ──
+  // TODO: Add signature/HMAC verification when the payment provider supports it.
+  // Currently the only protection is rate-limiting + token lookup.
   try {
     const body = await req.json();
     const { token, status, method } = body;
 
     if (!token || !status) {
       return NextResponse.json({ error: 'Missing token or status' }, { status: 400 });
+    }
+
+    // Only accept known status transitions
+    if (status !== 'paid') {
+      logger.warn('[PAYMENT_WEBHOOK] Ignoring non-paid status', { token, status });
+      return NextResponse.json({ success: true });
     }
 
     const supabase = getServiceClient();
@@ -47,26 +55,26 @@ export async function POST(req: NextRequest) {
       .from('event_requests')
       .select('id, payment_status')
       .eq('payment_link_token', token)
-      .single();
+      .maybeSingle();
 
     if (fetchErr || !request) {
       logger.warn('[PAYMENT_WEBHOOK] Unknown payment token', { token });
       return NextResponse.json({ error: 'Unknown token' }, { status: 404 });
     }
 
-    // Update payment status
-    const updateData: Record<string, unknown> = {
-      payment_status: status === 'paid' ? 'paid' : request.payment_status,
-    };
-
-    if (status === 'paid') {
-      updateData.paid_at = new Date().toISOString();
-      updateData.payment_method = method || 'other';
+    // Idempotency: if already paid, return success without re-processing
+    if (request.payment_status === 'paid') {
+      logger.info('[PAYMENT_WEBHOOK] Already paid, skipping', { requestId: request.id });
+      return NextResponse.json({ success: true });
     }
 
     const { error: updateErr } = await supabase
       .from('event_requests')
-      .update(updateData)
+      .update({
+        payment_status: 'paid',
+        paid_at: new Date().toISOString(),
+        payment_method: method || 'other',
+      })
       .eq('id', request.id);
 
     if (updateErr) {
@@ -74,7 +82,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Update failed' }, { status: 500 });
     }
 
-    logger.info('[PAYMENT_WEBHOOK] Payment processed', { requestId: request.id, status });
+    logger.info('[PAYMENT_WEBHOOK] Payment processed', { requestId: request.id });
     return NextResponse.json({ success: true });
   } catch (err) {
     logger.error('[PAYMENT_WEBHOOK] Error', { error: err instanceof Error ? err.message : String(err) });
