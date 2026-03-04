@@ -13,6 +13,9 @@
 
 /** JWT signing secret - required for both admin and session tokens. */
 export const JWT_SECRET = (() => {
+  // Client-side: JWT_SECRET is unavailable (no NEXT_PUBLIC_ prefix) and unused.
+  // Guard to prevent the throw from crashing client bundles that import this module.
+  if (typeof window !== 'undefined') return '';
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error('JWT_SECRET environment variable is not set');
   return secret;
