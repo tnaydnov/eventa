@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const SMTP_FROM = process.env.SMTP_FROM || 'noreply@eventa.productions';
+const SMTP_FROM = `"Eventa" <${process.env.SMTP_FROM || 'noreply@eventa.productions'}>`;
 
 /** Max number of attachments per email. */
 const MAX_FILES = 5;

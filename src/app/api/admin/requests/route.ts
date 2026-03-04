@@ -21,7 +21,7 @@ const transporter = nodemailer.createTransport({
   secure: Number(process.env.SMTP_PORT) === 465,
   auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
 });
-const SMTP_FROM = process.env.SMTP_FROM || 'noreply@eventa.productions';
+const SMTP_FROM = `"Eventa" <${process.env.SMTP_FROM || 'noreply@eventa.productions'}>`;
 
 /**
  * GET /api/admin/requests
@@ -206,7 +206,7 @@ export async function POST(req: NextRequest) {
         client_phone: request.contact_phone || null,
         communication_preference: request.contact_preference || 'email',
       })
-      .select('id, slug')
+      .select('id, slug, join_code')
       .single();
 
     if (createErr) {
@@ -302,7 +302,7 @@ export async function POST(req: NextRequest) {
       if (request.contact_email) {
         try {
           const totalShekel = (BASE_PRICE + (request.wants_guest_messages ? MSG_ADDON : 0));
-          const eventUrl = `${APP_BASE_URL}/e/${newEvent.slug}`;
+          const eventUrl = `${APP_BASE_URL}/dating/${newEvent.slug}/join?k=${newEvent.join_code}`;
 
           const approvalEmail = buildClientApprovalEmail({
             eventType: request.event_type,
