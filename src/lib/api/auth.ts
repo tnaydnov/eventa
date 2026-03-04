@@ -20,7 +20,8 @@ export async function sendOtp(params: {
       body: JSON.stringify(params),
     });
     return res.json();
-  } catch {
+  } catch (err) {
+    console.error('[sendOtp] network error:', err);
     return { success: false, error: 'שגיאה בשליחת הקוד - נסו שוב' };
   }
 }
@@ -88,6 +89,7 @@ export async function joinEvent(
     return res.json();
   } catch (err) {
     if (err instanceof Error && err.message === 'DEVICE_BANNED') throw err;
+    console.error('[joinEvent] error:', err);
     return null;
   }
 }

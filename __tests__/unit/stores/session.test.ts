@@ -4,6 +4,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { useSessionStore } from '@/lib/stores/session';
 import type { WeddingSession } from '@/lib/stores/session';
+import { SESSION_STORAGE_KEY } from '@/lib/constants';
 
 const mockSession: WeddingSession = {
   eventId: 'event-1',
@@ -64,7 +65,7 @@ describe('useSessionStore', () => {
     useSessionStore.getState().setSession(mockSession);
     expect(useSessionStore.getState().session).toEqual(mockSession);
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      'eventa_session',
+      SESSION_STORAGE_KEY,
       JSON.stringify(mockSession)
     );
   });
@@ -95,7 +96,7 @@ describe('useSessionStore', () => {
   it('clearSession removes from localStorage', () => {
     useSessionStore.getState().setSession(mockSession);
     useSessionStore.getState().clearSession();
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('eventa_session');
+    expect(localStorageMock.removeItem).toHaveBeenCalledWith(SESSION_STORAGE_KEY);
   });
 
   it('setSession overwrites previous session', () => {
@@ -131,6 +132,6 @@ describe('useSessionStore', () => {
     expect(s.session).toBeNull();
     expect(s.participant).toBeNull();
     expect(s.photos).toEqual([]);
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('eventa_session');
+    expect(localStorageMock.removeItem).toHaveBeenCalledWith(SESSION_STORAGE_KEY);
   });
 });

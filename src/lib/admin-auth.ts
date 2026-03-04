@@ -5,7 +5,7 @@
  * Works perfectly on serverless (Vercel) with zero cold-start issues.
  */
 import crypto from 'crypto';
-import { ADMIN_MAX_AGE_S, JWT_ISSUER, JWT_AUDIENCE } from '@/lib/config';
+import { ADMIN_MAX_AGE_S, JWT_ISSUER, JWT_AUDIENCE, JWT_SECRET, IS_PRODUCTION } from '@/lib/config';
 import { logger } from '@/lib/logger';
 
 const ADMIN_COOKIE = 'ws_admin';
@@ -18,15 +18,9 @@ interface AdminPayload {
   exp: number;
 }
 
-function getSecret(): string {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error('JWT_SECRET environment variable is not set');
-  return secret;
-}
-
 /** Sign an admin JWT */
 export function signAdminToken(): string {
-  const secret = getSecret();
+  const secret = JWT_SECRET;
   const now = Math.floor(Date.now() / 1000);
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
   const payload: AdminPayload = {
@@ -45,7 +39,7 @@ export function signAdminToken(): string {
 export function verifyAdminToken(token: string | null | undefined): boolean {
   if (!token) return false;
   try {
-    const secret = getSecret();
+    const secret = JWT_SECRET;
     const parts = token.split('.');
     if (parts.length !== 3) return false;
     const [header, body, sig] = parts;
@@ -76,14 +70,14 @@ export function verifyAdminToken(token: string | null | undefined): boolean {
 
 /** Build Set-Cookie header for admin JWT */
 export function adminCookieHeader(token: string): string {
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure; Partitioned' : '';
+  const secure = IS_PRODUCTION ? '; Secure; Partitioned' : '';
   // SameSite=Strict - admin panel never needs cross-site cookie sending
   return `${ADMIN_COOKIE}=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${ADMIN_MAX_AGE_S}${secure}`;
 }
 
 /** Build Set-Cookie header to clear admin cookie */
 export function clearAdminCookieHeader(): string {
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure; Partitioned' : '';
+  const secure = IS_PRODUCTION ? '; Secure; Partitioned' : '';
   return `${ADMIN_COOKIE}=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0${secure}`;
 }
 

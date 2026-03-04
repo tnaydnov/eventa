@@ -6,6 +6,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { generateDeviceFingerprint, getDeviceIdentifiers } from '@/lib/device-fingerprint';
+import { LEGACY_LOCAL_ID_KEY } from '@/lib/constants';
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -73,7 +74,7 @@ describe('getDeviceIdentifiers', () => {
   it('U-DFP-06: persists localId in localStorage', async () => {
     await getDeviceIdentifiers();
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      'wedding_local_id',
+      LEGACY_LOCAL_ID_KEY,
       expect.any(String)
     );
   });

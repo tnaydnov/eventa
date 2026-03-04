@@ -6,6 +6,7 @@ import { supabase, setEventContext } from '@/lib/supabase';
 import { getMyPhotos } from '@/lib/api';
 import { useAppResume } from '@/hooks/useAppResume';
 import { useRealtimeHub } from '@/hooks/useRealtimeHub';
+import { LEGACY_LOCAL_ID_KEY, SESSION_STORAGE_KEY } from '@/lib/constants';
 
 /**
  * Restores the session from httpOnly cookie (via /api/auth/verify)
@@ -52,7 +53,7 @@ export default function SessionProvider({
         } else if (res.status === 403) {
           // User is banned - clear everything and redirect
           useSessionStore.getState().clearSession();
-          localStorage.removeItem('wedding_local_id');
+          localStorage.removeItem(LEGACY_LOCAL_ID_KEY);
           window.location.href = `/dating/${eventSlug}/banned`;
           return;
         } else if (res.status === 410) {
@@ -64,7 +65,7 @@ export default function SessionProvider({
           // just clear it and fall through so the page can handle QR join etc.
           if (body.eventSlug === eventSlug) {
             useSessionStore.getState().clearSession();
-            localStorage.removeItem('wedding_local_id');
+            localStorage.removeItem(LEGACY_LOCAL_ID_KEY);
             window.location.href = `/dating/${eventSlug}/unavailable?reason=${reason}`;
             return;
           }
@@ -76,7 +77,7 @@ export default function SessionProvider({
       }
 
       // Fallback: try restoring from localStorage (backward compat)
-      const stored = localStorage.getItem('eventa_session');
+      const stored = localStorage.getItem(SESSION_STORAGE_KEY);
       if (stored) {
         try {
           const s = JSON.parse(stored);
@@ -89,7 +90,7 @@ export default function SessionProvider({
           }
         } catch {
           // corrupt data - remove it
-          localStorage.removeItem('eventa_session');
+          localStorage.removeItem(SESSION_STORAGE_KEY);
         }
       }
 
@@ -122,7 +123,7 @@ export default function SessionProvider({
       } else if (res.status === 403) {
         // User was banned while in background - kick them
         useSessionStore.getState().clearSession();
-        localStorage.removeItem('wedding_local_id');
+        localStorage.removeItem(LEGACY_LOCAL_ID_KEY);
         window.location.href = `/dating/${eventSlug}/banned`;
         return;
       } else if (res.status === 410) {
@@ -132,7 +133,7 @@ export default function SessionProvider({
         // Only redirect if the cookie belonged to this event
         if (body.eventSlug === eventSlug) {
           useSessionStore.getState().clearSession();
-          localStorage.removeItem('wedding_local_id');
+          localStorage.removeItem(LEGACY_LOCAL_ID_KEY);
           window.location.href = `/dating/${eventSlug}/unavailable?reason=${reason}`;
           return;
         }
@@ -226,7 +227,7 @@ export default function SessionProvider({
           ) {
             const reason = updated.status;
             useSessionStore.getState().clearSession();
-            localStorage.removeItem('wedding_local_id');
+            localStorage.removeItem(LEGACY_LOCAL_ID_KEY);
             window.location.href = `/dating/${eventSlug}/unavailable?reason=${reason}`;
             return;
           }

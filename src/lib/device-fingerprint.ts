@@ -14,6 +14,8 @@
  * and all data is deleted after 7 days per the app's policy.
  */
 
+import { LEGACY_LOCAL_ID_KEY } from '@/lib/constants';
+
 /** Simple string hash (djb2 variant) */
 function hash(str: string): string {
   let h = 5381;
@@ -141,7 +143,7 @@ export async function getDeviceIdentifiers(): Promise<{
   // localStorage-based UUID (existing mechanism)
   let localId = '';
   if (typeof window !== 'undefined') {
-    localId = localStorage.getItem('wedding_local_id') || '';
+    localId = localStorage.getItem(LEGACY_LOCAL_ID_KEY) || '';
     if (!localId) {
       if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
         localId = crypto.randomUUID();
@@ -151,7 +153,7 @@ export async function getDeviceIdentifiers(): Promise<{
           return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
         });
       }
-      localStorage.setItem('wedding_local_id', localId);
+      localStorage.setItem(LEGACY_LOCAL_ID_KEY, localId);
     }
   }
 

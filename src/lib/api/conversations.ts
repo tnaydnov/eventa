@@ -17,7 +17,8 @@ export async function getOrCreateConversation(
     });
     if (!res.ok) return null;
     return res.json();
-  } catch {
+  } catch (err) {
+    console.error('[getOrCreateConversation] error:', err);
     return null;
   }
 }
@@ -174,7 +175,8 @@ export async function sendMessage(
     });
     if (!res.ok) return null;
     return res.json();
-  } catch {
+  } catch (err) {
+    console.error('[sendMessage] error:', err);
     return null;
   }
 }
@@ -188,7 +190,8 @@ export async function deleteMessage(messageId: string): Promise<boolean> {
       body: JSON.stringify({ messageId }),
     });
     return res.ok;
-  } catch {
+  } catch (err) {
+    console.error('[deleteMessage] error:', err);
     return false;
   }
 }
@@ -210,8 +213,8 @@ export async function uploadChatImage(
   let compressed: File;
   try {
     compressed = await compressChatImage(file);
-  } catch {
-    // Compression failed - reject upload
+  } catch (err) {
+    console.error('[uploadChatImage] compression failed:', err);
     return null;
   }
   const ext = compressed.name.split('.').pop() || 'webp';
@@ -223,15 +226,22 @@ export async function uploadChatImage(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path }),
     });
-    if (!urlRes.ok) return null;
+    if (!urlRes.ok) {
+      console.error('[uploadChatImage] upload-url failed:', urlRes.status);
+      return null;
+    }
     const { token } = await urlRes.json();
 
     const { error } = await supabase.storage
       .from('photos')
       .uploadToSignedUrl(path, token, compressed);
-    if (error) return null;
+    if (error) {
+      console.error('[uploadChatImage] storage upload error:', error.message);
+      return null;
+    }
     return path;
-  } catch {
+  } catch (err) {
+    console.error('[uploadChatImage] upload error:', err);
     return null;
   }
 }
@@ -245,7 +255,8 @@ export async function markConversationRead(conversationId: string): Promise<bool
       body: JSON.stringify({ conversationId }),
     });
     return res.ok;
-  } catch {
+  } catch (err) {
+    console.error('[markConversationRead] error:', err);
     return false;
   }
 }

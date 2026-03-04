@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useSessionStore } from '@/lib/store';
+import { LEGACY_LOCAL_ID_KEY } from '@/lib/constants';
 
 /**
  * HeartbeatPinger - sends a POST to /api/secure/heartbeat every 60 seconds
@@ -37,7 +38,7 @@ export default function HeartbeatPinger() {
           if (res.status === 403) {
             // User has been banned - clear session and redirect
             useSessionStore.getState().clearSession();
-            localStorage.removeItem('wedding_local_id');
+            localStorage.removeItem(LEGACY_LOCAL_ID_KEY);
             if (eventSlug) {
               window.location.href = `/dating/${eventSlug}/banned`;
             } else {
@@ -48,7 +49,7 @@ export default function HeartbeatPinger() {
             const body = await res.json().catch(() => ({}));
             const reason = body.reason || 'deleted';
             useSessionStore.getState().clearSession();
-            localStorage.removeItem('wedding_local_id');
+            localStorage.removeItem(LEGACY_LOCAL_ID_KEY);
             if (eventSlug) {
               window.location.href = `/dating/${eventSlug}/unavailable?reason=${reason}`;
             } else {

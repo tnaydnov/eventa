@@ -17,7 +17,8 @@ export async function sendLike(toId: string): Promise<SendLikeResult | null> {
     });
     if (!res.ok) return null;
     return res.json();
-  } catch {
+  } catch (err) {
+    console.error('[sendLike] error:', err);
     return null;
   }
 }
@@ -31,7 +32,8 @@ export async function removeLike(toId: string): Promise<boolean> {
       body: JSON.stringify({ toId }),
     });
     return res.ok;
-  } catch {
+  } catch (err) {
+    console.error('[removeLike] error:', err);
     return false;
   }
 }
@@ -106,11 +108,12 @@ export async function getSentLikeIds(
   eventId: string,
   myId: string
 ): Promise<string[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('likes')
     .select('to_participant_id')
     .eq('event_id', eventId)
     .eq('from_participant_id', myId);
+  if (error) console.error('[getSentLikeIds] query error:', error.message);
   return data?.map((l) => l.to_participant_id) ?? [];
 }
 
@@ -120,13 +123,14 @@ export async function hasLiked(
   fromId: string,
   toId: string
 ): Promise<boolean> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('likes')
     .select('id')
     .eq('event_id', eventId)
     .eq('from_participant_id', fromId)
     .eq('to_participant_id', toId)
     .maybeSingle();
+  if (error) console.error('[hasLiked] query error:', error.message);
   return !!data;
 }
 
@@ -139,7 +143,8 @@ export async function markLikeSeen(fromParticipantId: string): Promise<boolean> 
       body: JSON.stringify({ fromParticipantId }),
     });
     return res.ok;
-  } catch {
+  } catch (err) {
+    console.error('[markLikeSeen] error:', err);
     return false;
   }
 }
@@ -153,7 +158,8 @@ export async function markAllLikesSeen(): Promise<boolean> {
       body: JSON.stringify({ all: true }),
     });
     return res.ok;
-  } catch {
+  } catch (err) {
+    console.error('[markAllLikesSeen] error:', err);
     return false;
   }
 }
@@ -163,11 +169,12 @@ export async function getUnseenLikes(
   eventId: string,
   myId: string
 ): Promise<string[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('likes')
     .select('from_participant_id')
     .eq('event_id', eventId)
     .eq('to_participant_id', myId)
     .is('seen_at', null);
+  if (error) console.error('[getUnseenLikes] query error:', error.message);
   return (data || []).map((l) => l.from_participant_id);
 }

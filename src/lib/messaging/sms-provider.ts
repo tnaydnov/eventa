@@ -12,6 +12,7 @@
  */
 import { SMS_PROVIDER_LIVE } from '@/lib/config';
 import { logger } from '@/lib/logger';
+import { maskPhone } from './phone-utils';
 import type { SendSmsParams, SendSmsResult } from './types';
 
 /** TextMe Send-SMS endpoint (same for XML and JSON) */
@@ -53,7 +54,7 @@ export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
   // ── Stub mode ──
   if (!SMS_PROVIDER_LIVE) {
     logger.warn('[SMS_STUB] SMS_PROVIDER_LIVE is false — SMS NOT sent', {
-      to: params.to,
+      to: maskPhone(params.to),
       messageLength: params.message.length,
       hint: 'Set SMS_PROVIDER_LIVE=true in .env.local to send real SMS',
     });
@@ -96,7 +97,7 @@ export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
   };
 
   logger.info('[SMS] Sending via TextMe', {
-    to: localPhone,
+    to: maskPhone(params.to),
     source,
     messageLength: params.message.length,
   });
@@ -147,7 +148,7 @@ export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
 
     if (status === 0) {
       logger.info('[SMS] Sent successfully', {
-        to: localPhone,
+        to: maskPhone(params.to),
         shipmentId: result.shipment_id,
       });
       return {
@@ -161,7 +162,7 @@ export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
     const errorMsg =
       knownError || (result.message as string) || `TextMe error (status ${result.status})`;
     logger.error('[SMS] TextMe returned error', {
-      to: localPhone,
+      to: maskPhone(params.to),
       status: result.status,
       message: result.message,
       knownError,
@@ -170,7 +171,7 @@ export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     logger.error('[SMS] Send failed (network/exception)', {
-      to: params.to,
+      to: maskPhone(params.to),
       error: message,
     });
     return { success: false, messageId: null, error: message };

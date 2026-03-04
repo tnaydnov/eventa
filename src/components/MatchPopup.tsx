@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMatchStore, useSessionStore } from '@/lib/store';
 import { getOrCreateConversation, getPhotoUrl } from '@/lib/api';
@@ -21,7 +21,6 @@ import { useFocusTrap } from '@/hooks/useFocusTrap';
  */
 export default function MatchPopup() {
   const router = useRouter();
-  const pathname = usePathname();
   const session = useSessionStore((s) => s.session);
   const pendingMatch = useMatchStore((s) => s.pendingMatch);
   const clearPendingMatch = useMatchStore((s) => s.clearPendingMatch);

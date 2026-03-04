@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import { SUPABASE_SERVICE_ROLE_KEY } from '@/lib/config';
 
 const _supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const _supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -49,9 +50,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 let _serviceClient: SupabaseClient | null = null;
 export function getServiceClient(): SupabaseClient {
   if (_serviceClient) return _serviceClient;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!serviceKey) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY');
-  _serviceClient = createClient(supabaseUrl, serviceKey);
+  if (!SUPABASE_SERVICE_ROLE_KEY) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY');
+  _serviceClient = createClient(supabaseUrl, SUPABASE_SERVICE_ROLE_KEY);
   return _serviceClient;
 }
 

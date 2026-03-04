@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { PublicParticipant, ParticipantPhoto } from '../database.types';
+import { SESSION_STORAGE_KEY } from '../constants';
 
 export interface WeddingSession {
   eventId: string;
@@ -18,6 +19,7 @@ interface SessionState {
   setParticipant: (p: PublicParticipant) => void;
   setPhotos: (ph: ParticipantPhoto[]) => void;
   clearSession: () => void;
+  reset: () => void;
 }
 
 export const useSessionStore = create<SessionState>((set) => ({
@@ -26,7 +28,7 @@ export const useSessionStore = create<SessionState>((set) => ({
   photos: [],
   setSession: (session) => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('eventa_session', JSON.stringify(session));
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
     }
     set({ session });
   },
@@ -34,7 +36,7 @@ export const useSessionStore = create<SessionState>((set) => ({
   setPhotos: (photos) => set({ photos }),
   clearSession: () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('eventa_session');
+      localStorage.removeItem(SESSION_STORAGE_KEY);
     }
     set({ session: null, participant: null, photos: [] });
 
@@ -48,5 +50,9 @@ export const useSessionStore = create<SessionState>((set) => ({
     import('./notifications').then(({ useNotificationStore }) => useNotificationStore.getState().reset()).catch(() => {});
     import('./swipe').then(({ useSwipeStore }) => useSwipeStore.getState().reset()).catch(() => {});
     import('./toast').then(({ useToastStore }) => useToastStore.getState().reset()).catch(() => {});
+  },
+  reset: () => {
+    // Alias for clearSession to match the uniform reset() convention across all stores.
+    useSessionStore.getState().clearSession();
   },
 }));

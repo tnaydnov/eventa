@@ -14,6 +14,7 @@ import LegalDrawer from '@/components/LegalDrawer';
 import PhoneInput from '@/components/PhoneInput';
 import OtpInput from '@/components/OtpInput';
 import OnboardingSlides from '@/components/OnboardingSlides';
+import { SESSION_STORAGE_KEY } from '@/lib/constants';
 
 /** Detect in-app browsers / QR scanner WebViews that don't persist cookies */
 function isInAppBrowser(): boolean {
@@ -115,7 +116,7 @@ export default function JoinPage({
 
   // Check for existing session
   useEffect(() => {
-    const stored = localStorage.getItem('eventa_session');
+    const stored = localStorage.getItem(SESSION_STORAGE_KEY);
     if (stored) {
       try {
         const session = JSON.parse(stored);

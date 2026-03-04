@@ -26,7 +26,7 @@ export async function uploadPhoto(
   } catch (err) {
     // Canvas-cropped photos are already EXIF-free, so falling back to the
     // original is safe.  Log the failure for diagnostics.
-    console.warn('[uploadPhoto] Compression failed, using original file:', err);
+    console.error('[uploadPhoto] Compression failed, using original file:', err);
     compressed = file;
   }
   const ext = compressed.name.split('.').pop() || 'webp';
@@ -53,7 +53,7 @@ export async function uploadPhoto(
       body: compressed,
     });
     if (!uploadRes.ok) {
-      console.warn('[uploadPhoto] Raw PUT failed, trying SDK fallback:', uploadRes.status);
+      console.error('[uploadPhoto] Raw PUT failed, trying SDK fallback:', uploadRes.status);
       // Fallback: try with token as header (Supabase signed upload)
       const uploadRes2 = await supabase.storage
         .from('photos')
@@ -96,7 +96,8 @@ export async function deletePhoto(photoId: string, storagePath: string): Promise
       body: JSON.stringify({ photoId, storagePath }),
     });
     return res.ok;
-  } catch {
+  } catch (err) {
+    console.error('[deletePhoto] error:', err);
     return false;
   }
 }
@@ -112,7 +113,8 @@ export async function reorderPhotos(
       body: JSON.stringify({ order }),
     });
     return res.ok;
-  } catch {
+  } catch (err) {
+    console.error('[reorderPhotos] error:', err);
     return false;
   }
 }

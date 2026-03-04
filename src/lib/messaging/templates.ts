@@ -2,7 +2,7 @@
  * Message templates - centralized Hebrew text and WA template names.
  * No hardcoded message strings anywhere else in the codebase.
  */
-import { APP_BASE_URL } from '@/lib/config';
+import { APP_BASE_URL, OTP_EXPIRY_S } from '@/lib/config';
 import type { EventMessagingConfig, WaTemplateParam } from './types';
 
 /** Build the join URL for an event */
@@ -18,7 +18,7 @@ export function buildFeedbackUrl(eventId: string): string {
 // ── SMS Templates (plain text) ──
 
 export function otpSmsText(code: string): string {
-  return `Eventa - קוד האימות שלך: ${code}\nתוקף: 5 דקות`;
+  return `Eventa - קוד האימות שלך: ${code}\nתוקף: ${OTP_EXPIRY_S / 60} דקות`;
 }
 
 // ── WhatsApp Template Names (registered in Meta dashboard) ──

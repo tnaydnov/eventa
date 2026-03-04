@@ -8,6 +8,7 @@ import { useSessionStore, useGridStore, useNotificationStore, useSwipeStore } fr
 import { getGridParticipants, getPhotoUrl, markLikeSeen, getParticipant } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import { useRealtimeHub } from '@/hooks/useRealtimeHub';
+import { LEGACY_LOCAL_ID_KEY } from '@/lib/constants';
 import { useAppResume } from '@/hooks/useAppResume';
 import { PageTransition } from '@/components/Animations';
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -209,7 +210,7 @@ export default function EventPage({
             // If THIS user was banned, kick them immediately
             if (updated.id === session?.participantId) {
               useSessionStore.getState().clearSession();
-              localStorage.removeItem('wedding_local_id');
+              localStorage.removeItem(LEGACY_LOCAL_ID_KEY);
               window.location.href = `/dating/${eventSlug}/banned`;
               return;
             }

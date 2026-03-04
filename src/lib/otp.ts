@@ -6,6 +6,7 @@
 import crypto from 'crypto';
 import { getServiceClient } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
+import { maskPhone } from '@/lib/messaging/phone-utils';
 import {
   OTP_LENGTH,
   OTP_EXPIRY_S,
@@ -83,7 +84,7 @@ export async function createOtp(
 
   if (error) {
     logger.error('[OTP] Failed to create OTP', {
-      phone,
+      phone: maskPhone(phone),
       eventId,
       error: error.message,
     });
@@ -120,7 +121,7 @@ export async function verifyOtp(
 
   if (fetchError) {
     logger.error('[OTP] Verification lookup failed', {
-      phone,
+      phone: maskPhone(phone),
       eventId,
       error: fetchError.message,
     });

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { SESSION_STORAGE_KEY } from '@/lib/constants';
 
 // ── Mocks ──
 let mockSession: Record<string, string> | null = null;
@@ -120,7 +121,7 @@ describe('SessionProvider', () => {
   });
 
   it('falls back to localStorage when verify fails', async () => {
-    localStorage.setItem('eventa_session', JSON.stringify({
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
       eventId: 'e1',
       eventSlug: 'test-event',
       participantId: 'p1',

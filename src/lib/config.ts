@@ -11,6 +11,16 @@
 
 // ─── Session & Auth ─────────────────────────────────────────
 
+/** JWT signing secret - required for both admin and session tokens. */
+export const JWT_SECRET = (() => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET environment variable is not set');
+  return secret;
+})();
+
+/** Whether the app is running in production mode. */
+export const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
 /** Session JWT lifetime in seconds (default 30 days). */
 export const SESSION_MAX_AGE_S = 30 * 24 * 60 * 60;
 
@@ -112,6 +122,20 @@ export const MSG_ADDON = 50;
 
 /** Number of days a payment link stays valid before expiring. */
 export const PAYMENT_LINK_EXPIRY_DAYS = 7;
+
+// ─── Supabase ───────────────────────────────────────────────
+
+/** Supabase service-role key for server-side admin operations. */
+export const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+// ─── Invoice4U Configuration ────────────────────────────────
+
+/** Invoice4U SOAP API endpoint (override for staging/testing). */
+export const INVOICE4U_API_URL =
+  process.env.INVOICE4U_API_URL || 'https://api.invoice4u.co.il/Services/ApiService.svc';
+
+/** Invoice4U API GUID token. */
+export const INVOICE4U_API_TOKEN = process.env.INVOICE4U_API_TOKEN || '';
 
 /**
  * Calculate the total price in agorot (shekel × 100).

@@ -10,7 +10,8 @@ export async function blockParticipant(blockedId: string): Promise<boolean> {
     });
     if (res.ok) invalidateBlockedCache();
     return res.ok;
-  } catch {
+  } catch (err) {
+    console.error('[blockParticipant] error:', err);
     return false;
   }
 }

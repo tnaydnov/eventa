@@ -40,6 +40,14 @@ export const LOOKING_FOR_OPTIONS = Object.entries(LOOKING_FOR_LABELS).map(
   ([value, label]) => ({ value, label })
 );
 
+// ─── Local Storage ──────────────────────────────────────
+
+/** Legacy localStorage key for device fingerprint ID. */
+export const LEGACY_LOCAL_ID_KEY = 'wedding_local_id';
+
+/** localStorage key for persisted session data. */
+export const SESSION_STORAGE_KEY = 'eventa_session';
+
 // ─── Cleanup ────────────────────────────────────────────
 
 /** Days after event end before data is cleaned up. */

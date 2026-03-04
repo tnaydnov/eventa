@@ -12,6 +12,7 @@
  */
 
 import { logger } from './logger';
+import { INVOICE4U_API_URL, INVOICE4U_API_TOKEN } from './config';
 
 /* ════════════════════════════════════════════════════════
    Constants & Enums
@@ -20,8 +21,8 @@ import { logger } from './logger';
 const PRODUCTION_URL = 'https://api.invoice4u.co.il/Services/ApiService.svc';
 const STAGING_URL    = 'https://apiqa.invoice4u.co.il/Services/ApiService.svc';
 
-const API_URL = process.env.INVOICE4U_API_URL || PRODUCTION_URL;
-const API_TOKEN = process.env.INVOICE4U_API_TOKEN || '';
+const API_URL = INVOICE4U_API_URL;
+const API_TOKEN = INVOICE4U_API_TOKEN;
 
 /** Invoice4U DocumentType enum */
 export enum DocumentType {

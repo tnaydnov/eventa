@@ -112,8 +112,8 @@ export default function ImageCropper({
     try {
       const cropped = await getCroppedImg(imageSrc, croppedAreaPixels, fileName);
       onCropDone(cropped, fileName);
-    } catch {
-      console.error('Crop failed');
+    } catch (err) {
+      console.error('[ImageCropper] Crop failed:', err);
     } finally {
       setSaving(false);
     }

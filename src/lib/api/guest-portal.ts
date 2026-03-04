@@ -76,7 +76,7 @@ export async function uploadGuestFile(
     body: formData,
   });
 
-  if (!res.ok && res.status !== 200) {
+  if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error || 'שגיאה בהעלאת הקובץ');
   }

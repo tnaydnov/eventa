@@ -3,7 +3,7 @@
  * Signs and verifies session tokens stored as httpOnly cookies.
  */
 import crypto from 'crypto';
-import { SESSION_MAX_AGE_S, JWT_ISSUER, JWT_AUDIENCE } from '@/lib/config';
+import { SESSION_MAX_AGE_S, JWT_ISSUER, JWT_AUDIENCE, JWT_SECRET, IS_PRODUCTION } from '@/lib/config';
 
 const COOKIE_NAME = 'ws_session';
 
@@ -19,12 +19,6 @@ export interface SessionPayload {
   exp: number;
 }
 
-function getSecret(): string {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error('JWT_SECRET environment variable is not set');
-  return secret;
-}
-
 /** Sign a session JWT using HMAC-SHA256 */
 export function signSessionToken(data: {
   participantId: string;
@@ -32,7 +26,7 @@ export function signSessionToken(data: {
   eventSlug: string;
   eventName: string;
 }): string {
-  const secret = getSecret();
+  const secret = JWT_SECRET;
   const now = Math.floor(Date.now() / 1000);
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
   const payload: SessionPayload = {
@@ -54,7 +48,7 @@ export function signSessionToken(data: {
 /** Verify a session JWT. Returns payload if valid, null otherwise. */
 export function verifySessionToken(token: string): SessionPayload | null {
   try {
-    const secret = getSecret();
+    const secret = JWT_SECRET;
     const parts = token.split('.');
     if (parts.length !== 3) return null;
     const [header, body, sig] = parts;
@@ -89,13 +83,13 @@ export function verifySessionToken(token: string): SessionPayload | null {
 
 /** Build the Set-Cookie header for a session token */
 export function sessionCookieHeader(token: string): string {
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  const secure = IS_PRODUCTION ? '; Secure' : '';
   return `${COOKIE_NAME}=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE_S}${secure}`;
 }
 
 /** Build the Set-Cookie header to clear the session */
 export function clearSessionCookieHeader(): string {
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  const secure = IS_PRODUCTION ? '; Secure' : '';
   return `${COOKIE_NAME}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${secure}`;
 }
 

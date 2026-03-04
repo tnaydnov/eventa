@@ -6,6 +6,7 @@
 import { getServiceClient } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
 import { WA_MARKETING_WINDOW_HOURS } from '@/lib/config';
+import { maskPhone } from './phone-utils';
 import { sendSms } from './sms-provider';
 import { sendWhatsAppTemplate } from './whatsapp-provider';
 import {
@@ -145,7 +146,7 @@ export async function sendWelcomeMessage(
 
   if (guestEntry?.wa_pre_event_sent) {
     logger.info('[MESSAGING] Skipping welcome - pre-event already sent', {
-      phone,
+      phone: maskPhone(phone),
       eventId: config.eventId,
     });
     return { success: true, channel: 'whatsapp', messageId: null, error: null };
@@ -164,7 +165,7 @@ export async function sendWelcomeMessage(
 
   if (existingMsg) {
     logger.info('[MESSAGING] Skipping welcome - message already sent', {
-      phone,
+      phone: maskPhone(phone),
       eventId: config.eventId,
     });
     return { success: true, channel: 'whatsapp', messageId: null, error: null };
@@ -232,7 +233,7 @@ export async function sendFeedbackMessage(
 
   if (!recentMsg) {
     logger.info('[MESSAGING] Skipping feedback - no open WA marketing window', {
-      phone,
+      phone: maskPhone(phone),
       eventId: config.eventId,
     });
     return {

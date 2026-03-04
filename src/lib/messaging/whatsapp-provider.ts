@@ -17,6 +17,7 @@
  */
 import { WA_PROVIDER_LIVE } from '@/lib/config';
 import { logger } from '@/lib/logger';
+import { maskPhone } from './phone-utils';
 import type { SendWaTemplateParams, SendWaResult } from './types';
 
 /** 360dialog API base URL */
@@ -32,7 +33,7 @@ export async function sendWhatsAppTemplate(
   // ── Stub mode ──
   if (!WA_PROVIDER_LIVE) {
     logger.info('[WA_STUB] Would send WhatsApp template', {
-      to: params.to,
+      to: maskPhone(params.to),
       template: params.templateName,
       language: params.templateLanguage,
     });
@@ -68,10 +69,12 @@ export async function sendWhatsAppTemplate(
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
+      const errorMsg = (err as { error?: { message?: string } }).error?.message || `HTTP ${response.status}`;
+      logger.error('[WA] HTTP error', { to: maskPhone(params.to), template: params.templateName, error: errorMsg });
       return {
         success: false,
         messageId: null,
-        error: (err as { error?: { message?: string } }).error?.message || `HTTP ${response.status}`,
+        error: errorMsg,
       };
     }
 
@@ -83,7 +86,7 @@ export async function sendWhatsAppTemplate(
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
-    logger.error('[WA] Send failed', { to: params.to, template: params.templateName, error: message });
+    logger.error('[WA] Send failed', { to: maskPhone(params.to), template: params.templateName, error: message });
     return { success: false, messageId: null, error: message };
   }
 }
