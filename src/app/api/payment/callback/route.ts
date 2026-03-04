@@ -3,6 +3,7 @@ import { logger } from '@/lib/logger';
 import { getServiceClient } from '@/lib/supabase';
 import { getClearingLogById, isConfigured } from '@/lib/invoice4u';
 import { escapeHtml } from '@/lib/email-templates';
+import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 
 /**
  * GET /api/payment/callback?rid=<requestId>
@@ -16,6 +17,12 @@ import { escapeHtml } from '@/lib/email-templates';
  *    (the wizard iframe host) so the UI can react.
  */
 export async function GET(req: NextRequest) {
+  const ip = getClientIp(req.headers);
+  const rl = checkRateLimit(`payment-callback:${ip}`, RATE_LIMITS.standard);
+  if (!rl.allowed) {
+    return htmlResponse('שגיאה', 'יותר מדי בקשות, נסו שוב מאוחר יותר.', false);
+  }
+
   const rid = req.nextUrl.searchParams.get('rid');
 
   if (!rid) {

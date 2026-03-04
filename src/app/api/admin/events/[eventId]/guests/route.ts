@@ -128,6 +128,13 @@ export async function POST(
         return jsonError(result.parseError, 400);
       }
 
+      // Enforce per-event cap post-parse to prevent race condition
+      const remaining = MAX_GUEST_PHONES_PER_EVENT - (existingPhones.size ?? 0);
+      const trimmed = result.validGuests.length - Math.min(result.validGuests.length, remaining);
+      if (remaining < result.validGuests.length) {
+        result.validGuests = result.validGuests.slice(0, remaining);
+      }
+
       // Insert valid guests
       if (result.validGuests.length > 0) {
         const rows = result.validGuests.map((g) => ({
@@ -154,6 +161,7 @@ export async function POST(
         added: result.added,
         duplicates: result.duplicates,
         invalid: result.invalid,
+        trimmedByLimit: trimmed,
         source: 'admin_file',
       }, req);
 
@@ -162,6 +170,7 @@ export async function POST(
         duplicates: result.duplicates,
         invalid: result.invalid,
         errors: result.errors,
+        ...(trimmed > 0 && { trimmedByLimit: trimmed }),
       });
     }
 

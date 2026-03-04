@@ -48,9 +48,13 @@ export async function GET(
     // Check event hasn't started yet
     const { data: event } = await supabase
       .from('events')
-      .select('id, status, starts_at')
+      .select('id, status, starts_at, wa_messages_enabled')
       .eq('id', data.event_id)
       .maybeSingle();
+
+    if (!event?.wa_messages_enabled) {
+      return NextResponse.json({ error: 'Portal unavailable' }, { status: 403 });
+    }
 
     if (!event || event.status === 'archived') {
       return NextResponse.json({ error: 'האירוע הסתיים' }, { status: 400 });

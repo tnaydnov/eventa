@@ -54,14 +54,18 @@ export async function GET(request: NextRequest) {
       message: `הלקוח ביקש ליצור קשר במקום לשלם.\nסוג אירוע: ${req.event_type}${req.event_name ? `\nשם אירוע: ${req.event_name}` : ''}\nמזהה בקשה: ${requestId}`,
     });
 
-    await getMailTransporter().sendMail({
-      from: getSmtpFrom(),
-      to: 'contact@eventa.productions',
-      subject: emailData.subject,
-      html: emailData.html,
-    });
+    try {
+      await getMailTransporter().sendMail({
+        from: getSmtpFrom(),
+        to: 'contact@eventa.productions',
+        subject: emailData.subject,
+        html: emailData.html,
+      });
+    } catch (mailErr) {
+      logger.error('[CONTACT_ME] Failed to send admin email', { requestId, error: mailErr instanceof Error ? mailErr.message : String(mailErr) });
+    }
 
-    logger.info('Contact-me-instead processed', { requestId, contactName: req.contact_name });
+    logger.info('Contact-me-instead processed', { requestId });
 
     return buildConfirmationPage(
       'קיבלנו! נחזור אליכם בהקדם',

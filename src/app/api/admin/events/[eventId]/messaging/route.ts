@@ -107,8 +107,7 @@ export async function GET(
     const estimatedCost = waMessages * 0.15 + smsMessages * 0.04;
 
     // messaging_config included in the event query above
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSON column
-    const msgConfig = ((event as any).messaging_config as Record<string, unknown>) ?? null;
+    const msgConfig = ((event as Record<string, unknown>).messaging_config as Record<string, unknown>) ?? null;
 
     return NextResponse.json({
       wa_messages_enabled: event.wa_messages_enabled,
@@ -256,7 +255,7 @@ export async function POST(
     };
 
     if (parsed.data.action === 'send_pre_event') {
-      return await handleManualPreEvent(supabase, eventId, config);
+      return await handleManualPreEvent(supabase, eventId, config, req);
     }
 
     if (parsed.data.action === 'send_feedback') {
@@ -275,7 +274,8 @@ export async function POST(
 async function handleManualPreEvent(
   supabase: ReturnType<typeof getServiceClient>,
   eventId: string,
-  config: EventMessagingConfig
+  config: EventMessagingConfig,
+  req: NextRequest
 ) {
   const { data: guests } = await supabase
     .from('event_guest_phones')
@@ -321,7 +321,7 @@ async function handleManualPreEvent(
     }
   }
 
-  adminAuditLog('MANUAL_PRE_EVENT_SEND', { eventId, sent, failed });
+  adminAuditLog('MANUAL_PRE_EVENT_SEND', { eventId, sent, failed }, req);
 
   return NextResponse.json({ sent, failed });
 }

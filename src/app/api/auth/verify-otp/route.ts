@@ -262,8 +262,8 @@ export async function POST(req: NextRequest) {
         waMessagesEnabled: event.wa_messages_enabled,
       };
 
-      Promise.resolve(sendWelcomeMessage(phone, msgConfig)).catch((err) =>
-        logger.error('[VERIFY_OTP] welcome message error', { error: err })
+      void sendWelcomeMessage(phone, msgConfig).catch((err) =>
+        logger.error('[VERIFY_OTP] welcome message failed', { error: err instanceof Error ? err.message : String(err) })
       );
     }
 

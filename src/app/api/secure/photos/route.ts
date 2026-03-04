@@ -30,18 +30,23 @@ export async function POST(req: NextRequest) {
 
     // Validate orderIndex is a non-negative integer
     const idx = Number(orderIndex);
-    if (!Number.isInteger(idx) || idx < 0 || idx > MAX_PHOTOS) {
+    if (!Number.isInteger(idx) || idx < 0 || idx >= MAX_PHOTOS) {
       return jsonError('Invalid order index', 400);
     }
 
     const supabase = getServiceClient();
 
     // Enforce photo count limit
-    const { count } = await supabase
+    const { count, error: countErr } = await supabase
       .from('participant_photos')
       .select('id', { count: 'exact', head: true })
       .eq('participant_id', session.sub)
       .eq('event_id', session.eid);
+
+    if (countErr) {
+      logger.error('[PHOTOS] count query failed', { error: countErr.message });
+      return jsonError('Server error', 500);
+    }
 
     if ((count ?? 0) >= MAX_PHOTOS) {
       return jsonError(`Maximum ${MAX_PHOTOS} photos allowed`, 400);

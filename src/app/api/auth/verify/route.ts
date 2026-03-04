@@ -107,6 +107,12 @@ export async function DELETE(req: NextRequest) {
     return jsonError('Forbidden', 403);
   }
 
+  const ip = getClientIp(req.headers);
+  const rl = checkRateLimit(`logout:${ip}`, RATE_LIMITS.standard);
+  if (!rl.allowed) {
+    return jsonError('Too many requests', 429);
+  }
+
   const response = NextResponse.json({ success: true });
   response.headers.set('Set-Cookie', clearSessionCookieHeader());
   return response;

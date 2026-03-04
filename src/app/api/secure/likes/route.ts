@@ -151,7 +151,10 @@ export async function DELETE(req: NextRequest) {
         .eq('payload->>from_participant_id', session.sub),
     ]);
 
-    if (likeDelRes.error) logger.error('[LIKES_DELETE] like delete error:', likeDelRes.error.message);
+    if (likeDelRes.error) {
+      logger.error('[LIKES_DELETE] like delete error:', likeDelRes.error.message);
+      return jsonError('Failed to remove like', 500);
+    }
     if (notifDelRes.error) logger.error('[LIKES_DELETE] notif delete error:', notifDelRes.error.message);
 
     return NextResponse.json({ success: true });

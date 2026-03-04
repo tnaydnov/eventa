@@ -6,6 +6,10 @@ import { joinEventSchema } from '@/lib/validations';
 import { jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 
+// Fingerprint format: hex string or UUID-like, max 64 chars
+// NOTE: duplicated in /api/auth/verify-otp/route.ts — keep in sync until extracted to shared util.
+const FP_PATTERN = /^[a-f0-9-]+$/i;
+
 /**
  * POST /api/auth/join
  * Verifies join code, creates or reconnects participant, sets session cookie.
@@ -41,10 +45,6 @@ export async function POST(req: NextRequest) {
     }
 
     const { eventSlug, joinCode } = parsed.data;
-
-    // Fingerprint format: hex string or UUID-like, max 64 chars
-    // NOTE: duplicated in /api/auth/verify-otp/route.ts — keep in sync until extracted to shared util.
-    const FP_PATTERN = /^[a-f0-9-]+$/i;
 
     // Fingerprint is optional - sanitize to plain string or null
     const fingerprint: string | null =

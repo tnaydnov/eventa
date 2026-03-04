@@ -3,6 +3,7 @@ import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
 import { logger } from '@/lib/logger';
+import { adminAuditLog } from '@/lib/admin-auth';
 
 /**
  * PATCH /api/admin/events/[eventId]/qr-sent
@@ -37,6 +38,8 @@ export async function PATCH(
       logger.error('[ADMIN_QR_SENT] DB error:', error.message);
       return jsonError('Failed to update', 500);
     }
+
+    adminAuditLog('QR_PAGE_SENT_TOGGLE', { eventId, sent }, req);
 
     return NextResponse.json({ success: true, qr_page_sent: sent });
   } catch (err) {

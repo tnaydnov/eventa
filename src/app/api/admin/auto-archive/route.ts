@@ -49,10 +49,14 @@ async function handler(req: NextRequest) {
         });
       } else {
         for (const ev of endableEvents) {
-          await supabase
+          const { error: endErr } = await supabase
             .from('events')
             .update({ status: 'ended', is_active: false })
             .eq('id', ev.id);
+          if (endErr) {
+            logger.error('[AUTO_ARCHIVE] end-event update failed', { eventId: ev.id, error: endErr.message });
+            continue;
+          }
           evictEventStatusCache(ev.id);
           endedCount++;
         }
@@ -104,6 +108,7 @@ async function handler(req: NextRequest) {
           const res = await fetch(archiveUrl.toString(), {
             method: 'POST',
             headers,
+            signal: AbortSignal.timeout(10_000),
           });
 
           if (res.ok) {

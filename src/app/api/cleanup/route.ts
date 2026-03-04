@@ -186,7 +186,11 @@ async function handler(req: NextRequest) {
       const bgPaths = ['jpg', 'png', 'webp'].map(
         (ext) => `${eventId}/bg.${ext}`
       );
-      await supabase.storage.from('backgrounds').remove(bgPaths);
+      try {
+        await supabase.storage.from('backgrounds').remove(bgPaths);
+      } catch (bgErr) {
+        logger.error(`[CLEANUP] backgrounds delete error for ${eventId}:`, bgErr instanceof Error ? bgErr.message : String(bgErr));
+      }
 
       totalDeletedFiles += allPaths.length + bgPaths.length;
 
@@ -239,13 +243,13 @@ async function handler(req: NextRequest) {
         .from('events')
         .select('slug')
         .eq('id', eventId)
-        .single();
+        .maybeSingle();
 
       const currentSlug = eventRow?.slug || '';
       const idPrefix = eventId.slice(0, 8);
       const recycledSlug = `${currentSlug}--${idPrefix}`;
 
-      await supabase
+      const { error: archiveErr } = await supabase
         .from('events')
         .update({
           status: 'archived',
@@ -255,6 +259,11 @@ async function handler(req: NextRequest) {
           slug: recycledSlug,
         })
         .eq('id', eventId);
+
+      if (archiveErr) {
+        logger.error(`[CLEANUP] archive update error for ${eventId}:`, archiveErr.message);
+        continue;
+      }
 
       archivedCount++;
       logger.info(`[CLEANUP] Archived event "${event.name}" (${eventId})`);

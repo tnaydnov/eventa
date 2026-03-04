@@ -183,7 +183,7 @@ async function handler(req: NextRequest) {
         });
 
         // Log to message_log
-        await supabase.from('message_log').insert({
+        const { error: logErr } = await supabase.from('message_log').insert({
           event_id: event.id,
           phone: null,
           channel: 'email',
@@ -191,6 +191,7 @@ async function handler(req: NextRequest) {
           status: 'sent',
           recipient_email: contactEmail,
         });
+        if (logErr) logger.error('[UPLOAD_REMINDERS] message_log insert error (sent)', { eventId: event.id, error: logErr.message });
 
         totalSent++;
         logger.info('[UPLOAD_REMINDERS] Sent reminder', {
@@ -205,7 +206,7 @@ async function handler(req: NextRequest) {
         });
 
         // Log failure to message_log
-        await supabase.from('message_log').insert({
+        const { error: failLogErr } = await supabase.from('message_log').insert({
           event_id: event.id,
           phone: null,
           channel: 'email',
@@ -217,6 +218,7 @@ async function handler(req: NextRequest) {
               ? emailErr.message.slice(0, 500)
               : 'Unknown error',
         });
+        if (failLogErr) logger.error('[UPLOAD_REMINDERS] message_log insert error (failed)', { eventId: event.id, error: failLogErr.message });
 
         totalSkipped++;
       }

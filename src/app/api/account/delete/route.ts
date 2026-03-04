@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       .select('id')
       .eq('id', participantId)
       .eq('event_id', eventId)
-      .single();
+      .maybeSingle();
 
     if (participantError || !participant) {
       return jsonError('Participant not found', 404);

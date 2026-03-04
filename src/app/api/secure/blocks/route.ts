@@ -132,7 +132,8 @@ export async function POST(req: NextRequest) {
         .map((m: { media_path: string | null }) => m.media_path)
         .filter((p): p is string => !!p);
       if (mediaPaths.length > 0) {
-        await supabase.storage.from('photos').remove(mediaPaths);
+        const { error: storageErr } = await supabase.storage.from('photos').remove(mediaPaths);
+        if (storageErr) logger.error('[BLOCKS] media cleanup failed', { error: storageErr.message });
       }
     }
 

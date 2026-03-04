@@ -335,7 +335,7 @@ export async function POST(req: NextRequest) {
 
           logger.info('Auto-sent approval email (C4)', {
             eventId: newEvent.id,
-            to: request.contact_email,
+            requestId,
           });
         } catch (emailErr) {
           logger.warn('[ADMIN_REQUESTS] Failed to send approval email:', emailErr);
@@ -509,7 +509,7 @@ export async function PATCH(req: NextRequest) {
             subject: paymentEmail.subject,
             html: paymentEmail.html,
           });
-          logger.info('[ADMIN_REQUESTS_PATCH] Payment link resent', { requestId, to: request.contact_email });
+          logger.info('[ADMIN_REQUESTS_PATCH] Payment link resent', { requestId });
         } catch (emailErr) {
           logger.warn('[ADMIN_REQUESTS_PATCH] Failed to send payment email', {
             error: emailErr instanceof Error ? emailErr.message : String(emailErr),

@@ -40,7 +40,7 @@ const orderSchema = z.object({
   startsAt: z.string().max(30).optional(),
   endsAt: z.string().max(30).optional(),
   wantsCustomBackground: z.boolean().optional(),
-  backgroundBase64: z.string().optional().nullable(),
+  backgroundBase64: z.string().max(5_242_880).optional().nullable(),
   posterChoice: z.enum(['template', 'qr-only']).optional(),
   selectedTemplateId: z.string().max(100).optional().nullable(),
   specialRequests: z.string().max(500).optional(),
@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
             subject: clientEmail.subject,
             html: clientEmail.html,
           });
-          logger.info('Client confirmation email sent', { contactEmail, requestId, contactPref });
+          logger.info('Client confirmation email sent', { requestId, contactPref });
         }
       } catch (emailErr) {
         // Don't fail the whole request if client email fails
@@ -275,7 +275,6 @@ export async function POST(request: NextRequest) {
 
     logger.info('Order processed', {
       eventType,
-      contactName,
       source: isWizard ? 'wizard' : 'form',
       requestId: requestId || 'n/a',
       contactPref,

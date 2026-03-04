@@ -218,7 +218,6 @@ export async function POST(req: NextRequest) {
 
         logger.info('[ADMIN_EVENTS_POST] Sent event-created email (C4b)', {
           eventId: data.id,
-          to: data.client_email,
         });
       } catch (emailErr) {
         logger.warn('[ADMIN_EVENTS_POST] Failed to send event-created email:', emailErr);

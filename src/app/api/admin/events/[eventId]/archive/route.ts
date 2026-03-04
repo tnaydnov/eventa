@@ -141,7 +141,7 @@ export async function POST(
       purgeWarnings.push('chat_media_query');
     } else if (mediaRows && mediaRows.length > 0) {
       const mediaPaths = mediaRows.map((m: { media_path: string }) => m.media_path);
-      const { error: storageErr } = await supabase.storage.from('chat-media').remove(mediaPaths);
+      const { error: storageErr } = await supabase.storage.from('photos').remove(mediaPaths);
       if (storageErr) {
         logger.error('[ARCHIVE] chat media storage cleanup error:', storageErr.message);
         purgeWarnings.push('chat_media_storage');

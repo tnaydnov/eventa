@@ -139,8 +139,8 @@ export async function POST(
             .select('id, gender')
             .eq('event_id', eventId),
           supabase
-            .from('matches')
-            .select('id')
+            .from('conversations')
+            .select('id', { count: 'exact', head: true })
             .eq('event_id', eventId),
           supabase
             .from('conversations')
@@ -156,7 +156,7 @@ export async function POST(
         const women = parts.filter(
           (p: { gender: string }) => p.gender === 'female'
         ).length;
-        const totalMatches = matchesRes.data?.length || 0;
+        const totalMatches = matchesRes.count ?? 0;
         const totalConversations = convoRes.data?.length || 0;
 
         email = buildClientEventSummaryEmail({

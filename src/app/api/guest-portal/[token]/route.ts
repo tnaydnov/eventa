@@ -11,11 +11,13 @@ import {
   MAX_UPLOAD_FILE_SIZE,
   isAllowedUploadFile,
 } from '@/lib/guest-upload';
+import { jsonError } from '@/lib/route-helpers';
 
 // ג”€ג”€ג”€ Helpers ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
-function jsonError(message: string, status: number) {
-  return NextResponse.json({ error: message }, { status });
+/** Escape LIKE/ILIKE wildcard characters in user input. */
+function escapeLike(str: string): string {
+  return str.replace(/[%_\\]/g, '\\$&');
 }
 
 /** Number of guests per page in the portal list view. */
@@ -142,13 +144,13 @@ export async function GET(
       const digits = sanitized.replace(/[^\d]/g, '');
       if (normalized) {
         // Exact E.164 match or name search
-        guestQuery = guestQuery.or(`guest_name.ilike.%${sanitized}%,phone.eq.${normalized}`);
+        guestQuery = guestQuery.or(`guest_name.ilike.%${escapeLike(sanitized)}%,phone.eq.${normalized}`);
       } else if (digits.length >= 3) {
         // Partial digit search or name search
-        guestQuery = guestQuery.or(`guest_name.ilike.%${sanitized}%,phone.like.%${digits}%`);
+        guestQuery = guestQuery.or(`guest_name.ilike.%${escapeLike(sanitized)}%,phone.like.%${digits}%`);
       } else {
         // Name-only search
-        guestQuery = guestQuery.ilike('guest_name', `%${sanitized}%`);
+        guestQuery = guestQuery.ilike('guest_name', `%${escapeLike(sanitized)}%`);
       }
     }
 
