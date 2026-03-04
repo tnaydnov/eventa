@@ -1,9 +1,9 @@
 'use client';
 
-import { use, useState, useCallback, useRef, useEffect } from 'react';
+import { use, useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
 
-/* ─── Types ─── */
+/* ━━━ Types ━━━ */
 type UsageLevel = 'view_only' | 'likes' | 'matches' | 'chat';
 type InteractionResult = 'messages' | 'real_life' | 'interesting' | 'none';
 type SuccessStoryAnswer = 'yes' | 'maybe' | 'no';
@@ -15,87 +15,98 @@ interface EventStats {
   messages: number;
 }
 
-/* ─── Motion ─── */
-const TOTAL_STEPS = 11;
-const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+/* ━━━ Motion ━━━ */
+const TOTAL = 11; // 0=intro, 1-8=questions, 9=review, 10=finale
+const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-const stepVariants = {
-  enter: (dir: number) => ({ opacity: 0, x: dir > 0 ? 60 : -60 }),
-  center: { opacity: 1, x: 0, transition: { duration: 0.4, ease: EASE } },
-  exit: (dir: number) => ({ opacity: 0, x: dir > 0 ? -60 : 60, transition: { duration: 0.25, ease: EASE } }),
+const slideVariants = {
+  enter: (d: number) => ({ opacity: 0, y: d > 0 ? 80 : -80, scale: 0.96 }),
+  center: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.55, ease: EASE } },
+  exit: (d: number) => ({ opacity: 0, y: d > 0 ? -50 : 50, scale: 0.96, transition: { duration: 0.3, ease: EASE } }),
 };
 
-const stagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.05, delayChildren: 0.12 } },
-};
-const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: EASE } },
-};
-
-/* ─── Counter ─── */
-function Counter({ value }: { value: number }) {
-  const mv = useMotionValue(0);
-  const display = useTransform(mv, (v) => Math.round(v).toLocaleString());
-  useEffect(() => {
-    const ctrl = animate(mv, value, { duration: 1.8, ease: 'easeOut' });
-    return () => ctrl.stop();
-  }, [mv, value]);
-  return <motion.span>{display}</motion.span>;
-}
-
-/* ─── Progress ─── */
-function Progress({ current, total }: { current: number; total: number }) {
-  const questionSteps = total - 2;
-  const pct = (current - 1) / questionSteps;
-  if (current === 0 || current >= total - 1) return null;
+/* ━━━ Story Progress (Instagram-style segments) ━━━ */
+function StoryBar({ current, total }: { current: number; total: number }) {
+  const segments = total - 2; // exclude intro + finale
+  if (current <= 0 || current >= total - 1) return null;
   return (
-    <div className="fb-progress" role="progressbar" aria-valuenow={current} aria-valuemax={questionSteps}>
-      <div className="fb-progress__track">
-        <motion.div
-          className="fb-progress__fill"
-          initial={false}
-          animate={{ scaleX: Math.max(0, pct) }}
-          transition={{ duration: 0.5, ease: EASE }}
-        />
-      </div>
-      <span className="fb-progress__text">{current} / {questionSteps}</span>
+    <div className="story-bar" role="progressbar" aria-valuenow={current} aria-valuemax={segments}>
+      {Array.from({ length: segments }, (_, i) => {
+        const idx = i + 1; // segment i corresponds to slide i+1
+        return (
+          <div key={i} className="story-seg">
+            <motion.div
+              className="story-seg__fill"
+              initial={false}
+              animate={{ scaleX: current >= idx ? 1 : 0 }}
+              transition={{ duration: current === idx ? 0.45 : 0.3, ease: EASE }}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-/* ─── Option Card ─── */
-function OptionCard({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
+/* ━━━ Counter (animated number reveal) ━━━ */
+function Counter({ value, delay = 0 }: { value: number; delay?: number }) {
+  const mv = useMotionValue(0);
+  const display = useTransform(mv, (v) => Math.round(v).toLocaleString());
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const ctrl = animate(mv, value, { duration: 2.2, ease: [0.16, 1, 0.3, 1] });
+      return () => ctrl.stop();
+    }, delay);
+    return () => clearTimeout(t);
+  }, [mv, value, delay]);
+  return <motion.span>{display}</motion.span>;
+}
+
+/* ━━━ Option (single-select, full-width) ━━━ */
+function Option({ label, selected, onClick, index }: {
+  label: string; selected: boolean; onClick: () => void; index: number;
+}) {
   return (
     <motion.button
-      className={`fb-card${selected ? ' fb-card--active' : ''}`}
+      className={`rc-opt${selected ? ' rc-opt--active' : ''}`}
       onClick={onClick}
-      variants={fadeUp}
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.12 + index * 0.06, duration: 0.45, ease: EASE }}
       whileTap={{ scale: 0.97 }}
       type="button"
       aria-pressed={selected}
     >
-      <span className="fb-card__label">{label}</span>
-      {selected && (
-        <motion.div
-          className="fb-card__bar"
-          layoutId="card-bar"
-          transition={{ type: 'spring' as const, stiffness: 500, damping: 35 }}
-        />
-      )}
+      <span className="rc-opt__label">{label}</span>
+      <span className="rc-opt__check" aria-hidden>
+        {selected && (
+          <motion.svg
+            width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring' as const, stiffness: 500, damping: 25 }}
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </motion.svg>
+        )}
+      </span>
     </motion.button>
   );
 }
 
-/* ─── Tag (multi-select) ─── */
-function Tag({ label, selected, onClick, muted }: { label: string; selected: boolean; onClick: () => void; muted?: boolean }) {
+/* ━━━ Tag (multi-select chip) ━━━ */
+function Tag({ label, selected, onClick, muted, index }: {
+  label: string; selected: boolean; onClick: () => void; muted?: boolean; index: number;
+}) {
   return (
     <motion.button
-      className={`fb-tag${selected ? ' fb-tag--active' : ''}${muted ? ' fb-tag--muted' : ''}`}
+      className={`rc-tag${selected ? ' rc-tag--active' : ''}${muted ? ' rc-tag--muted' : ''}`}
       onClick={onClick}
-      variants={fadeUp}
-      whileTap={{ scale: 0.96 }}
+      initial={{ opacity: 0, scale: 0.88 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: 0.1 + index * 0.04, duration: 0.35, ease: EASE }}
+      whileTap={{ scale: 0.94 }}
       type="button"
       aria-pressed={selected}
     >
@@ -104,17 +115,20 @@ function Tag({ label, selected, onClick, muted }: { label: string; selected: boo
   );
 }
 
-/* ═══════════════════════════════════════════ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* ━━━ MAIN PAGE ━━━ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: string }> }) {
   const { eventSlug } = use(params);
 
-  const [step, setStep] = useState(0);
-  const [direction, setDirection] = useState(1);
+  const [slide, setSlide] = useState(0);
+  const [dir, setDir] = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [stats, setStats] = useState<EventStats | null>(null);
   const [error, setError] = useState('');
 
+  /* form state */
   const [enjoyment, setEnjoyment] = useState(0);
   const [easeOfUse, setEaseOfUse] = useState(0);
   const [usageLevel, setUsageLevel] = useState<UsageLevel | ''>('');
@@ -126,29 +140,22 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
   const [successStoryText, setSuccessStoryText] = useState('');
   const [allowPublish, setAllowPublish] = useState(false);
 
-  const formRef = useRef({
-    enjoyment: 0, easeOfUse: 0, usageLevel: 'view_only' as UsageLevel,
-    interactionResult: 'none' as InteractionResult, favoriteFeatures: [] as FeatureKey[],
-    improvement: '', recommendation: 0, successStory: null as SuccessStoryAnswer | null,
-    successStoryText: '', allowStoryPublish: false,
-  });
-
-  const goNext = useCallback(() => {
-    setDirection(1);
-    setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
+  /* navigation */
+  const go = useCallback((d: 1 | -1) => {
+    setDir(d);
+    setSlide((s) => Math.max(0, Math.min(s + d, TOTAL - 1)));
   }, []);
 
-  const goBack = useCallback(() => {
-    if (step <= 0) return;
-    setDirection(-1);
-    setStep((s) => s - 1);
-  }, [step]);
+  const next = useCallback(() => go(1), [go]);
+  const back = useCallback(() => go(-1), [go]);
 
+  /** Pick an option → brief highlight → auto-advance */
   const pick = useCallback((fn: () => void) => {
     fn();
-    setTimeout(() => { setDirection(1); setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1)); }, 300);
+    setTimeout(() => { setDir(1); setSlide((s) => Math.min(s + 1, TOTAL - 1)); }, 380);
   }, []);
 
+  /* submit */
   const handleSubmit = useCallback(async () => {
     if (submitting || submitted) return;
     setSubmitting(true);
@@ -158,7 +165,8 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          enjoyment, easeOfUse,
+          enjoyment,
+          easeOfUse,
           usageLevel: usageLevel || 'view_only',
           interactionResult: interactionResult || 'none',
           favoriteFeatures,
@@ -180,100 +188,138 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
         const sr = await fetch(`/api/events/${eventSlug}/stats`);
         if (sr.ok) setStats(await sr.json());
       } catch { /* optional */ }
-      setDirection(1);
-      setStep(TOTAL_STEPS - 1);
+      setDir(1);
+      setSlide(TOTAL - 1);
     } catch {
-      setError('שגיאה בחיבור לשרת');
+      setError('שגיאה בחיבור');
     } finally {
       setSubmitting(false);
     }
   }, [submitting, submitted, enjoyment, easeOfUse, usageLevel, interactionResult, favoriteFeatures, improvement, recommendation, successStory, successStoryText, allowPublish, eventSlug]);
 
-  /* ─── Steps ─── */
-  const renderStep = () => {
-    switch (step) {
+  /* ━━━ Slides ━━━ */
+  const renderSlide = () => {
+    switch (slide) {
+
+      /* ── 0 · Intro ── */
       case 0:
         return (
-          <div className="fb-intro">
-            <motion.span className="fb-kicker" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-              משוב אנונימי
-            </motion.span>
-            <motion.h1 className="fb-headline" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.6, ease: EASE }}>
-              ספרו לנו<br /><span className="fb-headline__em">איך היה.</span>
+          <div className="rc-slide rc-slide--intro" role="button" tabIndex={0} onClick={next} onKeyDown={(e) => e.key === 'Enter' && next()}>
+            <motion.div className="rc-badge" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.5 }}>
+              <span className="rc-badge__dot" />
+              אנונימי לגמרי
+            </motion.div>
+
+            <motion.h1 className="rc-hero" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.75, ease: EASE }}>
+              הסיכום שלך
+              <br />
+              <span className="rc-hero__accent">מהערב.</span>
             </motion.h1>
-            <motion.p className="fb-body" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }}>
-              שאלון קצר ואנונימי.<br />בסוף תגלו סטטיסטיקות מהאירוע.
+
+            <motion.p className="rc-hero__sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.65 }}>
+              כמה שאלות קצרות ואנונימיות.
+              <br />
+              בסוף — המספרים מהאירוע.
             </motion.p>
-            <motion.button className="fb-cta" onClick={goNext} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} whileTap={{ scale: 0.97 }}>
-              התחלה
-            </motion.button>
+
+            <motion.div className="rc-tap" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}>
+              <span className="rc-tap__ring" aria-hidden />
+              הקש/י להתחלה
+            </motion.div>
           </div>
         );
 
+      /* ── 1 · Enjoyment ── */
       case 1:
         return (
-          <div className="fb-q">
-            <h2 className="fb-q__title">כמה נהנית מהחוויה?</h2>
-            <motion.div className="fb-q__grid" variants={stagger} initial="hidden" animate="show">
-              {[{ l: 'לא ממש', v: 1 }, { l: 'היה סבבה', v: 2 }, { l: 'נהניתי', v: 3 }, { l: 'אהבתי', v: 4 }].map((o) => (
-                <OptionCard key={o.v} label={o.l} selected={enjoyment === o.v} onClick={() => pick(() => { setEnjoyment(o.v); formRef.current.enjoyment = o.v; })} />
+          <div className="rc-slide">
+            <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
+              בוא/י נתחיל —
+              <br />
+              <span className="rc-q__big">איך היה?</span>
+            </motion.h2>
+            <div className="rc-opts">
+              {[{ l: 'לא ממש', v: 1 }, { l: 'היה סבבה', v: 2 }, { l: 'נהניתי', v: 3 }, { l: 'אהבתי!', v: 4 }].map((o, i) => (
+                <Option key={o.v} label={o.l} selected={enjoyment === o.v} index={i} onClick={() => pick(() => setEnjoyment(o.v))} />
               ))}
-            </motion.div>
+            </div>
           </div>
         );
 
+      /* ── 2 · Ease of use ── */
       case 2:
         return (
-          <div className="fb-q">
-            <h2 className="fb-q__title">כמה היה קל להשתמש?</h2>
-            <motion.div className="fb-q__grid" variants={stagger} initial="hidden" animate="show">
-              {[{ l: 'מבלבל', v: 1 }, { l: 'הסתדרתי', v: 2 }, { l: 'ברור', v: 3 }, { l: 'פשוט מאוד', v: 4 }].map((o) => (
-                <OptionCard key={o.v} label={o.l} selected={easeOfUse === o.v} onClick={() => pick(() => { setEaseOfUse(o.v); formRef.current.easeOfUse = o.v; })} />
+          <div className="rc-slide">
+            <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
+              וכמה קל היה
+              <br />
+              <span className="rc-q__big">להשתמש?</span>
+            </motion.h2>
+            <div className="rc-opts">
+              {[{ l: 'מבלבל', v: 1 }, { l: 'הסתדרתי', v: 2 }, { l: 'ברור', v: 3 }, { l: 'פשוט מאוד', v: 4 }].map((o, i) => (
+                <Option key={o.v} label={o.l} selected={easeOfUse === o.v} index={i} onClick={() => pick(() => setEaseOfUse(o.v))} />
               ))}
-            </motion.div>
+            </div>
           </div>
         );
 
+      /* ── 3 · Usage level ── */
       case 3:
         return (
-          <div className="fb-q">
-            <h2 className="fb-q__title">כמה השתמשת באפליקציה?</h2>
-            <motion.div className="fb-q__grid" variants={stagger} initial="hidden" animate="show">
+          <div className="rc-slide">
+            <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
+              מה הספקת
+              <br />
+              <span className="rc-q__big">לעשות?</span>
+            </motion.h2>
+            <div className="rc-opts">
               {([
                 { l: 'רק הסתכלתי', v: 'view_only' as UsageLevel },
                 { l: 'שלחתי לייקים', v: 'likes' as UsageLevel },
                 { l: 'היו לי התאמות', v: 'matches' as UsageLevel },
                 { l: 'גם דיברתי בצ׳אט', v: 'chat' as UsageLevel },
-              ]).map((o) => (
-                <OptionCard key={o.v} label={o.l} selected={usageLevel === o.v} onClick={() => pick(() => { setUsageLevel(o.v); formRef.current.usageLevel = o.v; })} />
+              ]).map((o, i) => (
+                <Option key={o.v} label={o.l} selected={usageLevel === o.v} index={i} onClick={() => pick(() => setUsageLevel(o.v))} />
               ))}
-            </motion.div>
+            </div>
           </div>
         );
 
+      /* ── 4 · Interaction ── */
       case 4:
         return (
-          <div className="fb-q">
-            <h2 className="fb-q__title">יצרת קשר עם מישהו?</h2>
-            <motion.div className="fb-q__grid" variants={stagger} initial="hidden" animate="show">
+          <div className="rc-slide">
+            <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
+              ובאינטראקציות —
+              <br />
+              <span className="rc-q__big">מה קרה?</span>
+            </motion.h2>
+            <div className="rc-opts">
               {([
                 { l: 'החלפנו הודעות', v: 'messages' as InteractionResult },
                 { l: 'דיברנו במציאות', v: 'real_life' as InteractionResult },
                 { l: 'מצאתי מישהו מעניין', v: 'interesting' as InteractionResult },
                 { l: 'לא, אבל היה כיף', v: 'none' as InteractionResult },
-              ]).map((o) => (
-                <OptionCard key={o.v} label={o.l} selected={interactionResult === o.v} onClick={() => pick(() => { setInteractionResult(o.v); formRef.current.interactionResult = o.v; })} />
+              ]).map((o, i) => (
+                <Option key={o.v} label={o.l} selected={interactionResult === o.v} index={i} onClick={() => pick(() => setInteractionResult(o.v))} />
               ))}
-            </motion.div>
+            </div>
           </div>
         );
 
+      /* ── 5 · Favorite features (multi) ── */
       case 5:
         return (
-          <div className="fb-q">
-            <h2 className="fb-q__title">מה הכי אהבת?</h2>
-            <p className="fb-q__hint">אפשר לבחור כמה שרוצים</p>
-            <motion.div className="fb-q__tags" variants={stagger} initial="hidden" animate="show">
+          <div className="rc-slide">
+            <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
+              מה הכי עשה
+              <br />
+              <span className="rc-q__big">לך את זה?</span>
+            </motion.h2>
+            <motion.p className="rc-hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+              אפשר לבחור כמה שרוצים
+            </motion.p>
+            <div className="rc-tags">
               {([
                 { l: 'סווייפים', v: 'swipes' as FeatureKey },
                 { l: 'צ׳אט', v: 'chat' as FeatureKey },
@@ -281,185 +327,251 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
                 { l: 'עיצוב', v: 'design' as FeatureKey },
                 { l: 'הרעיון', v: 'concept' as FeatureKey },
                 { l: 'האווירה', v: 'vibe' as FeatureKey },
-                { l: 'שום דבר', v: 'nothing' as FeatureKey },
-              ]).map((o) => (
-                <Tag key={o.v} label={o.l} muted={o.v === 'nothing'} selected={favoriteFeatures.includes(o.v)} onClick={() => {
-                  setFavoriteFeatures((prev) => {
-                    let next: FeatureKey[];
-                    if (o.v === 'nothing') { next = prev.includes('nothing') ? [] : ['nothing']; }
-                    else { const c = prev.filter((f) => f !== 'nothing'); next = c.includes(o.v) ? c.filter((f) => f !== o.v) : [...c, o.v]; }
-                    formRef.current.favoriteFeatures = next;
-                    return next;
-                  });
-                }} />
+                { l: 'כלום', v: 'nothing' as FeatureKey },
+              ]).map((o, i) => (
+                <Tag
+                  key={o.v} label={o.l} muted={o.v === 'nothing'} index={i}
+                  selected={favoriteFeatures.includes(o.v)}
+                  onClick={() => {
+                    setFavoriteFeatures((prev) => {
+                      if (o.v === 'nothing') return prev.includes('nothing') ? [] : ['nothing'];
+                      const c = prev.filter((f) => f !== 'nothing');
+                      return c.includes(o.v) ? c.filter((f) => f !== o.v) : [...c, o.v];
+                    });
+                  }}
+                />
               ))}
-            </motion.div>
+            </div>
             {favoriteFeatures.length > 0 && (
-              <motion.button className="fb-next" onClick={goNext} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} whileTap={{ scale: 0.97 }}>
+              <motion.button className="rc-continue" onClick={next} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileTap={{ scale: 0.97 }}>
                 המשך
               </motion.button>
             )}
           </div>
         );
 
+      /* ── 6 · Improvement (optional) ── */
       case 6:
         return (
-          <div className="fb-q">
-            <h2 className="fb-q__title">מה היית משפר?</h2>
-            <p className="fb-q__hint">אופציונלי</p>
-            <motion.div className="fb-q__input-wrap" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
-              <textarea className="fb-textarea" value={improvement} onChange={(e) => { const v = e.target.value.slice(0, 500); setImprovement(v); formRef.current.improvement = v; }} placeholder="למשל: הייתי מוסיף..." maxLength={500} rows={4} />
-              <span className="fb-textarea__count">{improvement.length}/500</span>
+          <div className="rc-slide">
+            <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
+              אם היית יכול/ה
+              <br />
+              <span className="rc-q__big">לשנות משהו...</span>
+            </motion.h2>
+            <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+              <textarea
+                className="rc-textarea"
+                value={improvement}
+                onChange={(e) => setImprovement(e.target.value.slice(0, 500))}
+                placeholder="למשל: הייתי מוסיף..."
+                maxLength={500}
+                rows={4}
+              />
+              <span className="rc-textarea__count">{improvement.length}/500</span>
             </motion.div>
-            <motion.button className="fb-next" onClick={goNext} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} whileTap={{ scale: 0.97 }}>
+            <motion.button className="rc-continue" onClick={next} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }} whileTap={{ scale: 0.97 }}>
               {improvement ? 'המשך' : 'דלג'}
             </motion.button>
           </div>
         );
 
+      /* ── 7 · Recommendation ── */
       case 7:
         return (
-          <div className="fb-q">
-            <h2 className="fb-q__title">היית ממליצ/ה?</h2>
-            <motion.div className="fb-q__grid" variants={stagger} initial="hidden" animate="show">
-              {[{ l: 'בטוח', v: 4 }, { l: 'כנראה שכן', v: 3 }, { l: 'לא בטוח/ה', v: 2 }, { l: 'לא נראה לי', v: 1 }].map((o) => (
-                <OptionCard key={o.v} label={o.l} selected={recommendation === o.v} onClick={() => pick(() => { setRecommendation(o.v); formRef.current.recommendation = o.v; })} />
+          <div className="rc-slide">
+            <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
+              היית שולח/ת
+              <br />
+              <span className="rc-q__big">חבר/ה לאירוע?</span>
+            </motion.h2>
+            <div className="rc-opts">
+              {[{ l: 'בטוח!', v: 4 }, { l: 'כנראה שכן', v: 3 }, { l: 'לא בטוח/ה', v: 2 }, { l: 'לא נראה לי', v: 1 }].map((o, i) => (
+                <Option key={o.v} label={o.l} selected={recommendation === o.v} index={i} onClick={() => pick(() => setRecommendation(o.v))} />
               ))}
-            </motion.div>
+            </div>
           </div>
         );
 
+      /* ── 8 · Success story ── */
       case 8:
         return (
-          <div className="fb-q">
-            <h2 className="fb-q__title">הכרת מישהו מעניין?</h2>
-            <motion.div className="fb-q__grid fb-q__grid--3" variants={stagger} initial="hidden" animate="show">
+          <div className="rc-slide">
+            <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
+              נוצר חיבור
+              <br />
+              <span className="rc-q__big">מיוחד?</span>
+            </motion.h2>
+            <div className="rc-opts rc-opts--3">
               {([
-                { l: 'כן', v: 'yes' as SuccessStoryAnswer },
-                { l: 'אולי', v: 'maybe' as SuccessStoryAnswer },
+                { l: 'כן!', v: 'yes' as SuccessStoryAnswer },
+                { l: 'אולי...', v: 'maybe' as SuccessStoryAnswer },
                 { l: 'לא הפעם', v: 'no' as SuccessStoryAnswer },
-              ]).map((o) => (
-                <OptionCard key={o.v} label={o.l} selected={successStory === o.v} onClick={() => {
-                  setSuccessStory(o.v); formRef.current.successStory = o.v;
-                  if (o.v !== 'yes') setTimeout(() => { setDirection(1); setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1)); }, 300);
-                }} />
+              ]).map((o, i) => (
+                <Option
+                  key={o.v} label={o.l} selected={successStory === o.v} index={i}
+                  onClick={() => {
+                    setSuccessStory(o.v);
+                    if (o.v !== 'yes') setTimeout(() => { setDir(1); setSlide((s) => Math.min(s + 1, TOTAL - 1)); }, 380);
+                  }}
+                />
               ))}
-            </motion.div>
+            </div>
             <AnimatePresence>
               {successStory === 'yes' && (
-                <motion.div className="fb-followup" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}>
-                  <p className="fb-followup__label">רוצה לשתף?</p>
-                  <textarea className="fb-textarea" value={successStoryText} onChange={(e) => { const v = e.target.value.slice(0, 500); setSuccessStoryText(v); formRef.current.successStoryText = v; }} placeholder="קרה משהו מעניין..." maxLength={500} rows={3} />
-                  <label className="fb-check">
-                    <input type="checkbox" checked={allowPublish} onChange={(e) => { setAllowPublish(e.target.checked); formRef.current.allowStoryPublish = e.target.checked; }} />
-                    <span className="fb-check__box" />
-                    <span className="fb-check__text">אפשר להשתמש בסיפור באתר (בעילום שם)</span>
+                <motion.div className="rc-followup" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.35 }}>
+                  <p className="rc-followup__label">רוצה לשתף?</p>
+                  <textarea className="rc-textarea" value={successStoryText} onChange={(e) => setSuccessStoryText(e.target.value.slice(0, 500))} placeholder="קרה משהו מעניין..." maxLength={500} rows={3} />
+                  <label className="rc-check">
+                    <input type="checkbox" checked={allowPublish} onChange={(e) => setAllowPublish(e.target.checked)} />
+                    <span className="rc-check__box" />
+                    <span className="rc-check__text">אפשר להשתמש בסיפור באתר (בעילום שם)</span>
                   </label>
-                  <motion.button className="fb-next" onClick={goNext} whileTap={{ scale: 0.97 }}>המשך</motion.button>
+                  <motion.button className="rc-continue" onClick={next} whileTap={{ scale: 0.97 }}>המשך</motion.button>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         );
 
+      /* ── 9 · Review + Submit ── */
       case 9: {
-        const EL: Record<number, string> = { 1: 'לא ממש', 2: 'סבבה', 3: 'נהניתי', 4: 'אהבתי' };
-        const UL: Record<number, string> = { 1: 'מבלבל', 2: 'הסתדרתי', 3: 'ברור', 4: 'פשוט מאוד' };
-        const ULL: Record<string, string> = { view_only: 'הסתכלתי', likes: 'לייקים', matches: 'התאמות', chat: 'צ׳אט' };
-        const IL: Record<string, string> = { messages: 'הודעות', real_life: 'במציאות', interesting: 'מעניין', none: 'לא' };
-        const RL: Record<number, string> = { 1: 'לא', 2: 'לא בטוח', 3: 'כנראה', 4: 'בטוח' };
-        const FL: Record<string, string> = { swipes: 'סווייפים', chat: 'צ׳אט', see_likes: 'לייקים', design: 'עיצוב', concept: 'רעיון', vibe: 'אווירה', nothing: 'שום דבר' };
-
+        const labels = {
+          enjoy: { 1: 'לא ממש', 2: 'סבבה', 3: 'נהניתי', 4: 'אהבתי' } as Record<number, string>,
+          ease: { 1: 'מבלבל', 2: 'הסתדרתי', 3: 'ברור', 4: 'פשוט מאוד' } as Record<number, string>,
+          usage: { view_only: 'הסתכלתי', likes: 'לייקים', matches: 'התאמות', chat: 'צ׳אט' } as Record<string, string>,
+          inter: { messages: 'הודעות', real_life: 'במציאות', interesting: 'מעניין', none: 'לא' } as Record<string, string>,
+          rec: { 1: 'לא', 2: 'לא בטוח', 3: 'כנראה', 4: 'בטוח' } as Record<number, string>,
+          feat: { swipes: 'סווייפים', chat: 'צ׳אט', see_likes: 'לייקים', design: 'עיצוב', concept: 'רעיון', vibe: 'אווירה', nothing: 'כלום' } as Record<string, string>,
+        };
         const rows = [
-          { k: 'הנאה', v: EL[enjoyment] || '—' },
-          { k: 'קלות שימוש', v: UL[easeOfUse] || '—' },
-          { k: 'רמת שימוש', v: ULL[usageLevel] || '—' },
-          { k: 'קשר', v: IL[interactionResult] || '—' },
-          { k: 'המלצה', v: RL[recommendation] || '—' },
-          { k: 'מה אהבת', v: favoriteFeatures.map(f => FL[f] || f).join(', ') || '—' },
+          { k: 'הנאה', v: labels.enjoy[enjoyment] || '—' },
+          { k: 'קלות', v: labels.ease[easeOfUse] || '—' },
+          { k: 'שימוש', v: labels.usage[usageLevel] || '—' },
+          { k: 'קשר', v: labels.inter[interactionResult] || '—' },
+          { k: 'המלצה', v: labels.rec[recommendation] || '—' },
+          { k: 'מה אהבת', v: favoriteFeatures.map((f) => labels.feat[f] || f).join(', ') || '—' },
         ];
 
         return (
-          <div className="fb-review">
-            <motion.h2 className="fb-review__title" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>סיכום</motion.h2>
-            <motion.p className="fb-review__sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>אפשר לחזור אחורה לשנות</motion.p>
-            <motion.div className="fb-review__list" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+          <div className="rc-slide rc-slide--review">
+            <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+              <span className="rc-q__big">הנה הסיכום.</span>
+            </motion.h2>
+            <motion.p className="rc-hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.08 }}>
+              אפשר לחזור אחורה לשנות
+            </motion.p>
+
+            <motion.div className="rc-review" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
               {rows.map((r) => (
-                <div key={r.k} className="fb-review__row">
-                  <span className="fb-review__key">{r.k}</span>
-                  <span className="fb-review__val">{r.v}</span>
+                <div key={r.k} className="rc-review__row">
+                  <span className="rc-review__key">{r.k}</span>
+                  <span className="rc-review__val">{r.v}</span>
                 </div>
               ))}
             </motion.div>
-            <motion.button className="fb-submit" onClick={handleSubmit} disabled={submitting} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} whileTap={{ scale: 0.97 }}>
-              {submitting ? 'שולח...' : 'שלח משוב'}
+
+            <motion.button className="rc-submit" onClick={handleSubmit} disabled={submitting} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }} whileTap={{ scale: 0.97 }}>
+              {submitting ? (
+                <span className="rc-submit__spinner" />
+              ) : 'שלח משוב'}
             </motion.button>
-            <motion.button className="fb-ghost" onClick={goBack} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+            <motion.button className="rc-ghost" onClick={back} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.34 }}>
               חזרה לשאלות
             </motion.button>
-            {error && <motion.p className="fb-error" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>{error}</motion.p>}
+            {error && <motion.p className="rc-error" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>{error}</motion.p>}
           </div>
         );
       }
 
+      /* ── 10 · Finale ── */
       case 10:
         return (
-          <div className="fb-finale">
-            <motion.div className="fb-finale__glow" initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.4, ease: EASE }} aria-hidden />
-            <motion.h2 className="fb-finale__title" initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.7, ease: EASE }}>
+          <div className="rc-slide rc-slide--finale">
+            <motion.div className="finale-glow" aria-hidden initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.6, ease: EASE }} />
+
+            <motion.h2 className="finale-title" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.8, ease: EASE }}>
               תודה רבה.
             </motion.h2>
-            <motion.p className="fb-finale__sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
-              המשוב שלך עוזר לנו ליצור חוויות טובות יותר.
+            <motion.p className="finale-sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }}>
+              המשוב שלך עוזר לנו ליצור
+              <br />
+              חוויות טובות יותר.
             </motion.p>
 
             {stats && (
-              <motion.div className="fb-stats" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
-                <span className="fb-stats__kicker">מספרים מהאירוע</span>
-                <div className="fb-stats__row">
+              <motion.div className="finale-stats" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
+                <span className="finale-stats__kicker">המספרים מהערב</span>
+                <div className="finale-stats__grid">
                   {[
                     { v: stats.participants, l: 'משתתפים' },
                     { v: stats.matches, l: 'התאמות' },
                     { v: stats.messages, l: 'הודעות' },
                   ].map((s, i) => (
-                    <motion.div key={s.l} className="fb-stat" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 + i * 0.1 }}>
-                      <span className="fb-stat__num"><Counter value={s.v} /></span>
-                      <span className="fb-stat__label">{s.l}</span>
+                    <motion.div
+                      key={s.l} className="finale-stat"
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.8 + i * 0.14, duration: 0.6, ease: EASE }}
+                    >
+                      <span className="finale-stat__num"><Counter value={s.v} delay={900 + i * 160} /></span>
+                      <span className="finale-stat__label">{s.l}</span>
                     </motion.div>
                   ))}
                 </div>
               </motion.div>
             )}
 
-            <motion.div className="fb-finale__actions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.95 }}>
-              <a href="/" className="fb-cta fb-cta--outline">לאתר Eventa</a>
+            <motion.div className="finale-actions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: stats ? 1.3 : 0.75 }}>
+              <a href="/" className="rc-cta">לאתר Eventa</a>
             </motion.div>
-            <motion.span className="fb-finale__credit" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1 }}>Eventa</motion.span>
-            {error && <motion.p className="fb-error" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>{error}</motion.p>}
+
+            <motion.span className="finale-credit" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: stats ? 1.5 : 0.95 }}>
+              Eventa
+            </motion.span>
           </div>
         );
 
-      default: return null;
+      default:
+        return null;
     }
   };
 
+  /* ━━━ Render ━━━ */
   return (
-    <div className="fb-page">
-      <div className="fb-ambient" aria-hidden><div className="fb-ambient__orb" /></div>
-      <div className="fb-container">
-        <Progress current={step} total={TOTAL_STEPS} />
-        {step > 0 && step < TOTAL_STEPS - 1 && !submitted && (
-          <button className="fb-back-btn" onClick={goBack} type="button" aria-label="חזור">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
-          </button>
-        )}
-        <div className="fb-stage">
-          <AnimatePresence mode="wait" custom={direction}>
-            <motion.div key={step} custom={direction} variants={stepVariants} initial="enter" animate="center" exit="exit" className="fb-step">
-              {renderStep()}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+    <div className="recap" data-slide={slide}>
+      {/* background gradient layer */}
+      <div className="recap__bg" aria-hidden>
+        <div className="recap__gradient" />
+      </div>
+
+      {/* story bar */}
+      <StoryBar current={slide} total={TOTAL} />
+
+      {/* back button */}
+      {slide > 0 && slide < TOTAL - 1 && !submitted && (
+        <button className="recap__back" onClick={back} type="button" aria-label="חזור">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </button>
+      )}
+
+      {/* slide stage */}
+      <div className="recap__stage">
+        <AnimatePresence mode="wait" custom={dir}>
+          <motion.div
+            key={slide}
+            custom={dir}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            className="recap__step"
+          >
+            {renderSlide()}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
