@@ -59,6 +59,7 @@ export async function POST(
       if (auth) fwdHeaders['authorization'] = auth;
       const analyticsRes = await fetch(analyticsUrl.toString(), {
         headers: fwdHeaders,
+        signal: AbortSignal.timeout(10_000),
       });
 
       if (analyticsRes.ok) {

@@ -104,6 +104,7 @@ async function handler(req: NextRequest) {
           );
           const res = await fetch(analyticsUrl.toString(), {
             headers: { authorization: authHeader },
+            signal: AbortSignal.timeout(10_000),
           });
           if (res.ok) {
             snapshot = await res.json();
@@ -169,9 +170,16 @@ async function handler(req: NextRequest) {
       const allPaths = [...photoPaths, ...mediaPaths];
 
       for (let i = 0; i < allPaths.length; i += STORAGE_BATCH_SIZE) {
-        await supabase.storage
-          .from('photos')
-          .remove(allPaths.slice(i, i + STORAGE_BATCH_SIZE));
+        try {
+          const { error: batchErr } = await supabase.storage
+            .from('photos')
+            .remove(allPaths.slice(i, i + STORAGE_BATCH_SIZE));
+          if (batchErr) {
+            logger.error(`[CLEANUP] storage batch delete error for ${eventId}:`, batchErr.message);
+          }
+        } catch (storageErr) {
+          logger.error(`[CLEANUP] storage batch delete exception for ${eventId}:`, storageErr instanceof Error ? storageErr.message : String(storageErr));
+        }
       }
 
       // Background images (best-effort)

@@ -186,10 +186,13 @@ export async function GET(
     } else if (!event.guest_list_uploaded || total === 0) {
       uploadStatus = 'empty';
     } else {
-      const sentCount = (guests || []).filter(
-        (g: { wa_pre_event_sent: boolean }) => g.wa_pre_event_sent
-      ).length;
-      uploadStatus = sentCount > 0 ? 'sent' : 'uploaded';
+      // Use a separate count query so the result isn't scoped to the current page
+      const { count: sentCount } = await supabase
+        .from('event_guest_phones')
+        .select('id', { count: 'exact', head: true })
+        .eq('event_id', eventId)
+        .eq('wa_pre_event_sent', true);
+      uploadStatus = (sentCount ?? 0) > 0 ? 'sent' : 'uploaded';
     }
 
     return NextResponse.json({
@@ -321,6 +324,13 @@ async function handleFileUpload(
   const buffer = Buffer.from(await file.arrayBuffer());
   const result = await processGuestUpload(buffer, file.name, existingPhones);
 
+  // Enforce per-event cap: trim valid rows so total never exceeds the limit
+  const remaining = MAX_GUEST_PHONES_PER_EVENT - (currentCount ?? 0);
+  const trimmed = result.validGuests.length - Math.min(result.validGuests.length, remaining);
+  if (remaining < result.validGuests.length) {
+    result.validGuests = result.validGuests.slice(0, remaining);
+  }
+
   if (!result.validGuests.length && result.errors.length > 0) {
     return NextResponse.json({
       success: false,
@@ -363,6 +373,7 @@ async function handleFileUpload(
     added: result.validGuests.length,
     duplicates: result.duplicates,
     invalid: result.errors.length,
+    ...(trimmed > 0 && { trimmedByLimit: trimmed }),
     errors: result.errors.slice(0, 20),
     totalInList: newCount ?? 0,
   });
