@@ -3,7 +3,7 @@
  * Signs and verifies session tokens stored as httpOnly cookies.
  */
 import crypto from 'crypto';
-import { SESSION_MAX_AGE_S, JWT_ISSUER, JWT_AUDIENCE, JWT_SECRET, IS_PRODUCTION } from '@/lib/config';
+import { SESSION_MAX_AGE_S, JWT_ISSUER, JWT_AUDIENCE, getJwtSecret, IS_PRODUCTION } from '@/lib/config';
 
 const COOKIE_NAME = 'ws_session';
 
@@ -26,7 +26,7 @@ export function signSessionToken(data: {
   eventSlug: string;
   eventName: string;
 }): string {
-  const secret = JWT_SECRET;
+  const secret = getJwtSecret();
   const now = Math.floor(Date.now() / 1000);
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
   const payload: SessionPayload = {
@@ -48,7 +48,7 @@ export function signSessionToken(data: {
 /** Verify a session JWT. Returns payload if valid, null otherwise. */
 export function verifySessionToken(token: string): SessionPayload | null {
   try {
-    const secret = JWT_SECRET;
+    const secret = getJwtSecret();
     const parts = token.split('.');
     if (parts.length !== 3) return null;
     const [header, body, sig] = parts;

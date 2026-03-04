@@ -11,15 +11,22 @@
 
 // ─── Session & Auth ─────────────────────────────────────────
 
-/** JWT signing secret - required for both admin and session tokens. */
-export const JWT_SECRET = (() => {
-  // Client-side: JWT_SECRET is unavailable (no NEXT_PUBLIC_ prefix) and unused.
-  // Guard to prevent the throw from crashing client bundles that import this module.
-  if (typeof window !== 'undefined') return '';
+/**
+ * JWT signing secret - required for both admin and session tokens.
+ * Lazy getter: evaluated on first call, not at import time.
+ * This prevents the build from crashing when JWT_SECRET isn't in the
+ * build-time environment (Vercel only injects it at runtime).
+ */
+let _jwtSecret: string | null = null;
+export function getJwtSecret(): string {
+  if (_jwtSecret !== null) return _jwtSecret;
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error('JWT_SECRET environment variable is not set');
+  _jwtSecret = secret;
   return secret;
-})();
+}
+/** @deprecated Use getJwtSecret() — kept for backwards compat during migration */
+export const JWT_SECRET = '' as string;
 
 /** Whether the app is running in production mode. */
 export const IS_PRODUCTION = process.env.NODE_ENV === 'production';
