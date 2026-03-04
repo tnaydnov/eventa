@@ -14,7 +14,7 @@ import LegalDrawer from '@/components/LegalDrawer';
 import PhoneInput from '@/components/PhoneInput';
 import OtpInput from '@/components/OtpInput';
 import OnboardingSlides from '@/components/OnboardingSlides';
-import { SESSION_STORAGE_KEY } from '@/lib/constants';
+import { SESSION_STORAGE_KEY, PROFILE_SETUP_KEY_PREFIX, ONBOARDING_SEEN_KEY_PREFIX } from '@/lib/constants';
 
 /** Detect in-app browsers / QR scanner WebViews that don't persist cookies */
 function isInAppBrowser(): boolean {
@@ -51,6 +51,53 @@ const stepVariants = {
 };
 
 type JoinStep = 'terms' | 'phone' | 'otp' | 'onboarding';
+
+/** Styled checkbox used in the join flow (consent & SMS opt-in). */
+function Checkbox({ checked, onChange: onToggle, children }: { checked: boolean; onChange: () => void; children: React.ReactNode }) {
+  return (
+    <div
+      role="checkbox"
+      aria-checked={checked}
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onToggle(); } }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: 16,
+        background: 'var(--surface)',
+        borderRadius: 12,
+        width: '100%',
+        maxWidth: 320,
+        cursor: 'pointer',
+      }}
+      onClick={onToggle}
+    >
+      <div
+        style={{
+          width: 24,
+          height: 24,
+          borderRadius: 6,
+          border: `2px solid ${checked ? 'var(--primary)' : 'var(--card-border)'}`,
+          background: checked ? 'var(--primary)' : 'transparent',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          transition: 'background 0.2s, border-color 0.2s',
+        }}
+        aria-hidden="true"
+      >
+        {checked && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" aria-hidden="true" focusable="false">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        )}
+      </div>
+      <span style={{ fontSize: 14, textAlign: 'start' }}>{children}</span>
+    </div>
+  );
+}
 
 export default function JoinPage({
   params,
@@ -122,7 +169,7 @@ export default function JoinPage({
         const session = JSON.parse(stored);
         if (session.eventSlug === eventSlug) {
           setSession(session);
-          const hasProfile = localStorage.getItem(`profile_setup_${session.participantId}`);
+          const hasProfile = localStorage.getItem(`${PROFILE_SETUP_KEY_PREFIX}${session.participantId}`);
           if (hasProfile) {
             router.replace(`/dating/${eventSlug}`);
           } else {
@@ -169,11 +216,11 @@ export default function JoinPage({
       if (result.participant && result.participant.display_name) {
         // Returning user - skip onboarding
         setParticipant(result.participant as Parameters<typeof setParticipant>[0]);
-        localStorage.setItem(`profile_setup_${result.participantId}`, 'true');
+        localStorage.setItem(`${PROFILE_SETUP_KEY_PREFIX}${result.participantId}`, 'true');
         router.replace(`/dating/${eventSlug}`);
       } else {
         // New user - show onboarding slides first, then go to setup
-        const onboardingKey = `onboarding_seen_${result.participantId}`;
+        const onboardingKey = `${ONBOARDING_SEEN_KEY_PREFIX}${result.participantId}`;
         if (localStorage.getItem(onboardingKey)) {
           router.replace(`/dating/${eventSlug}/setup`);
         } else {
@@ -189,7 +236,7 @@ export default function JoinPage({
   const handleOnboardingComplete = useCallback(() => {
     const session = useSessionStore.getState().session;
     if (session?.participantId) {
-      localStorage.setItem(`onboarding_seen_${session.participantId}`, 'true');
+      localStorage.setItem(`${ONBOARDING_SEEN_KEY_PREFIX}${session.participantId}`, 'true');
     }
     const nav = pendingNav.current || `/dating/${eventSlug}/setup`;
     router.replace(nav);
@@ -318,51 +365,6 @@ export default function JoinPage({
   }, [resendTimer, handleSendOtp]);
 
   // ─── Render ───────────────────────────────────────────────
-
-  /** Shared checkbox component */
-  const Checkbox = ({ checked, onChange: onToggle, children }: { checked: boolean; onChange: () => void; children: React.ReactNode }) => (
-    <div
-      role="checkbox"
-      aria-checked={checked}
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onToggle(); } }}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: 16,
-        background: 'var(--surface)',
-        borderRadius: 12,
-        width: '100%',
-        maxWidth: 320,
-        cursor: 'pointer',
-      }}
-      onClick={onToggle}
-    >
-      <div
-        style={{
-          width: 24,
-          height: 24,
-          borderRadius: 6,
-          border: `2px solid ${checked ? 'var(--primary)' : 'var(--card-border)'}`,
-          background: checked ? 'var(--primary)' : 'transparent',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          transition: 'background 0.2s, border-color 0.2s',
-        }}
-        aria-hidden="true"
-      >
-        {checked && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" aria-hidden="true" focusable="false">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        )}
-      </div>
-      <span style={{ fontSize: 14, textAlign: 'start' }}>{children}</span>
-    </div>
-  );
 
   return (
     <MobileGuard>

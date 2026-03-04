@@ -4,6 +4,7 @@ import { use, useEffect, useState, useCallback, useRef, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSessionStore, useLikesStore, useNotificationStore, useMatchStore } from '@/lib/store';
 import { getReceivedLikes, getSentLikes, getMatches, getPhotoUrl, markAllLikesSeen } from '@/lib/api';
+import { SWR_STALE_MS } from '@/lib/constants';
 import { useRealtimeHub } from '@/hooks/useRealtimeHub';
 import { useAppResume } from '@/hooks/useAppResume';
 import { PageTransition, StaggerContainer, StaggerItem } from '@/components/Animations';
@@ -11,7 +12,6 @@ import MobileGuard from '@/components/MobileGuard';
 import AppHeader from '@/components/AppHeader';
 import TabBar from '@/components/TabBar';
 import Toast from '@/components/Toast';
-import LoadingSpinner from '@/components/LoadingSpinner';
 import { LikesSkeleton } from '@/components/Skeletons';
 import { HeartIcon, HeartFilledIcon, UserIcon } from '@/components/Icons';
 import Image from 'next/image';
@@ -81,7 +81,7 @@ export default function LikesPage({
   }, [setReceivedLikes, setSentLikes, setMatches]);
 
   useEffect(() => {
-    if (Date.now() - lastFetchRef.current < 30_000) return;
+    if (Date.now() - lastFetchRef.current < SWR_STALE_MS) return;
     loadLikes();
   }, [loadLikes, session]);
 

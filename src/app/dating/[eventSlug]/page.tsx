@@ -8,7 +8,7 @@ import { useSessionStore, useGridStore, useNotificationStore, useSwipeStore } fr
 import { getGridParticipants, getPhotoUrl, markLikeSeen, getParticipant } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import { useRealtimeHub } from '@/hooks/useRealtimeHub';
-import { LEGACY_LOCAL_ID_KEY } from '@/lib/constants';
+import { LEGACY_LOCAL_ID_KEY, PROFILE_SETUP_KEY_PREFIX, SWR_STALE_MS } from '@/lib/constants';
 import { useAppResume } from '@/hooks/useAppResume';
 import { PageTransition } from '@/components/Animations';
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -145,7 +145,7 @@ export default function EventPage({
   // Profile completeness guard - redirect to setup if profile is incomplete
   useEffect(() => {
     if (!session) return;
-    const hasProfile = localStorage.getItem(`profile_setup_${session.participantId}`);
+    const hasProfile = localStorage.getItem(`${PROFILE_SETUP_KEY_PREFIX}${session.participantId}`);
     if (hasProfile) return; // already completed setup
 
     // Verify against DB in case localStorage was cleared
@@ -153,7 +153,7 @@ export default function EventPage({
       if (!p) return;
       if (p.display_name.trim() && p.age != null) {
         // Profile is actually complete - restore the flag
-        localStorage.setItem(`profile_setup_${session.participantId}`, 'true');
+        localStorage.setItem(`${PROFILE_SETUP_KEY_PREFIX}${session.participantId}`, 'true');
         setParticipant(p);
       } else {
         // Profile is incomplete - redirect to setup
@@ -165,7 +165,7 @@ export default function EventPage({
   // Load grid (skip if recently fetched - Realtime keeps data fresh)
   useEffect(() => {
     if (session) {
-      if (Date.now() - lastFetchRef.current < 30_000) return;
+      if (Date.now() - lastFetchRef.current < SWR_STALE_MS) return;
       loadGrid();
     }
   }, [session, eventSlug, loadGrid]);
@@ -194,11 +194,12 @@ export default function EventPage({
             if (!iAmAttracted || !theyAttracted) return;
           }
           // Fetch their photos
-          const { data: photos } = await supabase
+          const { data: photos, error: photosErr } = await supabase
             .from('participant_photos')
             .select('id, participant_id, storage_path, order_index')
             .eq('participant_id', newP.id)
             .order('order_index');
+          if (photosErr) console.error('[Grid] fetch photos for new participant failed', photosErr.message);
           addParticipant({ ...payload.new, photos: photos || [] } as GridParticipant);
         },
       },
@@ -242,11 +243,12 @@ export default function EventPage({
             }
 
             // Fetch their photos
-            const { data: photos } = await supabase
+            const { data: photos, error: photosErr } = await supabase
               .from('participant_photos')
               .select('id, participant_id, storage_path, order_index')
               .eq('participant_id', updated.id)
               .order('order_index');
+            if (photosErr) console.error('[Grid] fetch photos for updated participant failed', photosErr.message);
 
             // Only add if they have at least one photo
             if (photos && photos.length > 0) {

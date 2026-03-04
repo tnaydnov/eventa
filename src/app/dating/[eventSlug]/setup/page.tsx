@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useSessionStore, useToastStore } from '@/lib/store';
 import { updateProfile, getMyPhotos } from '@/lib/api';
 import { profileSetupSchema, type ProfileSetupData } from '@/lib/validations';
-import { LOOKING_FOR_OPTIONS } from '@/lib/constants';
+import { LOOKING_FOR_OPTIONS, PROFILE_SETUP_KEY_PREFIX } from '@/lib/constants';
 import MobileGuard from '@/components/MobileGuard';
 import { PageTransition } from '@/components/Animations';
 import { EditIcon, HeartIcon } from '@/components/Icons';
@@ -95,7 +95,7 @@ export default function ProfileSetupPage({
 
       setParticipant(p);
       setStorePhotos(photos);
-      localStorage.setItem(`profile_setup_${session.participantId}`, 'true');
+      localStorage.setItem(`${PROFILE_SETUP_KEY_PREFIX}${session.participantId}`, 'true');
 
       router.replace(`/dating/${eventSlug}`);
     } catch {

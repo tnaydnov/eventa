@@ -48,6 +48,17 @@ export const LEGACY_LOCAL_ID_KEY = 'wedding_local_id';
 /** localStorage key for persisted session data. */
 export const SESSION_STORAGE_KEY = 'eventa_session';
 
+/** localStorage prefix for profile-setup completion flag (`${PREFIX}${participantId}`). */
+export const PROFILE_SETUP_KEY_PREFIX = 'profile_setup_';
+
+/** localStorage prefix for onboarding-seen flag (`${PREFIX}${participantId}`). */
+export const ONBOARDING_SEEN_KEY_PREFIX = 'onboarding_seen_';
+
+// ─── Data Freshness ─────────────────────────────────────
+
+/** Milliseconds before a cached list is considered stale (30 s). */
+export const SWR_STALE_MS = 30_000;
+
 // ─── Cleanup ────────────────────────────────────────────
 
 /** Days after event end before data is cleaned up. */

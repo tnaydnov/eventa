@@ -104,11 +104,12 @@ export default function ChatRoomPage({
       let otherId: string | null = cachedOther?.id ?? null;
 
       if (!otherId) {
-        const { data: conv } = await supabase
+        const { data: conv, error: convErr } = await supabase
           .from('conversations')
           .select('id, event_id, a_participant_id, b_participant_id, created_at, last_message_at, a_last_read_at, b_last_read_at')
           .eq('id', conversationId)
           .single();
+        if (convErr) console.error('[Chat] fetch conversation failed', convErr.message);
 
         if (!conv) {
           toast('השיחה לא נמצאה');

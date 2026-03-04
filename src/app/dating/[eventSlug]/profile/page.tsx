@@ -14,7 +14,7 @@ import LegalDrawer from '@/components/LegalDrawer';
 import { EditIcon, HeartIcon } from '@/components/Icons';
 import ProfilePhotoGrid from './_components/ProfilePhotoGrid';
 import DeleteAccountDialog from './_components/DeleteAccountDialog';
-import { LOOKING_FOR_OPTIONS, SESSION_STORAGE_KEY } from '@/lib/constants';
+import { LOOKING_FOR_OPTIONS, SESSION_STORAGE_KEY, PROFILE_SETUP_KEY_PREFIX } from '@/lib/constants';
 import type { Gender, AttractedTo, LookingFor, ParticipantPhoto } from '@/lib/database.types';
 
 export default function ProfileEditPage({
@@ -124,7 +124,7 @@ export default function ProfileEditPage({
   const handleAccountDeleted = () => {
     if (!session) return;
     localStorage.removeItem(SESSION_STORAGE_KEY);
-    localStorage.removeItem(`profile_setup_${session.participantId}`);
+    localStorage.removeItem(`${PROFILE_SETUP_KEY_PREFIX}${session.participantId}`);
     clearSession();
     toast('החשבון נמחק');
     router.replace('/dating');
