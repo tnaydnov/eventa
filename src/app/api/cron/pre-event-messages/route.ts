@@ -129,13 +129,14 @@ async function handler(req: NextRequest) {
 
         if (result.success) {
           // Mark as sent
-          await supabase
+          const { error: updateErr } = await supabase
             .from('event_guest_phones')
             .update({
               wa_pre_event_sent: true,
               wa_pre_event_sent_at: new Date().toISOString(),
             })
             .eq('id', guest.id);
+          if (updateErr) logger.error('[PRE_EVENT_CRON] Failed to mark wa_pre_event_sent', { guestId: guest.id, error: updateErr.message });
           totalSent++;
         } else {
           totalFailed++;
@@ -170,7 +171,7 @@ async function handler(req: NextRequest) {
       failed: totalFailed,
     });
   } catch (err) {
-    logger.error('[PRE_EVENT_CRON] error', { error: err });
+    logger.error('[PRE_EVENT_CRON] error', { error: err instanceof Error ? err.message : String(err) });
     return jsonError('Cron execution failed', 500);
   }
 }

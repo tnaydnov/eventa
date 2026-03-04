@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate storagePath belongs to this participant
-    if (typeof storagePath !== 'string' || !isSafePath(storagePath) || !storagePath.startsWith(`${session.eid}/`) || !storagePath.includes(session.sub)) {
+    if (typeof storagePath !== 'string' || !isSafePath(storagePath) || !storagePath.startsWith(`${session.eid}/`) || !storagePath.startsWith(`${session.eid}/${session.sub}/`)) {
       return jsonError('Invalid storage path', 400);
     }
 
@@ -92,7 +92,7 @@ export async function DELETE(req: NextRequest) {
       .select('participant_id, storage_path')
       .eq('id', photoId)
       .eq('event_id', session.eid)
-      .single();
+      .maybeSingle();
 
     if (photoError) {
       logger.error('[PHOTOS_DELETE] photo lookup failed:', photoError);

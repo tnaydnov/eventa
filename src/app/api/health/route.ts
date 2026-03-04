@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { logger } from '@/lib/logger';
 
 /** Cached health response to avoid DB abuse (TTL 5 seconds). */
 let cachedResult: { json: object; status: number; ts: number } | null = null;
@@ -33,6 +34,7 @@ export async function GET(req: NextRequest) {
     const { error } = await supabase.from('events').select('id', { count: 'exact', head: true });
 
     if (error) {
+      logger.warn('[HEALTH] DB unreachable', { error: error.message });
       const json = { status: 'degraded', error: 'Database unreachable', latency: Date.now() - start };
       cachedResult = { json, status: 503, ts: Date.now() };
       return NextResponse.json(json, { status: 503 });
@@ -45,7 +47,8 @@ export async function GET(req: NextRequest) {
     };
     cachedResult = { json, status: 200, ts: Date.now() };
     return NextResponse.json(json);
-  } catch {
+  } catch (err) {
+    logger.error('[HEALTH] unexpected error', { error: err instanceof Error ? err.message : String(err) });
     const json = { status: 'error', error: 'Health check failed', latency: Date.now() - start };
     cachedResult = { json, status: 503, ts: Date.now() };
     return NextResponse.json(json, { status: 503 });

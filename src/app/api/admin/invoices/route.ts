@@ -14,7 +14,6 @@ import {
   getConfigStatus,
   DocumentType,
   DOCUMENT_TYPE_LABELS,
-  PAYMENT_METHOD_TO_INVOICE4U,
   type CreateDocumentParams,
   type Invoice4UCustomer,
 } from '@/lib/invoice4u';
@@ -131,7 +130,7 @@ async function handleGetDocuments(url: URL) {
 async function handleGetLocalInvoices(url: URL) {
   const supabase = getServiceClient();
   const requestId = url.searchParams.get('requestId');
-  const limit = parseInt(url.searchParams.get('limit') || '50', 10);
+  const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 200);
   const offset = parseInt(url.searchParams.get('offset') || '0', 10);
 
   let query = supabase

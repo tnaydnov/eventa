@@ -197,12 +197,11 @@ async function handler(req: NextRequest) {
           eventId: event.id,
           eventName: event.name,
           type: reminderType,
-          to: contactEmail,
         });
       } catch (emailErr) {
         logger.error('[UPLOAD_REMINDERS] Failed to send email', {
           eventId: event.id,
-          error: emailErr,
+          error: emailErr instanceof Error ? emailErr.message : String(emailErr),
         });
 
         // Log failure to message_log
@@ -235,7 +234,7 @@ async function handler(req: NextRequest) {
       skipped: totalSkipped,
     });
   } catch (err) {
-    logger.error('[UPLOAD_REMINDERS] error', { error: err });
+    logger.error('[UPLOAD_REMINDERS] error', { error: err instanceof Error ? err.message : String(err) });
     return jsonError('Cron execution failed', 500);
   }
 }

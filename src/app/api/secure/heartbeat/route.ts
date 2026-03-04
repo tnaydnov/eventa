@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
         .from('participants')
         .select('last_seen_at')
         .eq('id', session.sub)
-        .single(),
+        .maybeSingle(),
       supabase.from('activity_log').insert({
         event_id: session.eid,
         participant_id: session.sub,
@@ -43,12 +43,11 @@ export async function POST(req: NextRequest) {
 
     if (stale) {
       // Fire-and-forget - don't wait for the UPDATE to respond
-      Promise.resolve(
-        supabase
+      void supabase
           .from('participants')
           .update({ last_seen_at: now })
           .eq('id', session.sub)
-      ).catch((err) => logger.error('[HEARTBEAT] last_seen update error:', err));
+          .then(({ error }) => { if (error) logger.error('[HEARTBEAT] last_seen update error:', { error: error.message }); });
     }
 
     return NextResponse.json({ success: true });

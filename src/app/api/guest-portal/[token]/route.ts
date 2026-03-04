@@ -1,6 +1,6 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
-import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { guestPhoneSchema } from '@/lib/validations';
 import { normalizePhone, isValidIsraeliMobile, formatPhoneDisplay } from '@/lib/messaging/phone-utils';
@@ -105,7 +105,7 @@ export async function GET(
         'id, name, slug, starts_at, ends_at, status, wa_messages_enabled, guest_list_uploaded, guest_list_count'
       )
       .eq('id', eventId)
-      .single();
+      .maybeSingle();
 
     if (evErr || !event) {
       return jsonError('Event not found', 404);
@@ -250,7 +250,7 @@ export async function POST(
       .from('events')
       .select('id, status, starts_at, wa_messages_enabled')
       .eq('id', eventId)
-      .single();
+      .maybeSingle();
 
     if (!evPost || evPost.status === 'archived') {
       return jsonError('׳”׳׳™׳¨׳•׳¢ ׳”׳¡׳×׳™׳™׳ - ׳׳ ׳ ׳™׳×׳ ׳׳¢׳“׳›׳ ׳׳× ׳”׳¨׳©׳™׳׳”', 400);
@@ -474,7 +474,7 @@ export async function DELETE(
       .from('events')
       .select('id, status, starts_at, wa_messages_enabled')
       .eq('id', eventId)
-      .single();
+      .maybeSingle();
 
     if (!evDel || evDel.status === 'archived') {
       return jsonError('׳”׳׳™׳¨׳•׳¢ ׳”׳¡׳×׳™׳™׳ - ׳׳ ׳ ׳™׳×׳ ׳׳¢׳“׳›׳ ׳׳× ׳”׳¨׳©׳™׳׳”', 400);

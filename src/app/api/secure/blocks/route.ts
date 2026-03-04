@@ -73,11 +73,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Activity log (fire-and-forget)
-    Promise.resolve(supabase.from('activity_log').insert({
+    void supabase.from('activity_log').insert({
       event_id: eventId,
       participant_id: blockerId,
       action: 'block',
-    })).catch((err) => logger.error('[BLOCKS] activity_log error:', err));
+    }).then(({ error }) => { if (error) logger.error('[BLOCKS] activity_log error:', { error: error.message }); });
 
     // Delete bidirectional likes + notifications (independent - parallelize)
     const [likesDel1, likesDel2, notifDel1, notifDel2] = await Promise.all([

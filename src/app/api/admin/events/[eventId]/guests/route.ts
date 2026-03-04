@@ -85,7 +85,7 @@ export async function POST(
       .from('events')
       .select('id, wa_messages_enabled')
       .eq('id', eventId)
-      .single();
+      .maybeSingle();
 
     if (evErr || !event) return jsonError('Event not found', 404);
 

@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
     const smsResult = await sendOtpSms(phone, otpResult.code, event.id);
     if (!smsResult.success) {
       logger.error('[SEND_OTP] SMS send failed', {
-        phone,
+        phone: maskPhone(phone),
         eventId: event.id,
         error: smsResult.error,
       });

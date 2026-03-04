@@ -127,12 +127,17 @@ export async function POST(req: NextRequest) {
 
     // Reconnect existing participant by fingerprint (try localStorage UUID first, then hardware)
     if (fingerprint) {
-      const { data: existing } = await supabase
+      const { data: existing, error: lookupErr } = await supabase
         .from('participants')
         .select('id, event_id, device_fingerprint, hardware_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at')
         .eq('event_id', event.id)
         .eq('device_fingerprint', fingerprint)
-        .single();
+        .maybeSingle();
+
+      if (lookupErr) {
+        logger.error('[JOIN] reconnect lookup failed', { error: lookupErr.message });
+        return jsonError('Service temporarily unavailable', 503);
+      }
 
       if (existing) {
         if (existing.is_banned) {
@@ -143,24 +148,28 @@ export async function POST(req: NextRequest) {
 
         // Update hardware fingerprint if not already set
         if (hwFingerprint) {
-          Promise.resolve(
-            supabase
+          void supabase
               .from('participants')
               .update({ hardware_fingerprint: hwFingerprint })
               .eq('id', existing.id)
-          ).catch((err) => logger.error('[AUTH_JOIN] hw fingerprint update error:', err));
+              .then(({ error }) => { if (error) logger.error('[AUTH_JOIN] hw fingerprint update error:', { error: error.message }); });
         }
       }
     }
 
     // Try reconnect by hardware fingerprint (for incognito re-visits)
     if (!participantId && hwFingerprint) {
-      const { data: existing } = await supabase
+      const { data: existing, error: lookupErr } = await supabase
         .from('participants')
         .select('id, event_id, device_fingerprint, hardware_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at')
         .eq('event_id', event.id)
         .eq('hardware_fingerprint', hwFingerprint)
         .maybeSingle();
+
+      if (lookupErr) {
+        logger.error('[JOIN] reconnect lookup failed', { error: lookupErr.message });
+        return jsonError('Service temporarily unavailable', 503);
+      }
 
       if (existing) {
         if (existing.is_banned) {
@@ -171,12 +180,11 @@ export async function POST(req: NextRequest) {
 
         // Update localStorage fingerprint to current one
         if (fingerprint) {
-          Promise.resolve(
-            supabase
+          void supabase
               .from('participants')
               .update({ device_fingerprint: fingerprint })
               .eq('id', existing.id)
-          ).catch((err) => logger.error('[AUTH_JOIN] device fingerprint update error:', err));
+              .then(({ error }) => { if (error) logger.error('[AUTH_JOIN] device fingerprint update error:', { error: error.message }); });
         }
       }
     }
@@ -205,11 +213,11 @@ export async function POST(req: NextRequest) {
       participantId = newP.id;
 
       // Activity log for new join (fire-and-forget)
-      Promise.resolve(supabase.from('activity_log').insert({
+      void supabase.from('activity_log').insert({
         event_id: event.id,
         participant_id: newP.id,
         action: 'join',
-      })).catch((err) => logger.error('[AUTH_JOIN] activity_log error:', err));
+      }).then(({ error }) => { if (error) logger.error('[AUTH_JOIN] activity_log error:', { error: error.message }); });
     }
 
     // Guard: should never happen - either existing or newly created

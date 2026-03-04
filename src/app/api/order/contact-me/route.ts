@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { getServiceClient } from '@/lib/supabase';
-import { buildAdminContactOnlyNotification } from '@/lib/email-templates';
+import { buildAdminContactOnlyNotification, escapeHtml } from '@/lib/email-templates';
 import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
 
 /**
@@ -40,10 +40,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Update contact preference in DB
-    await supabase
+    const { error: updateErr } = await supabase
       .from('event_requests')
       .update({ contact_preference: 'call-me' })
       .eq('id', requestId);
+    if (updateErr) logger.error('[CONTACT_ME] Failed to update contact_preference', { requestId, error: updateErr.message });
 
     // Send notification email to admin
     const emailData = buildAdminContactOnlyNotification({
@@ -99,8 +100,8 @@ function buildConfirmationPage(title: string, message: string): NextResponse {
     <div class="check">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
     </div>
-    <h1>${title}</h1>
-    <p>${message}</p>
+    <h1>${escapeHtml(title)}</h1>
+    <p>${escapeHtml(message)}</p>
     <a class="back" href="https://eventa.productions">חזרה לאתר</a>
   </div>
 </body>

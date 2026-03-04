@@ -134,10 +134,11 @@ async function handler(req: NextRequest) {
         const result = await sendFeedbackMessage(p.phone, config);
 
         // Mark feedback_sent = true regardless of outcome (don't retry)
-        await supabase
+        const { error: updateErr } = await supabase
           .from('participants')
           .update({ feedback_sent: true })
           .eq('id', p.id);
+        if (updateErr) logger.error('[CRON_FEEDBACK] Failed to mark feedback_sent', { participantId: p.id, error: updateErr.message });
 
         if (result.success) {
           totalSent++;
@@ -173,7 +174,7 @@ async function handler(req: NextRequest) {
       skipped: totalSkipped,
     });
   } catch (err) {
-    logger.error('[FEEDBACK_CRON] error', { error: err });
+    logger.error('[FEEDBACK_CRON] error', { error: err instanceof Error ? err.message : String(err) });
     return jsonError('Cron execution failed', 500);
   }
 }

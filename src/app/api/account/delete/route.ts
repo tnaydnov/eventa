@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
       .from('participants')
       .select('device_fingerprint, hardware_fingerprint')
       .eq('id', participantId)
-      .single();
+      .maybeSingle();
 
     if (selfParticipant) {
       const fps = [

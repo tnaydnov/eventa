@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
+import { escapeHtml } from '@/lib/email-templates';
 
 const PAYMENT_PROVIDER_LIVE = process.env.PAYMENT_PROVIDER_LIVE === 'true';
 
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
 
     if (fetchErr || !request) {
-      logger.warn('[PAYMENT_CHECKOUT] Unknown token', { token });
+      logger.warn('[PAYMENT_CHECKOUT] Unknown token', { token: token.slice(0, 8) + '…' });
       return NextResponse.json({ error: 'Invalid or unknown payment link' }, { status: 404 });
     }
 
@@ -61,10 +62,11 @@ export async function GET(req: NextRequest) {
       const expiresAt = new Date(request.payment_link_expires_at);
       if (expiresAt < new Date()) {
         // Mark as expired in DB
-        await supabase
+        const { error: expErr } = await supabase
           .from('event_requests')
           .update({ payment_status: 'expired' })
           .eq('id', request.id);
+        if (expErr) logger.error('[CHECKOUT] Failed to mark as expired', { token, error: expErr.message });
 
         return new NextResponse(buildHtmlPage(
           'הקישור פג תוקף ⏰',
@@ -114,7 +116,7 @@ function buildHtmlPage(title: string, message: string): string {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>${title} | Eventa</title>
+  <title>${escapeHtml(title)} | Eventa</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
@@ -148,8 +150,8 @@ function buildHtmlPage(title: string, message: string): string {
 </head>
 <body>
   <div class="card">
-    <h1>${title}</h1>
-    <p>${message}</p>
+    <h1>${escapeHtml(title)}</h1>
+    <p>${escapeHtml(message)}</p>
     <a href="https://eventa.productions">חזרה לאתר Eventa</a>
   </div>
 </body>

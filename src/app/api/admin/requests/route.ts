@@ -9,9 +9,10 @@ import { adminAuditLog } from '@/lib/admin-auth';
 import { APP_BASE_URL, BASE_PRICE, MSG_ADDON } from '@/lib/config';
 import {
   buildClientApprovalEmail,
+  escapeHtml,
 } from '@/lib/email-templates';
 import { generatePrettySlug } from '@/lib/slug';
-import { chargeWithToken, getClearingLogById } from '@/lib/invoice4u';
+import { chargeWithToken } from '@/lib/invoice4u';
 import { evictEventStatusCache } from '@/lib/route-helpers';
 import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
 
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest) {
       .from('event_requests')
       .select('*')
       .eq('id', requestId)
-      .single();
+      .maybeSingle();
 
     if (fetchErr || !request) {
       return jsonError('Request not found', 404);
@@ -142,7 +143,7 @@ export async function POST(req: NextRequest) {
             error: chargeResult.error,
           });
 
-          return jsonError(`Charge failed: ${chargeResult.error || 'Unknown error'}`, 400);
+          return jsonError('Payment charge failed', 400);
         }
 
         // Update payment status to paid
@@ -345,9 +346,9 @@ export async function POST(req: NextRequest) {
       if (chargeSucceeded) {
         try {
           const totalShekel = (BASE_PRICE + (request.wants_guest_messages ? MSG_ADDON : 0));
-          const safeName = (request.contact_name || '').replace(/</g, '&lt;');
-          const safeEmail = (request.contact_email || '').replace(/</g, '&lt;');
-          const safeEvent = eventName.replace(/</g, '&lt;');
+          const safeName = escapeHtml(request.contact_name || '');
+          const safeEmail = escapeHtml(request.contact_email || '');
+          const safeEvent = escapeHtml(eventName);
 
           const adminSubject = `׳—׳™׳•׳‘ ׳‘׳•׳¦׳¢ - ${eventName} (ג‚×${totalShekel})`;
           const adminHtml =
@@ -360,7 +361,7 @@ export async function POST(req: NextRequest) {
             `<tr><td dir="rtl" style="text-align:right;padding:20px 24px;font-size:14px;color:#1e1e1e;line-height:1.7;">` +
             `<div><strong>׳׳§׳•׳—:</strong> ${safeName}</div>` +
             `<div><strong>׳׳™׳™׳:</strong> ${safeEmail}</div>` +
-            `<div><strong>׳˜׳׳₪׳•׳:</strong> ${(request.contact_phone || '').replace(/</g, '&lt;')}</div>` +
+            `<div><strong>׳˜׳׳₪׳•׳:</strong> ${escapeHtml(request.contact_phone || '')}</div>` +
             `<div><strong>׳׳™׳¨׳•׳¢:</strong> ${safeEvent}</div>` +
             `<div><strong>׳¡׳›׳•׳:</strong> ג‚×${totalShekel}</div>` +
             `<div><strong>׳‘׳§׳©׳”:</strong> ${requestId}</div>` +
@@ -418,7 +419,7 @@ export async function PATCH(req: NextRequest) {
       .from('event_requests')
       .select('id, payment_status, contact_email, contact_name, event_type, event_name, starts_at, ends_at, wants_custom_background, poster_choice, selected_template_id, special_requests, wants_guest_messages, total_price, payment_link_token')
       .eq('id', requestId)
-      .single();
+      .maybeSingle();
 
     if (fetchErr || !request) {
       return jsonError('Request not found', 404);
@@ -553,7 +554,7 @@ export async function DELETE(req: NextRequest) {
       .from('event_requests')
       .select('id, status, approved_event_id')
       .eq('id', requestId)
-      .single();
+      .maybeSingle();
 
     if (fetchErr || !request) {
       return jsonError('Request not found', 404);

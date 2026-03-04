@@ -107,7 +107,7 @@ async function getEventStatus(eventId: string): Promise<string | null> {
     .from('events')
     .select('status')
     .eq('id', eventId)
-    .single();
+    .maybeSingle();
 
   if (error) {
     logger.error('Event status DB error - failing closed (treating as deleted)', {

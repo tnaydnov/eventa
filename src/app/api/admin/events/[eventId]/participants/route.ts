@@ -124,7 +124,7 @@ export async function PATCH(
       .from('participants')
       .select('device_fingerprint, hardware_fingerprint')
       .eq('id', participantId)
-      .single();
+      .maybeSingle();
 
     if (participant) {
       const fingerprints = [

@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
     // Validate with Zod
     const parsed = orderSchema.safeParse(body);
     if (!parsed.success) {
+      logger.warn('[ORDER] validation failed', { issues: parsed.error.issues });
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -204,13 +205,19 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    await getMailTransporter().sendMail({
-      from: getSmtpFrom(),
-      to: 'contact@eventa.productions',
-      subject: adminEmail.subject,
-      html: adminEmail.html,
-      ...(attachments.length > 0 ? { attachments } : {}),
-    });
+    try {
+      await getMailTransporter().sendMail({
+        from: getSmtpFrom(),
+        to: 'contact@eventa.productions',
+        subject: adminEmail.subject,
+        html: adminEmail.html,
+        ...(attachments.length > 0 ? { attachments } : {}),
+      });
+    } catch (adminMailErr) {
+      logger.error('Failed to send admin notification email', {
+        error: adminMailErr instanceof Error ? adminMailErr.message : String(adminMailErr),
+      });
+    }
 
     // ── 3. Send confirmation email to client based on contact preference ──
     if (isWizard && contactEmail && requestId) {

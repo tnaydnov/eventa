@@ -166,7 +166,7 @@ export async function POST(req: NextRequest) {
     let participantId: string | null = null;
     let participant: Record<string, unknown> | null = null;
 
-    const { data: existing } = await supabase
+    const { data: existing, error: lookupErr } = await supabase
       .from('participants')
       .select(
         'id, event_id, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at, phone, sms_consent, feedback_consent, feedback_sent'
@@ -174,6 +174,11 @@ export async function POST(req: NextRequest) {
       .eq('event_id', event.id)
       .eq('phone', phone)
       .maybeSingle();
+
+    if (lookupErr) {
+      logger.error('[VERIFY_OTP] participant lookup failed', { error: lookupErr.message });
+      return jsonError('Service temporarily unavailable', 503);
+    }
 
     if (existing) {
       // Reconnect
@@ -192,11 +197,10 @@ export async function POST(req: NextRequest) {
       if (hwFingerprint) updates.hardware_fingerprint = hwFingerprint;
       if (smsConsent !== existing.sms_consent) updates.sms_consent = smsConsent;
 
-      Promise.resolve(
-        supabase.from('participants').update(updates).eq('id', participantId)
-      ).catch((err) =>
-        logger.error('[VERIFY_OTP] participant update error', { error: err })
-      );
+      void supabase.from('participants').update(updates).eq('id', participantId)
+        .then(({ error }) => {
+          if (error) logger.error('[VERIFY_OTP] participant update error', { error: error.message });
+        });
     } else {
       // Create new participant
       const { data: newP, error: createError } = await supabase
@@ -226,15 +230,13 @@ export async function POST(req: NextRequest) {
       participantId = newP.id;
 
       // Activity log for new join (fire-and-forget)
-      Promise.resolve(
-        supabase.from('activity_log').insert({
+      void supabase.from('activity_log').insert({
           event_id: event.id,
           participant_id: newP.id,
           action: 'join',
-        })
-      ).catch((err) =>
-        logger.error('[VERIFY_OTP] activity log error', { error: err })
-      );
+        }).then(({ error }) => {
+          if (error) logger.error('[VERIFY_OTP] activity log error', { error: error.message });
+        });
     }
 
     // Guard: should never happen

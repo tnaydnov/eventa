@@ -45,7 +45,7 @@ export async function GET(
             'id, wa_messages_enabled, guest_list_uploaded, guest_list_uploaded_at, guest_list_count, messaging_config'
           )
           .eq('id', eventId)
-          .single(),
+          .maybeSingle(),
         supabase
           .from('event_guest_phones')
           .select('id, wa_pre_event_sent')
@@ -175,7 +175,7 @@ export async function PATCH(
         .from('events')
         .select('messaging_config')
         .eq('id', eventId)
-        .single();
+        .maybeSingle();
 
       if (!cfgErr) {
         const existing =
@@ -240,7 +240,7 @@ export async function POST(
       .from('events')
       .select('id, slug, name, join_code, wa_messages_enabled, starts_at')
       .eq('id', eventId)
-      .single();
+      .maybeSingle();
 
     if (evErr || !event) return jsonError('Event not found', 404);
     if (!event.wa_messages_enabled) {

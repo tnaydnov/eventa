@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { getServiceClient } from '@/lib/supabase';
 import { getClearingLogById, isConfigured } from '@/lib/invoice4u';
+import { escapeHtml } from '@/lib/email-templates';
 
 /**
  * GET /api/payment/callback?rid=<requestId>
@@ -70,6 +71,7 @@ export async function GET(req: NextRequest) {
     // NOTE: This means `verified` is always true. The check above is best-effort
     // verification - in production, the charge happens later via admin approval.
     logger.warn('[PAYMENT_CALLBACK] Clearing log not verified, accepting iframe redirect', { rid });
+    // TODO: remove override once Invoice4U signature verification is validated in production
     verified = true;
   }
 
@@ -109,7 +111,7 @@ function htmlResponse(title: string, message: string, success: boolean): NextRes
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>${title}</title>
+  <title>${escapeHtml(title)}</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
@@ -124,8 +126,8 @@ function htmlResponse(title: string, message: string, success: boolean): NextRes
 <body>
   <div class="card">
     <div class="icon">${icon}</div>
-    <h1>${title}</h1>
-    <p>${message}</p>
+    <h1>${escapeHtml(title)}</h1>
+    <p>${escapeHtml(message)}</p>
   </div>
   <script>
     // Notify the parent window (wizard) that payment is complete
@@ -134,7 +136,7 @@ function htmlResponse(title: string, message: string, success: boolean): NextRes
         window.parent.postMessage({
           type: 'eventa-payment-complete',
           success: ${success},
-        }, '*');
+        }, window.location.origin);
       }
     } catch(e) { /* cross-origin - ignore */ }
   </script>

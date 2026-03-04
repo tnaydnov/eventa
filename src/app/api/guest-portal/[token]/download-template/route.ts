@@ -50,7 +50,7 @@ export async function GET(
       .from('events')
       .select('id, status, starts_at')
       .eq('id', data.event_id)
-      .single();
+      .maybeSingle();
 
     if (!event || event.status === 'archived') {
       return NextResponse.json({ error: 'האירוע הסתיים' }, { status: 400 });

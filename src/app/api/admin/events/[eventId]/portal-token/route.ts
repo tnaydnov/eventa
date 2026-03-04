@@ -52,7 +52,7 @@ export async function GET(
       .from('events')
       .select('slug')
       .eq('id', eventId)
-      .single();
+      .maybeSingle();
 
     return NextResponse.json({
       token: data.token,
@@ -89,7 +89,7 @@ export async function POST(
       .from('events')
       .select('id, slug')
       .eq('id', eventId)
-      .single();
+      .maybeSingle();
 
     if (evErr || !event) return jsonError('Event not found', 404);
 

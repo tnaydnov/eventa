@@ -35,7 +35,7 @@ export async function POST(
       .from('events')
       .select('id, status, name')
       .eq('id', eventId)
-      .single();
+      .maybeSingle();
 
     if (eventErr || !event) {
       return jsonError('Event not found', 404);

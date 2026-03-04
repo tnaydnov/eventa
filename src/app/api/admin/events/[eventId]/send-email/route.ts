@@ -10,6 +10,7 @@ import {
   buildClientUploadReminder7DayEmail,
   buildClientUploadReminder3DayEmail,
   buildClientEventSummaryEmail,
+  escapeHtml,
 } from '@/lib/email-templates';
 import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
 
@@ -42,7 +43,7 @@ export async function POST(
         'id, name, slug, starts_at, ends_at, wa_messages_enabled, guest_list_count, client_name, client_email, client_phone'
       )
       .eq('id', eventId)
-      .single();
+      .maybeSingle();
 
     if (evErr || !event) return jsonError('Event not found', 404);
 
@@ -55,7 +56,7 @@ export async function POST(
         .from('event_requests')
         .select('contact_name, contact_email')
         .eq('approved_event_id', eventId)
-        .single();
+        .maybeSingle();
 
       if (!request?.contact_email) {
         return jsonError('No contact email found for this event. Add client email in event settings.', 400);
@@ -180,9 +181,9 @@ export async function POST(
             400
           );
         }
-        const safeName = (contactName ?? '').replace(/</g, '&lt;');
-        const safeEvent = event.name.replace(/</g, '&lt;');
-        const safeMsg = parsed.data.body.replace(/</g, '&lt;');
+        const safeName = escapeHtml(contactName ?? '');
+        const safeEvent = escapeHtml(event.name);
+        const safeMsg = escapeHtml(parsed.data.body);
         email = {
           subject: parsed.data.subject?.trim() || `Eventa - ${event.name}`,
           html: `<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Eventa</title></head>` +

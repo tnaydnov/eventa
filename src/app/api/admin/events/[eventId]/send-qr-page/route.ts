@@ -67,7 +67,7 @@ export async function POST(
       .from('events')
       .select('id, name, slug, client_name, client_email')
       .eq('id', eventId)
-      .single();
+      .maybeSingle();
 
     if (evErr || !event) return jsonError('Event not found', 404);
 
@@ -80,7 +80,7 @@ export async function POST(
         .from('event_requests')
         .select('contact_name, contact_email')
         .eq('approved_event_id', eventId)
-        .single();
+        .maybeSingle();
 
       contactName = request?.contact_name || null;
       contactEmail = request?.contact_email || null;

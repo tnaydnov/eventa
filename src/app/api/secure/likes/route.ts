@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
           .eq('event_id', session.eid)
           .eq('from_participant_id', session.sub)
           .eq('to_participant_id', toId)
-          .single();
+          .maybeSingle();
         if (existing) {
           // Still check for match on duplicate
           const { data: reciprocal } = await supabase
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
     const isMatch = !!reciprocal;
 
     // Activity log + notification - fire in parallel, don't block the response
-    Promise.all([
+    void Promise.all([
       supabase.from('activity_log').insert({
         event_id: session.eid,
         participant_id: session.sub,
@@ -109,7 +109,10 @@ export async function POST(req: NextRequest) {
         payload: { from_participant_id: session.sub, match: isMatch },
         is_read: false,
       }),
-    ]).catch((err) => logger.error('[LIKES_POST] fire-and-forget error:', err));
+    ]).then(([activityRes, notifRes]) => {
+      if (activityRes.error) logger.error('[LIKES_POST] activity_log error:', { error: activityRes.error.message });
+      if (notifRes.error) logger.error('[LIKES_POST] notification error:', { error: notifRes.error.message });
+    });
 
     return NextResponse.json({ ...data, match: isMatch });
   } catch (err) {

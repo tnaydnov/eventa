@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     if (fetchErr || !request) {
-      logger.warn('[PAYMENT_WEBHOOK] Unknown payment token', { token });
+      logger.warn('[PAYMENT_WEBHOOK] Unknown payment token', { token: token.slice(0, 8) + '…' });
       return NextResponse.json({ error: 'Unknown token' }, { status: 404 });
     }
 
@@ -68,12 +68,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
+    const ALLOWED_METHODS = ['credit_card', 'bank_transfer', 'bit', 'paypal', 'cash', 'other'];
+    const safeMethod = ALLOWED_METHODS.includes(method) ? method : 'other';
+
     const { error: updateErr } = await supabase
       .from('event_requests')
       .update({
         payment_status: 'paid',
         paid_at: new Date().toISOString(),
-        payment_method: method || 'other',
+        payment_method: safeMethod,
       })
       .eq('id', request.id);
 

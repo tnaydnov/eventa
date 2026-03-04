@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       .select('a_participant_id, b_participant_id')
       .eq('id', conversationId)
       .eq('event_id', session.eid)
-      .single();
+      .maybeSingle();
 
     if (convError) {
       logger.error('[MESSAGES] conv lookup failed:', convError);
@@ -129,19 +129,19 @@ export async function POST(req: NextRequest) {
     }
 
     // Activity log + notification + push (fire-and-forget / parallel)
-    Promise.resolve(supabase.from('activity_log').insert({
+    void supabase.from('activity_log').insert({
       event_id: session.eid,
       participant_id: session.sub,
       action: 'message',
-    })).catch((err) => logger.error('[MESSAGES_POST] activity_log error:', err));
+    }).then(({ error }) => { if (error) logger.error('[MESSAGES_POST] activity_log error:', { error: error.message }); });
 
-    Promise.resolve(supabase.from('notifications').insert({
+    void supabase.from('notifications').insert({
       event_id: session.eid,
       to_participant_id: recipientId,
       type: 'new_message',
       payload: { from_participant_id: session.sub, conversation_id: conversationId },
       is_read: false,
-    })).catch((err) => logger.error('[MESSAGES_POST] notification insert error:', err));
+    }).then(({ error }) => { if (error) logger.error('[MESSAGES_POST] notification insert error:', { error: error.message }); });
 
     return NextResponse.json(data);
   } catch (err) {
@@ -173,7 +173,7 @@ export async function PATCH(req: NextRequest) {
       .select('sender_participant_id')
       .eq('id', messageId)
       .eq('event_id', session.eid)
-      .single();
+      .maybeSingle();
 
     if (msgError) {
       logger.error('[MESSAGES] msg lookup failed:', msgError);
