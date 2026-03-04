@@ -262,6 +262,30 @@ CREATE POLICY "notifications_select" ON notifications FOR SELECT USING (true);
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('backgrounds', 'backgrounds', true);
 
 -- ============================================
+-- EVENT FEEDBACK (anonymous post-event survey)
+-- ============================================
+CREATE TABLE IF NOT EXISTS event_feedback (
+  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  event_id      UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  enjoyment     SMALLINT NOT NULL CHECK (enjoyment BETWEEN 1 AND 4),
+  ease_of_use   SMALLINT NOT NULL CHECK (ease_of_use BETWEEN 1 AND 4),
+  usage_level   TEXT NOT NULL CHECK (usage_level IN ('view_only', 'likes', 'matches', 'chat')),
+  interaction_result TEXT NOT NULL CHECK (interaction_result IN ('messages', 'real_life', 'interesting', 'none')),
+  favorite_features TEXT[] NOT NULL DEFAULT '{}',
+  improvement_text TEXT CHECK (improvement_text IS NULL OR char_length(improvement_text) <= 500),
+  recommendation SMALLINT NOT NULL CHECK (recommendation BETWEEN 1 AND 4),
+  success_story      TEXT CHECK (success_story IN ('yes', 'maybe', 'no')),
+  success_story_text TEXT CHECK (success_story_text IS NULL OR char_length(success_story_text) <= 500),
+  allow_story_publish BOOLEAN NOT NULL DEFAULT false
+);
+
+CREATE INDEX IF NOT EXISTS idx_event_feedback_event_id ON event_feedback(event_id);
+
+ALTER TABLE event_feedback ENABLE ROW LEVEL SECURITY;
+CREATE POLICY event_feedback_insert ON event_feedback FOR INSERT WITH CHECK (true);
+
+-- ============================================
 -- REALTIME
 -- ============================================
 -- Enable realtime for key tables
