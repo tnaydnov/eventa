@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useMemo } from 'react';
+import { Suspense, use, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import MobileGuard from '@/components/MobileGuard';
 import { PageTransition } from '@/components/Animations';
@@ -44,6 +44,18 @@ const DEFAULT_CONTENT = {
 };
 
 export default function UnavailablePage({
+  params,
+}: {
+  params: Promise<{ eventSlug: string }>;
+}) {
+  return (
+    <Suspense fallback={<div className="app-container" />}>
+      <UnavailableContent params={params} />
+    </Suspense>
+  );
+}
+
+function UnavailableContent({
   params,
 }: {
   params: Promise<{ eventSlug: string }>;

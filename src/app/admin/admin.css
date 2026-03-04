@@ -3889,7 +3889,7 @@
 .pay-summary__skeleton {
   background: var(--admin-border, #334155);
   border-radius: 4px;
-  animation: shimmer 1.5s infinite;
+  animation: pay-shimmer 1.5s infinite;
 }
 .pay-summary__skeleton--label {
   width: 60%;
@@ -3900,7 +3900,7 @@
   width: 40%;
   height: 28px;
 }
-@keyframes shimmer {
+@keyframes pay-shimmer {
   0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
 }

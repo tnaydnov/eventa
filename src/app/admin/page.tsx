@@ -16,6 +16,9 @@ import PaymentsView from './_components/payments/PaymentsView';
 import QRDialog from './_components/QRDialog';
 import ParticipantsDialog from './_components/ParticipantsDialog';
 
+/** Delay (ms) before re-reading event status after an update */
+const STATUS_REFRESH_DELAY_MS = 500;
+
 export default function AdminPage() {
   const admin = useAdminData();
 
@@ -204,7 +207,7 @@ export default function AdminPage() {
                   setTimeout(() => {
                     const updated = admin.events.find(e => e.id === id);
                     if (updated) setDetailEvent(updated);
-                  }, 500);
+                  }, STATUS_REFRESH_DELAY_MS);
                 }}
                 onDelete={(id: string) => {
                   admin.deleteEvent(id);

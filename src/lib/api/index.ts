@@ -5,8 +5,8 @@
 export { getPhotoUrl } from './helpers';
 export { joinEvent, sendOtp, verifyOtp } from './auth';
 export { updateProfile, getParticipant } from './profile';
-export { uploadPhoto, deletePhoto, reorderPhotos, getMyPhotos } from './photos';
-export { getGridParticipants } from './grid';
+export { uploadPhoto, deletePhoto, reorderPhotos, getMyPhotos, getParticipantPhotos } from './photos';
+export { getGridParticipants, matchesCrossAttraction } from './grid';
 export {
   sendLike,
   removeLike,
@@ -19,6 +19,7 @@ export {
   getUnseenLikes,
 } from './likes';
 export {
+  getConversationById,
   getOrCreateConversation,
   getConversations,
   getMessages,

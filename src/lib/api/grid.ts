@@ -8,7 +8,7 @@ import { getBlockedIds } from './helpers';
  * Only show participants where BOTH sides could be attracted to each other.
  * E.g. if I'm a male attracted_to women, show only females attracted_to men or all.
  */
-function matchesCrossAttraction(
+export function matchesCrossAttraction(
   me: { gender: string; attracted_to: string },
   other: { gender: string; attracted_to: string }
 ): boolean {

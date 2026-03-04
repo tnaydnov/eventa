@@ -4,6 +4,7 @@ import { use, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSessionStore, useToastStore, useNotificationStore, useChatsStore } from '@/lib/store';
 import {
+  getConversationById,
   getMessages,
   getMessagesBefore,
   sendMessage,
@@ -13,7 +14,6 @@ import {
   blockParticipant,
   markConversationRead,
 } from '@/lib/api';
-import { supabase } from '@/lib/supabase';
 import { useRealtimeHub } from '@/hooks/useRealtimeHub';
 import { useAppResume } from '@/hooks/useAppResume';
 import MobileGuard from '@/components/MobileGuard';
@@ -25,6 +25,11 @@ import ChatHeader from './_components/ChatHeader';
 import MessageBubble from './_components/MessageBubble';
 import ChatInputBar from './_components/ChatInputBar';
 import BlockConfirmDialog from './_components/BlockConfirmDialog';
+
+// ─── Magic-number constants ────────────────────────────
+const MESSAGE_PAGE_SIZE = 50;
+const LOAD_OLDER_THRESHOLD = 100;
+const LONG_PRESS_MS = 600;
 
 export default function ChatRoomPage({
   params,
@@ -66,7 +71,7 @@ export default function ChatRoomPage({
     const oldestTimestamp = messages[0].created_at;
     const container = messagesContainerRef.current;
     const prevScrollHeight = container?.scrollHeight || 0;
-    const older = await getMessagesBefore(conversationId, oldestTimestamp, 50);
+    const older = await getMessagesBefore(conversationId, oldestTimestamp, MESSAGE_PAGE_SIZE);
     if (older.length === 0) {
       setHasOlderMessages(false);
     } else {
@@ -104,12 +109,7 @@ export default function ChatRoomPage({
       let otherId: string | null = cachedOther?.id ?? null;
 
       if (!otherId) {
-        const { data: conv, error: convErr } = await supabase
-          .from('conversations')
-          .select('id, event_id, a_participant_id, b_participant_id, created_at, last_message_at, a_last_read_at, b_last_read_at')
-          .eq('id', conversationId)
-          .single();
-        if (convErr) console.error('[Chat] fetch conversation failed', convErr.message);
+        const conv = await getConversationById(conversationId);
 
         if (!conv) {
           toast('השיחה לא נמצאה');
@@ -303,7 +303,7 @@ export default function ChatRoomPage({
 
   const handleMsgTouchStart = (msgId: string, isMine: boolean) => {
     if (!isMine) return;
-    longPressTimerRef.current = setTimeout(() => setDeleteMenuMsgId(msgId), 600);
+    longPressTimerRef.current = setTimeout(() => setDeleteMenuMsgId(msgId), LONG_PRESS_MS);
   };
 
   const handleMsgTouchEnd = () => {
@@ -382,7 +382,7 @@ export default function ChatRoomPage({
           style={{ flex: 1, overflowY: 'auto' }}
           onClick={dismissMenus}
         >
-          {hasOlderMessages && messages.length >= 100 && (
+          {hasOlderMessages && messages.length >= LOAD_OLDER_THRESHOLD && (
             <div style={{ textAlign: 'center', padding: '12px' }}>
               <button
                 onClick={loadOlderMessages}

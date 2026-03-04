@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSessionStore, useGridStore, useToastStore } from '@/lib/store';
-import { getParticipant, updateProfile, getPhotoUrl } from '@/lib/api';
+import { getParticipant, updateProfile } from '@/lib/api';
 import { profileSetupSchema, type ProfileSetupData } from '@/lib/validations';
 import { PageTransition } from '@/components/Animations';
 import MobileGuard from '@/components/MobileGuard';

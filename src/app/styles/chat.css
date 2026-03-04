@@ -43,7 +43,7 @@
 }
 
 .chat-last-msg--unread {
-  color: var(--text-primary);
+  color: var(--foreground);
   font-weight: 600;
 }
 

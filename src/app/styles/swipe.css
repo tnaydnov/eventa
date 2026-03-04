@@ -95,7 +95,7 @@
 .swipe-card-name {
   font-size: 26px;
   font-weight: 700;
-  color: #fff;
+  color: white;
 }
 
 .swipe-card-age {
@@ -116,7 +116,7 @@
   border-radius: 16px;
   background: rgba(212, 165, 154, 0.2);
   border: 1px solid rgba(212, 165, 154, 0.35);
-  color: #D4A59A;
+  color: var(--primary);
   font-size: 12px;
   font-weight: 500;
 }

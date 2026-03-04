@@ -1,12 +1,11 @@
 'use client';
 
-import { use, useEffect, useState, useCallback, useRef, useMemo, memo } from 'react';
+import { Suspense, use, useEffect, useState, useCallback, useRef, useMemo, memo } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSessionStore, useGridStore, useNotificationStore, useSwipeStore } from '@/lib/store';
-import { getGridParticipants, getPhotoUrl, markLikeSeen, getParticipant } from '@/lib/api';
-import { supabase } from '@/lib/supabase';
+import { getGridParticipants, getPhotoUrl, markLikeSeen, getParticipant, getParticipantPhotos, matchesCrossAttraction } from '@/lib/api';
 import { useRealtimeHub } from '@/hooks/useRealtimeHub';
 import { LEGACY_LOCAL_ID_KEY, PROFILE_SETUP_KEY_PREFIX, SWR_STALE_MS } from '@/lib/constants';
 import { useAppResume } from '@/hooks/useAppResume';
@@ -90,6 +89,18 @@ const GridCard = memo(function GridCard({
  * 3. Swipe (Tinder-style) view as an alternative browsing mode
  */
 export default function EventPage({
+  params,
+}: {
+  params: Promise<{ eventSlug: string }>;
+}) {
+  return (
+    <Suspense fallback={<div className="app-container" />}>
+      <EventPageContent params={params} />
+    </Suspense>
+  );
+}
+
+function EventPageContent({
   params,
 }: {
   params: Promise<{ eventSlug: string }>;
@@ -182,25 +193,11 @@ export default function EventPage({
         handler: async (payload) => {
           const newP = payload.new as { id: string; gender: string; attracted_to: string; display_name: string; is_banned: boolean };
           if (!session || newP.id === session.participantId || newP.is_banned || !newP.display_name.trim()) return;
-          // Cross-attraction check
-          const me = participant;
-          if (me) {
-            const iAmAttracted = me.attracted_to === 'all' ||
-              (newP.gender === 'male' && me.attracted_to === 'men') ||
-              (newP.gender === 'female' && me.attracted_to === 'women');
-            const theyAttracted = newP.attracted_to === 'all' ||
-              (me.gender === 'male' && newP.attracted_to === 'men') ||
-              (me.gender === 'female' && newP.attracted_to === 'women');
-            if (!iAmAttracted || !theyAttracted) return;
-          }
-          // Fetch their photos
-          const { data: photos, error: photosErr } = await supabase
-            .from('participant_photos')
-            .select('id, participant_id, storage_path, order_index')
-            .eq('participant_id', newP.id)
-            .order('order_index');
-          if (photosErr) console.error('[Grid] fetch photos for new participant failed', photosErr.message);
-          addParticipant({ ...payload.new, photos: photos || [] } as GridParticipant);
+          // Cross-attraction check (reuse shared helper)
+          if (participant && !matchesCrossAttraction(participant, newP)) return;
+          // Fetch their photos via API wrapper
+          const photos = await getParticipantPhotos(newP.id);
+          addParticipant({ ...payload.new, photos } as GridParticipant);
         },
       },
       {
@@ -230,25 +227,11 @@ export default function EventPage({
             if (!session || updated.id === session.participantId) return;
             if (!updated.display_name?.trim() || updated.age == null) return;
 
-            // Cross-attraction check
-            const me = participant;
-            if (me) {
-              const iAmAttracted = me.attracted_to === 'all' ||
-                (updated.gender === 'male' && me.attracted_to === 'men') ||
-                (updated.gender === 'female' && me.attracted_to === 'women');
-              const theyAttracted = updated.attracted_to === 'all' ||
-                (me.gender === 'male' && updated.attracted_to === 'men') ||
-                (me.gender === 'female' && updated.attracted_to === 'women');
-              if (!iAmAttracted || !theyAttracted) return;
-            }
+            // Cross-attraction check (reuse shared helper)
+            if (participant && !matchesCrossAttraction(participant, updated)) return;
 
-            // Fetch their photos
-            const { data: photos, error: photosErr } = await supabase
-              .from('participant_photos')
-              .select('id, participant_id, storage_path, order_index')
-              .eq('participant_id', updated.id)
-              .order('order_index');
-            if (photosErr) console.error('[Grid] fetch photos for updated participant failed', photosErr.message);
+            // Fetch their photos via API wrapper
+            const photos = await getParticipantPhotos(updated.id);
 
             // Only add if they have at least one photo
             if (photos && photos.length > 0) {

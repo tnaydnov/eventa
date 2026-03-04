@@ -5,6 +5,19 @@ import { compressChatImage } from '../image-compression';
 import { validateImageMagicBytes, getEffectiveImageType } from '../validations';
 import { getBlockedIds, buildParticipantPhotoMaps, CONVERSATION_COLUMNS, MESSAGE_COLUMNS } from './helpers';
 
+/** Fetch a single conversation by ID (returns null if not found). */
+export async function getConversationById(
+  conversationId: string
+): Promise<{ id: string; event_id: string; a_participant_id: string; b_participant_id: string; created_at: string; last_message_at: string | null; a_last_read_at: string | null; b_last_read_at: string | null } | null> {
+  const { data, error } = await supabase
+    .from('conversations')
+    .select(CONVERSATION_COLUMNS)
+    .eq('id', conversationId)
+    .single();
+  if (error) console.error('[getConversationById] query error:', error.message);
+  return data;
+}
+
 /** Get or create a conversation with another participant. */
 export async function getOrCreateConversation(
   otherId: string

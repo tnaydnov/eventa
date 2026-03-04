@@ -131,3 +131,16 @@ export async function getMyPhotos(
   if (error) console.error('[getMyPhotos] query error:', error.message);
   return data || [];
 }
+
+/** Get photos for any participant (used by realtime handlers on grid page). */
+export async function getParticipantPhotos(
+  participantId: string
+): Promise<ParticipantPhoto[]> {
+  const { data, error } = await supabase
+    .from('participant_photos')
+    .select(PHOTO_COLUMNS)
+    .eq('participant_id', participantId)
+    .order('order_index');
+  if (error) console.error('[getParticipantPhotos] query error:', error.message);
+  return data || [];
+}

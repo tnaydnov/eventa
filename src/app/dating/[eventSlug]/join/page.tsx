@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, use, useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useSessionStore } from '@/lib/store';
@@ -104,6 +104,18 @@ export default function JoinPage({
 }: {
   params: Promise<{ eventSlug: string }>;
 }) {
+  return (
+    <Suspense fallback={<div className="app-container" />}>
+      <JoinPageContent params={params} />
+    </Suspense>
+  );
+}
+
+function JoinPageContent({
+  params,
+}: {
+  params: Promise<{ eventSlug: string }>;
+}) {
   const { eventSlug } = use(params);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -117,6 +129,7 @@ export default function JoinPage({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [inAppBrowser, setInAppBrowser] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const [statusChecked, setStatusChecked] = useState(false);
 
   // ─── Phone verification state ─────────────────────────────
@@ -379,7 +392,7 @@ export default function JoinPage({
               minHeight: '100dvh',
             }}
           >
-            <img src="/icons/Eventa_Logo.png" alt="Eventa" width={100} height={100} style={{ objectFit: 'contain', opacity: 0.6, animation: 'pulse 1.5s ease-in-out infinite' }} />
+            <img src="/icons/Eventa_Logo.png" alt="Eventa" width={100} height={100} style={{ objectFit: 'contain', opacity: 0.6, animation: 'eo-pulse 1.5s ease-in-out infinite' }} />
           </div>
         ) : (
           <div
@@ -420,8 +433,7 @@ export default function JoinPage({
                   onClick={async () => {
                     try {
                       await navigator.clipboard.writeText(window.location.href);
-                      const btn = document.getElementById('copy-link-btn');
-                      if (btn) btn.textContent = '✅ הקישור הועתק!';
+                      setLinkCopied(true);
                     } catch {
                       const input = document.createElement('input');
                       input.value = window.location.href;
@@ -429,11 +441,9 @@ export default function JoinPage({
                       input.select();
                       document.execCommand('copy');
                       document.body.removeChild(input);
-                      const btn = document.getElementById('copy-link-btn');
-                      if (btn) btn.textContent = '✅ הקישור הועתק!';
+                      setLinkCopied(true);
                     }
                   }}
-                  id="copy-link-btn"
                   style={{
                     display: 'block',
                     margin: '10px auto 0',
@@ -448,7 +458,7 @@ export default function JoinPage({
                     fontFamily: 'inherit',
                   }}
                 >
-                  📋 העתק קישור
+                  {linkCopied ? '✅ הקישור הועתק!' : '📋 העתק קישור'}
                 </button>
               </div>
             )}

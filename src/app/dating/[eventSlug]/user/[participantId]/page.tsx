@@ -62,6 +62,7 @@ export default function UserProfilePage({
       useNotificationStore.getState().removeGridHighlightByType(participantId, 'like');
     }
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- cached store selectors never change identity
   }, [session, participantId]);
 
   const handleLike = async () => {

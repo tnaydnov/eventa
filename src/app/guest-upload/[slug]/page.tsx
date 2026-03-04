@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState, useEffect, useCallback } from 'react';
+import { Suspense, use, useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import {
@@ -48,6 +48,18 @@ function formatDate(iso: string): string {
 // ─── Page component ────────────────────────────────────
 
 export default function GuestUploadPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <GuestUploadContent params={params} />
+    </Suspense>
+  );
+}
+
+function GuestUploadContent({
   params,
 }: {
   params: Promise<{ slug: string }>;

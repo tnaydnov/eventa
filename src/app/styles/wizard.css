@@ -1108,7 +1108,7 @@
 .wiz-msg-toggle__title {
   font-size: 15px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--foreground);
   margin-bottom: 2px;
 }
 
@@ -1193,7 +1193,7 @@
 .wiz-msg-feature__text strong {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .wiz-msg-feature__text span {

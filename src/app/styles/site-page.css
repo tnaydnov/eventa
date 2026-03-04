@@ -5,10 +5,13 @@
 
 /* ── Page shell ── */
 .site-page {
+  --site-bg: #141212;
+  --site-text: #f0f0f0;
+
   position: relative;
   min-height: 100dvh;
-  background: #141212;
-  color: #f0f0f0;
+  background: var(--site-bg);
+  color: var(--site-text);
   font-family: var(--font-rubik, 'Rubik', 'Segoe UI', sans-serif);
   overflow-x: hidden;
   display: flex;
@@ -42,7 +45,7 @@
 
 .site-page__back:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: #f0f0f0;
+  color: var(--site-text);
 }
 
 .site-page__logo {
@@ -59,13 +62,13 @@
 .site-page__title {
   font-size: 28px;
   font-weight: 700;
-  color: #fff;
+  color: white;
   margin: 16px 0 8px;
 }
 
 .site-page__updated {
   font-size: 13px;
-  color: #888;
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -139,7 +142,7 @@
   width: 100%;
   max-width: 480px;
   height: 90dvh;
-  background: #141212;
+  background: var(--site-bg);
   border-radius: 20px 20px 0 0;
   display: flex;
   flex-direction: column;
@@ -160,7 +163,7 @@
 .legal-drawer__title {
   font-size: 16px;
   font-weight: 600;
-  color: #f0f0f0;
+  color: var(--site-text);
 }
 
 .legal-drawer__close {

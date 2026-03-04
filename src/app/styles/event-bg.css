@@ -80,13 +80,11 @@
   border-color: rgba(255, 255, 255, 0.22) !important;
 }
 
-/* Select / pills */
-:root:has([data-event-bg]) .select-option,
+/* Pills */
 :root:has([data-event-bg]) .profile-edit-pill {
   background: rgba(38, 38, 38, 0.97) !important;
   border-color: rgba(255, 255, 255, 0.20) !important;
 }
-:root:has([data-event-bg]) .select-option.selected,
 :root:has([data-event-bg]) .profile-edit-pill.active {
   background: rgba(212, 165, 154, 0.15) !important;
   border-color: var(--primary) !important;
@@ -139,9 +137,6 @@
 }
 
 /* Photo upload */
-:root:has([data-event-bg]) .photo-upload-slot {
-  border-color: rgba(255, 255, 255, 0.28) !important;
-}
 :root:has([data-event-bg]) .profile-edit-photo-item {
   border-color: rgba(255, 255, 255, 0.20) !important;
 }
@@ -164,10 +159,4 @@
 /* Likes empty state */
 :root:has([data-event-bg]) .likes-section {
   background: transparent !important;
-}
-
-/* Chat header (in conversation view) */
-:root:has([data-event-bg]) .chat-header {
-  background: rgba(8, 8, 8, 0.97) !important;
-  border-bottom-color: rgba(255, 255, 255, 0.20) !important;
 }

@@ -14,6 +14,9 @@ import Image from 'next/image';
 
 const REDIRECT_SECONDS = 15;
 
+/** SVG ring circumference = 2 * π * radius(17) */
+const RING_CIRCUMFERENCE = 2 * Math.PI * 17;
+
 const REASON_COPY: Record<string, { line1: string; line2: string; sub: string }> = {
   ended: {
     line1: 'הערב הזה',
@@ -177,7 +180,7 @@ function EventOverContent() {
             <circle
               className="eo__ring-fill"
               cx="20" cy="20" r="17"
-              style={{ strokeDashoffset: `${106.8 - (progress / 100) * 106.8}` }}
+              style={{ strokeDashoffset: `${RING_CIRCUMFERENCE - (progress / 100) * RING_CIRCUMFERENCE}` }}
             />
           </svg>
           <span className="eo__timer-num">{countdown}</span>
