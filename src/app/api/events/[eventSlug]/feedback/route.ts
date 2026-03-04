@@ -8,7 +8,7 @@ import { logger } from '@/lib/logger';
 const VALID_USAGE = ['view_only', 'likes', 'matches', 'chat'] as const;
 const VALID_INTERACTION = ['messages', 'real_life', 'interesting', 'none'] as const;
 const VALID_FEATURES = [
-  'swipes', 'chat', 'see_likes', 'design', 'concept', 'vibe',
+  'swipes', 'chat', 'see_likes', 'design', 'concept', 'vibe', 'nothing',
 ] as const;
 const VALID_STORY = ['yes', 'maybe', 'no'] as const;
 
@@ -17,7 +17,7 @@ const feedbackSchema = z.object({
   easeOfUse: z.number().int().min(1).max(4),
   usageLevel: z.enum(VALID_USAGE),
   interactionResult: z.enum(VALID_INTERACTION),
-  favoriteFeatures: z.array(z.enum(VALID_FEATURES)).min(1).max(6),
+  favoriteFeatures: z.array(z.enum(VALID_FEATURES)).min(1).max(7),
   improvement: z.string().max(500).optional().nullable(),
   recommendation: z.number().int().min(1).max(4),
   successStory: z.enum(VALID_STORY).optional().nullable(),
