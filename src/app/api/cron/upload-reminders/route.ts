@@ -210,7 +210,7 @@ async function handler(req: NextRequest) {
           eventId: event.id,
           eventName: event.name,
           type: reminderType,
-          to: request.contact_email,
+          to: contactEmail,
         });
       } catch (emailErr) {
         logger.error('[UPLOAD_REMINDERS] Failed to send email', {
