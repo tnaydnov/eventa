@@ -424,6 +424,7 @@ export const FEATURE_LABELS: Record<string, string> = {
   design: '🎨 עיצוב',
   concept: '💡 קונספט',
   vibe: '✨ אווירה',
+  nothing: '🚫 כלום',
 };
 
 export const ENJOYMENT_EMOJIS: Record<number, string> = { 1: '😐', 2: '🙂', 3: '😃', 4: '🤩' };

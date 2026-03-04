@@ -7,7 +7,7 @@ import { motion, AnimatePresence, useMotionValue, useTransform, animate } from '
 type UsageLevel = 'view_only' | 'likes' | 'matches' | 'chat';
 type InteractionResult = 'messages' | 'real_life' | 'interesting' | 'none';
 type SuccessStoryAnswer = 'yes' | 'maybe' | 'no';
-type FeatureKey = 'swipes' | 'chat' | 'see_likes' | 'design' | 'concept' | 'vibe';
+type FeatureKey = 'swipes' | 'chat' | 'see_likes' | 'design' | 'concept' | 'vibe' | 'nothing';
 
 interface FeedbackData {
   enjoyment: number;
@@ -29,9 +29,7 @@ interface EventStats {
 }
 
 /* ─── Constants ─── */
-const TOTAL_STEPS = 10; // 0=intro … 9=stats
-
-const STEP_EMOJIS = ['💫', '😊', '✨', '📱', '💬', '❤️', '💡', '🔥', '🌟', '🎉'];
+const TOTAL_STEPS = 11; // 0=intro … 8=questions, 9=review, 10=finale
 
 /* Step transition variants */
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -78,7 +76,7 @@ function ConfettiBurst() {
       y: Math.sin(rad) * distance - 40,
       rotate: Math.random() * 720 - 360,
       scale: 0.5 + Math.random() * 0.8,
-      color: ['#D4A59A', '#E8C4BB', '#C9A580', '#34D399', '#FBBF24', '#A78BFA', '#F472B6'][i % 7],
+      color: ['#D4A59A', '#E8C4BB', '#C9A580', '#B8877C', '#D4B896', '#C4A699', '#E0CFC6'][i % 7],
       delay: Math.random() * 0.2,
     };
   });
@@ -120,25 +118,23 @@ function AnimatedNumber({ value, suffix = '' }: { value: number; suffix?: string
 
 /* ─── Progress Bar ─── */
 function ProgressDots({ current, total }: { current: number; total: number }) {
-  // Skip intro (step 0) in the dots
-  const steps = total - 1; // 1..9
-  const active = current - 1; // map current to 0-based dot
+  const steps = total - 2; // question steps 1..8 = 8 steps
+  const active = current - 1;
 
-  if (current === 0) return null; // Don't show on intro
+  if (current === 0 || current >= total - 1) return null; // Don't show on intro or finale
 
   return (
-    <div className="fb-progress" role="progressbar" aria-valuenow={current} aria-valuemax={total - 1}>
+    <div className="fb-progress" role="progressbar" aria-valuenow={current} aria-valuemax={total - 2}>
       <div className="fb-progress-track">
         <motion.div
           className="fb-progress-fill"
           initial={false}
-          animate={{ scaleX: Math.max(0, active / (steps - 1)) }}
+          animate={{ scaleX: Math.max(0, active / steps) }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         />
       </div>
       <div className="fb-progress-label">
-        {current < total - 1 && <span>{current} / {total - 2}</span>}
-        {current === total - 1 && <span>✨</span>}
+        {current <= total - 2 && <span>{current} / {total - 2}</span>}
       </div>
     </div>
   );
@@ -184,15 +180,17 @@ function FeaturePill({
   label,
   selected,
   onClick,
+  isNothing,
 }: {
   emoji: string;
   label: string;
   selected: boolean;
   onClick: () => void;
+  isNothing?: boolean;
 }) {
   return (
     <motion.button
-      className={`fb-pill${selected ? ' fb-pill--selected' : ''}`}
+      className={`fb-pill${selected ? ' fb-pill--selected' : ''}${isNothing ? ' fb-pill--nothing' : ''}`}
       onClick={onClick}
       variants={itemVariants}
       whileTap={{ scale: 0.95 }}
@@ -299,7 +297,8 @@ export default function FeedbackPage({
       case 6: return true; // optional
       case 7: return recommendation > 0;
       case 8: return true; // optional (success story)
-      case 9: return true; // stats / thanks
+      case 9: return true; // review
+      case 10: return true; // finale
       default: return false;
     }
   }, [step, enjoyment, easeOfUse, usageLevel, interactionResult, favoriteFeatures, recommendation]);
@@ -384,12 +383,7 @@ export default function FeedbackPage({
     successStory, successStoryText, allowPublish, eventSlug,
   ]);
 
-  /* ── Trigger submit on step 8 advance (last real step before stats) ── */
-  useEffect(() => {
-    if (step === TOTAL_STEPS - 1 && !submitted && !submitting) {
-      handleSubmit();
-    }
-  }, [step, submitted, submitting, handleSubmit]);
+  /* ── Submit is now triggered explicitly from review step ── */
 
   /* ─── Step renderers ─── */
 
@@ -400,12 +394,12 @@ export default function FeedbackPage({
         return (
           <div className="fb-intro">
             <motion.div
-              className="fb-intro__emoji"
-              initial={{ scale: 0, rotate: -20 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 20, delay: 0.1 }}
+              className="fb-intro__badge"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
             >
-              💫
+              ✦ משוב אנונימי
             </motion.div>
             <motion.h1
               className="fb-intro__title"
@@ -413,8 +407,14 @@ export default function FeedbackPage({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              תודה שהשתתפת!
+              תודה <span className="fb-intro__accent">שהשתתפת</span>
             </motion.h1>
+            <motion.div
+              className="fb-intro__divider"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            />
             <motion.p
               className="fb-intro__sub"
               initial={{ opacity: 0, y: 15 }}
@@ -423,7 +423,7 @@ export default function FeedbackPage({
             >
               נשמח לשמוע איך היה לך.
               <br />
-              הסקר קצר מאוד ואנונימי לחלוטין.
+              הסקר קצר ואנונימי לחלוטין.
             </motion.p>
             <motion.p
               className="fb-intro__tease"
@@ -431,7 +431,7 @@ export default function FeedbackPage({
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              בסוף תראה סטטיסטיקות מעניינות מהאירוע 😉
+              בסוף תראה סטטיסטיקות מהאירוע
             </motion.p>
             <motion.button
               className="fb-start-btn"
@@ -441,7 +441,7 @@ export default function FeedbackPage({
               transition={{ delay: 0.6 }}
               whileTap={{ scale: 0.95 }}
             >
-              יאללה, בואו נתחיל
+              בואו נתחיל
               <span className="fb-start-btn__arrow">←</span>
             </motion.button>
           </div>
@@ -569,17 +569,27 @@ export default function FeedbackPage({
                 { emoji: '🎨', label: 'העיצוב', value: 'design' as FeatureKey },
                 { emoji: '💡', label: 'הרעיון עצמו', value: 'concept' as FeatureKey },
                 { emoji: '🎉', label: 'האווירה שזה יצר', value: 'vibe' as FeatureKey },
+                { emoji: '🚫', label: 'לא אהבתי כלום', value: 'nothing' as FeatureKey },
               ]).map((opt) => (
                 <FeaturePill
                   key={opt.value}
                   emoji={opt.emoji}
                   label={opt.label}
+                  isNothing={opt.value === 'nothing'}
                   selected={favoriteFeatures.includes(opt.value)}
                   onClick={() => {
                     setFavoriteFeatures((prev) => {
-                      const next = prev.includes(opt.value)
-                        ? prev.filter((f) => f !== opt.value)
-                        : [...prev, opt.value];
+                      let next: FeatureKey[];
+                      if (opt.value === 'nothing') {
+                        // Exclusive: selecting "nothing" clears everything else
+                        next = prev.includes('nothing') ? [] : ['nothing'];
+                      } else {
+                        // Selecting any feature clears "nothing"
+                        const withoutNothing = prev.filter((f) => f !== 'nothing');
+                        next = withoutNothing.includes(opt.value)
+                          ? withoutNothing.filter((f) => f !== opt.value)
+                          : [...withoutNothing, opt.value];
+                      }
                       formRef.current.favoriteFeatures = next;
                       return next;
                     });
@@ -740,7 +750,7 @@ export default function FeedbackPage({
                     onClick={goNext}
                     whileTap={{ scale: 0.95 }}
                   >
-                    סיום
+                    המשך
                   </motion.button>
                 </motion.div>
               )}
@@ -748,66 +758,80 @@ export default function FeedbackPage({
           </div>
         );
 
-      /* ── Step 9: Stats + Thank You ── */
-      case 9:
+      /* ── Step 9: Review + Submit ── */
+      case 9: {
+        const ENJOYMENT_MAP: Record<number, string> = { 1: '😕 לא ממש', 2: '🙂 סבבה', 3: '😄 נהניתי', 4: '😍 אהבתי' };
+        const EASE_MAP: Record<number, string> = { 1: '😵 לא הבנתי', 2: '🙂 הסתדרתי', 3: '👌 ברור', 4: '🚀 פשוט' };
+        const USAGE_MAP: Record<string, string> = { view_only: '👀 הסתכלתי', likes: '👍 לייקים', matches: '💘 התאמות', chat: '💬 צ׳אט' };
+        const INTERACTION_MAP: Record<string, string> = { messages: '💬 הודעות', real_life: '😏 במציאות', interesting: '😉 מעניין', none: '🙂 לא' };
+        const REC_MAP: Record<number, string> = { 1: '😅 לא', 2: '🤔 לא בטוח', 3: '🙂 כנראה', 4: '🔥 בטוח' };
+
+        const summaryItems = [
+          { icon: '😊', label: 'הנאה', value: ENJOYMENT_MAP[enjoyment] || '—' },
+          { icon: '✨', label: 'שימוש', value: EASE_MAP[easeOfUse] || '—' },
+          { icon: '📱', label: 'רמת שימוש', value: USAGE_MAP[usageLevel] || '—' },
+          { icon: '💬', label: 'קשר', value: INTERACTION_MAP[interactionResult] || '—' },
+          { icon: '🔥', label: 'המלצה', value: REC_MAP[recommendation] || '—' },
+          { icon: '❤️', label: 'אהבתי', value: favoriteFeatures.includes('nothing') ? 'כלום' : favoriteFeatures.length > 0 ? `${favoriteFeatures.length} דברים` : '—' },
+        ];
+
         return (
-          <div className="fb-finale">
-            {showConfetti && <ConfettiBurst />}
-            <motion.div
-              className="fb-finale__emoji"
-              initial={{ scale: 0, rotate: -30 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.1 }}
-            >
-              🎉
-            </motion.div>
+          <div className="fb-review">
             <motion.h2
-              className="fb-finale__title"
-              initial={{ opacity: 0, y: 20 }}
+              className="fb-review__title"
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.1 }}
             >
-              תודה רבה!
+              סיכום התשובות
             </motion.h2>
             <motion.p
-              className="fb-finale__sub"
+              className="fb-review__subtitle"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.45 }}
+              transition={{ delay: 0.2 }}
             >
-              המשוב שלך עוזר לנו להשתפר
+              אפשר לחזור אחורה לשנות
             </motion.p>
 
-            {stats && (
-              <motion.div
-                className="fb-stats"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-              >
-                <h3 className="fb-stats__title">סטטיסטיקות מהאירוע 💫</h3>
-                <div className="fb-stats__grid">
-                  <StatCard
-                    icon="👥"
-                    value={stats.participants}
-                    label="משתתפים"
-                    delay={0.7}
-                  />
-                  <StatCard
-                    icon="💘"
-                    value={stats.matches}
-                    label="התאמות"
-                    delay={0.85}
-                  />
-                  <StatCard
-                    icon="💬"
-                    value={stats.messages}
-                    label="הודעות"
-                    delay={1.0}
-                  />
+            <motion.div
+              className="fb-review__grid"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+            >
+              {summaryItems.map((item) => (
+                <div key={item.label} className="fb-review__item">
+                  <span className="fb-review__item-icon">{item.icon}</span>
+                  <div className="fb-review__item-content">
+                    <span className="fb-review__item-label">{item.label}</span>
+                    <span className="fb-review__item-value">{item.value}</span>
+                  </div>
                 </div>
-              </motion.div>
-            )}
+              ))}
+            </motion.div>
+
+            <motion.button
+              className="fb-submit-btn"
+              onClick={handleSubmit}
+              disabled={submitting}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              {submitting ? 'שולח...' : 'שלח משוב'}
+            </motion.button>
+
+            <motion.button
+              className="fb-send-back-btn"
+              onClick={goBack}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              ← חזרה לשאלות
+            </motion.button>
 
             {error && (
               <motion.p
@@ -818,14 +842,92 @@ export default function FeedbackPage({
                 {error}
               </motion.p>
             )}
+          </div>
+        );
+      }
 
-            {submitting && (
+      /* ── Step 10: Finale ── */
+      case 10:
+        return (
+          <div className="fb-finale">
+            {showConfetti && <ConfettiBurst />}
+            <div className="fb-finale__glow" />
+            <motion.div
+              className="fb-finale__line"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ delay: 0.1, duration: 0.6 }}
+            />
+            <motion.h2
+              className="fb-finale__title"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              תודה <span className="fb-finale__title-accent">רבה</span>
+            </motion.h2>
+            <motion.p
+              className="fb-finale__sub"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.35 }}
+            >
+              המשוב שלך עוזר לנו ליצור חוויות טובות יותר
+            </motion.p>
+
+            {stats && (
+              <motion.div
+                className="fb-stats"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <p className="fb-stats__label">סטטיסטיקות מהאירוע</p>
+                <div className="fb-stats__grid">
+                  <StatCard
+                    icon="👥"
+                    value={stats.participants}
+                    label="משתתפים"
+                    delay={0.6}
+                  />
+                  <StatCard
+                    icon="💘"
+                    value={stats.matches}
+                    label="התאמות"
+                    delay={0.75}
+                  />
+                  <StatCard
+                    icon="💬"
+                    value={stats.messages}
+                    label="הודעות"
+                    delay={0.9}
+                  />
+                </div>
+              </motion.div>
+            )}
+
+            <motion.div
+              className="fb-finale__actions"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.0 }}
+            >
+              <a href="/" className="fb-website-btn">
+                לאתר Eventa
+                <span>→</span>
+              </a>
+              <p className="fb-finale__credit">
+                made with ❤️ by Eventa
+              </p>
+            </motion.div>
+
+            {error && (
               <motion.p
-                className="fb-loading"
+                className="fb-error"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
-                שולח...
+                {error}
               </motion.p>
             )}
           </div>
@@ -867,8 +969,8 @@ export default function FeedbackPage({
         {/* Progress */}
         <ProgressDots current={step} total={TOTAL_STEPS} />
 
-        {/* Back button (not on intro or final) */}
-        {step > 0 && step < TOTAL_STEPS - 1 && (
+        {/* Back button (not on intro or finale) */}
+        {step > 0 && step < TOTAL_STEPS - 1 && !submitted && (
           <button className="fb-back" onClick={goBack} type="button" aria-label="חזור">
             →
           </button>
