@@ -1,11 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 import { createEventSchema } from '@/lib/validations';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient, generateJoinCode } from '@/lib/supabase';
 import { adminGuard, jsonError } from '../_helpers';
 import { logger } from '@/lib/logger';
+import { APP_BASE_URL } from '@/lib/config';
+import { buildEventCreatedEmail } from '@/lib/email-templates';
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT) || 587,
+  secure: Number(process.env.SMTP_PORT) === 465,
+  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+});
+const SMTP_FROM = `"Eventa" <${process.env.SMTP_USER}>`;
 
 /** Default event duration when no end date is provided (24 hours). */
 const DEFAULT_DURATION_MS = 86_400_000;
@@ -161,6 +172,50 @@ export async function POST(req: NextRequest) {
     }
 
     adminAuditLog('EVENT_CREATE', { eventId: data.id, slug, eventType: parsed.data.event_type }, req);
+
+    // ── Defer email sending to run AFTER the response is returned ──
+    after(async () => {
+      if (!data.client_email) return;
+      try {
+        const eventUrl = `${APP_BASE_URL}/dating/${data.slug}/join?k=${data.join_code}`;
+
+        const email = buildEventCreatedEmail({
+          contactName: data.client_name || '',
+          eventName: data.name,
+          eventType: data.event_type || 'wedding',
+          startsAt: data.starts_at,
+          endsAt: data.ends_at,
+          wantsGuestMessages: data.wa_messages_enabled || false,
+          eventUrl,
+        });
+
+        await transporter.sendMail({
+          from: SMTP_FROM,
+          to: data.client_email,
+          subject: email.subject,
+          html: email.html,
+        });
+
+        // Log to message_log
+        const bgSupabase = getServiceClient();
+        await bgSupabase.from('message_log').insert({
+          event_id: data.id,
+          channel: 'email',
+          message_type: 'event_created',
+          recipient_email: data.client_email,
+          status: 'sent',
+          sent_at: new Date().toISOString(),
+        });
+
+        logger.info('[ADMIN_EVENTS_POST] Sent event-created email (C4b)', {
+          eventId: data.id,
+          to: data.client_email,
+        });
+      } catch (emailErr) {
+        logger.warn('[ADMIN_EVENTS_POST] Failed to send event-created email:', emailErr);
+      }
+    });
+
     return NextResponse.json({ event: data });
   } catch (err) {
     logger.error('[ADMIN_EVENTS_POST] error:', err);

@@ -718,6 +718,79 @@ export function buildClientApprovalEmail(params: EventFormData & {
   return { subject, html: shell(subject, inner, '\u05D0\u05D9\u05E9\u05D5\u05E8 \u05D4\u05D6\u05DE\u05E0\u05D4') };
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   C4b. CLIENT - EVENT CREATED (admin-created)
+   Sent when admin manually creates an event with a client email.
+   Lighter version of C4 – no payment section, no order-specific fields.
+   Shows event details, event link, QR page note.
+   ═══════════════════════════════════════════════════════════════ */
+
+export function buildEventCreatedEmail(params: {
+  contactName: string;
+  eventName: string;
+  eventType: string;
+  startsAt: string;
+  endsAt: string;
+  wantsGuestMessages: boolean;
+  eventUrl: string;
+}): { subject: string; html: string } {
+  const safeName = escapeHtml(params.contactName || '');
+  const safeEvent = escapeHtml(params.eventName);
+
+  const subject = `Eventa - \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E9\u05DC\u05DB\u05DD \u05E0\u05D5\u05E6\u05E8!`;
+
+  const eventLabel = escapeHtml(EVENT_TYPE_LABELS[params.eventType] || params.eventType);
+
+  const inner = `
+        ${greeting(
+          safeName || '\u05DC\u05E7\u05D5\u05D7/\u05D4',
+          `\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong> \u05E0\u05D5\u05E6\u05E8 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4!`,
+        )}
+
+        <!-- Event info section -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2')}
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
+              ${row('\u05E1\u05D5\u05D2 \u05D0\u05D9\u05E8\u05D5\u05E2', `<strong>${eventLabel}</strong>`)}
+              ${row('\u05E9\u05DD', safeEvent)}
+              ${row('\u05D4\u05EA\u05D7\u05DC\u05D4', `${fmtDate(params.startsAt)}${fmtTime(params.startsAt) ? `&rlm;, ${ltr(fmtTime(params.startsAt))}` : ''}`)}
+              ${row('\u05E1\u05D9\u05D5\u05DD', `${fmtDate(params.endsAt)}${fmtTime(params.endsAt) ? `&rlm;, ${ltr(fmtTime(params.endsAt))}` : ''}`, true)}
+            </table>
+          </td>
+        </tr>
+
+        <!-- Event link -->
+        <tr>
+          <td dir="rtl" style="direction:rtl;text-align:right;padding:24px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05E7\u05D9\u05E9\u05D5\u05E8 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2')}
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};line-height:1.6;margin-bottom:10px;">
+              \u05DE\u05E6\u05D5\u05E8\u05E3 \u05DB\u05D0\u05DF \u05E7\u05D9\u05E9\u05D5\u05E8 \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E9\u05DC\u05DB\u05DD.
+              <br/>\u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05D9\u05D5\u05DB\u05DC\u05D5 \u05DC\u05D4\u05D9\u05DB\u05E0\u05E1 \u05DC\u05D0\u05E4\u05DC\u05D9\u05E7\u05E6\u05D9\u05D4 \u05D3\u05E8\u05DA \u05E1\u05E8\u05D9\u05E7\u05EA \u05D4\u05D1\u05E8\u05E7\u05D5\u05D3\u05D9\u05DD \u05E9\u05D9\u05D5\u05E6\u05D2\u05D5 \u05D1\u05D0\u05D9\u05E8\u05D5\u05E2, \u05DB\u05DA \u05E9\u05D0\u05D9\u05DF \u05E6\u05D5\u05E8\u05DA \u05DC\u05E9\u05DC\u05D5\u05D7 \u05DC\u05D4\u05DD \u05D0\u05EA \u05D4\u05E7\u05D9\u05E9\u05D5\u05E8.
+              <br/><br/>\u05D4\u05E7\u05D9\u05E9\u05D5\u05E8 \u05DB\u05D0\u05DF \u05E8\u05E7 \u05DC\u05E0\u05D5\u05D7\u05D5\u05EA\u05DB\u05DD \u2013 \u05D1\u05DE\u05D9\u05D3\u05D4 \u05D5\u05EA\u05E8\u05E6\u05D5 \u05DC\u05E9\u05EA\u05E3 \u05D0\u05D5\u05EA\u05D5 \u05E2\u05DD \u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05D0\u05D5 \u05DC\u05D4\u05D9\u05DB\u05E0\u05E1 \u05D1\u05E2\u05E6\u05DE\u05DB\u05DD.
+            </div>
+            <div dir="ltr" style="text-align:left;background-color:${C.accentBg};border-radius:8px;padding:12px 16px;font-size:14px;word-break:break-all;">
+              <a href="${escapeHtml(params.eventUrl)}" style="color:${C.accent};text-decoration:none;" target="_blank">${escapeHtml(params.eventUrl)}</a>
+            </div>
+          </td>
+        </tr>
+
+        <!-- A4 QR page note -->
+        <tr>
+          <td dir="rtl" style="direction:rtl;text-align:right;padding:24px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05D3\u05E3 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05DC\u05D4\u05D3\u05E4\u05E1\u05D4')}
+            <div dir="rtl" style="direction:rtl;text-align:right;background-color:${C.accentBg};border-radius:8px;padding:16px 18px;font-size:14px;color:${C.muted};line-height:1.7;">
+              \u05D0\u05E0\u05D7\u05E0\u05D5 \u05DE\u05DB\u05D9\u05E0\u05D9\u05DD \u05E2\u05D1\u05D5\u05E8\u05DB\u05DD \u05D3\u05E3 \u05D1\u05D2\u05D5\u05D3\u05DC ${ltr('A4')} \u05E2\u05DD \u05E7\u05D5\u05D3 ${ltr('QR')} \u05D9\u05D9\u05D7\u05D5\u05D3\u05D9 \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E9\u05DC\u05DB\u05DD.
+              <br/>\u05D4\u05D3\u05E3 \u05D9\u05D9\u05E9\u05DC\u05D7 \u05D0\u05DC\u05D9\u05DB\u05DD \u05D1\u05D0\u05D9\u05DE\u05D9\u05D9\u05DC \u05E0\u05E4\u05E8\u05D3 <strong>\u05D1\u05D4\u05E7\u05D3\u05DD \u05D4\u05D0\u05E4\u05E9\u05E8\u05D9</strong>, \u05DE\u05D5\u05DB\u05DF \u05DC\u05D4\u05D3\u05E4\u05E1\u05D4 \u05D5\u05DC\u05E4\u05D9\u05D6\u05D5\u05E8 \u05D1\u05D0\u05D9\u05E8\u05D5\u05E2.
+            </div>
+          </td>
+        </tr>
+
+        ${supportRow()}`;
+
+  return { subject, html: shell(subject, inner, '\u05D0\u05D9\u05E8\u05D5\u05E2 \u05D7\u05D3\u05E9') };
+}
+
 
 /* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
    C8. CLIENT - QR PAGE READY
