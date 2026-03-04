@@ -12,6 +12,7 @@ import ClientActionsPanel from '../messaging/ClientActionsPanel';
 
 const AnalyticsDashboard = dynamic(() => import('./AnalyticsDashboard'), { ssr: false });
 const MessagingTab = dynamic(() => import('../messaging/MessagingTab'), { ssr: false });
+const FeedbackTab = dynamic(() => import('../feedback/FeedbackTab'), { ssr: false });
 
 interface EventAnalyticsViewProps {
   event: Event;
@@ -41,7 +42,7 @@ interface EventAnalyticsViewProps {
   updateEventDetails?: (eventId: string, updates: Record<string, unknown>) => Promise<{ ok: boolean; error?: string }>;
 }
 
-type DetailTab = 'overview' | 'analytics' | 'participants' | 'messaging' | 'settings';
+type DetailTab = 'overview' | 'analytics' | 'participants' | 'messaging' | 'feedback' | 'settings';
 
 const statusBadgeClass = (status: string): string => {
   const map: Record<string, string> = {
@@ -69,6 +70,7 @@ const BASE_TABS: { key: DetailTab; label: string; icon: string }[] = [
   { key: 'analytics', label: 'אנליטיקס', icon: '📊' },
   { key: 'participants', label: 'משתתפים', icon: '👥' },
   { key: 'messaging', label: 'הודעות', icon: '📩' },
+  { key: 'feedback', label: 'פידבק', icon: '💬' },
   { key: 'settings', label: 'הגדרות', icon: '⚙️' },
 ];
 
@@ -278,6 +280,11 @@ export default function EventAnalyticsView({
             </button>
           </div>
         )
+      )}
+
+      {/* ═══ TAB: Feedback ═══ */}
+      {activeTab === 'feedback' && (
+        <FeedbackTab eventId={event.id} eventSlug={event.slug} />
       )}
 
       {/* ═══ TAB: Settings ═══ */}

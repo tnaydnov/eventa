@@ -4224,3 +4224,438 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ══════════════════════════════════════════
+   ADMIN FEEDBACK TAB (.afb-)
+   ══════════════════════════════════════════ */
+
+.afb-root {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ─── Feedback Link Card ─── */
+.afb-link-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  padding: 20px;
+}
+
+.afb-link-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.afb-link-card__icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.afb-link-card__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--admin-text);
+  margin: 0;
+}
+
+.afb-link-card__desc {
+  font-size: 13px;
+  color: var(--admin-text-muted);
+  margin: 4px 0 0;
+}
+
+.afb-link-card__url-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.afb-link-input {
+  flex: 1;
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  padding: 10px 14px;
+  font-size: 13px;
+  font-family: monospace;
+  color: var(--admin-accent);
+  direction: ltr;
+  text-align: left;
+  cursor: pointer;
+}
+
+.afb-link-input:focus {
+  outline: none;
+  border-color: var(--admin-accent);
+}
+
+/* ─── Stats Grid ─── */
+.afb-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.afb-stat-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.afb-stat-card__icon {
+  font-size: 26px;
+}
+
+.afb-stat-card__value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--admin-text);
+  letter-spacing: -0.5px;
+}
+
+.afb-stat-card__label {
+  font-size: 12px;
+  color: var(--admin-text-muted);
+  font-weight: 500;
+}
+
+/* ─── Empty State ─── */
+.afb-empty {
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--admin-surface);
+  border: 1px dashed var(--admin-border);
+  border-radius: var(--admin-radius);
+}
+
+.afb-empty__icon {
+  font-size: 52px;
+  margin-bottom: 16px;
+}
+
+.afb-empty__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--admin-text);
+  margin: 0 0 8px;
+}
+
+.afb-empty__text {
+  font-size: 14px;
+  color: var(--admin-text-muted);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ─── Charts Grid ─── */
+.afb-charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.afb-chart-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  padding: 18px;
+}
+
+.afb-chart-card__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--admin-text);
+  margin: 0 0 14px;
+}
+
+/* ─── Distribution Chart ─── */
+.afb-dist-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.afb-dist-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 28px;
+}
+
+.afb-dist-label {
+  min-width: 100px;
+  font-size: 13px;
+  color: var(--admin-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.afb-dist-emoji {
+  font-size: 18px;
+}
+
+.afb-dist-bar-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.afb-rating-bar {
+  width: 100%;
+  height: 22px;
+  background: var(--admin-surface-2);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.afb-rating-bar__fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s ease;
+  min-width: 2px;
+}
+
+.afb-dist-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--admin-text);
+  min-width: 28px;
+  text-align: center;
+}
+
+/* ─── Stories ─── */
+.afb-stories-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.afb-story-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  padding: 16px;
+}
+
+.afb-story-text {
+  font-size: 14px;
+  color: var(--admin-text);
+  line-height: 1.6;
+  margin: 0 0 10px;
+  font-style: italic;
+}
+
+.afb-story-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.afb-story-date {
+  color: var(--admin-text-muted);
+}
+
+.afb-publish-badge {
+  font-size: 11px;
+  color: var(--admin-green);
+  font-weight: 600;
+}
+
+/* ─── Improvement Banner ─── */
+.afb-improvement-banner {
+  background: var(--admin-accent-dim);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--admin-radius-sm);
+  padding: 14px 18px;
+  font-size: 13px;
+  color: var(--admin-text);
+  line-height: 1.5;
+}
+
+/* ─── Response Cards ─── */
+.afb-responses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.afb-response-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  overflow: hidden;
+}
+
+.afb-response-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+}
+
+.afb-response-header:hover {
+  background: var(--admin-surface-2);
+}
+
+.afb-response-header__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.afb-response-header__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.afb-response-num {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--admin-accent);
+}
+
+.afb-response-date {
+  font-size: 12px;
+  color: var(--admin-text-muted);
+}
+
+.afb-response-score {
+  font-size: 12px;
+  color: var(--admin-text-muted);
+  font-weight: 500;
+}
+
+.afb-expand-icon {
+  font-size: 14px;
+  color: var(--admin-text-muted);
+  transition: transform 0.2s ease;
+}
+
+.afb-expand-icon--open {
+  transform: rotate(90deg);
+}
+
+/* ─── Response Body (expanded) ─── */
+.afb-response-body {
+  padding: 0 18px 18px;
+  border-top: 1px solid var(--admin-border);
+}
+
+.afb-response-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  padding-top: 16px;
+}
+
+.afb-response-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.afb-response-field__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.afb-response-field__value {
+  font-size: 14px;
+  color: var(--admin-text);
+  font-weight: 500;
+}
+
+.afb-response-features {
+  margin-top: 14px;
+}
+
+.afb-feature-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.afb-feature-pill {
+  background: var(--admin-accent-dim);
+  color: var(--admin-accent);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+
+.afb-response-text-block {
+  margin-top: 14px;
+}
+
+.afb-response-text {
+  font-size: 13px;
+  color: var(--admin-text);
+  line-height: 1.6;
+  margin: 6px 0 0;
+  padding: 10px 14px;
+  background: var(--admin-bg);
+  border-radius: var(--admin-radius-xs);
+  border-right: 3px solid var(--admin-accent);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+  .afb-charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .afb-stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .afb-response-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .afb-response-header__left {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .afb-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .afb-response-grid {
+    grid-template-columns: 1fr;
+  }
+  .afb-link-card__url-row {
+    flex-direction: column;
+  }
+  .afb-link-input {
+    width: 100%;
+  }
+}

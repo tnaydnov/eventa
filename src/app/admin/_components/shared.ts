@@ -364,6 +364,72 @@ export interface MessagingOverview {
   };
 }
 
+/* ---------- Event Feedback ---------- */
+
+export interface FeedbackResponse {
+  id: string;
+  createdAt: string;
+  enjoyment: number;
+  easeOfUse: number;
+  usageLevel: 'view_only' | 'likes' | 'matches' | 'chat';
+  interactionResult: 'messages' | 'real_life' | 'interesting' | 'none';
+  favoriteFeatures: string[];
+  improvementText: string | null;
+  recommendation: number;
+  successStory: 'yes' | 'maybe' | 'no' | null;
+  successStoryText: string | null;
+  allowStoryPublish: boolean;
+}
+
+export interface FeedbackAggregates {
+  enjoymentAvg: number;
+  easeOfUseAvg: number;
+  recommendationAvg: number;
+  enjoymentDist: Record<number, number>;
+  recommendationDist: Record<number, number>;
+  usageLevels: Record<string, number>;
+  interactionResults: Record<string, number>;
+  featureFrequency: Record<string, number>;
+  successStories: Record<string, number>;
+  improvementCount: number;
+  successStoryTexts: { text: string; allowPublish: boolean; createdAt: string }[];
+}
+
+export interface FeedbackData {
+  slug: string;
+  totalResponses: number;
+  aggregates: FeedbackAggregates;
+  responses: FeedbackResponse[];
+}
+
+/** Hebrew labels for feedback fields */
+export const USAGE_LEVEL_LABELS: Record<string, string> = {
+  view_only: 'רק צפייה',
+  likes: 'לייקים',
+  matches: 'התאמות',
+  chat: "צ'אט",
+};
+
+export const INTERACTION_RESULT_LABELS: Record<string, string> = {
+  messages: 'הודעות',
+  real_life: 'מפגש במציאות',
+  interesting: 'היה מעניין',
+  none: 'ללא',
+};
+
+export const FEATURE_LABELS: Record<string, string> = {
+  swipes: '👆 סוויפים',
+  chat: "💬 צ'אט",
+  see_likes: '❤️ לייקים',
+  design: '🎨 עיצוב',
+  concept: '💡 קונספט',
+  vibe: '✨ אווירה',
+};
+
+export const ENJOYMENT_EMOJIS: Record<number, string> = { 1: '😐', 2: '🙂', 3: '😃', 4: '🤩' };
+export const RECOMMENDATION_EMOJIS: Record<number, string> = { 1: '👎', 2: '🤷', 3: '👍', 4: '🔥' };
+export const SUCCESS_STORY_LABELS: Record<string, string> = { yes: '✅ כן', maybe: '🤔 אולי', no: '❌ לא' };
+
 /** Payment status display config (Hebrew label, emoji, CSS color class). */
 export const PAYMENT_STATUS_DISPLAY: Record<string, { label: string; emoji: string; color: string }> = {
   not_applicable: { label: 'לא רלוונטי', emoji: '➖', color: 'admin-badge--muted' },
