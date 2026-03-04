@@ -75,7 +75,7 @@ async function handler(req: NextRequest) {
     // Find events with messaging enabled but no guest list uploaded
     const { data: events, error: eventError } = await supabase
       .from('events')
-      .select('id, name, slug, starts_at')
+      .select('id, name, slug, starts_at, client_name, client_email')
       .eq('wa_messages_enabled', true)
       .eq('guest_list_uploaded', false)
       .in('status', ['active', 'draft'])
@@ -126,14 +126,22 @@ async function handler(req: NextRequest) {
         continue;
       }
 
-      // Look up the original event request for contact info
-      const { data: request } = await supabase
-        .from('event_requests')
-        .select('contact_name, contact_email')
-        .eq('approved_event_id', event.id)
-        .maybeSingle();
+      // Use client fields from event table; fallback to event_requests for legacy events
+      let contactName = event.client_name;
+      let contactEmail = event.client_email;
 
-      if (!request?.contact_email) {
+      if (!contactEmail) {
+        const { data: request } = await supabase
+          .from('event_requests')
+          .select('contact_name, contact_email')
+          .eq('approved_event_id', event.id)
+          .maybeSingle();
+
+        contactName = request?.contact_name || null;
+        contactEmail = request?.contact_email || null;
+      }
+
+      if (!contactEmail) {
         logger.warn('[UPLOAD_REMINDERS] No contact email for event', {
           eventId: event.id,
           eventName: event.name,
@@ -164,7 +172,7 @@ async function handler(req: NextRequest) {
       const email =
         reminderType === 'upload_reminder_7d'
           ? buildClientUploadReminder7DayEmail({
-              contactName: request.contact_name,
+              contactName,
               eventName: event.name,
               daysLeft: Math.round(daysUntilEvent),
               uploadUrl,
@@ -172,7 +180,7 @@ async function handler(req: NextRequest) {
               uploadDeadline,
             })
           : buildClientUploadReminder3DayEmail({
-              contactName: request.contact_name,
+              contactName,
               eventName: event.name,
               uploadUrl,
               messageSendAt,
@@ -182,7 +190,7 @@ async function handler(req: NextRequest) {
       try {
         await transporter.sendMail({
           from: `"Eventa" <${process.env.SMTP_USER}>`,
-          to: request.contact_email,
+          to: contactEmail,
           subject: email.subject,
           html: email.html,
         });
@@ -194,7 +202,7 @@ async function handler(req: NextRequest) {
           channel: 'email',
           message_type: reminderType,
           status: 'sent',
-          recipient_email: request.contact_email,
+          recipient_email: contactEmail,
         });
 
         totalSent++;
@@ -217,7 +225,7 @@ async function handler(req: NextRequest) {
           channel: 'email',
           message_type: reminderType,
           status: 'failed',
-          recipient_email: request.contact_email,
+          recipient_email: contactEmail,
           error_message:
             emailErr instanceof Error
               ? emailErr.message.slice(0, 500)

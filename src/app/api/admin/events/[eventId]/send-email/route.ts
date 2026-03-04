@@ -23,7 +23,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const SMTP_FROM = `"Eventa" <${process.env.SMTP_FROM || 'noreply@eventa.productions'}>`;
+const SMTP_FROM = `"Eventa" <${process.env.SMTP_USER}>`;
 
 /**
  * POST /api/admin/events/[eventId]/send-email

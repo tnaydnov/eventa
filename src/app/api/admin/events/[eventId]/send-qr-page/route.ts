@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const SMTP_FROM = `"Eventa" <${process.env.SMTP_FROM || 'noreply@eventa.productions'}>`;
+const SMTP_FROM = `"Eventa" <${process.env.SMTP_USER}>`;
 
 /** Max number of attachments per email. */
 const MAX_FILES = 5;
@@ -77,20 +77,29 @@ export async function POST(
 
     const { data: event, error: evErr } = await supabase
       .from('events')
-      .select('id, name, slug')
+      .select('id, name, slug, client_name, client_email')
       .eq('id', eventId)
       .single();
 
     if (evErr || !event) return jsonError('Event not found', 404);
 
-    const { data: request } = await supabase
-      .from('event_requests')
-      .select('contact_name, contact_email')
-      .eq('approved_event_id', eventId)
-      .single();
+    // Use client fields from event; fallback to event_requests for legacy events
+    let contactName = event.client_name;
+    let contactEmail = event.client_email;
 
-    if (!request?.contact_email) {
-      return jsonError('No contact email found for this event', 400);
+    if (!contactEmail) {
+      const { data: request } = await supabase
+        .from('event_requests')
+        .select('contact_name, contact_email')
+        .eq('approved_event_id', eventId)
+        .single();
+
+      contactName = request?.contact_name || null;
+      contactEmail = request?.contact_email || null;
+    }
+
+    if (!contactEmail) {
+      return jsonError('No contact email found for this event. Add client email in event settings.', 400);
     }
 
     /* ── Download files from storage ── */
@@ -119,7 +128,7 @@ export async function POST(
 
     /* ── Build email ── */
     const email = buildClientQrPageEmail({
-      contactName: request.contact_name,
+      contactName,
       eventName: event.name,
       qrOnly: !!qrOnly,
     });
@@ -127,7 +136,7 @@ export async function POST(
     /* ── Send email ── */
     await transporter.sendMail({
       from: SMTP_FROM,
-      to: request.contact_email,
+      to: contactEmail,
       subject: email.subject,
       html: email.html,
       attachments,
@@ -144,7 +153,7 @@ export async function POST(
       event_id: eventId,
       channel: 'email',
       message_type: 'qr_page',
-      recipient_email: request.contact_email,
+      recipient_email: contactEmail,
       status: 'sent',
       sent_at: new Date().toISOString(),
     });
@@ -154,7 +163,7 @@ export async function POST(
       {
         eventId,
         type: 'qr_page',
-        to: request.contact_email,
+        to: contactEmail,
         attachments: attachments.map((a) => a.filename),
       },
       req
@@ -162,7 +171,7 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      sentTo: request.contact_email,
+      sentTo: contactEmail,
       attachments: attachments.map((a) => a.filename),
     });
   } catch (err) {

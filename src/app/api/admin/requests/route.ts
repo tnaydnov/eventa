@@ -21,7 +21,7 @@ const transporter = nodemailer.createTransport({
   secure: Number(process.env.SMTP_PORT) === 465,
   auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
 });
-const SMTP_FROM = `"Eventa" <${process.env.SMTP_FROM || 'noreply@eventa.productions'}>`;
+const SMTP_FROM = `"Eventa" <${process.env.SMTP_USER}>`;
 
 /**
  * GET /api/admin/requests
