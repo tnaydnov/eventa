@@ -724,26 +724,26 @@
 }
 
 .finale-stats__grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 4px;
   width: 100%;
   max-width: 420px;
 }
 
 .finale-stat {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 22px 10px;
-  border-radius: 16px;
+  gap: 6px;
+  padding: 18px 8px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .finale-stat__num {
-  font-size: clamp(1.8rem, 5vw, 2.4rem);
+  font-size: clamp(1.5rem, 4vw, 2rem);
   font-weight: 300;
   color: var(--primary, #D4A59A);
   letter-spacing: -0.025em;
@@ -751,7 +751,7 @@
 }
 
 .finale-stat__label {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: rgba(255, 255, 255, 0.3);
   font-weight: 400;
 }
@@ -868,12 +868,13 @@
   }
 
   .finale-stats__grid {
-    max-width: 480px;
+    max-width: 500px;
+    gap: 6px;
   }
 
   .finale-stat {
-    padding: 28px 14px;
-    border-radius: 18px;
+    padding: 22px 12px;
+    border-radius: 16px;
   }
 }
 
@@ -903,16 +904,17 @@
   }
 
   .finale-stats__grid {
-    max-width: 540px;
+    max-width: 580px;
     gap: 8px;
   }
 
   .finale-stat {
-    padding: 32px 16px;
+    padding: 26px 14px;
+    border-radius: 18px;
   }
 
   .finale-stat__num {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
   }
 }
 

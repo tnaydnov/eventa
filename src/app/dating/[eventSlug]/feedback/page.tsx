@@ -8,11 +8,15 @@ type UsageLevel = 'view_only' | 'likes' | 'matches' | 'chat';
 type InteractionResult = 'messages' | 'real_life' | 'interesting' | 'none';
 type SuccessStoryAnswer = 'yes' | 'maybe' | 'no';
 type FeatureKey = 'swipes' | 'chat' | 'see_likes' | 'design' | 'concept' | 'vibe' | 'nothing';
+type EmbarrassingAnswer = 'send_like' | 'bump_into' | 'no_like_back' | 'liked_friend';
 
 interface EventStats {
   participants: number;
+  women: number;
+  men: number;
   matches: number;
-  messages: number;
+  conversations: number;
+  likes: number;
 }
 
 /* ━━━ Motion ━━━ */
@@ -27,12 +31,12 @@ const slideVariants = {
 
 /* ━━━ Story Progress (Instagram-style segments) ━━━ */
 function StoryBar({ current, total }: { current: number; total: number }) {
-  const segments = total - 2; // exclude intro + finale
+  const segments = total - 2;
   if (current <= 0 || current >= total - 1) return null;
   return (
     <div className="story-bar" role="progressbar" aria-valuenow={current} aria-valuemax={segments}>
       {Array.from({ length: segments }, (_, i) => {
-        const idx = i + 1; // segment i corresponds to slide i+1
+        const idx = i + 1;
         return (
           <div key={i} className="story-seg">
             <motion.div
@@ -48,7 +52,7 @@ function StoryBar({ current, total }: { current: number; total: number }) {
   );
 }
 
-/* ━━━ Counter (animated number reveal) ━━━ */
+/* ━━━ Counter (animated number) ━━━ */
 function Counter({ value, delay = 0 }: { value: number; delay?: number }) {
   const mv = useMotionValue(0);
   const display = useTransform(mv, (v) => Math.round(v).toLocaleString());
@@ -133,9 +137,9 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
   const [easeOfUse, setEaseOfUse] = useState(0);
   const [usageLevel, setUsageLevel] = useState<UsageLevel | ''>('');
   const [interactionResult, setInteractionResult] = useState<InteractionResult | ''>('');
+  const [embarrassing, setEmbarrassing] = useState<EmbarrassingAnswer | ''>('');
   const [favoriteFeatures, setFavoriteFeatures] = useState<FeatureKey[]>([]);
   const [improvement, setImprovement] = useState('');
-  const [recommendation, setRecommendation] = useState(0);
   const [successStory, setSuccessStory] = useState<SuccessStoryAnswer | ''>('');
   const [successStoryText, setSuccessStoryText] = useState('');
   const [allowPublish, setAllowPublish] = useState(false);
@@ -149,7 +153,6 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
   const next = useCallback(() => go(1), [go]);
   const back = useCallback(() => go(-1), [go]);
 
-  /** Pick an option → brief highlight → auto-advance */
   const pick = useCallback((fn: () => void) => {
     fn();
     setTimeout(() => { setDir(1); setSlide((s) => Math.min(s + 1, TOTAL - 1)); }, 380);
@@ -160,6 +163,10 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
     if (submitting || submitted) return;
     setSubmitting(true);
     setError('');
+
+    // Derive recommendation from successStory (field still required by DB)
+    const recommendation = successStory === 'yes' ? 4 : successStory === 'maybe' ? 3 : 2;
+
     try {
       const res = await fetch(`/api/events/${eventSlug}/feedback`, {
         method: 'POST',
@@ -195,7 +202,7 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
     } finally {
       setSubmitting(false);
     }
-  }, [submitting, submitted, enjoyment, easeOfUse, usageLevel, interactionResult, favoriteFeatures, improvement, recommendation, successStory, successStoryText, allowPublish, eventSlug]);
+  }, [submitting, submitted, enjoyment, easeOfUse, usageLevel, interactionResult, favoriteFeatures, improvement, successStory, successStoryText, allowPublish, eventSlug]);
 
   /* ━━━ Slides ━━━ */
   const renderSlide = () => {
@@ -234,12 +241,12 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
         return (
           <div className="rc-slide">
             <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
-              בוא/י נתחיל —
+              איך הייתה חוויית
               <br />
-              <span className="rc-q__big">איך היה?</span>
+              <span className="rc-q__big">הדייטינג באירוע?</span>
             </motion.h2>
             <div className="rc-opts">
-              {[{ l: 'לא ממש', v: 1 }, { l: 'היה סבבה', v: 2 }, { l: 'נהניתי', v: 3 }, { l: 'אהבתי!', v: 4 }].map((o, i) => (
+              {[{ l: 'לא התחברתי', v: 1 }, { l: 'היה נחמד', v: 2 }, { l: 'נהניתי', v: 3 }, { l: 'ממש אהבתי', v: 4 }].map((o, i) => (
                 <Option key={o.v} label={o.l} selected={enjoyment === o.v} index={i} onClick={() => pick(() => setEnjoyment(o.v))} />
               ))}
             </div>
@@ -251,9 +258,9 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
         return (
           <div className="rc-slide">
             <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
-              וכמה קל היה
+              כמה היה לך קל
               <br />
-              <span className="rc-q__big">להשתמש?</span>
+              <span className="rc-q__big">להשתמש באפליקציה?</span>
             </motion.h2>
             <div className="rc-opts">
               {[{ l: 'מבלבל', v: 1 }, { l: 'הסתדרתי', v: 2 }, { l: 'ברור', v: 3 }, { l: 'פשוט מאוד', v: 4 }].map((o, i) => (
@@ -268,9 +275,9 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
         return (
           <div className="rc-slide">
             <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
-              מה הספקת
+              כמה יצא לך
               <br />
-              <span className="rc-q__big">לעשות?</span>
+              <span className="rc-q__big">להשתמש באפליקציה?</span>
             </motion.h2>
             <div className="rc-opts">
               {([
@@ -290,9 +297,9 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
         return (
           <div className="rc-slide">
             <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
-              ובאינטראקציות —
+              יצרת קשר עם מישהו
               <br />
-              <span className="rc-q__big">מה קרה?</span>
+              <span className="rc-q__big">מהאירוע?</span>
             </motion.h2>
             <div className="rc-opts">
               {([
@@ -307,14 +314,36 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
           </div>
         );
 
-      /* ── 5 · Favorite features (multi) ── */
+      /* ── 5 · Embarrassing (fun, not stored) ── */
       case 5:
         return (
           <div className="rc-slide">
             <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
-              מה הכי עשה
+              בינינו —
               <br />
-              <span className="rc-q__big">לך את זה?</span>
+              <span className="rc-q__big">מה היה יותר מביך?</span>
+            </motion.h2>
+            <div className="rc-opts">
+              {([
+                { l: 'לשלוח לייק למישהו', v: 'send_like' as EmbarrassingAnswer },
+                { l: 'להיתקל בהם אחרי זה ברחבה', v: 'bump_into' as EmbarrassingAnswer },
+                { l: 'לגלות שלא עשו לך לייק חזרה', v: 'no_like_back' as EmbarrassingAnswer },
+                { l: 'לגלות שעשו לייק לחבר/ה שלך', v: 'liked_friend' as EmbarrassingAnswer },
+              ]).map((o, i) => (
+                <Option key={o.v} label={o.l} selected={embarrassing === o.v} index={i} onClick={() => pick(() => setEmbarrassing(o.v))} />
+              ))}
+            </div>
+          </div>
+        );
+
+      /* ── 6 · Favorite features (multi) ── */
+      case 6:
+        return (
+          <div className="rc-slide">
+            <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
+              מה הכי אהבת
+              <br />
+              <span className="rc-q__big">באפליקציה?</span>
             </motion.h2>
             <motion.p className="rc-hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
               אפשר לבחור כמה שרוצים
@@ -350,21 +379,21 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
           </div>
         );
 
-      /* ── 6 · Improvement (optional) ── */
-      case 6:
+      /* ── 7 · Improvement (optional) ── */
+      case 7:
         return (
           <div className="rc-slide">
             <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
-              אם היית יכול/ה
+              יש משהו
               <br />
-              <span className="rc-q__big">לשנות משהו...</span>
+              <span className="rc-q__big">שהיית משפר/ת?</span>
             </motion.h2>
             <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
               <textarea
                 className="rc-textarea"
                 value={improvement}
                 onChange={(e) => setImprovement(e.target.value.slice(0, 500))}
-                placeholder="למשל: הייתי מוסיף..."
+                placeholder="נשמח לשמוע רעיונות או הצעות"
                 maxLength={500}
                 rows={4}
               />
@@ -376,35 +405,18 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
           </div>
         );
 
-      /* ── 7 · Recommendation ── */
-      case 7:
-        return (
-          <div className="rc-slide">
-            <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
-              היית שולח/ת
-              <br />
-              <span className="rc-q__big">חבר/ה לאירוע?</span>
-            </motion.h2>
-            <div className="rc-opts">
-              {[{ l: 'בטוח!', v: 4 }, { l: 'כנראה שכן', v: 3 }, { l: 'לא בטוח/ה', v: 2 }, { l: 'לא נראה לי', v: 1 }].map((o, i) => (
-                <Option key={o.v} label={o.l} selected={recommendation === o.v} index={i} onClick={() => pick(() => setRecommendation(o.v))} />
-              ))}
-            </div>
-          </div>
-        );
-
-      /* ── 8 · Success story ── */
+      /* ── 8 · Success story (replaced old recommendation) ── */
       case 8:
         return (
           <div className="rc-slide">
             <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
-              נוצר חיבור
+              הכרת מישהו מעניין
               <br />
-              <span className="rc-q__big">מיוחד?</span>
+              <span className="rc-q__big">בזכות האפליקציה?</span>
             </motion.h2>
-            <div className="rc-opts rc-opts--3">
+            <div className="rc-opts">
               {([
-                { l: 'כן!', v: 'yes' as SuccessStoryAnswer },
+                { l: 'כן', v: 'yes' as SuccessStoryAnswer },
                 { l: 'אולי...', v: 'maybe' as SuccessStoryAnswer },
                 { l: 'לא הפעם', v: 'no' as SuccessStoryAnswer },
               ]).map((o, i) => (
@@ -420,8 +432,8 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
             <AnimatePresence>
               {successStory === 'yes' && (
                 <motion.div className="rc-followup" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.35 }}>
-                  <p className="rc-followup__label">רוצה לשתף?</p>
-                  <textarea className="rc-textarea" value={successStoryText} onChange={(e) => setSuccessStoryText(e.target.value.slice(0, 500))} placeholder="קרה משהו מעניין..." maxLength={500} rows={3} />
+                  <p className="rc-followup__label">רוצה לספר לנו קצת?</p>
+                  <textarea className="rc-textarea" value={successStoryText} onChange={(e) => setSuccessStoryText(e.target.value.slice(0, 500))} placeholder="נשמח לשמוע..." maxLength={500} rows={3} />
                   <label className="rc-check">
                     <input type="checkbox" checked={allowPublish} onChange={(e) => setAllowPublish(e.target.checked)} />
                     <span className="rc-check__box" />
@@ -437,20 +449,20 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
       /* ── 9 · Review + Submit ── */
       case 9: {
         const labels = {
-          enjoy: { 1: 'לא ממש', 2: 'סבבה', 3: 'נהניתי', 4: 'אהבתי' } as Record<number, string>,
+          enjoy: { 1: 'לא התחברתי', 2: 'נחמד', 3: 'נהניתי', 4: 'ממש אהבתי' } as Record<number, string>,
           ease: { 1: 'מבלבל', 2: 'הסתדרתי', 3: 'ברור', 4: 'פשוט מאוד' } as Record<number, string>,
           usage: { view_only: 'הסתכלתי', likes: 'לייקים', matches: 'התאמות', chat: 'צ׳אט' } as Record<string, string>,
           inter: { messages: 'הודעות', real_life: 'במציאות', interesting: 'מעניין', none: 'לא' } as Record<string, string>,
-          rec: { 1: 'לא', 2: 'לא בטוח', 3: 'כנראה', 4: 'בטוח' } as Record<number, string>,
+          story: { yes: 'כן', maybe: 'אולי', no: 'לא הפעם' } as Record<string, string>,
           feat: { swipes: 'סווייפים', chat: 'צ׳אט', see_likes: 'לייקים', design: 'עיצוב', concept: 'רעיון', vibe: 'אווירה', nothing: 'כלום' } as Record<string, string>,
         };
         const rows = [
-          { k: 'הנאה', v: labels.enjoy[enjoyment] || '—' },
-          { k: 'קלות', v: labels.ease[easeOfUse] || '—' },
+          { k: 'חוויה', v: labels.enjoy[enjoyment] || '—' },
+          { k: 'קלות שימוש', v: labels.ease[easeOfUse] || '—' },
           { k: 'שימוש', v: labels.usage[usageLevel] || '—' },
           { k: 'קשר', v: labels.inter[interactionResult] || '—' },
-          { k: 'המלצה', v: labels.rec[recommendation] || '—' },
           { k: 'מה אהבת', v: favoriteFeatures.map((f) => labels.feat[f] || f).join(', ') || '—' },
+          { k: 'חיבור', v: labels.story[successStory] || '—' },
         ];
 
         return (
@@ -505,16 +517,19 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
                 <div className="finale-stats__grid">
                   {[
                     { v: stats.participants, l: 'משתתפים' },
-                    { v: stats.matches, l: 'התאמות' },
-                    { v: stats.messages, l: 'הודעות' },
+                    { v: stats.women, l: 'נשים' },
+                    { v: stats.men, l: 'גברים' },
+                    { v: stats.matches, l: 'מאצ׳ים' },
+                    { v: stats.conversations, l: 'שיחות' },
+                    { v: stats.likes, l: 'לייקים' },
                   ].map((s, i) => (
                     <motion.div
                       key={s.l} className="finale-stat"
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.8 + i * 0.14, duration: 0.6, ease: EASE }}
+                      transition={{ delay: 0.8 + i * 0.1, duration: 0.6, ease: EASE }}
                     >
-                      <span className="finale-stat__num"><Counter value={s.v} delay={900 + i * 160} /></span>
+                      <span className="finale-stat__num"><Counter value={s.v} delay={900 + i * 120} /></span>
                       <span className="finale-stat__label">{s.l}</span>
                     </motion.div>
                   ))}
@@ -522,11 +537,11 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
               </motion.div>
             )}
 
-            <motion.div className="finale-actions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: stats ? 1.3 : 0.75 }}>
+            <motion.div className="finale-actions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: stats ? 1.5 : 0.75 }}>
               <a href="/" className="rc-cta">לאתר Eventa</a>
             </motion.div>
 
-            <motion.span className="finale-credit" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: stats ? 1.5 : 0.95 }}>
+            <motion.span className="finale-credit" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: stats ? 1.7 : 0.95 }}>
               Eventa
             </motion.span>
           </div>
@@ -540,15 +555,12 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
   /* ━━━ Render ━━━ */
   return (
     <div className="recap" data-slide={slide}>
-      {/* background gradient layer */}
       <div className="recap__bg" aria-hidden>
         <div className="recap__gradient" />
       </div>
 
-      {/* story bar */}
       <StoryBar current={slide} total={TOTAL} />
 
-      {/* back button */}
       {slide > 0 && slide < TOTAL - 1 && !submitted && (
         <button className="recap__back" onClick={back} type="button" aria-label="חזור">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -557,7 +569,6 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
         </button>
       )}
 
-      {/* slide stage */}
       <div className="recap__stage">
         <AnimatePresence mode="wait" custom={dir}>
           <motion.div

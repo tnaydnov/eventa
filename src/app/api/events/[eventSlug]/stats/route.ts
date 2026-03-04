@@ -48,16 +48,27 @@ export async function GET(
         .select('*', { count: 'exact', head: true })
         .eq('event_id', eventId);
 
-    const [participants, conversations, messages] = await Promise.all([
+    /** Count rows filtered by event_id + optional extra filter */
+    const countFiltered = (table: string, extraCol?: string, extraVal?: string) => {
+      let q = supabase.from(table).select('*', { count: 'exact', head: true }).eq('event_id', eventId);
+      if (extraCol && extraVal) q = q.eq(extraCol, extraVal);
+      return q;
+    };
+
+    const [participants, women, men, conversations, likes] = await Promise.all([
       countByEvent('participants'),
+      countFiltered('participants', 'gender', 'female'),
+      countFiltered('participants', 'gender', 'male'),
       countByEvent('conversations'),
-      countByEvent('messages'),
+      countByEvent('likes'),
     ]);
 
     const countErrors = [
       participants.error && `participants: ${participants.error.message}`,
+      women.error && `women: ${women.error.message}`,
+      men.error && `men: ${men.error.message}`,
       conversations.error && `conversations: ${conversations.error.message}`,
-      messages.error && `messages: ${messages.error.message}`,
+      likes.error && `likes: ${likes.error.message}`,
     ].filter(Boolean);
 
     if (countErrors.length > 0) {
@@ -65,14 +76,13 @@ export async function GET(
       return jsonError('Failed to load stats', 500);
     }
 
-    const totalParticipants = participants.count ?? 0;
-    const totalConversations = conversations.count ?? 0;
-    const totalMessages = messages.count ?? 0;
-
     return NextResponse.json({
-      participants: totalParticipants,
-      matches: totalConversations,
-      messages: totalMessages,
+      participants: participants.count ?? 0,
+      women: women.count ?? 0,
+      men: men.count ?? 0,
+      matches: conversations.count ?? 0,
+      conversations: conversations.count ?? 0,
+      likes: likes.count ?? 0,
     });
   } catch (err) {
     logger.error('[EVENT_STATS] unexpected error', err);
