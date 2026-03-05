@@ -94,6 +94,7 @@ export default function Wizard() {
   const [sending, setSending] = useState(false);
   const [success, setSuccess] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
+  const [paymentSkipped, setPaymentSkipped] = useState(false);
 
   const totalSteps = WIZARD_STEPS.length;
 
@@ -194,8 +195,11 @@ export default function Wizard() {
               return; // Don't show success yet - wait for payment
             }
           }
+          // Payment session failed - order was saved, but card wasn't captured
+          setPaymentSkipped(true);
         } catch {
           // If clearing session fails, fall back to success (order was saved)
+          setPaymentSkipped(true);
         }
       }
 
@@ -320,11 +324,13 @@ export default function Wizard() {
           </div>
           <h2 className="wiz-success__title">ההזמנה נשלחה בהצלחה!</h2>
           <p className="wiz-success__text">
-            {state.contactPreference === 'pay-now'
+            {state.contactPreference === 'pay-now' && !paymentSkipped
               ? 'פרטי הכרטיס נשמרו בהצלחה! ההזמנה בבדיקה - נעדכן אתכם ונחייב רק לאחר אישור.'
-              : state.contactPreference === 'call-me'
-                ? 'קיבלנו את כל הפרטים ונחזור אליכם בהקדם. נפנה אליכם תוך 48 שעות.'
-                : 'קיבלנו את כל הפרטים ונחזור אליכם בהקדם.'}
+              : state.contactPreference === 'pay-now' && paymentSkipped
+                ? 'ההזמנה נשמרה בהצלחה! לא הצלחנו לפתוח את דף התשלום - ניצור איתכם קשר להשלמת התשלום.'
+                : state.contactPreference === 'call-me'
+                  ? 'קיבלנו את כל הפרטים ונחזור אליכם בהקדם. נפנה אליכם תוך 48 שעות.'
+                  : 'קיבלנו את כל הפרטים ונחזור אליכם בהקדם.'}
           </p>
           <Link href="/dating" className="wiz-success__btn">
             חזרה לדף הראשי
