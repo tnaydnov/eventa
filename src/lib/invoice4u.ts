@@ -661,6 +661,8 @@ export interface ClearingSessionParams {
   clearingCompany?: ClearingCompany;
   /** Document language - 'he' (default) or 'en'. */
   language?: 'he' | 'en';
+  /** Skip auto-document creation (we'll create it manually in the callback). */
+  skipDocument?: boolean;
   /** Manual item breakdown - names separated by |. */
   docItemNames?: string;
   /** Manual item breakdown - quantities separated by |. */
@@ -803,7 +805,7 @@ export async function createClearingSession(
       PaymentsNum: '1',
       Currency: 'ILS',
       OrderIdClientUsage: params.orderId || '',
-      IsDocCreate: tokenOnly ? 'false' : 'true',
+      IsDocCreate: (tokenOnly || params.skipDocument) ? 'false' : 'true',
       IsGeneralClient: 'false',
       IsAutoCreateCustomer: 'true',
       ReturnUrl: params.returnUrl,

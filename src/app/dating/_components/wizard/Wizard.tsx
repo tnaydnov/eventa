@@ -20,18 +20,25 @@ import WizardIcon from './WizardIcons';
 
 // ─── Helpers ────────────────────────────────────────────
 
-/** Generate a random particle */
+/** Deterministic pseudo-random based on seed (avoids hydration mismatch) */
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed + 1) * 10000;
+  return x - Math.floor(x);
+}
+
+/** Generate a deterministic particle */
 function makeParticle(i: number) {
-  const size = 1.5 + Math.random() * 2.5;
+  const r = (offset: number) => seededRandom(i * 6 + offset);
+  const size = 1.5 + r(0) * 2.5;
   return {
     id: i,
-    left: `${5 + Math.random() * 90}%`,
-    bottom: `${-5 + Math.random() * 15}%`,
+    left: `${5 + r(1) * 90}%`,
+    bottom: `${-5 + r(2) * 15}%`,
     width: size,
     height: size,
-    delay: `${Math.random() * 8}s`,
-    duration: `${6 + Math.random() * 10}s`,
-    opacity: 0.15 + Math.random() * 0.35,
+    delay: `${r(3) * 8}s`,
+    duration: `${6 + r(4) * 10}s`,
+    opacity: 0.15 + r(5) * 0.35,
   };
 }
 

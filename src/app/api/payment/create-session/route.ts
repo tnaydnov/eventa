@@ -110,17 +110,9 @@ export async function POST(req: NextRequest) {
     const returnUrl = `${APP_BASE_URL}/api/payment/callback?rid=${requestId}&src=wizard`;
     const cancelUrl = `${APP_BASE_URL}/dating/order?payment=cancelled`;
 
-    const description = d.eventName
-      ? `Eventa - ${d.eventName}`
-      : 'Eventa - חבילת אירוע';
-
-    const itemNames = wantsMessages
-      ? 'חבילת אירוע Eventa|שירות הודעות מוקדמות לאורחים'
-      : 'חבילת אירוע Eventa';
-    const itemPrices = wantsMessages
-      ? `${BASE_PRICE}|${MSG_ADDON}`
-      : `${BASE_PRICE}`;
-    const itemQuantities = wantsMessages ? '1|1' : '1';
+    const description = wantsMessages
+      ? `Eventa – חבילת אירוע (₪${BASE_PRICE}) + הודעות (₪${MSG_ADDON})`
+      : `Eventa – חבילת אירוע (₪${BASE_PRICE})`;
 
     const result = await createClearingSession({
       fullName: d.contactName,
@@ -133,30 +125,11 @@ export async function POST(req: NextRequest) {
       cancelUrl,
       tokenOnly: false,
       language: 'he',
-      docHeadline: `אירוע: ${d.eventName || d.eventType}`,
-      docItemNames: itemNames,
-      docItemPrices: itemPrices,
-      docItemQuantities: itemQuantities,
+      skipDocument: true, // we create an itemised doc manually in the callback
     });
 
-    // If manual items caused an error, retry without them
-    const finalResult = (result.success && result.data)
-      ? result
-      : await createClearingSession({
-          fullName: d.contactName,
-          phone: d.contactPhone,
-          email: d.contactEmail || d.contactName,
-          sum: totalShekel,
-          description,
-          orderId: requestId,
-          returnUrl,
-          cancelUrl,
-          tokenOnly: false,
-          language: 'he',
-        });
-
-    if (!finalResult.success || !finalResult.data) {
-      logger.error('[PAYMENT] Failed to create clearing session', { error: finalResult.error });
+    if (!result.success || !result.data) {
+      logger.error('[PAYMENT] Failed to create clearing session', { error: result.error });
       // Clean up the draft order
       await supabase.from('event_requests').delete().eq('id', requestId);
       return NextResponse.json({ error: 'Payment session creation failed' }, { status: 502 });
@@ -166,18 +139,18 @@ export async function POST(req: NextRequest) {
     await supabase
       .from('event_requests')
       .update({
-        clearing_log_id: finalResult.data.clearingLogId,
-        clearing_payment_id: finalResult.data.paymentId,
-        clearing_trace_id: finalResult.data.clearingTraceId,
-        invoice4u_customer_id: finalResult.data.customerId,
+        clearing_log_id: result.data.clearingLogId,
+        clearing_payment_id: result.data.paymentId,
+        clearing_trace_id: result.data.clearingTraceId,
+        invoice4u_customer_id: result.data.customerId,
       })
       .eq('id', requestId);
 
-    logger.info('[PAYMENT] Clearing session created', { requestId, paymentId: finalResult.data.paymentId });
+    logger.info('[PAYMENT] Clearing session created', { requestId, paymentId: result.data.paymentId });
 
     return NextResponse.json({
       success: true,
-      paymentUrl: finalResult.data.clearingRedirectUrl,
+      paymentUrl: result.data.clearingRedirectUrl,
     });
   } catch (err) {
     logger.error('[PAYMENT] create-session error', err);

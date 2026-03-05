@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { getServiceClient, generateJoinCode, generateShortCode } from '@/lib/supabase';
-import { getClearingLogById, getDocument, isConfigured } from '@/lib/invoice4u';
+import { getClearingLogById, createDocument, DocumentType, PaymentType, getOrCreateCustomer, isConfigured } from '@/lib/invoice4u';
 import { buildClientApprovalEmail, escapeHtml } from '@/lib/email-templates';
 import { generatePrettySlug } from '@/lib/slug';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
@@ -53,16 +53,12 @@ export async function GET(req: NextRequest) {
 
   // ── 2. Verify payment with Invoice4U ──
   let verified = false;
-  let docId: string | null = null;
 
   if (isConfigured() && request.clearing_log_id) {
     try {
       const logResult = await getClearingLogById(request.clearing_log_id);
       if (logResult.success && logResult.data?.isSuccess) {
         verified = true;
-        if (logResult.data.isDocumentCreated && logResult.data.docId) {
-          docId = logResult.data.docId;
-        }
       } else {
         logger.warn('[PAYMENT_CALLBACK] Clearing log not successful', {
           rid,
@@ -202,23 +198,60 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // ── 6. Fetch PDF receipt ──
+    // ── 6. Create itemised invoice-receipt & fetch PDF ──
     let pdfBuffer: Buffer | null = null;
     let pdfDocNumber = '';
-    if (docId) {
-      try {
-        const docResult = await getDocument(docId);
-        if (docResult.success && docResult.data?.DocumentURL) {
-          pdfDocNumber = docResult.data.DocumentNumber || '';
-          const pdfRes = await fetch(docResult.data.DocumentURL, { signal: AbortSignal.timeout(10_000) });
-          if (pdfRes.ok) {
-            const arrayBuf = await pdfRes.arrayBuffer();
-            pdfBuffer = Buffer.from(arrayBuf);
-          }
-        }
-      } catch (pdfErr) {
-        logger.warn('[PAYMENT_CALLBACK] PDF fetch error (non-fatal)', pdfErr);
+    try {
+      const totalShekelDoc = BASE_PRICE + (request.wants_guest_messages ? MSG_ADDON : 0);
+
+      // Build line items
+      const items = [
+        { Name: 'חבילת אירוע Eventa', Price: BASE_PRICE, Quantity: 1 },
+      ];
+      if (request.wants_guest_messages) {
+        items.push({ Name: 'שירות הודעות מוקדמות לאורחים', Price: MSG_ADDON, Quantity: 1 });
       }
+
+      // Get or create customer in Invoice4U
+      const custResult = await getOrCreateCustomer({
+        Name: request.contact_name || 'לקוח Eventa',
+        Phone: request.contact_phone || undefined,
+        Email: request.contact_email || undefined,
+      });
+
+      const docResult = await createDocument({
+        docType: DocumentType.InvoiceReceipt,
+        customer: {
+          ID: custResult.success ? custResult.data : undefined,
+          Name: request.contact_name || 'לקוח Eventa',
+          Phone: request.contact_phone || undefined,
+          Email: request.contact_email || undefined,
+        },
+        items,
+        payments: [{
+          PaymentType: PaymentType.CreditCard,
+          Amount: totalShekelDoc,
+        }],
+        subject: `אירוע: ${request.event_name || request.event_type || 'אירוע'}`,
+        sendByEmail: false, // we attach PDF to our own email
+      });
+
+      if (docResult.success && docResult.data?.DocumentURL) {
+        pdfDocNumber = docResult.data.DocumentNumber || '';
+        const pdfRes = await fetch(docResult.data.DocumentURL, { signal: AbortSignal.timeout(10_000) });
+        if (pdfRes.ok) {
+          const arrayBuf = await pdfRes.arrayBuffer();
+          pdfBuffer = Buffer.from(arrayBuf);
+        }
+        logger.info('[PAYMENT_CALLBACK] Itemised document created', {
+          docId: docResult.data.DocumentID,
+          docNumber: pdfDocNumber,
+        });
+      } else {
+        logger.warn('[PAYMENT_CALLBACK] createDocument failed', { error: docResult.error });
+      }
+    } catch (pdfErr) {
+      logger.warn('[PAYMENT_CALLBACK] Document creation error (non-fatal)', pdfErr);
     }
 
     // ── 7. Send C4 approval email with receipt ──
