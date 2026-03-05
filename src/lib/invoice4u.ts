@@ -750,7 +750,9 @@ async function clearingJsonCall<T>(method: string, body: Record<string, unknown>
     throw new Error(`Invoice4U Clearing API error: ${res.status}`);
   }
 
-  return res.json() as Promise<T>;
+  const json = await res.json();
+  // WCF JSON responses are wrapped in {"d": {...}} — unwrap automatically
+  return (json.d ?? json) as T;
 }
 
 /* ── Helper: extract values from OpenInfo array ───────── */
@@ -765,14 +767,20 @@ function openInfoValue(
 }
 
 /**
- * Create a clearing session for card tokenisation.
+ * Create a clearing session.
+ *
+ * Two modes:
+ *   tokenOnly=true  → card is saved, no charge (call chargeWithToken later)
+ *   tokenOnly=false → card is charged immediately during the session
+ *
  * Returns a URL to embed in an iframe; the customer fills in card details.
- * No charge is made - call `chargeWithToken` later to actually charge.
  */
 export async function createClearingSession(
   params: ClearingSessionParams,
 ): Promise<Invoice4UResult<ClearingSessionResult>> {
   try {
+    const tokenOnly = params.tokenOnly ?? false;
+
     const request: Record<string, unknown> = {
       Invoice4UUserApiKey: API_TOKEN,
       Type: String(ClearingType.Regular),
@@ -784,11 +792,11 @@ export async function createClearingSession(
       PaymentsNum: '1',
       Currency: 'ILS',
       OrderIdClientUsage: params.orderId || '',
-      IsDocCreate: 'false',  // never create doc during tokenisation
+      IsDocCreate: tokenOnly ? 'false' : 'true',
       IsGeneralClient: 'false',
       IsAutoCreateCustomer: 'true',
       ReturnUrl: params.returnUrl,
-      AddToken: 'true',
+      AddToken: tokenOnly ? 'true' : 'false',
       AddTokenAndCharge: 'false',
       ChargeWithToken: 'false',
       Refund: 'false',

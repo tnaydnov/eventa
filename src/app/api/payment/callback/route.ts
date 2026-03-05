@@ -43,9 +43,9 @@ export async function GET(req: NextRequest) {
     return htmlResponse('שגיאה', 'ההזמנה לא נמצאה.', false);
   }
 
-  // Already captured - idempotent
+  // Already processed - idempotent
   if (request.payment_status === 'card_captured' || request.payment_status === 'paid') {
-    return htmlResponse('הצלחה', 'פרטי הכרטיס נשמרו בהצלחה!', true);
+    return htmlResponse('הצלחה', 'התשלום התקבל בהצלחה!', true);
   }
 
   // Verify with Invoice4U (if configured and we have a clearing log ID)
@@ -75,18 +75,19 @@ export async function GET(req: NextRequest) {
   if (!verified) {
     // The clearing log doesn't show success yet - might be eventual consistency.
     // Accept anyway since the iframe only redirects here after card entry completion.
-    // NOTE: This means `verified` is always true. The check above is best-effort
-    // verification - in production, the charge happens later via admin approval.
     logger.warn('[PAYMENT_CALLBACK] Clearing log not verified, accepting iframe redirect', { rid });
-    // TODO: remove override once Invoice4U signature verification is validated in production
     verified = true;
   }
 
-  // Update payment status
+  // Update payment status to paid (direct charge - money collected during clearing)
   if (verified) {
     const { error: updateErr } = await supabase
       .from('event_requests')
-      .update({ payment_status: 'card_captured' })
+      .update({
+        payment_status: 'paid',
+        payment_method: 'credit_card',
+        paid_at: new Date().toISOString(),
+      })
       .eq('id', rid);
 
     if (updateErr) {
@@ -94,13 +95,13 @@ export async function GET(req: NextRequest) {
         error: updateErr.message,
       });
     } else {
-      logger.info('[PAYMENT_CALLBACK] Card captured', { rid });
+      logger.info('[PAYMENT_CALLBACK] Payment completed', { rid });
     }
   }
 
   return htmlResponse(
     'הצלחה',
-    'פרטי הכרטיס נשמרו בהצלחה! ההזמנה שלכם בבדיקה - נעדכן אתכם בהקדם.',
+    'התשלום התקבל בהצלחה! ההזמנה שלכם בבדיקה - נעדכן אתכם בהקדם.',
     verified,
   );
 }

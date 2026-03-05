@@ -109,7 +109,7 @@ export async function GET(req: NextRequest) {
     // Build callback URL
     const returnUrl = `${APP_BASE_URL}/api/payment/callback?rid=${request.id}`;
 
-    // Create clearing session for card tokenisation
+    // Create clearing session – direct charge (tokenisation not available)
     const description = request.event_name
       ? `Eventa - ${request.event_name}`
       : 'Eventa - חבילת אירוע';
@@ -122,7 +122,7 @@ export async function GET(req: NextRequest) {
       description,
       orderId: request.id,
       returnUrl,
-      tokenOnly: true,
+      tokenOnly: false,
       language: 'he',
     });
 

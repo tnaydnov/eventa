@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     // Build callback URL
     const returnUrl = `${APP_BASE_URL}/api/payment/callback?rid=${requestId}`;
 
-    // Create clearing session (tokenise only - no charge)
+    // Create clearing session (direct charge - payment is collected immediately)
     const description = eventName
       ? `Eventa - ${eventName}`
       : 'Eventa - חבילת אירוע';
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
       description,
       orderId: requestId,
       returnUrl,
-      tokenOnly: true,
+      tokenOnly: false,
       language: 'he',
     });
 

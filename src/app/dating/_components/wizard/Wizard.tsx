@@ -262,7 +262,7 @@ export default function Wizard() {
             <WizardIcon name="lock" size={28} />
             <h2 className="wiz-payment__title">תשלום מאובטח</h2>
             <p className="wiz-payment__subtitle">
-              הזינו את פרטי הכרטיס. הכרטיס ייגבה רק לאחר אישור ההזמנה.
+              הזינו את פרטי הכרטיס לביצוע התשלום.
             </p>
           </div>
           <div className="wiz-payment__iframe-wrap">
@@ -325,7 +325,7 @@ export default function Wizard() {
           <h2 className="wiz-success__title">ההזמנה נשלחה בהצלחה!</h2>
           <p className="wiz-success__text">
             {state.contactPreference === 'pay-now' && !paymentSkipped
-              ? 'פרטי הכרטיס נשמרו בהצלחה! ההזמנה בבדיקה - נעדכן אתכם ונחייב רק לאחר אישור.'
+              ? 'התשלום התקבל בהצלחה! ההזמנה בבדיקה - נעדכן אתכם בהקדם.'
               : state.contactPreference === 'pay-now' && paymentSkipped
                 ? 'ההזמנה נשמרה בהצלחה! לא הצלחנו לפתוח את דף התשלום - ניצור איתכם קשר להשלמת התשלום.'
                 : state.contactPreference === 'call-me'
