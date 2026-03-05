@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Build callback URL
-    const returnUrl = `${APP_BASE_URL}/api/payment/callback?rid=${requestId}`;
+    const returnUrl = `${APP_BASE_URL}/api/payment/callback?rid=${requestId}&src=wizard`;
 
     // Create clearing session (direct charge - payment is collected immediately)
     const description = eventName

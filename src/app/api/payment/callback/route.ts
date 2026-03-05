@@ -4,6 +4,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { getClearingLogById, isConfigured } from '@/lib/invoice4u';
 import { escapeHtml } from '@/lib/email-templates';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { APP_BASE_URL } from '@/lib/config';
 
 /**
  * GET /api/payment/callback?rid=<requestId>
@@ -43,8 +44,13 @@ export async function GET(req: NextRequest) {
     return htmlResponse('שגיאה', 'ההזמנה לא נמצאה.', false);
   }
 
+  const src = req.nextUrl.searchParams.get('src');
+
   // Already processed - idempotent
   if (request.payment_status === 'card_captured' || request.payment_status === 'paid') {
+    if (src === 'wizard') {
+      return NextResponse.redirect(`${APP_BASE_URL}/dating/order?payment=success`, 303);
+    }
     return htmlResponse('הצלחה', 'התשלום התקבל בהצלחה!', true);
   }
 
@@ -97,6 +103,14 @@ export async function GET(req: NextRequest) {
     } else {
       logger.info('[PAYMENT_CALLBACK] Payment completed', { rid });
     }
+  }
+
+  // Wizard flow: redirect back to the order page with success param
+  if (src === 'wizard') {
+    return NextResponse.redirect(
+      `${APP_BASE_URL}/dating/order?payment=${verified ? 'success' : 'error'}`,
+      303,
+    );
   }
 
   return htmlResponse(

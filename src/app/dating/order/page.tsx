@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import Wizard from '../_components/wizard/Wizard';
 
@@ -10,5 +11,9 @@ export const metadata: Metadata = {
 };
 
 export default function OrderPage() {
-  return <Wizard />;
+  return (
+    <Suspense>
+      <Wizard />
+    </Suspense>
+  );
 }

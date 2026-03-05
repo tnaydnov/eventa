@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -93,8 +94,19 @@ export default function Wizard() {
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [paymentSkipped, setPaymentSkipped] = useState(false);
+
+  const searchParams = useSearchParams();
+
+  // Detect return from payment redirect
+  useEffect(() => {
+    const payment = searchParams.get('payment');
+    if (payment === 'success') {
+      setSuccess(true);
+      // Clean the URL without reload
+      window.history.replaceState({}, '', '/dating/order');
+    }
+  }, [searchParams]);
 
   const totalSteps = WIZARD_STEPS.length;
 
@@ -190,12 +202,12 @@ export default function Wizard() {
           if (sessionRes.ok) {
             const sessionData = await sessionRes.json();
             if (sessionData.paymentUrl) {
-              setPaymentUrl(sessionData.paymentUrl);
-              setSending(false);
-              return; // Don't show success yet - wait for payment
+              // Redirect to external payment page
+              window.location.href = sessionData.paymentUrl;
+              return; // User will be redirected back after payment
             }
           }
-          // Payment session failed - order was saved, but card wasn't captured
+          // Payment session failed - order was saved, payment can be done later
           setPaymentSkipped(true);
         } catch {
           // If clearing session fails, fall back to success (order was saved)
@@ -211,21 +223,6 @@ export default function Wizard() {
     }
   }, [step, state]);
 
-  // Listen for payment completion message from iframe
-  useEffect(() => {
-    if (!paymentUrl) return;
-
-    function handleMessage(event: MessageEvent) {
-      if (event.data?.type === 'eventa-payment-complete') {
-        setPaymentUrl(null);
-        setSuccess(true);
-      }
-    }
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [paymentUrl]);
-
   // Whether the current step's "next" should be enabled
   const isLastStep = step === totalSteps - 1;
 
@@ -234,59 +231,6 @@ export default function Wizard() {
     () => (step / (totalSteps - 1)) * 100,
     [step, totalSteps]
   );
-
-  // ── Payment iframe screen ──
-  if (paymentUrl) {
-    return (
-      <div className="wiz-page" dir="rtl">
-        <div className="wiz-ambient" />
-        <div className="wiz-particles">
-          {PARTICLES.map(p => (
-            <span
-              key={p.id}
-              className="wiz-particle"
-              style={{
-                left: p.left,
-                bottom: p.bottom,
-                width: p.width,
-                height: p.height,
-                animationDelay: p.delay,
-                animationDuration: p.duration,
-                opacity: p.opacity,
-              }}
-            />
-          ))}
-        </div>
-        <div className="wiz-payment">
-          <div className="wiz-payment__header">
-            <WizardIcon name="lock" size={28} />
-            <h2 className="wiz-payment__title">תשלום מאובטח</h2>
-            <p className="wiz-payment__subtitle">
-              הזינו את פרטי הכרטיס לביצוע התשלום.
-            </p>
-          </div>
-          <div className="wiz-payment__iframe-wrap">
-            <iframe
-              src={paymentUrl}
-              title="תשלום מאובטח"
-              className="wiz-payment__iframe"
-              sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-top-navigation"
-            />
-          </div>
-          <button
-            type="button"
-            className="wiz-payment__cancel"
-            onClick={() => {
-              setPaymentUrl(null);
-              setSuccess(true);
-            }}
-          >
-            אשלים תשלום מאוחר יותר
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   // ── Success screen ──
   if (success) {
