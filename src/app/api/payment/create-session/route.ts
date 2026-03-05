@@ -19,7 +19,7 @@ import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 const sessionSchema = z.object({
   contactName: z.string().min(1).max(ORDER_NAME_MAX_LENGTH),
   contactPhone: z.string().min(1).max(ORDER_PHONE_MAX_LENGTH),
-  contactEmail: z.string().max(ORDER_EMAIL_MAX_LENGTH).email(),
+  contactEmail: z.string().max(ORDER_EMAIL_MAX_LENGTH).email().optional().or(z.literal('')),
   eventType: z.string().min(1).max(50),
   eventName: z.string().max(100).optional().default(''),
   startsAt: z.string().max(30),
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
     const result = await createClearingSession({
       fullName: d.contactName,
       phone: d.contactPhone,
-      email: d.contactEmail,
+      email: d.contactEmail || d.contactName,
       sum: totalShekel,
       description,
       orderId: requestId,
@@ -139,8 +139,24 @@ export async function POST(req: NextRequest) {
       docItemQuantities: itemQuantities,
     });
 
-    if (!result.success || !result.data) {
-      logger.error('[PAYMENT] Failed to create clearing session', { error: result.error });
+    // If manual items caused an error, retry without them
+    const finalResult = (result.success && result.data)
+      ? result
+      : await createClearingSession({
+          fullName: d.contactName,
+          phone: d.contactPhone,
+          email: d.contactEmail || d.contactName,
+          sum: totalShekel,
+          description,
+          orderId: requestId,
+          returnUrl,
+          cancelUrl,
+          tokenOnly: false,
+          language: 'he',
+        });
+
+    if (!finalResult.success || !finalResult.data) {
+      logger.error('[PAYMENT] Failed to create clearing session', { error: finalResult.error });
       // Clean up the draft order
       await supabase.from('event_requests').delete().eq('id', requestId);
       return NextResponse.json({ error: 'Payment session creation failed' }, { status: 502 });
@@ -150,18 +166,18 @@ export async function POST(req: NextRequest) {
     await supabase
       .from('event_requests')
       .update({
-        clearing_log_id: result.data.clearingLogId,
-        clearing_payment_id: result.data.paymentId,
-        clearing_trace_id: result.data.clearingTraceId,
-        invoice4u_customer_id: result.data.customerId,
+        clearing_log_id: finalResult.data.clearingLogId,
+        clearing_payment_id: finalResult.data.paymentId,
+        clearing_trace_id: finalResult.data.clearingTraceId,
+        invoice4u_customer_id: finalResult.data.customerId,
       })
       .eq('id', requestId);
 
-    logger.info('[PAYMENT] Clearing session created', { requestId, paymentId: result.data.paymentId });
+    logger.info('[PAYMENT] Clearing session created', { requestId, paymentId: finalResult.data.paymentId });
 
     return NextResponse.json({
       success: true,
-      paymentUrl: result.data.clearingRedirectUrl,
+      paymentUrl: finalResult.data.clearingRedirectUrl,
     });
   } catch (err) {
     logger.error('[PAYMENT] create-session error', err);

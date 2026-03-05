@@ -829,6 +829,7 @@ export async function createClearingSession(
       request.DocItemName = params.docItemNames;
       request.DocItemQuantity = params.docItemQuantities || '1';
       request.DocItemPrice = params.docItemPrices;
+      request.DocItemTaxRate = String(VAT_RATE * 100);
       request.IsItemsBase64Encoded = 'false';
     }
 

@@ -76,6 +76,9 @@ function validateStep(step: number, state: WizardFormState): string | null {
       if (!/^[\d\s+\-()]{7,}$/.test(state.contactPhone.trim())) {
         return 'מספר טלפון לא תקין';
       }
+      if (state.contactPreference === 'pay-now' && !state.contactEmail?.trim()) {
+        return 'יש למלא כתובת אימייל לקבלת קבלה ופרטי אירוע';
+      }
       if (state.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.contactEmail)) {
         return 'כתובת אימייל לא תקינה';
       }
