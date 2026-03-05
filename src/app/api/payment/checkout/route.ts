@@ -3,6 +3,8 @@ import { getServiceClient } from '@/lib/supabase';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { escapeHtml } from '@/lib/email-templates';
+import { createClearingSession, isConfigured } from '@/lib/invoice4u';
+import { APP_BASE_URL, BASE_PRICE, MSG_ADDON } from '@/lib/config';
 
 const PAYMENT_PROVIDER_LIVE = process.env.PAYMENT_PROVIDER_LIVE === 'true';
 
@@ -93,13 +95,69 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // ── Live mode: redirect to payment provider ──
-    // TODO: Build payment provider redirect URL with token, amount, callback
-    // For now, return a placeholder
-    return NextResponse.json({
-      message: 'Redirect to payment provider would happen here',
-      requestId: request.id,
-      totalPrice: request.total_price,
+    // ── Live mode: create clearing session and show payment page ──
+    if (!isConfigured()) {
+      logger.warn('[PAYMENT_CHECKOUT] Invoice4U not configured');
+      return NextResponse.json({ error: 'Payment provider not configured' }, { status: 503 });
+    }
+
+    // Calculate amount in shekel
+    const totalShekel = request.total_price
+      ? Math.round(request.total_price / 100)   // total_price is stored in agorot
+      : BASE_PRICE;                              // fallback
+
+    // Build callback URL
+    const returnUrl = `${APP_BASE_URL}/api/payment/callback?rid=${request.id}`;
+
+    // Create clearing session for card tokenisation
+    const description = request.event_name
+      ? `Eventa - ${request.event_name}`
+      : 'Eventa - חבילת אירוע';
+
+    const result = await createClearingSession({
+      fullName: request.contact_name || 'לקוח',
+      phone: '',                             // phone not stored on lookup
+      email: '',
+      sum: totalShekel,
+      description,
+      orderId: request.id,
+      returnUrl,
+      tokenOnly: true,
+      language: 'he',
+    });
+
+    if (!result.success || !result.data) {
+      logger.error('[PAYMENT_CHECKOUT] Failed to create clearing session', { error: result.error });
+      return new NextResponse(buildHtmlPage(
+        'שגיאה',
+        'לא ניתן ליצור מפגש תשלום. אנא נסו שוב מאוחר יותר או צרו קשר.',
+      ), { status: 502, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+    }
+
+    // Save clearing IDs on the event request
+    const { error: updateErr } = await supabase
+      .from('event_requests')
+      .update({
+        payment_status: 'awaiting_payment',
+        clearing_log_id: result.data.clearingLogId,
+        clearing_payment_id: result.data.paymentId,
+        clearing_trace_id: result.data.clearingTraceId,
+        invoice4u_customer_id: result.data.customerId,
+      })
+      .eq('id', request.id);
+
+    if (updateErr) {
+      logger.error('[PAYMENT_CHECKOUT] Failed to save clearing IDs', { error: updateErr.message });
+    }
+
+    // Return an HTML page with the Invoice4U iframe
+    return new NextResponse(buildPaymentPage(
+      request.contact_name || '',
+      totalShekel,
+      result.data.clearingRedirectUrl,
+    ), {
+      status: 200,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
     });
   } catch (err) {
     logger.error('[PAYMENT_CHECKOUT] Error', { error: err instanceof Error ? err.message : String(err) });
@@ -153,6 +211,91 @@ function buildHtmlPage(title: string, message: string): string {
     <h1>${escapeHtml(title)}</h1>
     <p>${escapeHtml(message)}</p>
     <a href="https://eventa.productions">חזרה לאתר Eventa</a>
+  </div>
+</body>
+</html>`;
+}
+
+/**
+ * Build an HTML page with the Invoice4U payment iframe embedded.
+ */
+function buildPaymentPage(contactName: string, amountShekel: number, iframeUrl: string): string {
+  const safeName = escapeHtml(contactName);
+  const safeUrl = escapeHtml(iframeUrl);
+
+  return `<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>תשלום מאובטח | Eventa</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      max-width: 500px;
+    }
+    .header h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .header p { color: #a0a0a0; font-size: 0.95rem; }
+    .amount {
+      display: inline-block;
+      background: rgba(192, 132, 252, 0.15);
+      color: #c084fc;
+      padding: 0.35rem 1rem;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0.75rem 0;
+    }
+    .iframe-container {
+      width: 100%;
+      max-width: 500px;
+      background: #1a1a2e;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      overflow: hidden;
+      flex: 1;
+      min-height: 500px;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 500px;
+      border: none;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      color: #666;
+      font-size: 0.8rem;
+    }
+    .footer a { color: #c084fc; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>תשלום מאובטח</h1>
+    ${safeName ? `<p>שלום ${safeName},</p>` : ''}
+    <div class="amount">₪${amountShekel}</div>
+    <p>הזינו את פרטי כרטיס האשראי שלכם למטה</p>
+  </div>
+  <div class="iframe-container">
+    <iframe src="${safeUrl}" allow="payment" sandbox="allow-scripts allow-forms allow-same-origin allow-top-navigation"></iframe>
+  </div>
+  <div class="footer">
+    <p>התשלום מעובד באופן מאובטח דרך Invoice4U</p>
+    <p><a href="https://eventa.productions">חזרה לאתר Eventa</a></p>
   </div>
 </body>
 </html>`;

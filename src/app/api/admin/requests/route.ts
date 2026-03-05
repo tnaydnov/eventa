@@ -12,7 +12,7 @@ import {
   escapeHtml,
 } from '@/lib/email-templates';
 import { generatePrettySlug } from '@/lib/slug';
-import { chargeWithToken } from '@/lib/invoice4u';
+import { chargeWithToken, createDocument, DocumentType, PaymentType, getOrCreateCustomer, PAYMENT_METHOD_TO_INVOICE4U } from '@/lib/invoice4u';
 import { evictEventStatusCache } from '@/lib/route-helpers';
 import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
 
@@ -128,7 +128,14 @@ export async function POST(req: NextRequest) {
           sum: totalShekel,
           description: `Eventa - ${request.event_name || request.event_type}`,
           createDocument: true,
-          docHeadline: `׳׳™׳¨׳•׳¢: ${request.event_name || request.event_type}`,
+          docHeadline: `אירוע: ${request.event_name || request.event_type}`,
+          docItemNames: request.wants_guest_messages
+            ? `חבילת אירוע Eventa|תוסף הודעות אורחים`
+            : `חבילת אירוע Eventa`,
+          docItemQuantities: request.wants_guest_messages ? '1|1' : '1',
+          docItemPrices: request.wants_guest_messages
+            ? `${BASE_PRICE}|${MSG_ADDON}`
+            : `${BASE_PRICE}`,
         });
 
         if (!chargeResult.success) {
@@ -350,22 +357,22 @@ export async function POST(req: NextRequest) {
           const safeEmail = escapeHtml(request.contact_email || '');
           const safeEvent = escapeHtml(eventName);
 
-          const adminSubject = `׳—׳™׳•׳‘ ׳‘׳•׳¦׳¢ - ${eventName} (ג‚×${totalShekel})`;
+          const adminSubject = `חיוב בוצע - ${eventName} (₪${totalShekel})`;
           const adminHtml =
             `<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"></head>` +
             `<body style="margin:0;padding:20px;background:#f5f3f0;font-family:Arial,sans-serif;">` +
             `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">` +
             `<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;">` +
             `<tr><td dir="rtl" style="text-align:right;padding:24px;background:#e8f5e9;border-radius:12px 12px 0 0;">` +
-            `<div style="font-size:16px;font-weight:700;color:#2e7d32;">׳—׳™׳•׳‘ ׳›׳¨׳˜׳™׳¡ ׳׳©׳¨׳׳™ ׳‘׳•׳¦׳¢ ׳‘׳”׳¦׳׳—׳”</div></td></tr>` +
+            `<div style="font-size:16px;font-weight:700;color:#2e7d32;">חיוב כרטיס אשראי בוצע בהצלחה</div></td></tr>` +
             `<tr><td dir="rtl" style="text-align:right;padding:20px 24px;font-size:14px;color:#1e1e1e;line-height:1.7;">` +
-            `<div><strong>׳׳§׳•׳—:</strong> ${safeName}</div>` +
-            `<div><strong>׳׳™׳™׳:</strong> ${safeEmail}</div>` +
-            `<div><strong>׳˜׳׳₪׳•׳:</strong> ${escapeHtml(request.contact_phone || '')}</div>` +
-            `<div><strong>׳׳™׳¨׳•׳¢:</strong> ${safeEvent}</div>` +
-            `<div><strong>׳¡׳›׳•׳:</strong> ג‚×${totalShekel}</div>` +
-            `<div><strong>׳‘׳§׳©׳”:</strong> ${requestId}</div>` +
-            `<div><strong>׳׳™׳¨׳•׳¢:</strong> ${newEvent.id}</div>` +
+            `<div><strong>לקוח:</strong> ${safeName}</div>` +
+            `<div><strong>אימייל:</strong> ${safeEmail}</div>` +
+            `<div><strong>טלפון:</strong> ${escapeHtml(request.contact_phone || '')}</div>` +
+            `<div><strong>אירוע:</strong> ${safeEvent}</div>` +
+            `<div><strong>סכום:</strong> ₪${totalShekel}</div>` +
+            `<div><strong>בקשה:</strong> ${requestId}</div>` +
+            `<div><strong>אירוע:</strong> ${newEvent.id}</div>` +
             `</td></tr></table></td></tr></table></body></html>`;
 
           await getMailTransporter().sendMail({
@@ -417,7 +424,7 @@ export async function PATCH(req: NextRequest) {
     const supabase = getServiceClient();
     const { data: request, error: fetchErr } = await supabase
       .from('event_requests')
-      .select('id, payment_status, contact_email, contact_name, event_type, event_name, starts_at, ends_at, wants_custom_background, poster_choice, selected_template_id, special_requests, wants_guest_messages, total_price, payment_link_token')
+      .select('id, payment_status, contact_email, contact_name, contact_phone, event_type, event_name, starts_at, ends_at, wants_custom_background, poster_choice, selected_template_id, special_requests, wants_guest_messages, total_price, payment_link_token')
       .eq('id', requestId)
       .maybeSingle();
 
@@ -444,6 +451,60 @@ export async function PATCH(req: NextRequest) {
       if (updateErr) {
         logger.error('[ADMIN_REQUESTS_PATCH] mark_paid error:', updateErr.message);
         return jsonError('Failed to update payment status', 500);
+      }
+
+      // Create Invoice4U invoice-receipt document (non-blocking)
+      try {
+        const totalShekel = request.total_price
+          ? Math.round(request.total_price / 100)
+          : (BASE_PRICE + (request.wants_guest_messages ? MSG_ADDON : 0));
+
+        const items = [
+          { Name: 'חבילת אירוע Eventa', Price: BASE_PRICE, Quantity: 1 },
+        ];
+        if (request.wants_guest_messages) {
+          items.push({ Name: 'תוסף הודעות אורחים', Price: MSG_ADDON, Quantity: 1 });
+        }
+
+        const i4uPaymentType = PAYMENT_METHOD_TO_INVOICE4U[method] || PaymentType.Other;
+
+        const customerResult = await getOrCreateCustomer({
+          Name: request.contact_name || 'לקוח Eventa',
+          Phone: request.contact_phone || undefined,
+          Email: request.contact_email || undefined,
+        });
+
+        const docResult = await createDocument({
+          docType: DocumentType.InvoiceReceipt,
+          customer: {
+            ID: customerResult.success ? customerResult.data : undefined,
+            Name: request.contact_name || 'לקוח Eventa',
+            Phone: request.contact_phone || undefined,
+            Email: request.contact_email || undefined,
+          },
+          items,
+          payments: [{
+            PaymentType: i4uPaymentType,
+            Amount: totalShekel,
+          }],
+          subject: `אירוע: ${request.event_name || request.event_type || 'אירוע'}`,
+          sendByEmail: !!request.contact_email,
+        });
+
+        if (docResult.success) {
+          logger.info('[ADMIN_REQUESTS_PATCH] Invoice created', {
+            requestId,
+            docId: docResult.data?.DocumentID,
+            docNumber: docResult.data?.DocumentNumber,
+          });
+        } else {
+          logger.warn('[ADMIN_REQUESTS_PATCH] Invoice creation failed (non-fatal)', {
+            requestId,
+            error: docResult.error,
+          });
+        }
+      } catch (invoiceErr) {
+        logger.warn('[ADMIN_REQUESTS_PATCH] Invoice error (non-fatal):', invoiceErr);
       }
 
       adminAuditLog('PAYMENT_MARK_PAID', { requestId, method }, req);
