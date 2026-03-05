@@ -12,15 +12,12 @@ import {
   ORDER_EMAIL_MAX_LENGTH,
   calculateTotalPrice,
   PAYMENT_LINK_EXPIRY_DAYS,
-  BASE_PRICE,
-  MSG_ADDON,
   APP_BASE_URL,
 } from '@/lib/config';
 import {
   buildAdminPayNowNotification,
   buildAdminCallMeBackNotification,
   buildAdminContactOnlyNotification,
-  buildClientPayNowEmail,
   buildClientCallMeBackEmail,
   buildClientPaymentLinkEmail,
 } from '@/lib/email-templates';
@@ -111,9 +108,7 @@ export async function POST(request: NextRequest) {
 
       // Determine initial payment status based on contact preference
       let paymentStatus: string;
-      if (contactPref === 'pay-now') {
-        paymentStatus = 'awaiting_payment';
-      } else if (contactPref === 'send-link') {
+      if (contactPref === 'send-link') {
         paymentStatus = 'payment_link_sent';
       } else {
         paymentStatus = 'pending_payment';
@@ -232,13 +227,7 @@ export async function POST(request: NextRequest) {
             contactName,
             paymentUrl: `${baseUrl}/api/payment/checkout?token=${paymentLinkToken}`,
           });
-        } else if (contactPref === 'pay-now') {
-          // Client paid directly - confirmation email
-          clientEmail = buildClientPayNowEmail({
-            ...eventFormData,
-            contactName,
-          });
-        } else {
+        } else if (contactPref === 'call-me') {
           // Client chose "call me back"
           clientEmail = buildClientCallMeBackEmail({
             ...eventFormData,
@@ -263,15 +252,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // ── 4. For pay-now flow, return requestId so frontend can create clearing session ──
-    const totalShekel = (BASE_PRICE + (wantsMessages ? MSG_ADDON : 0));
+    // ── 4. Return success ──
     const responseData: Record<string, unknown> = { success: true };
-
-    if (isWizard && contactPref === 'pay-now' && requestId) {
-      responseData.requestId = requestId;
-      responseData.totalPriceShekel = totalShekel;
-      responseData.payNow = true;
-    }
 
     logger.info('Order processed', {
       eventType,

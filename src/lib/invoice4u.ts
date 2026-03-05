@@ -653,12 +653,22 @@ export interface ClearingSessionParams {
   orderId?: string;
   /** URL the iframe redirects to after completion. */
   returnUrl: string;
+  /** URL to redirect on cancel/back (optional). */
+  cancelUrl?: string;
   /** Whether to tokenise only (true) or tokenise + charge immediately. */
   tokenOnly?: boolean;
   /** Clearing company override (leave undefined to use account default). */
   clearingCompany?: ClearingCompany;
   /** Document language - 'he' (default) or 'en'. */
   language?: 'he' | 'en';
+  /** Manual item breakdown - names separated by |. */
+  docItemNames?: string;
+  /** Manual item breakdown - quantities separated by |. */
+  docItemQuantities?: string;
+  /** Manual item breakdown - prices separated by |. */
+  docItemPrices?: string;
+  /** Document headline / subject. */
+  docHeadline?: string;
 }
 
 export interface ClearingSessionResult {
@@ -780,6 +790,7 @@ export async function createClearingSession(
 ): Promise<Invoice4UResult<ClearingSessionResult>> {
   try {
     const tokenOnly = params.tokenOnly ?? false;
+    const isManual = !!(params.docItemNames && params.docItemPrices);
 
     const request: Record<string, unknown> = {
       Invoice4UUserApiKey: API_TOKEN,
@@ -803,8 +814,23 @@ export async function createClearingSession(
       IsStandingOrderClearance: 'false',
       StandingOrderDuration: '0',
       DocLanguage: params.language || 'he',
-      IsManualDocCreationsWithParams: 'false',
+      IsManualDocCreationsWithParams: isManual ? 'true' : 'false',
     };
+
+    if (params.cancelUrl) {
+      request.CancelUrl = params.cancelUrl;
+    }
+
+    if (params.docHeadline) {
+      request.DocHeadline = params.docHeadline;
+    }
+
+    if (isManual) {
+      request.DocItemName = params.docItemNames;
+      request.DocItemQuantity = params.docItemQuantities || '1';
+      request.DocItemPrice = params.docItemPrices;
+      request.IsItemsBase64Encoded = 'false';
+    }
 
     if (params.clearingCompany) {
       request.CreditCardCompanyType = String(params.clearingCompany);

@@ -1,92 +1,153 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
+import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { getServiceClient } from '@/lib/supabase';
 import { createClearingSession, isConfigured } from '@/lib/invoice4u';
-import { APP_BASE_URL } from '@/lib/config';
+import {
+  APP_BASE_URL,
+  BASE_PRICE,
+  MSG_ADDON,
+  PAYMENT_LINK_EXPIRY_DAYS,
+  ORDER_NAME_MAX_LENGTH,
+  ORDER_PHONE_MAX_LENGTH,
+  ORDER_EMAIL_MAX_LENGTH,
+} from '@/lib/config';
 import { checkCsrf } from '@/lib/session';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+
+const sessionSchema = z.object({
+  contactName: z.string().min(1).max(ORDER_NAME_MAX_LENGTH),
+  contactPhone: z.string().min(1).max(ORDER_PHONE_MAX_LENGTH),
+  contactEmail: z.string().max(ORDER_EMAIL_MAX_LENGTH).email(),
+  eventType: z.string().min(1).max(50),
+  eventName: z.string().max(100).optional().default(''),
+  startsAt: z.string().max(30),
+  endsAt: z.string().max(30),
+  wantsCustomBackground: z.boolean().optional().default(false),
+  backgroundBase64: z.string().max(5_242_880).optional().nullable(),
+  posterChoice: z.enum(['template', 'qr-only']).optional().default('qr-only'),
+  selectedTemplateId: z.string().max(100).optional().nullable(),
+  specialRequests: z.string().max(500).optional().default(''),
+  wantsGuestMessages: z.boolean().optional().default(false),
+});
 
 /**
  * POST /api/payment/create-session
  *
- * Creates an Invoice4U Clearing session for card tokenisation.
- * Returns a ClearingRedirectUrl to embed in an iframe.
- *
- * Body: { requestId, contactName, contactPhone, contactEmail, totalPriceShekel, eventName }
+ * Pay-now flow: saves a draft order + creates an Invoice4U clearing session.
+ * Payment is collected during clearing. On success the callback auto-creates
+ * the event and sends the approval email.
  */
 export async function POST(req: NextRequest) {
-  // CSRF check
   if (!checkCsrf(req)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  // Rate limit
   const ip = getClientIp(req.headers);
   const rl = checkRateLimit(`payment-session:${ip}`, RATE_LIMITS.strict);
   if (!rl.allowed) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
 
-  // Check Invoice4U is configured
   if (!isConfigured()) {
-    logger.warn('[PAYMENT] Invoice4U not configured - returning stub');
-    return NextResponse.json({
-      error: 'Payment provider not configured',
-      stub: true,
-    }, { status: 503 });
+    logger.warn('[PAYMENT] Invoice4U not configured');
+    return NextResponse.json({ error: 'Payment provider not configured', stub: true }, { status: 503 });
   }
 
   try {
     const body = await req.json();
-    const { requestId, contactName, contactPhone, contactEmail, totalPriceShekel, eventName } = body;
-
-    if (!requestId || !contactName || !contactPhone || !contactEmail || !totalPriceShekel) {
+    const parsed = sessionSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Verify the request exists and is in the right state
+    const d = parsed.data;
+    const wantsMessages = d.wantsGuestMessages;
+    const totalShekel = BASE_PRICE + (wantsMessages ? MSG_ADDON : 0);
+    const totalAgorot = totalShekel * 100;
+
+    // ── Save draft order to event_requests ──
     const supabase = getServiceClient();
-    const { data: request, error: fetchErr } = await supabase
+    const paymentLinkToken = crypto.randomUUID();
+    const paymentLinkExpiresAt = new Date(
+      Date.now() + PAYMENT_LINK_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
+    ).toISOString();
+
+    const { data: reqRow, error: dbErr } = await supabase
       .from('event_requests')
-      .select('id, payment_status')
-      .eq('id', requestId)
-      .maybeSingle();
+      .insert({
+        event_type: d.eventType,
+        event_name: d.eventName,
+        starts_at: d.startsAt,
+        ends_at: d.endsAt,
+        wants_custom_background: d.wantsCustomBackground,
+        background_base64: d.wantsCustomBackground ? d.backgroundBase64 : null,
+        poster_choice: d.posterChoice,
+        selected_template_id: d.selectedTemplateId || null,
+        special_requests: d.specialRequests || null,
+        wants_guest_messages: wantsMessages,
+        contact_preference: 'pay-now',
+        contact_name: d.contactName,
+        contact_phone: d.contactPhone,
+        contact_email: d.contactEmail,
+        payment_status: 'awaiting_payment',
+        total_price: totalAgorot,
+        payment_link_token: paymentLinkToken,
+        payment_link_expires_at: paymentLinkExpiresAt,
+      })
+      .select('id')
+      .single();
 
-    if (fetchErr || !request) {
-      return NextResponse.json({ error: 'Request not found' }, { status: 404 });
+    if (dbErr) {
+      logger.error('[PAYMENT] Failed to save draft order', { error: dbErr.message });
+      return NextResponse.json({ error: 'Failed to save order' }, { status: 500 });
     }
 
-    if (request.payment_status !== 'awaiting_payment') {
-      return NextResponse.json({ error: 'Invalid payment state' }, { status: 400 });
-    }
+    const requestId = reqRow.id;
 
-    // Build callback URL
+    // ── Create clearing session ──
     const returnUrl = `${APP_BASE_URL}/api/payment/callback?rid=${requestId}&src=wizard`;
+    const cancelUrl = `${APP_BASE_URL}/dating/order?payment=cancelled`;
 
-    // Create clearing session (direct charge - payment is collected immediately)
-    const description = eventName
-      ? `Eventa - ${eventName}`
+    const description = d.eventName
+      ? `Eventa - ${d.eventName}`
       : 'Eventa - חבילת אירוע';
 
+    const itemNames = wantsMessages
+      ? 'חבילת אירוע Eventa|שירות הודעות מוקדמות לאורחים'
+      : 'חבילת אירוע Eventa';
+    const itemPrices = wantsMessages
+      ? `${BASE_PRICE}|${MSG_ADDON}`
+      : `${BASE_PRICE}`;
+    const itemQuantities = wantsMessages ? '1|1' : '1';
+
     const result = await createClearingSession({
-      fullName: contactName,
-      phone: contactPhone,
-      email: contactEmail,
-      sum: totalPriceShekel,
+      fullName: d.contactName,
+      phone: d.contactPhone,
+      email: d.contactEmail,
+      sum: totalShekel,
       description,
       orderId: requestId,
       returnUrl,
+      cancelUrl,
       tokenOnly: false,
       language: 'he',
+      docHeadline: `אירוע: ${d.eventName || d.eventType}`,
+      docItemNames: itemNames,
+      docItemPrices: itemPrices,
+      docItemQuantities: itemQuantities,
     });
 
     if (!result.success || !result.data) {
       logger.error('[PAYMENT] Failed to create clearing session', { error: result.error });
+      // Clean up the draft order
+      await supabase.from('event_requests').delete().eq('id', requestId);
       return NextResponse.json({ error: 'Payment session creation failed' }, { status: 502 });
     }
 
-    // Save clearing IDs on the event request
-    const { error: updateErr } = await supabase
+    // Save clearing IDs on the draft order
+    await supabase
       .from('event_requests')
       .update({
         clearing_log_id: result.data.clearingLogId,
@@ -96,15 +157,7 @@ export async function POST(req: NextRequest) {
       })
       .eq('id', requestId);
 
-    if (updateErr) {
-      logger.error('[PAYMENT] Failed to save clearing IDs', { error: updateErr.message });
-      // Non-fatal - the session was created, customer can still pay
-    }
-
-    logger.info('[PAYMENT] Clearing session created', {
-      requestId,
-      paymentId: result.data.paymentId,
-    });
+    logger.info('[PAYMENT] Clearing session created', { requestId, paymentId: result.data.paymentId });
 
     return NextResponse.json({
       success: true,

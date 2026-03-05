@@ -103,7 +103,12 @@ export default function Wizard() {
     const payment = searchParams.get('payment');
     if (payment === 'success') {
       setSuccess(true);
-      // Clean the URL without reload
+      window.history.replaceState({}, '', '/dating/order');
+    } else if (payment === 'cancelled') {
+      setError('התשלום בוטל. ניתן לנסות שוב.');
+      window.history.replaceState({}, '', '/dating/order');
+    } else if (payment === 'error') {
+      setError('אירעה שגיאה בתשלום. ניתן לנסות שוב.');
       window.history.replaceState({}, '', '/dating/order');
     }
   }, [searchParams]);
@@ -149,14 +154,48 @@ export default function Wizard() {
     setError(null);
 
     try {
+      // ── Pay-now: go directly to payment (order created on success) ──
+      if (state.contactPreference === 'pay-now') {
+        const sessionRes = await fetch('/api/payment/create-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contactName: state.contactName,
+            contactPhone: state.contactPhone,
+            contactEmail: state.contactEmail,
+            eventType: state.eventType,
+            eventName: state.eventName,
+            startsAt: state.startsAt,
+            endsAt: state.endsAt,
+            wantsCustomBackground: state.wantsCustomBackground,
+            backgroundBase64: state.wantsCustomBackground ? state.backgroundBase64 : null,
+            posterChoice: state.posterChoice,
+            selectedTemplateId: state.selectedTemplateId,
+            specialRequests: state.specialRequests,
+            wantsGuestMessages: state.wantsGuestMessages,
+          }),
+        });
+
+        if (sessionRes.ok) {
+          const sessionData = await sessionRes.json();
+          if (sessionData.paymentUrl) {
+            window.location.href = sessionData.paymentUrl;
+            return; // User will be redirected back after payment
+          }
+        }
+        // Payment session failed — no order was created
+        setPaymentSkipped(true);
+        setSuccess(true);
+        return;
+      }
+
+      // ── Non-pay-now flows (call-me / send-link): save order via /api/order ──
       const payload = {
-        // Existing simple fields (backward-compatible)
         eventType: state.eventType,
         eventDate: state.startsAt.split('T')[0] || state.startsAt,
         contactName: state.contactName,
         contactPhone: state.contactPhone,
         contactEmail: state.contactEmail || '',
-        // Extended wizard fields
         eventName: state.eventName,
         startsAt: state.startsAt,
         endsAt: state.endsAt,
@@ -179,40 +218,6 @@ export default function Wizard() {
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || 'Failed');
-      }
-
-      const data = await res.json();
-
-      // If pay-now flow - create clearing session and show payment iframe
-      if (data.payNow && data.requestId) {
-        try {
-          const sessionRes = await fetch('/api/payment/create-session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              requestId: data.requestId,
-              contactName: state.contactName,
-              contactPhone: state.contactPhone,
-              contactEmail: state.contactEmail,
-              totalPriceShekel: data.totalPriceShekel,
-              eventName: state.eventName,
-            }),
-          });
-
-          if (sessionRes.ok) {
-            const sessionData = await sessionRes.json();
-            if (sessionData.paymentUrl) {
-              // Redirect to external payment page
-              window.location.href = sessionData.paymentUrl;
-              return; // User will be redirected back after payment
-            }
-          }
-          // Payment session failed - order was saved, payment can be done later
-          setPaymentSkipped(true);
-        } catch {
-          // If clearing session fails, fall back to success (order was saved)
-          setPaymentSkipped(true);
-        }
       }
 
       setSuccess(true);
@@ -266,12 +271,16 @@ export default function Wizard() {
               />
             </svg>
           </div>
-          <h2 className="wiz-success__title">ההזמנה נשלחה בהצלחה!</h2>
+          <h2 className="wiz-success__title">
+            {state.contactPreference === 'pay-now' && !paymentSkipped
+              ? 'ההזמנה אושרה והאירוע נוצר!'
+              : 'ההזמנה נשלחה בהצלחה!'}
+          </h2>
           <p className="wiz-success__text">
             {state.contactPreference === 'pay-now' && !paymentSkipped
-              ? 'התשלום התקבל בהצלחה! ההזמנה בבדיקה - נעדכן אתכם בהקדם.'
+              ? 'התשלום התקבל בהצלחה! האירוע שלכם מוכן - שלחנו אליכם מייל עם כל הפרטים וקבלה.'
               : state.contactPreference === 'pay-now' && paymentSkipped
-                ? 'ההזמנה נשמרה בהצלחה! לא הצלחנו לפתוח את דף התשלום - ניצור איתכם קשר להשלמת התשלום.'
+                ? 'לא הצלחנו לפתוח את דף התשלום. ניצור איתכם קשר להשלמת ההזמנה.'
                 : state.contactPreference === 'call-me'
                   ? 'קיבלנו את כל הפרטים ונחזור אליכם בהקדם. נפנה אליכם תוך 48 שעות.'
                   : 'קיבלנו את כל הפרטים ונחזור אליכם בהקדם.'}
@@ -405,7 +414,7 @@ export default function Wizard() {
             onClick={handleSubmit}
             disabled={sending}
           >
-            {sending ? 'שולח...' : 'שלחו הזמנה'}
+            {sending ? 'שולח...' : state.contactPreference === 'pay-now' ? 'מעבר לתשלום' : 'שלחו הזמנה'}
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
               <path d="M5 10h10M10 5l5 5-5 5" />
             </svg>
