@@ -76,7 +76,7 @@ const nextConfig = {
               `media-src 'self' blob: ${supabaseImg}`,
               `connect-src 'self' ${supabaseConnect}`,
               "worker-src 'self' blob:",
-              "frame-src 'self' https://*.creditguard.co.il https://*.cardcom.co.il https://*.yaadsarig.com https://*.meshulam.co.il https://*.upay.co.il https://*.invoice4u.co.il",
+              "frame-src 'self' https://*.creditguard.co.il https://*.cardcom.co.il https://*.cardcom.solutions https://*.yaadsarig.com https://*.meshulam.co.il https://*.upay.co.il https://*.invoice4u.co.il",
               "object-src 'none'",
               "frame-ancestors 'self'",
               "base-uri 'self'",
