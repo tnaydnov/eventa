@@ -339,13 +339,10 @@ export async function createDocument(params: CreateDocumentParams): Promise<Invo
     if (params.subject) doc.Subject = params.subject;
     if (params.comments) doc.Comments = params.comments;
 
-    // Email associations
-    const emails: Array<{ Mail: string; IsUserMail: boolean }> = [];
-    if (params.customer.Email) {
-      emails.push({ Mail: params.customer.Email, IsUserMail: false });
-    }
-    if (emails.length > 0) {
-      doc.AssociatedEmails = emails;
+    // Only attach customer email when sendByEmail is explicitly true;
+    // otherwise Invoice4U auto-sends its own receipt email.
+    if (params.sendByEmail && params.customer.Email) {
+      doc.AssociatedEmails = [{ Mail: params.customer.Email, IsUserMail: false }];
     }
 
     if (params.originalDocId) doc.OriginalDocumentID = params.originalDocId;
