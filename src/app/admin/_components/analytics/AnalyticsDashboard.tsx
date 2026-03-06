@@ -122,10 +122,21 @@ export default function AnalyticsDashboard({ analytics: raw }: Props) {
     usageByGenderAttraction: raw.usageByGenderAttraction ?? [],
     mutualAttractionMatrix: raw.mutualAttractionMatrix ?? [],
     mostPopular: raw.mostPopular ?? [],
-    firstLikeByGender: raw.firstLikeByGender ?? { men: 0, women: 0 },
-    funnel: raw.funnel ?? { joined: 0, setupProfile: 0, sentFirstLike: 0, gotMatch: 0, sentFirstMessage: 0, activeChatter: 0 },
-    funnelTiming: raw.funnelTiming ?? { avgJoinToFirstLikeMinutes: 0, avgFirstLikeToMatchMinutes: 0, avgMatchToFirstMessageMinutes: 0 },
-    photoImpact: raw.photoImpact ?? { avgLikesWithPhoto: 0, avgLikesWithoutPhoto: 0 },
+    firstLikeByGender: { men: raw.firstLikeByGender?.men ?? 0, women: raw.firstLikeByGender?.women ?? 0 },
+    funnel: {
+      joined: raw.funnel?.joined ?? 0,
+      setupProfile: raw.funnel?.setupProfile ?? 0,
+      sentFirstLike: raw.funnel?.sentFirstLike ?? 0,
+      gotMatch: raw.funnel?.gotMatch ?? 0,
+      sentFirstMessage: raw.funnel?.sentFirstMessage ?? 0,
+      activeChatter: raw.funnel?.activeChatter ?? 0,
+    },
+    funnelTiming: {
+      avgJoinToFirstLikeMinutes: raw.funnelTiming?.avgJoinToFirstLikeMinutes ?? 0,
+      avgFirstLikeToMatchMinutes: raw.funnelTiming?.avgFirstLikeToMatchMinutes ?? 0,
+      avgMatchToFirstMessageMinutes: raw.funnelTiming?.avgMatchToFirstMessageMinutes ?? 0,
+    },
+    photoImpact: { avgLikesWithPhoto: raw.photoImpact?.avgLikesWithPhoto ?? 0, avgLikesWithoutPhoto: raw.photoImpact?.avgLikesWithoutPhoto ?? 0 },
   };
 
   /* ── Derived metrics ── */
@@ -517,7 +528,7 @@ export default function AnalyticsDashboard({ analytics: raw }: Props) {
       )}
 
       {/* ════════════ Secondary: Photos · Blocks ════════════ */}
-      <div className="ad-grid-3">
+      <div className="ad-grid-2">
         <div className="ad-chart-card">
           <h4 className="ad-chart-card__title">📸 תמונות</h4>
           <div className="ad-stat-list">
