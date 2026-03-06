@@ -4,6 +4,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
 import { evictEventStatusCache } from '@/lib/route-helpers';
 import { adminAuditLog } from '@/lib/admin-auth';
+import { computeEventAnalytics } from '@/lib/compute-event-analytics';
 import { logger } from '@/lib/logger';
 
 /**
@@ -46,43 +47,14 @@ export async function POST(
     }
 
     // ── Step 1: Compute FULL analytics snapshot before purging ──
-    // We call the analytics endpoint internally to get the complete EventAnalytics object
     let snapshot: Record<string, unknown>;
 
     try {
-      const analyticsUrl = new URL(`/api/admin/events/${eventId}/analytics`, req.url);
-      // Forward admin cookie + cron auth (so cron-initiated archives get full analytics)
-      const fwdHeaders: Record<string, string> = {};
-      const cookie = req.headers.get('cookie');
-      const auth = req.headers.get('authorization');
-      if (cookie) fwdHeaders['cookie'] = cookie;
-      if (auth) fwdHeaders['authorization'] = auth;
-      const analyticsRes = await fetch(analyticsUrl.toString(), {
-        headers: fwdHeaders,
-        signal: AbortSignal.timeout(10_000),
-      });
-
-      if (analyticsRes.ok) {
-        snapshot = await analyticsRes.json();
-      } else {
-        // Fallback to basic counts if full analytics fails
-        const [pCount, lCount, cCount, mCount, bCount] = await Promise.all([
-          supabase.from('participants').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
-          supabase.from('likes').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
-          supabase.from('conversations').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
-          supabase.from('messages').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
-          supabase.from('blocks').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
-        ]);
-        snapshot = {
-          totalParticipants: pCount.count || 0,
-          totalLikes: lCount.count || 0,
-          totalConversations: cCount.count || 0,
-          totalMessages: mCount.count || 0,
-          totalBlocks: bCount.count || 0,
-        };
-      }
-    } catch {
-      // If internal fetch fails, do basic counts
+      const analytics = await computeEventAnalytics(supabase, eventId);
+      snapshot = analytics as unknown as Record<string, unknown>;
+    } catch (err) {
+      logger.error('[ARCHIVE] full analytics computation failed, falling back to basic counts:', err);
+      // Fallback to basic counts if full analytics fails
       const [pCount, lCount, cCount, mCount, bCount] = await Promise.all([
         supabase.from('participants').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
         supabase.from('likes').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
@@ -96,6 +68,7 @@ export async function POST(
         totalConversations: cCount.count || 0,
         totalMessages: mCount.count || 0,
         totalBlocks: bCount.count || 0,
+        _partial: true,
       };
     }
 

@@ -4,6 +4,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { RETENTION_DAYS, STORAGE_BATCH_SIZE } from '@/lib/constants';
 import { jsonError } from '@/lib/route-helpers';
+import { computeEventAnalytics } from '@/lib/compute-event-analytics';
 import { logger } from '@/lib/logger';
 import { cleanupExpiredOtps } from '@/lib/otp';
 
@@ -94,27 +95,13 @@ async function handler(req: NextRequest) {
         .maybeSingle();
 
       if (!existingSnap) {
-        // Try to get full analytics via the analytics API (forwarding cron auth)
-        let snapshot: Record<string, unknown> | null = null;
+        let snapshot: Record<string, unknown>;
 
         try {
-          const analyticsUrl = new URL(
-            `/api/admin/events/${eventId}/analytics`,
-            req.url
-          );
-          const res = await fetch(analyticsUrl.toString(), {
-            headers: { authorization: authHeader },
-            signal: AbortSignal.timeout(10_000),
-          });
-          if (res.ok) {
-            snapshot = await res.json();
-          }
-        } catch {
-          /* fallback below */
-        }
-
-        // Fallback: compute basic counts directly
-        if (!snapshot) {
+          const analytics = await computeEventAnalytics(supabase, eventId);
+          snapshot = analytics as unknown as Record<string, unknown>;
+        } catch (err) {
+          logger.error(`[CLEANUP] full analytics failed for ${eventId}, falling back to basic counts:`, err);
           const [pCount, lCount, cCount, mCount, bCount, phCount] =
             await Promise.all([
               supabase.from('participants').select('*', { count: 'exact', head: true }).eq('event_id', eventId),
@@ -131,7 +118,7 @@ async function handler(req: NextRequest) {
             totalMessages: mCount.count || 0,
             totalBlocks: bCount.count || 0,
             totalPhotosUploaded: phCount.count || 0,
-            _partial: true, // flag: this is a basic fallback, not full analytics
+            _partial: true,
           };
         }
 
