@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { BASE_PRICE } from '@/lib/config';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 
@@ -236,7 +237,7 @@ export default function LandingPage() {
               </svg>
             </div>
             <h3 className="quicklink-card__title">מחירון</h3>
-            <p className="quicklink-card__desc">תמחור שקוף - ₪250 לאירוע</p>
+            <p className="quicklink-card__desc">תמחור שקוף - ₪{BASE_PRICE} לאירוע</p>
             <span className="quicklink-card__arrow">&larr;</span>
           </a>
         </div>

@@ -32,6 +32,7 @@
  */
 
 import { EVENT_TYPE_LABELS } from '@/lib/constants';
+import { BASE_PRICE, MSG_ADDON } from '@/lib/config';
 
 /** Light logo (shown on dark backgrounds / dark mode). */
 const LOGO_LIGHT = 'https://www.eventa.productions/icons/Eventa_Logo.png';
@@ -366,8 +367,8 @@ function shell(title: string, inner: string, subtitle?: string): string {
 
 /** Build the price breakdown table shared by admin & client emails. */
 function priceBlock(wantsGuestMessages: boolean): string {
-  const base = 250;
-  const msgAddon = wantsGuestMessages ? 50 : 0;
+  const base = BASE_PRICE;
+  const msgAddon = wantsGuestMessages ? MSG_ADDON : 0;
   const total = base + msgAddon;
 
   return `
