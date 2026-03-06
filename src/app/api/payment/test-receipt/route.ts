@@ -109,8 +109,64 @@ export async function GET(req: NextRequest) {
     steps.step3_createDocument = { success: false, error: String(err) };
   }
 
-  // ── Step 5: Removed (was raw SOAP test - now using JSON REST) ──
-  steps.step5_note = 'SOAP replaced with JSON REST calls';
+  // ── Step 5: Raw diagnostic — call CreateDocument via fetch to see full error body ──
+  try {
+    const API_URL = process.env.INVOICE4U_API_URL || 'https://api.invoice4u.co.il/Services/ApiService.svc';
+    const API_TOKEN = process.env.INVOICE4U_API_TOKEN || '';
+    const now = Date.now();
+
+    const rawBody = {
+      token: API_TOKEN,
+      doc: {
+        DocumentType: 3,
+        Currency: 'ILS',
+        TaxIncluded: true,
+        TaxPercentage: 18,
+        RoundAmount: 0,
+        ClientID: customerId || 0,
+        Items: [{ Name: 'Test Item', Price: 1, Quantity: 1, Code: '' }],
+        Payments: [{ Amount: 1, Type: 1, Date: `/Date(${now})/` }],
+        Subject: 'Raw Diagnostic Test',
+        ApiIdentifier: `diag-${now}`,
+      },
+    };
+
+    const rawRes = await fetch(`${API_URL}/CreateDocument`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rawBody),
+    });
+
+    const rawText = await rawRes.text();
+    steps.step5_rawDiagnostic = {
+      httpStatus: rawRes.status,
+      headers: Object.fromEntries(rawRes.headers.entries()),
+      bodySent: rawBody,
+      responseBody: rawText.slice(0, 3000),
+    };
+  } catch (err) {
+    steps.step5_rawDiagnostic = { error: String(err) };
+  }
+
+  // ── Step 6: Raw IsAuthenticated diagnostic ──
+  try {
+    const API_URL = process.env.INVOICE4U_API_URL || 'https://api.invoice4u.co.il/Services/ApiService.svc';
+    const API_TOKEN = process.env.INVOICE4U_API_TOKEN || '';
+
+    const authRes = await fetch(`${API_URL}/IsAuthenticated`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: API_TOKEN }),
+    });
+
+    const authText = await authRes.text();
+    steps.step6_rawAuth = {
+      httpStatus: authRes.status,
+      responseBody: authText.slice(0, 1000),
+    };
+  } catch (err) {
+    steps.step6_rawAuth = { error: String(err) };
+  }
 
   return NextResponse.json(steps, { status: 200 });
 }

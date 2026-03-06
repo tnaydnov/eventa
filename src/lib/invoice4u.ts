@@ -142,6 +142,12 @@ export interface Invoice4UResult<T> {
    Responses are wrapped in { d: {...} } by WCF.
    ════════════════════════════════════════════════════════ */
 
+/** WCF DataContractJsonSerializer date format: /Date(ms)/ */
+function wcfDate(d?: Date | string): string {
+  const ms = d ? new Date(d).getTime() : Date.now();
+  return `/Date(${ms})/`;
+}
+
 async function apiJsonCall<T>(method: string, body: Record<string, unknown>): Promise<T> {
   if (!API_TOKEN) {
     throw new Error('INVOICE4U_API_TOKEN environment variable is not set');
@@ -157,7 +163,7 @@ async function apiJsonCall<T>(method: string, body: Record<string, unknown>): Pr
   if (!res.ok) {
     const text = await res.text();
     logger.error(`[Invoice4U] ${method} HTTP ${res.status}`, { body: text.slice(0, 500) });
-    throw new Error(`Invoice4U API error: ${res.status}`);
+    throw new Error(`Invoice4U API error: ${res.status} – ${text.slice(0, 300)}`);
   }
 
   const json = await res.json();
@@ -324,7 +330,7 @@ export async function createDocument(params: CreateDocumentParams): Promise<Invo
       doc.Payments = params.payments.map(p => ({
         Amount: p.Amount,
         Type: p.PaymentType,
-        Date: p.Date || new Date().toISOString(),
+        Date: wcfDate(p.Date),
       }));
     }
 
