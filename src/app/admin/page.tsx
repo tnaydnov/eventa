@@ -12,7 +12,6 @@ import CreateEventDialog, { type CreateEventData } from './_components/events/Cr
 import EventAnalyticsView from './_components/analytics/EventAnalyticsView';
 import GlobalAnalyticsView from './_components/analytics/GlobalAnalyticsView';
 import RequestsView from './_components/requests/RequestsView';
-import PaymentsView from './_components/payments/PaymentsView';
 import CalendarView from './_components/calendar/CalendarView';
 import QRDialog from './_components/QRDialog';
 import ParticipantsDialog from './_components/ParticipantsDialog';
@@ -263,14 +262,6 @@ export default function AdminPage() {
               />
             )}
 
-            {activeView === 'payments' && (
-              <PaymentsView
-                requests={admin.requests}
-                onMarkAsPaid={admin.markAsPaid}
-                onWaivePayment={admin.waivePayment}
-                onResendPaymentLink={admin.resendPaymentLink}
-              />
-            )}
           </div>
         </main>
       </div>

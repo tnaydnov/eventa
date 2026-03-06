@@ -63,7 +63,21 @@ interface Props {
   analytics: EventAnalytics;
 }
 
-export default function AnalyticsDashboard({ analytics: a }: Props) {
+export default function AnalyticsDashboard({ analytics: raw }: Props) {
+  /* ── Ensure all array/object fields have defaults (archived snapshots may be incomplete) ── */
+  const a: EventAnalytics = {
+    ...raw,
+    usageTimeline: raw.usageTimeline ?? [],
+    ageDistribution: raw.ageDistribution ?? [],
+    usageByGenderAttraction: raw.usageByGenderAttraction ?? [],
+    mutualAttractionMatrix: raw.mutualAttractionMatrix ?? [],
+    mostPopular: raw.mostPopular ?? [],
+    firstLikeByGender: raw.firstLikeByGender ?? { men: 0, women: 0 },
+    funnel: raw.funnel ?? { joined: 0, setupProfile: 0, sentFirstLike: 0, gotMatch: 0, sentFirstMessage: 0, activeChatter: 0 },
+    funnelTiming: raw.funnelTiming ?? { avgJoinToFirstLikeMinutes: 0, avgFirstLikeToMatchMinutes: 0, avgMatchToFirstMessageMinutes: 0 },
+    photoImpact: raw.photoImpact ?? { avgLikesWithPhoto: 0, avgLikesWithoutPhoto: 0 },
+  };
+
   /* ── Derived metrics ── */
   const peakUsers = a.usageTimeline.length > 0
     ? Math.max(...a.usageTimeline.map(u => u.totalOnline)) : 0;
