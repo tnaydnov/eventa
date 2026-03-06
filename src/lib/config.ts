@@ -125,10 +125,10 @@ export const PHONE_VERIFICATION_ENABLED =
 export const PAYMENT_PROVIDER_LIVE = process.env.PAYMENT_PROVIDER_LIVE === 'true';
 
 /** Base event package price in shekels. */
-export const BASE_PRICE = 1;   // TODO: restore to 250 after testing
+export const BASE_PRICE = 250;
 
 /** Guest messaging add-on price in shekels. */
-export const MSG_ADDON = 1;    // TODO: restore to 50 after testing
+export const MSG_ADDON = 50;
 
 /** Number of days a payment link stays valid before expiring. */
 export const PAYMENT_LINK_EXPIRY_DAYS = 7;

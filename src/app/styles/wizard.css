@@ -1700,7 +1700,25 @@
   color: var(--text-muted);
   max-width: 360px;
   line-height: 1.6;
+  margin: 0 0 16px;
+}
+
+.wiz-success__contact {
+  font-size: 13px;
+  color: var(--text-muted);
+  opacity: 0.7;
+  max-width: 360px;
+  line-height: 1.6;
   margin: 0 0 32px;
+}
+
+.wiz-success__link {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.wiz-success__link:hover {
+  text-decoration: underline;
 }
 
 .wiz-success__btn {

@@ -283,17 +283,23 @@ export default function Wizard() {
           </div>
           <h2 className="wiz-success__title">
             {state.contactPreference === 'pay-now' && !paymentSkipped
-              ? 'ההזמנה אושרה והאירוע נוצר!'
+              ? 'התשלום בוצע בהצלחה והאירוע נוצר!'
               : 'ההזמנה נשלחה בהצלחה!'}
           </h2>
           <p className="wiz-success__text">
             {state.contactPreference === 'pay-now' && !paymentSkipped
-              ? 'התשלום התקבל בהצלחה! האירוע שלכם מוכן - שלחנו אליכם מייל עם כל הפרטים וקבלה.'
+              ? 'האירוע שלכם נוצר במערכת! שלחנו לכם מייל עם חשבונית/קבלה והסבר מפורט על השלבים הבאים. לכל שאלה אנחנו כאן בשבילכם.'
               : state.contactPreference === 'pay-now' && paymentSkipped
                 ? 'לא הצלחנו לפתוח את דף התשלום. ניצור איתכם קשר להשלמת ההזמנה.'
                 : state.contactPreference === 'call-me'
                   ? 'קיבלנו את כל הפרטים ונחזור אליכם בהקדם. נפנה אליכם תוך 48 שעות.'
                   : 'קיבלנו את כל הפרטים ונחזור אליכם בהקדם.'}
+          </p>
+          <p className="wiz-success__contact">
+            לכל שאלה או בקשה — צרו קשר:
+            <a href="mailto:contact@eventa.productions" className="wiz-success__link">contact@eventa.productions</a>
+            {' · '}
+            <a href="https://wa.me/972543131682" className="wiz-success__link">WhatsApp</a>
           </p>
           <Link href="/dating" className="wiz-success__btn">
             חזרה לדף הראשי
