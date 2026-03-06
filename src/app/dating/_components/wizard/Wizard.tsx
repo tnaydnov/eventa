@@ -296,10 +296,8 @@ export default function Wizard() {
                   : 'קיבלנו את כל הפרטים ונחזור אליכם בהקדם.'}
           </p>
           <p className="wiz-success__contact">
-            לכל שאלה או בקשה — צרו קשר:
+            לכל שאלה או בקשה —{' '}
             <a href="mailto:contact@eventa.productions" className="wiz-success__link">contact@eventa.productions</a>
-            {' · '}
-            <a href="https://wa.me/972543131682" className="wiz-success__link">WhatsApp</a>
           </p>
           <Link href="/dating" className="wiz-success__btn">
             חזרה לדף הראשי
