@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import type { Event } from '@/lib/database.types';
+import { BASE_PRICE, MSG_ADDON } from '@/lib/config';
 
 interface EventServicesInfoProps {
   event: Event;
@@ -58,10 +59,8 @@ export default function EventServicesInfo({ event, onUpdateDetails }: EventServi
     }
   };
 
-  const basePrice = 250;
-  const messagingPrice = 50;
   const hasWa = event.wa_messages_enabled;
-  const total = basePrice + (hasWa ? messagingPrice : 0);
+  const total = BASE_PRICE + (hasWa ? MSG_ADDON : 0);
 
   const hasContact = event.client_name || event.client_email || event.client_phone;
 
@@ -72,12 +71,12 @@ export default function EventServicesInfo({ event, onUpdateDetails }: EventServi
         <div className="msg-status-grid">
           <div className="msg-status-item">
             <span className="msg-status-label">אירוע בסיסי</span>
-            <span className="msg-status-value">₪{basePrice}</span>
+            <span className="msg-status-value">₪{BASE_PRICE}</span>
           </div>
           <div className="msg-status-item">
             <span className="msg-status-label">הודעות WhatsApp</span>
             <span className="msg-status-value">
-              {hasWa ? `₪${messagingPrice} ✅` : '❌ לא נרכש'}
+              {hasWa ? `₪${MSG_ADDON} ✅` : '❌ לא נרכש'}
             </span>
           </div>
           <div className="msg-status-item">
