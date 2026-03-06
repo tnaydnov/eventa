@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { after } from 'next/server';
 import { logger } from '@/lib/logger';
 import { getServiceClient, generateJoinCode, generateShortCode } from '@/lib/supabase';
-import { getClearingLogById, createDocument, DocumentType, PaymentType, getOrCreateCustomer, isConfigured } from '@/lib/invoice4u';
+import { getClearingLogById, createDocument, getDocument, DocumentType, PaymentType, getOrCreateCustomer, isConfigured } from '@/lib/invoice4u';
 import { buildClientApprovalEmail, escapeHtml } from '@/lib/email-templates';
 import { generatePrettySlug } from '@/lib/slug';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
@@ -267,23 +267,37 @@ async function sendDocumentAndEmails(ctx: {
       sendByEmail: false,
     });
 
-    if (docResult.success && docResult.data?.DocumentURL) {
+    if (docResult.success && docResult.data) {
       pdfDocNumber = docResult.data.DocumentNumber || '';
+      let pdfUrl = docResult.data.DocumentURL;
 
-      // Small delay — Invoice4U may need a moment to generate the PDF
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      const pdfRes = await fetch(docResult.data.DocumentURL, { signal: AbortSignal.timeout(15_000) });
-      if (pdfRes.ok) {
-        const arrayBuf = await pdfRes.arrayBuffer();
-        pdfBuffer = Buffer.from(arrayBuf);
-      } else {
-        logger.warn('[PAYMENT_CALLBACK_AFTER] PDF fetch non-ok', { status: pdfRes.status });
+      // If no PDF URL in CreateDocument response, wait and try GetDocument
+      if (!pdfUrl && docResult.data.DocumentID) {
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        const fetched = await getDocument(docResult.data.DocumentID);
+        if (fetched.success && fetched.data?.DocumentURL) {
+          pdfUrl = fetched.data.DocumentURL;
+        }
       }
+
+      if (pdfUrl) {
+        // Small delay — Invoice4U may need a moment to generate the PDF
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        const pdfRes = await fetch(pdfUrl, { signal: AbortSignal.timeout(15_000) });
+        if (pdfRes.ok) {
+          const arrayBuf = await pdfRes.arrayBuffer();
+          pdfBuffer = Buffer.from(arrayBuf);
+        } else {
+          logger.warn('[PAYMENT_CALLBACK_AFTER] PDF fetch non-ok', { status: pdfRes.status });
+        }
+      }
+
       logger.info('[PAYMENT_CALLBACK_AFTER] Document created', {
         docId: docResult.data.DocumentID,
         docNumber: pdfDocNumber,
         hasPdf: !!pdfBuffer,
+        pdfUrl: pdfUrl || '(none)',
       });
     } else {
       logger.warn('[PAYMENT_CALLBACK_AFTER] createDocument failed', { error: docResult.error });

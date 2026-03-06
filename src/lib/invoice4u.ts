@@ -385,7 +385,7 @@ export async function createDocument(params: CreateDocumentParams): Promise<Invo
         CustomerName: params.customer.Name,
         CustomerEmail: params.customer.Email || '',
         Subject: params.subject || '',
-        DocumentURL: String(result.DocumentURL || result.URL || ''),
+        DocumentURL: String(result.PrintOriginalPDFLink || result.DocumentURL || result.URL || ''),
         Status: 'active',
       },
     };
@@ -431,7 +431,7 @@ export async function getDocument(docId: string): Promise<Invoice4UResult<Invoic
         CustomerName: String(result.ClientName || result.CustomerName || ''),
         CustomerEmail: String(result.CustomerEmail || ''),
         Subject: String(result.Subject || ''),
-        DocumentURL: String(result.DocumentURL || result.URL || ''),
+        DocumentURL: String(result.PrintOriginalPDFLink || result.DocumentURL || result.URL || ''),
         Status: 'active',
       },
     };

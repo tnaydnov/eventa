@@ -3,6 +3,7 @@ import {
   isAuthenticated,
   getOrCreateCustomer,
   createDocument,
+  getDocument,
   DocumentType,
   PaymentType,
 } from '@/lib/invoice4u';
@@ -76,12 +77,24 @@ export async function GET(req: NextRequest) {
     };
 
     // ── Step 4: Fetch PDF ──
-    if (docResult.success && docResult.data?.DocumentURL) {
+    let pdfUrl = docResult.data?.DocumentURL;
+
+    // If no URL from CreateDocument, try GetDocument after a delay
+    if (docResult.success && !pdfUrl && docResult.data?.DocumentID) {
+      await new Promise(r => setTimeout(r, 3000));
+      const fetched = await getDocument(docResult.data.DocumentID);
+      steps.step3b_getDocument = fetched;
+      if (fetched.success && fetched.data?.DocumentURL) {
+        pdfUrl = fetched.data.DocumentURL;
+      }
+    }
+
+    if (pdfUrl) {
       // Wait a bit for PDF generation
       await new Promise(r => setTimeout(r, 3000));
 
       try {
-        const pdfRes = await fetch(docResult.data.DocumentURL, {
+        const pdfRes = await fetch(pdfUrl, {
           signal: AbortSignal.timeout(15_000),
         });
         steps.step4_pdfFetch = {
@@ -125,7 +138,7 @@ export async function GET(req: NextRequest) {
         RoundAmount: 0,
         ClientID: customerId || 0,
         Items: [{ Name: 'Test Item', Price: 1, Quantity: 1, Code: '' }],
-        Payments: [{ Amount: 1, Type: 1, Date: `/Date(${now})/` }],
+        Payments: [{ Amount: 1, PaymentType: 1, Date: `/Date(${now})/` }],
         Subject: 'Raw Diagnostic Test',
         ApiIdentifier: `diag-${now}`,
       },
