@@ -5,7 +5,6 @@ import {
   createDocument,
   DocumentType,
   PaymentType,
-  soapCallRaw,
 } from '@/lib/invoice4u';
 import { BASE_PRICE, MSG_ADDON } from '@/lib/config';
 
@@ -110,46 +109,8 @@ export async function GET(req: NextRequest) {
     steps.step3_createDocument = { success: false, error: String(err) };
   }
 
-  // ── Step 5: Raw SOAP call to see full XML response ──
-  try {
-    const rawResult = await soapCallRaw('CreateDocument', `<CreateDocument xmlns="http://tempuri.org/">
-      <token>${process.env.INVOICE4U_API_TOKEN || ''}</token>
-      <doc xmlns:a="http://schemas.datacontract.org/2004/07/InvoiceAPI">
-        <a:DocumentType>3</a:DocumentType>
-        <a:Customer>
-          ${customerId ? `<a:ID>${customerId}</a:ID>` : ''}
-          <a:Name>Raw SOAP Test</a:Name>
-          <a:Phone>0500000000</a:Phone>
-          <a:Email>test@eventa.productions</a:Email>
-        </a:Customer>
-        <a:Items>
-          <a:DocumentItem>
-            <a:Name>Test Item</a:Name>
-            <a:Price>1</a:Price>
-            <a:Quantity>1</a:Quantity>
-            <a:CurrencyCode>ILS</a:CurrencyCode>
-          </a:DocumentItem>
-        </a:Items>
-        <a:PaymentInfoList>
-          <a:PaymentInfo>
-            <a:PaymentType>1</a:PaymentType>
-            <a:Amount>1</a:Amount>
-            <a:Date>${new Date().toISOString()}</a:Date>
-          </a:PaymentInfo>
-        </a:PaymentInfoList>
-        <a:Subject>Raw SOAP Test</a:Subject>
-        <a:SendByEmail>false</a:SendByEmail>
-      </doc>
-    </CreateDocument>`);
-
-    steps.step5_rawSoap = {
-      httpStatus: rawResult.status,
-      responseXml: rawResult.xml.slice(0, 2000),
-      sentEnvelope: rawResult.envelope.slice(0, 2000),
-    };
-  } catch (err) {
-    steps.step5_rawSoap = { error: String(err) };
-  }
+  // ── Step 5: Removed (was raw SOAP test - now using JSON REST) ──
+  steps.step5_note = 'SOAP replaced with JSON REST calls';
 
   return NextResponse.json(steps, { status: 200 });
 }

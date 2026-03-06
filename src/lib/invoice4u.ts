@@ -1,10 +1,10 @@
 /**
- * Invoice4U SOAP API Client
+ * Invoice4U API Client (JSON REST)
  * 
- * Communicates with Invoice4U's WCF/SOAP service for creating and managing
- * Israeli tax documents (invoices, receipts, credit notes, etc.).
+ * Communicates with Invoice4U's WCF service via JSON webHttpBinding endpoints
+ * for creating and managing Israeli tax documents (invoices, receipts, etc.).
  * 
- * Uses raw fetch + XML envelopes - no external SOAP library needed.
+ * All methods POST JSON to https://api.invoice4u.co.il/Services/ApiService.svc/{method}
  * 
  * Environment variables:
  *   INVOICE4U_API_TOKEN  - GUID token from Invoice4U Settings → API
@@ -135,116 +135,34 @@ export interface Invoice4UResult<T> {
 }
 
 /* ════════════════════════════════════════════════════════
-   SOAP Envelope Builder
+   JSON API Call Helper
+   ──────────────────────────────────────────────────────
+   All Invoice4U methods use the same WCF webHttpBinding
+   JSON endpoint: POST ${baseUrl}/${methodName} with JSON body.
+   Responses are wrapped in { d: {...} } by WCF.
    ════════════════════════════════════════════════════════ */
 
-const SOAP_NS = 'http://schemas.xmlsoap.org/soap/envelope/';
-const SERVICE_NS = 'http://tempuri.org/';
-const TYPES_NS = 'http://schemas.datacontract.org/2004/07/InvoiceAPI';
-const ARRAYS_NS = 'http://schemas.microsoft.com/2003/10/Serialization/Arrays';
-
-function buildSoapEnvelope(action: string, bodyXml: string): string {
-  return `<?xml version="1.0" encoding="utf-8"?>
-<s:Envelope xmlns:s="${SOAP_NS}">
-  <s:Header>
-    <Action s:mustUnderstand="1" xmlns="http://schemas.microsoft.com/ws/2005/05/addressing/none">${SERVICE_NS}IApiService/${action}</Action>
-  </s:Header>
-  <s:Body>
-    ${bodyXml}
-  </s:Body>
-</s:Envelope>`;
-}
-
-function escapeXml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-function formatDate(date?: string | Date): string {
-  const d = date ? new Date(date) : new Date();
-  return d.toISOString();
-}
-
-/* ════════════════════════════════════════════════════════
-   Core SOAP Call
-   ════════════════════════════════════════════════════════ */
-
-async function soapCall(action: string, bodyXml: string): Promise<string> {
+async function apiJsonCall<T>(method: string, body: Record<string, unknown>): Promise<T> {
   if (!API_TOKEN) {
     throw new Error('INVOICE4U_API_TOKEN environment variable is not set');
   }
 
-  const envelope = buildSoapEnvelope(action, bodyXml);
-
-  const response = await fetch(API_URL, {
+  const url = `${API_URL}/${method}`;
+  const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'text/xml; charset=utf-8',
-      'SOAPAction': `${SERVICE_NS}IApiService/${action}`,
-    },
-    body: envelope,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   });
 
-  if (!response.ok) {
-    const text = await response.text();
-    logger.error(`[Invoice4U] SOAP ${action} failed: ${response.status}`, { body: text.slice(0, 500) });
-    throw new Error(`Invoice4U API error: ${response.status} ${response.statusText}`);
+  if (!res.ok) {
+    const text = await res.text();
+    logger.error(`[Invoice4U] ${method} HTTP ${res.status}`, { body: text.slice(0, 500) });
+    throw new Error(`Invoice4U API error: ${res.status}`);
   }
 
-  return response.text();
-}
-
-/** Exposed for diagnostics — build + send a SOAP call and return raw XML. */
-export async function soapCallRaw(action: string, bodyXml: string): Promise<{ status: number; xml: string; envelope: string }> {
-  const envelope = buildSoapEnvelope(action, bodyXml);
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'text/xml; charset=utf-8',
-      'SOAPAction': `${SERVICE_NS}IApiService/${action}`,
-    },
-    body: envelope,
-  });
-  const xml = await response.text();
-  return { status: response.status, xml, envelope };
-}
-
-/* ════════════════════════════════════════════════════════
-   XML Parsing Helpers
-   ════════════════════════════════════════════════════════ */
-
-/** Extract text content from a simple XML tag */
-function extractTag(xml: string, tag: string): string {
-  // Handles both namespaced (a:Tag) and plain (Tag) tags
-  const patterns = [
-    new RegExp(`<(?:[a-z]:)?${tag}[^>]*>([^<]*)<\\/(?:[a-z]:)?${tag}>`, 'i'),
-    new RegExp(`<${tag}[^>]*>([^<]*)<\\/${tag}>`, 'i'),
-  ];
-  for (const re of patterns) {
-    const m = xml.match(re);
-    if (m) return m[1];
-  }
-  return '';
-}
-
-/** Extract boolean value from XML tag */
-function extractBool(xml: string, tag: string): boolean {
-  return extractTag(xml, tag).toLowerCase() === 'true';
-}
-
-/** Extract all occurrences of a repeating element */
-function extractAll(xml: string, tag: string): string[] {
-  const re = new RegExp(`<(?:[a-z]:)?${tag}[^>]*>([\\s\\S]*?)<\\/(?:[a-z]:)?${tag}>`, 'gi');
-  const results: string[] = [];
-  let m;
-  while ((m = re.exec(xml)) !== null) {
-    results.push(m[1]);
-  }
-  return results;
+  const json = await res.json();
+  // WCF JSON responses are wrapped in {"d": {...}} — unwrap automatically
+  return (json.d ?? json) as T;
 }
 
 /* ════════════════════════════════════════════════════════
@@ -256,11 +174,12 @@ function extractAll(xml: string, tag: string): string[] {
  */
 export async function isAuthenticated(): Promise<boolean> {
   try {
-    const body = `<IsAuthenticated xmlns="${SERVICE_NS}">
-      <token>${escapeXml(API_TOKEN)}</token>
-    </IsAuthenticated>`;
-    const xml = await soapCall('IsAuthenticated', body);
-    return extractBool(xml, 'IsAuthenticatedResult');
+    const data = await apiJsonCall<Record<string, unknown>>('IsAuthenticated', {
+      token: API_TOKEN,
+    });
+    // Response could be { IsAuthenticatedResult: true } or just a boolean
+    const result = data.IsAuthenticatedResult ?? data;
+    return result === true;
   } catch (err) {
     logger.error('[Invoice4U] IsAuthenticated failed', err);
     return false;
@@ -268,50 +187,79 @@ export async function isAuthenticated(): Promise<boolean> {
 }
 
 /**
- * Create or update a customer in Invoice4U.
+ * Create a customer in Invoice4U.
  */
 export async function createCustomer(customer: Invoice4UCustomer): Promise<Invoice4UResult<number>> {
   try {
-    const body = `<CreateOrUpdateCustomer xmlns="${SERVICE_NS}">
-      <token>${escapeXml(API_TOKEN)}</token>
-      <customer xmlns:a="${TYPES_NS}">
-        ${customer.ID ? `<a:ID>${customer.ID}</a:ID>` : ''}
-        <a:Name>${escapeXml(customer.Name)}</a:Name>
-        ${customer.Phone ? `<a:Phone>${escapeXml(customer.Phone)}</a:Phone>` : ''}
-        ${customer.Email ? `<a:Email>${escapeXml(customer.Email)}</a:Email>` : ''}
-        ${customer.City ? `<a:City>${escapeXml(customer.City)}</a:City>` : ''}
-        ${customer.VATId ? `<a:VATId>${escapeXml(customer.VATId)}</a:VATId>` : ''}
-      </customer>
-    </CreateOrUpdateCustomer>`;
-    const xml = await soapCall('CreateOrUpdateCustomer', body);
-    const id = parseInt(extractTag(xml, 'CreateOrUpdateCustomerResult'), 10);
-    if (id > 0) {
+    const cu: Record<string, unknown> = {
+      Name: customer.Name,
+      Active: true,
+    };
+    if (customer.Phone) cu.Phone = customer.Phone;
+    if (customer.Email) cu.Email = customer.Email;
+    if (customer.City) cu.City = customer.City;
+    if (customer.VATId) cu.UniqueID = customer.VATId;
+
+    const data = await apiJsonCall<Record<string, unknown>>('CreateCustomer', {
+      cu,
+      token: API_TOKEN,
+    });
+
+    // Response: { CreateCustomerResult: { Response: { ID: ... }, Errors: [] } } or direct
+    const result = (data.CreateCustomerResult ?? data) as Record<string, unknown>;
+    const errors = result.Errors as Array<Record<string, string>> | null;
+    if (errors && errors.length > 0) {
+      return { success: false, error: errors.map(e => JSON.stringify(e)).join('; ') };
+    }
+
+    // Extract customer ID from response
+    const response = result.Response as Record<string, unknown> | undefined;
+    const id = (response?.ID as number) || (result.ID as number) || (data.ID as number);
+    if (id && id > 0) {
       return { success: true, data: id };
     }
-    return { success: false, error: 'Failed to create customer - invalid response' };
+    return { success: false, error: 'Failed to create customer - no ID in response' };
   } catch (err) {
     return { success: false, error: String(err) };
   }
 }
 
 /**
- * Search for an existing customer by name or email.
+ * Search for existing customers by name.
  */
 export async function getCustomers(searchTerm: string): Promise<Invoice4UResult<Invoice4UCustomer[]>> {
   try {
-    const body = `<GetCustomers xmlns="${SERVICE_NS}">
-      <token>${escapeXml(API_TOKEN)}</token>
-      <searchText>${escapeXml(searchTerm)}</searchText>
-    </GetCustomers>`;
-    const xml = await soapCall('GetCustomers', body);
-    const customerElements = extractAll(xml, 'Customer');
-    const customers: Invoice4UCustomer[] = customerElements.map(cx => ({
-      ID: parseInt(extractTag(cx, 'ID'), 10) || undefined,
-      Name: extractTag(cx, 'Name'),
-      Phone: extractTag(cx, 'Phone') || undefined,
-      Email: extractTag(cx, 'Email') || undefined,
-      City: extractTag(cx, 'City') || undefined,
-      VATId: extractTag(cx, 'VATId') || undefined,
+    const data = await apiJsonCall<Record<string, unknown>>('GetCustomers', {
+      cust: { Name: searchTerm, Active: true },
+      token: API_TOKEN,
+    });
+
+    // Response: { GetCustomersResult: { Response: [...], Errors: [] } } or direct
+    const result = (data.GetCustomersResult ?? data) as Record<string, unknown>;
+    const errors = result.Errors as Array<Record<string, string>> | null;
+    if (errors && errors.length > 0) {
+      return { success: false, error: errors.map(e => JSON.stringify(e)).join('; ') };
+    }
+
+    const response = result.Response as Array<Record<string, unknown>> | Record<string, unknown> | null;
+    if (!response) return { success: true, data: [] };
+
+    // Response could be array or object with Customer property
+    let customerList: Array<Record<string, unknown>>;
+    if (Array.isArray(response)) {
+      customerList = response;
+    } else {
+      const inner = response.Customer;
+      customerList = Array.isArray(inner) ? inner as Array<Record<string, unknown>> : inner ? [inner as Record<string, unknown>] : [];
+    }
+
+    const customers: Invoice4UCustomer[] = customerList.map(c => ({
+      ID: (c.ID as number) || undefined,
+      Name: String(c.Name || ''),
+      Phone: c.Phone ? String(c.Phone) : undefined,
+      Email: c.Email ? String(c.Email) : undefined,
+      City: c.City ? String(c.City) : undefined,
+      VATId: c.UniqueID ? String(c.UniqueID) : undefined,
     }));
     return { success: true, data: customers };
   } catch (err) {
@@ -342,94 +290,78 @@ export async function getOrCreateCustomer(customer: Invoice4UCustomer): Promise<
  */
 export async function createDocument(params: CreateDocumentParams): Promise<Invoice4UResult<Invoice4UDocument>> {
   try {
-    // Build items XML
-    const itemsXml = params.items.map(item => `
-      <a:DocumentItem>
-        <a:Name>${escapeXml(item.Name)}</a:Name>
-        <a:Price>${item.Price}</a:Price>
-        <a:Quantity>${item.Quantity}</a:Quantity>
-        ${item.Description ? `<a:Description>${escapeXml(item.Description)}</a:Description>` : ''}
-        <a:CurrencyCode>${item.CurrencyCode || 'ILS'}</a:CurrencyCode>
-      </a:DocumentItem>
-    `).join('');
+    // Build items array
+    const items = params.items.map(item => ({
+      Name: item.Name,
+      Price: item.Price,
+      Quantity: item.Quantity,
+      Code: '',
+    }));
 
-    // Build payments XML (required for receipts, InvoiceReceipt)
-    let paymentsXml = '';
+    // Build doc object matching official API structure
+    const doc: Record<string, unknown> = {
+      DocumentType: params.docType,
+      Currency: 'ILS',
+      TaxIncluded: true,
+      TaxPercentage: VAT_RATE * 100,
+      RoundAmount: 0,
+      Items: items,
+      ApiIdentifier: crypto.randomUUID(),
+    };
+
+    // Customer: use ClientID if available, otherwise GeneralCustomer
+    if (params.customer.ID) {
+      doc.ClientID = params.customer.ID;
+    } else {
+      doc.GeneralCustomer = {
+        Name: params.customer.Name,
+        Identifier: params.customer.VATId || params.customer.Phone || '000000000',
+      };
+    }
+
+    // Payments (required for Receipt, InvoiceReceipt)
     if (params.payments?.length) {
-      paymentsXml = `<a:PaymentInfoList>
-        ${params.payments.map(p => `
-          <a:PaymentInfo>
-            <a:PaymentType>${p.PaymentType}</a:PaymentType>
-            <a:Amount>${p.Amount}</a:Amount>
-            <a:Date>${formatDate(p.Date)}</a:Date>
-          </a:PaymentInfo>
-        `).join('')}
-      </a:PaymentInfoList>`;
+      doc.Payments = params.payments.map(p => ({
+        Amount: p.Amount,
+        Type: p.PaymentType,
+        Date: p.Date || new Date().toISOString(),
+      }));
     }
 
-    // Build customer XML
-    const custXml = `<a:Customer>
-      ${params.customer.ID ? `<a:ID>${params.customer.ID}</a:ID>` : ''}
-      <a:Name>${escapeXml(params.customer.Name)}</a:Name>
-      ${params.customer.Phone ? `<a:Phone>${escapeXml(params.customer.Phone)}</a:Phone>` : ''}
-      ${params.customer.Email ? `<a:Email>${escapeXml(params.customer.Email)}</a:Email>` : ''}
-      ${params.customer.VATId ? `<a:VATId>${escapeXml(params.customer.VATId)}</a:VATId>` : ''}
-    </a:Customer>`;
+    if (params.subject) doc.Subject = params.subject;
+    if (params.comments) doc.Comments = params.comments;
 
-    const body = `<CreateDocument xmlns="${SERVICE_NS}">
-      <token>${escapeXml(API_TOKEN)}</token>
-      <doc xmlns:a="${TYPES_NS}">
-        <a:DocumentType>${params.docType}</a:DocumentType>
-        ${custXml}
-        <a:Items>${itemsXml}</a:Items>
-        ${paymentsXml}
-        ${params.subject ? `<a:Subject>${escapeXml(params.subject)}</a:Subject>` : ''}
-        ${params.comments ? `<a:Comments>${escapeXml(params.comments)}</a:Comments>` : ''}
-        <a:SendByEmail>${params.sendByEmail ? 'true' : 'false'}</a:SendByEmail>
-        ${params.discountPercent ? `<a:DiscountPercent>${params.discountPercent}</a:DiscountPercent>` : ''}
-        ${params.discountAmount ? `<a:DiscountAmount>${params.discountAmount}</a:DiscountAmount>` : ''}
-        ${params.originalDocId ? `<a:OriginalDocumentID>${escapeXml(params.originalDocId)}</a:OriginalDocumentID>` : ''}
-      </doc>
-    </CreateDocument>`;
-
-    const xml = await soapCall('CreateDocument', body);
-
-    // Parse response
-    const docId = extractTag(xml, 'DocumentID') || extractTag(xml, 'ID');
-    const docNumber = extractTag(xml, 'DocumentNumber') || extractTag(xml, 'Number');
-    const totalStr = extractTag(xml, 'Total');
-    const vatStr = extractTag(xml, 'VATAmount');
-    const docUrl = extractTag(xml, 'DocumentURL') || extractTag(xml, 'URL');
-    const error = extractTag(xml, 'Error') || extractTag(xml, 'ErrorMessage');
-
-    if (error) {
-      return { success: false, error };
+    // Email associations
+    const emails: Array<{ Mail: string; IsUserMail: boolean }> = [];
+    if (params.customer.Email) {
+      emails.push({ Mail: params.customer.Email, IsUserMail: false });
     }
+    if (emails.length > 0) {
+      doc.AssociatedEmails = emails;
+    }
+
+    if (params.originalDocId) doc.OriginalDocumentID = params.originalDocId;
+
+    const data = await apiJsonCall<Record<string, unknown>>('CreateDocument', {
+      doc,
+      token: API_TOKEN,
+    });
+
+    // Response: { CreateDocumentResult: { ID, DocumentNumber, Total, ... } } or direct
+    const result = (data.CreateDocumentResult ?? data) as Record<string, unknown>;
+
+    // Check for errors
+    const errors = result.Errors as Array<Record<string, string>> | null;
+    if (errors && errors.length > 0) {
+      const errMsg = errors.map(e => JSON.stringify(e)).join('; ');
+      return { success: false, error: errMsg };
+    }
+
+    const docId = String(result.ID || result.DocumentID || '');
+    const docNumber = String(result.DocumentNumber || result.Number || '');
 
     if (!docId) {
-      // Try alternate response structure
-      const resultXml = extractTag(xml, 'CreateDocumentResult');
-      if (resultXml) {
-        const innerDocId = extractTag(resultXml, 'DocumentID') || extractTag(resultXml, 'ID');
-        if (innerDocId) {
-          return {
-            success: true,
-            data: {
-              DocumentID: innerDocId,
-              DocumentNumber: extractTag(resultXml, 'DocumentNumber') || '',
-              DocumentType: params.docType,
-              Total: parseFloat(extractTag(resultXml, 'Total')) || 0,
-              VATAmount: parseFloat(extractTag(resultXml, 'VATAmount')) || 0,
-              CreatedDate: new Date().toISOString(),
-              CustomerName: params.customer.Name,
-              CustomerEmail: params.customer.Email || '',
-              Subject: params.subject || '',
-              DocumentURL: extractTag(resultXml, 'DocumentURL') || '',
-              Status: 'active',
-            },
-          };
-        }
-      }
+      logger.warn('[Invoice4U] CreateDocument: no ID in response', { data: JSON.stringify(data).slice(0, 1000) });
       return { success: false, error: 'No document ID in Invoice4U response' };
     }
 
@@ -439,13 +371,13 @@ export async function createDocument(params: CreateDocumentParams): Promise<Invo
         DocumentID: docId,
         DocumentNumber: docNumber,
         DocumentType: params.docType,
-        Total: parseFloat(totalStr) || 0,
-        VATAmount: parseFloat(vatStr) || 0,
+        Total: Number(result.Total) || 0,
+        VATAmount: Number(result.TotalTaxAmount || result.VATAmount) || 0,
         CreatedDate: new Date().toISOString(),
         CustomerName: params.customer.Name,
         CustomerEmail: params.customer.Email || '',
         Subject: params.subject || '',
-        DocumentURL: docUrl,
+        DocumentURL: String(result.DocumentURL || result.URL || ''),
         Status: 'active',
       },
     };
@@ -460,14 +392,20 @@ export async function createDocument(params: CreateDocumentParams): Promise<Invo
  */
 export async function getDocument(docId: string): Promise<Invoice4UResult<Invoice4UDocument>> {
   try {
-    const body = `<GetDocumentByID xmlns="${SERVICE_NS}">
-      <token>${escapeXml(API_TOKEN)}</token>
-      <documentID>${escapeXml(docId)}</documentID>
-    </GetDocumentByID>`;
-    const xml = await soapCall('GetDocumentByID', body);
+    const data = await apiJsonCall<Record<string, unknown>>('GetDocument', {
+      docId,
+      token: API_TOKEN,
+    });
 
-    const number = extractTag(xml, 'DocumentNumber') || extractTag(xml, 'Number');
-    const docType = parseInt(extractTag(xml, 'DocumentType'), 10);
+    const result = (data.GetDocumentResult ?? data) as Record<string, unknown>;
+    const errors = result.Errors as Array<Record<string, string>> | null;
+    if (errors && errors.length > 0) {
+      return { success: false, error: errors.map(e => JSON.stringify(e)).join('; ') };
+    }
+
+    const id = String(result.ID || result.DocumentID || docId);
+    const number = String(result.DocumentNumber || result.Number || '');
+    const docType = Number(result.DocumentType) || 0;
 
     if (!number && !docType) {
       return { success: false, error: 'Document not found' };
@@ -476,16 +414,16 @@ export async function getDocument(docId: string): Promise<Invoice4UResult<Invoic
     return {
       success: true,
       data: {
-        DocumentID: docId,
+        DocumentID: id,
         DocumentNumber: number,
-        DocumentType: docType || 0,
-        Total: parseFloat(extractTag(xml, 'Total')) || 0,
-        VATAmount: parseFloat(extractTag(xml, 'VATAmount')) || 0,
-        CreatedDate: extractTag(xml, 'CreatedDate') || '',
-        CustomerName: extractTag(xml, 'CustomerName') || extractTag(xml, 'Name') || '',
-        CustomerEmail: extractTag(xml, 'CustomerEmail') || extractTag(xml, 'Email') || '',
-        Subject: extractTag(xml, 'Subject') || '',
-        DocumentURL: extractTag(xml, 'DocumentURL') || extractTag(xml, 'URL') || '',
+        DocumentType: docType,
+        Total: Number(result.Total) || 0,
+        VATAmount: Number(result.TotalTaxAmount || result.VATAmount) || 0,
+        CreatedDate: String(result.CreatedDate || result.IssueDate || ''),
+        CustomerName: String(result.ClientName || result.CustomerName || ''),
+        CustomerEmail: String(result.CustomerEmail || ''),
+        Subject: String(result.Subject || ''),
+        DocumentURL: String(result.DocumentURL || result.URL || ''),
         Status: 'active',
       },
     };
@@ -498,6 +436,9 @@ export async function getDocument(docId: string): Promise<Invoice4UResult<Invoic
 /**
  * Get documents within a date range, optionally filtered by type.
  */
+/**
+ * Get documents, optionally filtered by type.
+ */
 export async function getDocuments(params: {
   fromDate: string;
   toDate: string;
@@ -506,50 +447,46 @@ export async function getDocuments(params: {
   pageSize?: number;
 }): Promise<Invoice4UResult<Invoice4UDocument[]>> {
   try {
-    const body = `<GetDocuments xmlns="${SERVICE_NS}">
-      <token>${escapeXml(API_TOKEN)}</token>
-      <fromDate>${formatDate(params.fromDate)}</fromDate>
-      <toDate>${formatDate(params.toDate)}</toDate>
-      ${params.docType != null ? `<documentType>${params.docType}</documentType>` : ''}
-      <pageNumber>${params.page ?? 1}</pageNumber>
-      <numOfRecordsInAPage>${params.pageSize ?? 50}</numOfRecordsInAPage>
-    </GetDocuments>`;
-    const xml = await soapCall('GetDocuments', body);
-
-    const docElements = extractAll(xml, 'Document');
-    if (!docElements.length) {
-      // Try alternate structure
-      const resultElements = extractAll(xml, 'DocumentInfo');
-      if (resultElements.length) {
-        const docs: Invoice4UDocument[] = resultElements.map(dx => ({
-          DocumentID: extractTag(dx, 'DocumentID') || extractTag(dx, 'ID') || '',
-          DocumentNumber: extractTag(dx, 'DocumentNumber') || extractTag(dx, 'Number') || '',
-          DocumentType: parseInt(extractTag(dx, 'DocumentType'), 10) || 0,
-          Total: parseFloat(extractTag(dx, 'Total')) || 0,
-          VATAmount: parseFloat(extractTag(dx, 'VATAmount')) || 0,
-          CreatedDate: extractTag(dx, 'CreatedDate') || '',
-          CustomerName: extractTag(dx, 'CustomerName') || extractTag(dx, 'Name') || '',
-          CustomerEmail: extractTag(dx, 'CustomerEmail') || extractTag(dx, 'Email') || '',
-          Subject: extractTag(dx, 'Subject') || '',
-          DocumentURL: extractTag(dx, 'DocumentURL') || extractTag(dx, 'URL') || '',
-          Status: 'active',
-        }));
-        return { success: true, data: docs };
-      }
-      return { success: true, data: [] };
+    const dr: Record<string, unknown> = {
+      ReportType: 'Document',
+    };
+    if (params.docType != null) {
+      dr.Type = params.docType;
     }
 
-    const docs: Invoice4UDocument[] = docElements.map(dx => ({
-      DocumentID: extractTag(dx, 'DocumentID') || extractTag(dx, 'ID') || '',
-      DocumentNumber: extractTag(dx, 'DocumentNumber') || extractTag(dx, 'Number') || '',
-      DocumentType: parseInt(extractTag(dx, 'DocumentType'), 10) || 0,
-      Total: parseFloat(extractTag(dx, 'Total')) || 0,
-      VATAmount: parseFloat(extractTag(dx, 'VATAmount')) || 0,
-      CreatedDate: extractTag(dx, 'CreatedDate') || '',
-      CustomerName: extractTag(dx, 'CustomerName') || extractTag(dx, 'Name') || '',
-      CustomerEmail: extractTag(dx, 'CustomerEmail') || extractTag(dx, 'Email') || '',
-      Subject: extractTag(dx, 'Subject') || '',
-      DocumentURL: extractTag(dx, 'DocumentURL') || extractTag(dx, 'URL') || '',
+    const data = await apiJsonCall<Record<string, unknown>>('GetDocuments', {
+      dr,
+      token: API_TOKEN,
+    });
+
+    const result = (data.GetDocumentsResult ?? data) as Record<string, unknown>;
+    const errors = result.Errors as Array<Record<string, string>> | null;
+    if (errors && errors.length > 0) {
+      return { success: false, error: errors.map(e => JSON.stringify(e)).join('; ') };
+    }
+
+    const response = result.Response as Array<Record<string, unknown>> | Record<string, unknown> | null;
+    if (!response) return { success: true, data: [] };
+
+    let docList: Array<Record<string, unknown>>;
+    if (Array.isArray(response)) {
+      docList = response;
+    } else {
+      const inner = response.Document;
+      docList = Array.isArray(inner) ? inner as Array<Record<string, unknown>> : inner ? [inner as Record<string, unknown>] : [];
+    }
+
+    const docs: Invoice4UDocument[] = docList.map(dx => ({
+      DocumentID: String(dx.ID || dx.DocumentID || ''),
+      DocumentNumber: String(dx.DocumentNumber || dx.Number || ''),
+      DocumentType: Number(dx.DocumentType) || 0,
+      Total: Number(dx.Total) || 0,
+      VATAmount: Number(dx.TotalTaxAmount || dx.VATAmount) || 0,
+      CreatedDate: String(dx.CreatedDate || dx.IssueDate || ''),
+      CustomerName: String(dx.ClientName || dx.CustomerName || ''),
+      CustomerEmail: String(dx.CustomerEmail || ''),
+      Subject: String(dx.Subject || ''),
+      DocumentURL: String(dx.DocumentURL || dx.URL || ''),
       Status: 'active',
     }));
 
@@ -759,28 +696,8 @@ export interface ClearingLog {
 
 /* ── Generic JSON call helper ─────────────────────────── */
 
-async function clearingJsonCall<T>(method: string, body: Record<string, unknown>): Promise<T> {
-  if (!API_TOKEN) {
-    throw new Error('INVOICE4U_API_TOKEN environment variable is not set');
-  }
-
-  const url = `${API_URL}/${method}`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    logger.error(`[Invoice4U Clearing] ${method} HTTP ${res.status}`, { body: text.slice(0, 500) });
-    throw new Error(`Invoice4U Clearing API error: ${res.status}`);
-  }
-
-  const json = await res.json();
-  // WCF JSON responses are wrapped in {"d": {...}} — unwrap automatically
-  return (json.d ?? json) as T;
-}
+// Reuses apiJsonCall — identical WCF webHttpBinding JSON pattern
+const clearingJsonCall = apiJsonCall;
 
 /* ── Helper: extract values from OpenInfo array ───────── */
 
