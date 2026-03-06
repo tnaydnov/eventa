@@ -9,7 +9,6 @@ import { adminAuditLog } from '@/lib/admin-auth';
 import { APP_BASE_URL, BASE_PRICE, MSG_ADDON } from '@/lib/config';
 import {
   buildClientApprovalEmail,
-  escapeHtml,
 } from '@/lib/email-templates';
 import { generatePrettySlug } from '@/lib/slug';
 import { chargeWithToken, createDocument, DocumentType, PaymentType, getOrCreateCustomer, PAYMENT_METHOD_TO_INVOICE4U } from '@/lib/invoice4u';
@@ -352,44 +351,7 @@ export async function POST(req: NextRequest) {
 
       // Send admin charge notification (if card was charged)
       if (chargeSucceeded) {
-        try {
-          const totalShekel = (BASE_PRICE + (request.wants_guest_messages ? MSG_ADDON : 0));
-          const safeName = escapeHtml(request.contact_name || '');
-          const safeEmail = escapeHtml(request.contact_email || '');
-          const safeEvent = escapeHtml(eventName);
-
-          const adminSubject = `חיוב בוצע - ${eventName} (₪${totalShekel})`;
-          const adminHtml =
-            `<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"></head>` +
-            `<body style="margin:0;padding:20px;background:#f5f3f0;font-family:Arial,sans-serif;">` +
-            `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">` +
-            `<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;">` +
-            `<tr><td dir="rtl" style="text-align:right;padding:24px;background:#e8f5e9;border-radius:12px 12px 0 0;">` +
-            `<div style="font-size:16px;font-weight:700;color:#2e7d32;">חיוב כרטיס אשראי בוצע בהצלחה</div></td></tr>` +
-            `<tr><td dir="rtl" style="text-align:right;padding:20px 24px;font-size:14px;color:#1e1e1e;line-height:1.7;">` +
-            `<div><strong>לקוח:</strong> ${safeName}</div>` +
-            `<div><strong>אימייל:</strong> ${safeEmail}</div>` +
-            `<div><strong>טלפון:</strong> ${escapeHtml(request.contact_phone || '')}</div>` +
-            `<div><strong>אירוע:</strong> ${safeEvent}</div>` +
-            `<div><strong>סכום:</strong> ₪${totalShekel}</div>` +
-            `<div><strong>בקשה:</strong> ${requestId}</div>` +
-            `<div><strong>אירוע:</strong> ${newEvent.id}</div>` +
-            `</td></tr></table></td></tr></table></body></html>`;
-
-          await getMailTransporter().sendMail({
-            from: getSmtpFrom(),
-            to: 'contact@eventa.productions',
-            subject: adminSubject,
-            html: adminHtml,
-          });
-
-          logger.info('[ADMIN_REQUESTS] Admin charge notification sent', {
-            requestId,
-            eventId: newEvent.id,
-          });
-        } catch (emailErr) {
-          logger.warn('[ADMIN_REQUESTS] Failed to send admin charge notification:', emailErr);
-        }
+        logger.info('[ADMIN_REQUESTS] Charge succeeded', { requestId, eventId: newEvent.id });
       }
     });
 

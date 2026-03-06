@@ -1,11 +1,10 @@
 ﻿/**
  * Email templates for Eventa.
  *
- * 11 templates total:
+ * 10 templates total:
  *
- *   Client-facing (8):
+ *   Client-facing (7):
  *     C1. Call Me Back - client filled the form, wants a callback
- *     C2. Pay Now - client filled the form, paid with credit card
  *     C3. Contact Only - client left contact details without filling event form
  *     C4. Approval - order approved, charged, event created
  *     C5. Upload Reminder (7-day) - WhatsApp guest list upload reminder
@@ -14,7 +13,7 @@
  *     C8. QR Page Ready - A4 print page with QR code attachments
  *
  *   Admin-facing (3):
- *     A1. Pay Now - client paid online, needs admin approval
+ *     A1. Payment Received - payment completed, event auto-created
  *     A2. Call Me Back - client filled form, wants callback
  *     A3. Contact Only - client wants contact, no event form filled
  *
@@ -470,53 +469,6 @@ export function buildClientCallMeBackEmail(data: EventFormData & {
         ${supportRow()}`;
 
   return { subject, html: shell(subject, inner, '\u05D4\u05D1\u05E7\u05E9\u05D4 \u05D4\u05EA\u05E7\u05D1\u05DC\u05D4') };
-}
-
-
-/* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
-   C2. CLIENT - PAY NOW
-   Client filled the form and paid with credit card. Card NOT
-   charged yet - will be charged on approval.
-   ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
-
-export function buildClientPayNowEmail(data: EventFormData & {
-  contactName: string;
-}): { subject: string; html: string } {
-  const safeName = escapeHtml(data.contactName);
-  const safeEvent = escapeHtml(data.eventName);
-
-  const subject = `Eventa - \u05D4\u05D1\u05E7\u05E9\u05D4 \u05D4\u05EA\u05E7\u05D1\u05DC\u05D4, \u05E4\u05E8\u05D8\u05D9 \u05D4\u05EA\u05E9\u05DC\u05D5\u05DD \u05E0\u05E9\u05DE\u05E8\u05D5`;
-
-  const inner = `
-        ${greeting(
-          safeName,
-          `\u05E7\u05D9\u05D1\u05DC\u05E0\u05D5 \u05D0\u05EA \u05D4\u05D1\u05E7\u05E9\u05D4 \u05E9\u05DC\u05DA \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong> \u05D5\u05E4\u05E8\u05D8\u05D9 \u05D4\u05EA\u05E9\u05DC\u05D5\u05DD \u05E9\u05DC\u05DA \u05E0\u05E9\u05DE\u05E8\u05D5 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4.`,
-        )}
-
-        ${tipBox(`<strong>\u05D7\u05E9\u05D5\u05D1 \u05DC\u05D3\u05E2\u05EA:</strong> \u05D4\u05DB\u05E8\u05D8\u05D9\u05E1 \u05E9\u05DC\u05DA <u>\u05DC\u05D0 \u05D7\u05D5\u05D9\u05D1</u> \u05D1\u05E9\u05DC\u05D1 \u05D6\u05D4. \u05D4\u05D7\u05D9\u05D5\u05D1 \u05D9\u05EA\u05D1\u05E6\u05E2 \u05E8\u05E7 \u05DC\u05D0\u05D7\u05E8 \u05E9\u05E0\u05D1\u05D3\u05D5\u05E7 \u05D5\u05E0\u05D0\u05E9\u05E8 \u05D0\u05EA \u05D4\u05D4\u05D6\u05DE\u05E0\u05D4.`)}
-
-        ${eventDetailsBlock(data)}
-
-        ${priceBlock(data.wantsGuestMessages)}
-
-        <!-- What happens now -->
-        <tr>
-          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
-            ${sectionTitle('\u05DE\u05D4 \u05E7\u05D5\u05E8\u05D4 \u05E2\u05DB\u05E9\u05D9\u05D5?')}
-            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${stepRow(1, '\u05D0\u05E0\u05D7\u05E0\u05D5 \u05D1\u05D5\u05D3\u05E7\u05D9\u05DD \u05D0\u05EA \u05D4\u05D1\u05E7\u05E9\u05D4 \u05E9\u05DC\u05DA')}
-              ${stepRow(2, '\u05DC\u05D0\u05D7\u05E8 \u05D0\u05D9\u05E9\u05D5\u05E8 - \u05D4\u05DB\u05E8\u05D8\u05D9\u05E1 \u05D9\u05D7\u05D5\u05D9\u05D1')}
-              ${stepRow(3, '\u05EA\u05E7\u05D1\u05DC\u05D5 \u05D0\u05D9\u05DE\u05D9\u05D9\u05DC \u05D0\u05D9\u05E9\u05D5\u05E8 \u05D5\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05D9\u05D9\u05E6\u05D0 \u05DC\u05D0\u05D5\u05D5\u05D9\u05E8', true)}
-            </table>
-          </td>
-        </tr>
-
-        <!-- Bottom spacing -->
-        <tr><td style="padding:16px 0;background-color:${C.card};">&nbsp;</td></tr>
-
-        ${supportRow()}`;
-
-  return { subject, html: shell(subject, inner, '\u05D4\u05D1\u05E7\u05E9\u05D4 \u05D1\u05D1\u05D3\u05D9\u05E7\u05D4') };
 }
 
 
@@ -1043,16 +995,18 @@ export function buildClientEventSummaryEmail(params: {
 }
 
 
-/* ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•
-   A1. ADMIN - PAY NOW NOTIFICATION
-   Client paid online. Needs admin approval to charge the card.
-   ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
+/* ═══════════════════════════════════════════════════════════════
+   A1. ADMIN - PAYMENT RECEIVED NOTIFICATION
+   Payment completed and event auto-created.
+   ═══════════════════════════════════════════════════════════════ */
 
 export function buildAdminPayNowNotification(data: EventFormData & {
   contactName: string;
   contactPhone: string;
   contactEmail: string;
   requestId: string;
+  eventSlug?: string;
+  eventId?: string;
 }): { subject: string; html: string } {
   const s = {
     name: escapeHtml(data.contactName),
@@ -1061,11 +1015,13 @@ export function buildAdminPayNowNotification(data: EventFormData & {
     eventLabel: escapeHtml(EVENT_TYPE_LABELS[data.eventType] || data.eventType),
   };
 
-  const subject = `\u05D1\u05E7\u05E9\u05D4 \u05D7\u05D3\u05E9\u05D4 + \u05EA\u05E9\u05DC\u05D5\u05DD \u05D1\u05D0\u05EA\u05E8 - ${data.contactName} | ${EVENT_TYPE_LABELS[data.eventType] || data.eventType}`;
+  const totalShekel = BASE_PRICE + (data.wantsGuestMessages ? MSG_ADDON : 0);
+
+  const subject = `\u05EA\u05E9\u05DC\u05D5\u05DD \u05D4\u05EA\u05E7\u05D1\u05DC \u05D5\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E0\u05D5\u05E6\u05E8 - ${data.contactName} | ${EVENT_TYPE_LABELS[data.eventType] || data.eventType} (\u20AA${totalShekel})`;
 
   const inner = `
         ${statusBanner(
-          '\u05D4\u05DC\u05E7\u05D5\u05D7 \u05E9\u05D9\u05DC\u05DD \u05D1\u05D0\u05EA\u05E8 - \u05DE\u05DE\u05EA\u05D9\u05DF \u05DC\u05D0\u05D9\u05E9\u05D5\u05E8 \u05E1\u05D5\u05E4\u05D9',
+          '\u05EA\u05E9\u05DC\u05D5\u05DD \u05D4\u05EA\u05E7\u05D1\u05DC - \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E0\u05D5\u05E6\u05E8 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA',
           null,
           C.successBg, C.success,
         )}
@@ -1082,18 +1038,16 @@ export function buildAdminPayNowNotification(data: EventFormData & {
 
         ${priceBlock(data.wantsGuestMessages)}
 
-        ${tipBox(`<strong>\u05E4\u05E2\u05D5\u05DC\u05D4 \u05E0\u05D3\u05E8\u05E9\u05EA:</strong> \u05DC\u05D0\u05D7\u05E8 \u05D0\u05D9\u05E9\u05D5\u05E8, \u05D4\u05DB\u05E8\u05D8\u05D9\u05E1 \u05D9\u05D7\u05D5\u05D9\u05D1 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA \u05D5\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 \u05D9\u05D9\u05D5\u05D5\u05E6\u05E8.`)}
-
-        <!-- Request ID -->
+        <!-- Request & Event IDs -->
         <tr>
           <td dir="rtl" style="direction:rtl;text-align:right;padding:0 32px 24px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:right;font-size:13px;color:${C.dim};">
-              \u05DE\u05D6\u05D4\u05D4 \u05D1\u05E7\u05E9\u05D4&rlm;: ${ltr(escapeHtml(data.requestId))}
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:13px;color:${C.dim};line-height:1.8;">
+              \u05DE\u05D6\u05D4\u05D4 \u05D1\u05E7\u05E9\u05D4&rlm;: ${ltr(escapeHtml(data.requestId))}${data.eventSlug ? `<br/>slug&rlm;: ${ltr(escapeHtml(data.eventSlug))}` : ''}${data.eventId ? `<br/>\u05DE\u05D6\u05D4\u05D4 \u05D0\u05D9\u05E8\u05D5\u05E2&rlm;: ${ltr(escapeHtml(data.eventId))}` : ''}
             </div>
           </td>
         </tr>`;
 
-  return { subject, html: shell(subject, inner, '\u05D4\u05D6\u05DE\u05E0\u05D4 \u05D7\u05D3\u05E9\u05D4') };
+  return { subject, html: shell(subject, inner, '\u05EA\u05E9\u05DC\u05D5\u05DD \u05D4\u05EA\u05E7\u05D1\u05DC') };
 }
 
 

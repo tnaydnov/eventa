@@ -89,6 +89,46 @@ export default function EventAnalyticsView({
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<DetailTab>('overview');
 
+  // Date/time editing state
+  const [editingDates, setEditingDates] = useState(false);
+  const [editStartsAt, setEditStartsAt] = useState('');
+  const [editEndsAt, setEditEndsAt] = useState('');
+  const [savingDates, setSavingDates] = useState(false);
+  const [dateError, setDateError] = useState('');
+
+  /** Convert ISO string → datetime-local input value (YYYY-MM-DDTHH:mm) */
+  const toLocalInput = (iso: string) => {
+    try {
+      const d = new Date(iso);
+      const pad = (n: number) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    } catch { return ''; }
+  };
+
+  const openDateEditor = () => {
+    setEditStartsAt(toLocalInput(event.starts_at));
+    setEditEndsAt(toLocalInput(event.ends_at));
+    setDateError('');
+    setEditingDates(true);
+  };
+
+  const saveDates = async () => {
+    if (!updateEventDetails) return;
+    if (!editStartsAt || !editEndsAt) { setDateError('יש למלא תאריך ושעה'); return; }
+    const startsIso = new Date(editStartsAt).toISOString();
+    const endsIso = new Date(editEndsAt).toISOString();
+    if (endsIso <= startsIso) { setDateError('שעת הסיום חייבת להיות אחרי ההתחלה'); return; }
+    setSavingDates(true);
+    setDateError('');
+    const result = await updateEventDetails(event.id, { starts_at: startsIso, ends_at: endsIso });
+    setSavingDates(false);
+    if (result.ok) {
+      setEditingDates(false);
+    } else {
+      setDateError(result.error || 'שגיאה בעדכון');
+    }
+  };
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -161,14 +201,72 @@ export default function EventAnalyticsView({
       {activeTab === 'overview' && (
         <>
           <div className="ea-info-bar">
-            <div className="ea-info-item">
-              <span className="ea-info-label">תחילה</span>
-              <span className="ea-info-value">{formatDateTime(event.starts_at)}</span>
-            </div>
-            <div className="ea-info-item">
-              <span className="ea-info-label">סיום</span>
-              <span className="ea-info-value">{formatDateTime(event.ends_at)}</span>
-            </div>
+            {editingDates ? (
+              <>
+                <div className="ea-info-item" style={{ flex: 1 }}>
+                  <label className="ea-info-label" htmlFor="edit-starts-at">תחילה</label>
+                  <input
+                    id="edit-starts-at"
+                    type="datetime-local"
+                    className="admin-input"
+                    value={editStartsAt}
+                    onChange={e => setEditStartsAt(e.target.value)}
+                    style={{ fontSize: 14, padding: '6px 8px' }}
+                  />
+                </div>
+                <div className="ea-info-item" style={{ flex: 1 }}>
+                  <label className="ea-info-label" htmlFor="edit-ends-at">סיום</label>
+                  <input
+                    id="edit-ends-at"
+                    type="datetime-local"
+                    className="admin-input"
+                    value={editEndsAt}
+                    onChange={e => setEditEndsAt(e.target.value)}
+                    style={{ fontSize: 14, padding: '6px 8px' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', paddingBottom: 2 }}>
+                  <button
+                    className="admin-btn admin-btn--sm admin-btn--green"
+                    onClick={saveDates}
+                    disabled={savingDates}
+                  >
+                    {savingDates ? '...' : '✓ שמור'}
+                  </button>
+                  <button
+                    className="admin-btn admin-btn--sm admin-btn--ghost"
+                    onClick={() => setEditingDates(false)}
+                    disabled={savingDates}
+                  >
+                    ביטול
+                  </button>
+                </div>
+                {dateError && (
+                  <p style={{ color: '#ef4444', fontSize: 13, margin: 0, width: '100%' }}>{dateError}</p>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="ea-info-item">
+                  <span className="ea-info-label">תחילה</span>
+                  <span className="ea-info-value">{formatDateTime(event.starts_at)}</span>
+                </div>
+                <div className="ea-info-item">
+                  <span className="ea-info-label">סיום</span>
+                  <span className="ea-info-value">{formatDateTime(event.ends_at)}</span>
+                </div>
+                {updateEventDetails && (
+                  <button
+                    className="admin-btn admin-btn--sm admin-btn--ghost"
+                    onClick={openDateEditor}
+                    title="ערוך תאריך ושעה"
+                    style={{ alignSelf: 'center' }}
+                  >
+                    ✏️ ערוך
+                  </button>
+                )}
+              </>
+            )}
             <div className="ea-info-item">
               <span className="ea-info-label">קוד כניסה</span>
               <span className="ea-info-value" style={{ fontFamily: 'monospace', letterSpacing: 1 }}>

@@ -13,6 +13,7 @@ import EventAnalyticsView from './_components/analytics/EventAnalyticsView';
 import GlobalAnalyticsView from './_components/analytics/GlobalAnalyticsView';
 import RequestsView from './_components/requests/RequestsView';
 import PaymentsView from './_components/payments/PaymentsView';
+import CalendarView from './_components/calendar/CalendarView';
 import QRDialog from './_components/QRDialog';
 import ParticipantsDialog from './_components/ParticipantsDialog';
 
@@ -234,6 +235,16 @@ export default function AdminPage() {
                 sendQrPage={admin.sendQrPage}
                 loadMessageLog={admin.loadMessageLog}
                 updateEventDetails={admin.updateEventDetails}
+              />
+            )}
+
+            {activeView === 'calendar' && (
+              <CalendarView
+                events={admin.events}
+                onViewEvent={(ev) => {
+                  setActiveView('events');
+                  setDetailEvent(ev);
+                }}
               />
             )}
 

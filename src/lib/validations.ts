@@ -223,6 +223,8 @@ export const updateEventSchema = z.object({
   client_phone: z.string().max(20).nullable().optional(),
   communication_preference: z.enum(['email', 'phone', 'whatsapp', 'call-me']).nullable().optional(),
   payment_status: z.enum(['unpaid', 'paid', 'waived']).optional(),
+  starts_at: z.string().datetime().optional(),
+  ends_at: z.string().datetime().optional(),
 });
 
 /* ---- Message schema ---- */

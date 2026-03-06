@@ -15,17 +15,17 @@ import {
   APP_BASE_URL,
 } from '@/lib/config';
 import {
-  buildAdminPayNowNotification,
   buildAdminCallMeBackNotification,
   buildAdminContactOnlyNotification,
   buildClientCallMeBackEmail,
+  buildClientContactOnlyEmail,
   buildClientPaymentLinkEmail,
 } from '@/lib/email-templates';
 
 /** Zod schema for order form - validates and sanitizes all inputs. */
 const orderSchema = z.object({
-  eventType: z.string().min(1).max(50),
-  eventDate: z.string().min(1).max(20),
+  eventType: z.string().max(50).optional(),
+  eventDate: z.string().max(20).optional(),
   contactName: z.string().min(1).max(ORDER_NAME_MAX_LENGTH),
   contactPhone: z.string().min(1).max(ORDER_PHONE_MAX_LENGTH)
     .regex(/^[\d\s+\-()]+$/, 'Invalid phone format'),
@@ -78,7 +78,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const { eventType, contactName, contactPhone, contactEmail } = parsed.data;
+    const { contactName, contactPhone, contactEmail } = parsed.data;
+    const eventType = parsed.data.eventType || '';
 
     // Extended wizard fields (may be undefined for simple form submissions)
     const isWizard = parsed.data.source === 'wizard';
@@ -162,7 +163,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Pick the right admin template based on contact preference
-    let adminEmail: { subject: string; html: string };
+    let adminEmail: { subject: string; html: string } | null;
     if (!isWizard) {
       // Simple form submission (no event details) → contact-only notification
       adminEmail = buildAdminContactOnlyNotification({
@@ -171,13 +172,8 @@ export async function POST(request: NextRequest) {
         contactEmail: contactEmail || '',
       });
     } else if (contactPref === 'pay-now') {
-      adminEmail = buildAdminPayNowNotification({
-        ...eventFormData,
-        contactName,
-        contactPhone,
-        contactEmail: contactEmail || '',
-        requestId,
-      });
+      // Admin will be notified after payment via callback route (A1)
+      adminEmail = null;
     } else {
       // call-me or send-link
       adminEmail = buildAdminCallMeBackNotification({
@@ -201,13 +197,15 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      await getMailTransporter().sendMail({
-        from: getSmtpFrom(),
-        to: 'contact@eventa.productions',
-        subject: adminEmail.subject,
-        html: adminEmail.html,
-        ...(attachments.length > 0 ? { attachments } : {}),
-      });
+      if (adminEmail) {
+        await getMailTransporter().sendMail({
+          from: getSmtpFrom(),
+          to: 'contact@eventa.productions',
+          subject: adminEmail.subject,
+          html: adminEmail.html,
+          ...(attachments.length > 0 ? { attachments } : {}),
+        });
+      }
     } catch (adminMailErr) {
       logger.error('Failed to send admin notification email', {
         error: adminMailErr instanceof Error ? adminMailErr.message : String(adminMailErr),
@@ -215,7 +213,27 @@ export async function POST(request: NextRequest) {
     }
 
     // ── 3. Send confirmation email to client based on contact preference ──
-    if (isWizard && contactEmail && requestId) {
+    if (!isWizard && contactEmail) {
+      // Simple contact form → send C3 confirmation to client
+      try {
+        const c3 = buildClientContactOnlyEmail({
+          contactName,
+          contactPhone,
+          contactEmail,
+        });
+        await getMailTransporter().sendMail({
+          from: getSmtpFrom(),
+          to: contactEmail,
+          subject: c3.subject,
+          html: c3.html,
+        });
+        logger.info('Client C3 email sent', { contactEmail });
+      } catch (emailErr) {
+        logger.error('Failed to send C3 client email', {
+          error: emailErr instanceof Error ? emailErr.message : String(emailErr),
+        });
+      }
+    } else if (isWizard && contactEmail && requestId) {
       try {
         let clientEmail: { subject: string; html: string } | null = null;
 

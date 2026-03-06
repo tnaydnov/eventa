@@ -603,10 +603,10 @@ export function useAdminData() {
     }
   };
 
-  /* ─── update event details (client info, etc.) ─── */
+  /* ─── update event details (client info, dates, etc.) ─── */
   const updateEventDetails = async (
     id: string,
-    updates: { client_name?: string | null; client_email?: string | null; client_phone?: string | null; communication_preference?: string | null }
+    updates: { client_name?: string | null; client_email?: string | null; client_phone?: string | null; communication_preference?: string | null; starts_at?: string; ends_at?: string }
   ): Promise<{ ok: boolean; error?: string }> => {
     try {
       const res = await authedFetch(`/api/admin/events/${id}`, {

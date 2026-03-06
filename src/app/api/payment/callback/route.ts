@@ -3,7 +3,7 @@ import { after } from 'next/server';
 import { logger } from '@/lib/logger';
 import { getServiceClient, generateJoinCode, generateShortCode } from '@/lib/supabase';
 import { getClearingLogById, createDocument, getDocument, DocumentType, PaymentType, getOrCreateCustomer, isConfigured } from '@/lib/invoice4u';
-import { buildClientApprovalEmail, escapeHtml } from '@/lib/email-templates';
+import { buildClientApprovalEmail, buildAdminPayNowNotification } from '@/lib/email-templates';
 import { generatePrettySlug } from '@/lib/slug';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { APP_BASE_URL, BASE_PRICE, MSG_ADDON } from '@/lib/config';
@@ -366,37 +366,32 @@ async function sendDocumentAndEmails(ctx: {
     }
   }
 
-  // ── Send admin notification ──
+  // ── Send admin notification (A1) ──
   try {
-    const totalShekel = BASE_PRICE + ((request.wants_guest_messages as boolean) ? MSG_ADDON : 0);
-    const safeName = escapeHtml((request.contact_name as string) || '');
-    const safeEmail = escapeHtml((request.contact_email as string) || '');
-    const safeEvent = escapeHtml(eventName);
-    const safeSlug = newEvent ? escapeHtml(newEvent.slug) : '(לא נוצר)';
-
-    const adminSubject = `תשלום התקבל ואירוע נוצר - ${eventName} (₪${totalShekel})`;
-    const adminHtml =
-      `<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"></head>` +
-      `<body style="margin:0;padding:20px;background:#f5f3f0;font-family:Arial,sans-serif;">` +
-      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">` +
-      `<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;">` +
-      `<tr><td dir="rtl" style="text-align:right;padding:24px;background:#e8f5e9;border-radius:12px 12px 0 0;">` +
-      `<div style="font-size:16px;font-weight:700;color:#2e7d32;">תשלום התקבל - אירוע נוצר אוטומטית</div></td></tr>` +
-      `<tr><td dir="rtl" style="text-align:right;padding:20px 24px;font-size:14px;color:#1e1e1e;line-height:1.7;">` +
-      `<div><strong>לקוח:</strong> ${safeName}</div>` +
-      `<div><strong>אימייל:</strong> ${safeEmail}</div>` +
-      `<div><strong>טלפון:</strong> ${escapeHtml((request.contact_phone as string) || '')}</div>` +
-      `<div><strong>אירוע:</strong> ${safeEvent}</div>` +
-      `<div><strong>סכום:</strong> ₪${totalShekel}</div>` +
-      `<div><strong>slug:</strong> ${safeSlug}</div>` +
-      `<div><strong>בקשה:</strong> ${rid}</div>` +
-      `</td></tr></table></td></tr></table></body></html>`;
+    const adminEmail = buildAdminPayNowNotification({
+      eventType: request.event_type as string,
+      eventName,
+      startsAt: request.starts_at as string,
+      endsAt: request.ends_at as string,
+      wantsCustomBackground: (request.wants_custom_background as boolean) || false,
+      hasBgImage: !!(request.wants_custom_background as boolean),
+      posterChoice: (request.poster_choice as string) || '',
+      selectedTemplate: (request.selected_template_id as string) || '',
+      specialRequests: (request.special_requests as string) || '',
+      wantsGuestMessages: (request.wants_guest_messages as boolean) || false,
+      contactName: (request.contact_name as string) || '',
+      contactPhone: (request.contact_phone as string) || '',
+      contactEmail: (request.contact_email as string) || '',
+      requestId: rid,
+      eventSlug: newEvent?.slug,
+      eventId: newEvent?.id,
+    });
 
     await getMailTransporter().sendMail({
       from: getSmtpFrom(),
       to: 'contact@eventa.productions',
-      subject: adminSubject,
-      html: adminHtml,
+      subject: adminEmail.subject,
+      html: adminEmail.html,
     });
   } catch (adminEmailErr) {
     logger.warn('[PAYMENT_CALLBACK_AFTER] Admin notification failed', adminEmailErr);

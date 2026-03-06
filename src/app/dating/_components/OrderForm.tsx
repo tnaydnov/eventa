@@ -1,16 +1,8 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { EVENT_TYPE_OPTIONS } from '@/lib/constants';
-
-const EVENT_TYPES = [
-  { value: '', label: 'בחרו סוג אירוע...' },
-  ...EVENT_TYPE_OPTIONS,
-];
 
 type FormData = {
-  eventType: string;
-  eventDate: string;
   contactName: string;
   contactPhone: string;
   contactEmail: string;
@@ -18,7 +10,7 @@ type FormData = {
 
 export default function OrderForm() {
   const [form, setForm] = useState<FormData>({
-    eventType: '', eventDate: '', contactName: '', contactPhone: '', contactEmail: '',
+    contactName: '', contactPhone: '', contactEmail: '',
   });
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
@@ -43,7 +35,7 @@ export default function OrderForm() {
       if (!res.ok) throw new Error('Failed');
 
       setSubmitted(true);
-      setForm({ eventType: '', eventDate: '', contactName: '', contactPhone: '', contactEmail: '' });
+      setForm({ contactName: '', contactPhone: '', contactEmail: '' });
       setTimeout(() => setSubmitted(false), 5000);
     } catch {
       setError('שגיאה בשליחה. נסו שוב או פנו אלינו ישירות.');
@@ -54,35 +46,6 @@ export default function OrderForm() {
 
   return (
     <form className="order-form" onSubmit={handleSubmit} dir="rtl">
-      {/* Event Details */}
-      <div className="order-form__group">
-        <label className="order-form__label">סוג האירוע *</label>
-        <select
-          className="order-form__select"
-          value={form.eventType}
-          onChange={e => update('eventType', e.target.value)}
-          required
-        >
-          {EVENT_TYPES.map(t => (
-            <option key={t.value} value={t.value}>{t.label}</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="order-form__group">
-        <label className="order-form__label">תאריך האירוע *</label>
-        <input
-          className="order-form__input"
-          type="date"
-          value={form.eventDate}
-          onChange={e => update('eventDate', e.target.value)}
-          required
-        />
-      </div>
-
-      {/* Separator */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', margin: '24px 0' }} />
-
       {/* Personal Info */}
       <div className="order-form__group">
         <label className="order-form__label">שם מלא *</label>

@@ -4,7 +4,7 @@ import { EVENT_STATUS_LABELS } from '@/lib/constants';
 import type { EventStatus } from '@/lib/database.types';
 
 /** Navigation view the sidebar can switch between. */
-export type AdminView = 'events' | 'global-analytics' | 'requests' | 'payments';
+export type AdminView = 'events' | 'calendar' | 'global-analytics' | 'requests' | 'payments';
 
 interface SidebarProps {
   activeView: AdminView;
@@ -56,6 +56,14 @@ export default function Sidebar({
             <span className="admin-sidebar__nav-icon">📋</span>
             אירועים
             <span style={{ marginRight: 'auto', fontSize: '12px', opacity: 0.7 }}>{totalEvents}</span>
+          </button>
+
+          <button
+            className={`admin-sidebar__nav-item ${activeView === 'calendar' ? 'admin-sidebar__nav-item--active' : ''}`}
+            onClick={() => { onNavigate('calendar'); onClose(); }}
+          >
+            <span className="admin-sidebar__nav-icon">📅</span>
+            לוח שנה
           </button>
 
           <button
