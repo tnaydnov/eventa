@@ -198,6 +198,21 @@ async function soapCall(action: string, bodyXml: string): Promise<string> {
   return response.text();
 }
 
+/** Exposed for diagnostics — build + send a SOAP call and return raw XML. */
+export async function soapCallRaw(action: string, bodyXml: string): Promise<{ status: number; xml: string; envelope: string }> {
+  const envelope = buildSoapEnvelope(action, bodyXml);
+  const response = await fetch(API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'text/xml; charset=utf-8',
+      'SOAPAction': `${SERVICE_NS}IApiService/${action}`,
+    },
+    body: envelope,
+  });
+  const xml = await response.text();
+  return { status: response.status, xml, envelope };
+}
+
 /* ════════════════════════════════════════════════════════
    XML Parsing Helpers
    ════════════════════════════════════════════════════════ */
