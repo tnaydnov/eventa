@@ -45,13 +45,14 @@ function ChartTooltip({ active, payload, label }: any) {
   );
 }
 
-const fmt = (n: number) => n.toLocaleString('he-IL');
+const fmt = (n: number | undefined | null) => (n ?? 0).toLocaleString('he-IL');
 
-function formatDur(secs: number): string {
-  if (secs < 60) return `${secs}ש׳`;
-  const m = Math.floor(secs / 60);
-  const s = secs % 60;
-  return s > 0 ? `${m}ד׳ ${s}ש׳` : `${m}ד׳`;
+function formatDur(secs: number | undefined | null): string {
+  const s = secs ?? 0;
+  if (s < 60) return `${s}ש׳`;
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return r > 0 ? `${m}ד׳ ${r}ש׳` : `${m}ד׳`;
 }
 
 /* ─── Legend text renderer ─── */
@@ -64,9 +65,58 @@ interface Props {
 }
 
 export default function AnalyticsDashboard({ analytics: raw }: Props) {
-  /* ── Ensure all array/object fields have defaults (archived snapshots may be incomplete) ── */
+  /* ── Ensure ALL fields have defaults (archived snapshots may be incomplete) ── */
   const a: EventAnalytics = {
-    ...raw,
+    // Scalar numbers – default to 0
+    incompleteRegistrations: raw.incompleteRegistrations ?? 0,
+    totalParticipants: raw.totalParticipants ?? 0,
+    totalMen: raw.totalMen ?? 0,
+    totalWomen: raw.totalWomen ?? 0,
+    menAttractedToMen: raw.menAttractedToMen ?? 0,
+    menAttractedToWomen: raw.menAttractedToWomen ?? 0,
+    menAttractedToAll: raw.menAttractedToAll ?? 0,
+    womenAttractedToMen: raw.womenAttractedToMen ?? 0,
+    womenAttractedToWomen: raw.womenAttractedToWomen ?? 0,
+    womenAttractedToAll: raw.womenAttractedToAll ?? 0,
+    participantsWithPhotos: raw.participantsWithPhotos ?? 0,
+    totalPhotosUploaded: raw.totalPhotosUploaded ?? 0,
+    avgPhotosPerParticipant: raw.avgPhotosPerParticipant ?? 0,
+    totalLikes: raw.totalLikes ?? 0,
+    likeSentByMen: raw.likeSentByMen ?? 0,
+    likeSentByWomen: raw.likeSentByWomen ?? 0,
+    likesSeenCount: raw.likesSeenCount ?? 0,
+    likesUnseenCount: raw.likesUnseenCount ?? 0,
+    avgLikesPerParticipant: raw.avgLikesPerParticipant ?? 0,
+    totalMatches: raw.totalMatches ?? 0,
+    matchRate: raw.matchRate ?? 0,
+    matchesToConversation: raw.matchesToConversation ?? 0,
+    deadMatches: raw.deadMatches ?? 0,
+    totalConversations: raw.totalConversations ?? 0,
+    firstMessageByMen: raw.firstMessageByMen ?? 0,
+    firstMessageByWomen: raw.firstMessageByWomen ?? 0,
+    totalMessages: raw.totalMessages ?? 0,
+    textMessages: raw.textMessages ?? 0,
+    imageMessages: raw.imageMessages ?? 0,
+    avgMessagesPerConversation: raw.avgMessagesPerConversation ?? 0,
+    activeConversations: raw.activeConversations ?? 0,
+    oneMessageConversations: raw.oneMessageConversations ?? 0,
+    avgTimeToFirstLikeMinutes: raw.avgTimeToFirstLikeMinutes ?? 0,
+    avgTimeToFirstMessageMinutes: raw.avgTimeToFirstMessageMinutes ?? 0,
+    totalBlocks: raw.totalBlocks ?? 0,
+    blocksByMen: raw.blocksByMen ?? 0,
+    blocksByWomen: raw.blocksByWomen ?? 0,
+    blocksAfterConversation: raw.blocksAfterConversation ?? 0,
+    blocksAfterLike: raw.blocksAfterLike ?? 0,
+    blocksWithNoInteraction: raw.blocksWithNoInteraction ?? 0,
+    peakActivityHour: raw.peakActivityHour ?? '',
+    peakActivityCount: raw.peakActivityCount ?? 0,
+    responseRate: raw.responseRate ?? 0,
+    avgResponseTimeMinutes: raw.avgResponseTimeMinutes ?? 0,
+    ghostRate: raw.ghostRate ?? 0,
+    ghostedConversations: raw.ghostedConversations ?? 0,
+    blockAfterMatchRate: raw.blockAfterMatchRate ?? 0,
+    blockAfterMatchCount: raw.blockAfterMatchCount ?? 0,
+    // Arrays & nested objects
     usageTimeline: raw.usageTimeline ?? [],
     ageDistribution: raw.ageDistribution ?? [],
     usageByGenderAttraction: raw.usageByGenderAttraction ?? [],
