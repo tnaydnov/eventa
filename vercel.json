@@ -8,7 +8,7 @@
       "maxDuration": 25
     },
     "src/app/api/payment/callback/route.ts": {
-      "maxDuration": 30
+      "maxDuration": 60
     },
     "src/app/api/admin/requests/route.ts": {
       "maxDuration": 30
