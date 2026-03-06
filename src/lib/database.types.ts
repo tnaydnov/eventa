@@ -33,6 +33,9 @@ export type PaymentStatus =
 
 export type PaymentMethod = 'bit' | 'paybox' | 'cash' | 'bank_transfer' | 'credit_card' | 'other';
 
+/** Payment status stored on the events table (simpler than request-level status). */
+export type EventPaymentStatus = 'unpaid' | 'paid' | 'waived';
+
 /* ---------- Row types ---------- */
 
 export interface Event {
@@ -59,6 +62,7 @@ export interface Event {
   client_email: string | null;
   client_phone: string | null;
   communication_preference: string | null;
+  payment_status: EventPaymentStatus;
 }
 
 export interface Participant {

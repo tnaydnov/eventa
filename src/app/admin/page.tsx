@@ -189,6 +189,7 @@ export default function AdminPage() {
                 onViewDetails={handleViewDetails}
                 onUpdateStatus={admin.updateStatus}
                 onToggleQrSent={admin.toggleQrSent}
+                onTogglePayment={admin.togglePaymentStatus}
                 onCreateEvent={handleCreateEvent}
               />
             )}
@@ -246,6 +247,7 @@ export default function AdminPage() {
                 onApprove={admin.approveRequest}
                 onDeny={admin.denyRequest}
                 onDelete={admin.deleteRequest}
+                onSendPaymentLink={admin.resendPaymentLink}
                 onReload={admin.loadRequests}
               />
             )}

@@ -115,6 +115,7 @@ export async function GET(req: NextRequest) {
         client_email: request.contact_email || null,
         client_phone: request.contact_phone || null,
         communication_preference: 'email',
+        payment_status: 'paid',
       })
       .select('id, slug, join_code')
       .single();

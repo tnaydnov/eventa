@@ -17,6 +17,7 @@ interface EventsViewProps {
   onViewDetails: (event: Event) => void;
   onUpdateStatus: (id: string, status: string) => void;
   onToggleQrSent: (id: string, sent: boolean) => void;
+  onTogglePayment: (id: string, status: 'unpaid' | 'paid' | 'waived') => void;
   onCreateEvent: () => void;
   title?: string;
   subtitle?: string;
@@ -27,7 +28,7 @@ export default function EventsView({
   onRotate, onDelete,
   onGenerateQR, onCopyUrl,
   onUploadBg, onRemoveBg, onViewDetails, onUpdateStatus,
-  onToggleQrSent, onCreateEvent, title, subtitle,
+  onToggleQrSent, onTogglePayment, onCreateEvent, title, subtitle,
 }: EventsViewProps) {
   const [search, setSearch] = useState('');
   const [statusTab, setStatusTab] = useState<StatusTab>('all');
@@ -114,6 +115,7 @@ export default function EventsView({
                   onRotate={onRotate}
                   onUpdateStatus={onUpdateStatus}
                   onToggleQrSent={onToggleQrSent}
+                  onTogglePayment={onTogglePayment}
                   onDelete={onDelete}
                 />
               ))}

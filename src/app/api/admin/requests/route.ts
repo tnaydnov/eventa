@@ -205,6 +205,7 @@ export async function POST(req: NextRequest) {
         client_email: request.contact_email || null,
         client_phone: request.contact_phone || null,
         communication_preference: request.contact_preference || 'email',
+        payment_status: (chargeSucceeded || request.payment_status === 'paid') ? 'paid' : 'unpaid',
       })
       .select('id, slug, join_code')
       .single();

@@ -15,6 +15,7 @@ interface EventRowProps {
   onRotate: (id: string) => void;
   onUpdateStatus: (id: string, status: string) => void;
   onToggleQrSent: (id: string, sent: boolean) => void;
+  onTogglePayment: (id: string, status: 'unpaid' | 'paid' | 'waived') => void;
   onDelete: (id: string) => void;
 }
 
@@ -37,7 +38,7 @@ const shortDate = (iso: string) => {
 
 export default function EventRow({
   event, onViewDetails, onGenerateQR, onCopyUrl,
-  onUploadBg, onRemoveBg, onRotate, onUpdateStatus, onToggleQrSent, onDelete,
+  onUploadBg, onRemoveBg, onRotate, onUpdateStatus, onToggleQrSent, onTogglePayment, onDelete,
 }: EventRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -112,6 +113,12 @@ export default function EventRow({
       <td className="et-td et-td--name">
         <div className="et-name">
           {event.name}
+          <span
+            className={`et-msg-badge ${event.payment_status === 'paid' ? 'et-msg-badge--ok' : event.payment_status === 'waived' ? 'et-msg-badge--ok' : 'et-msg-badge--pending'}`}
+            title={event.payment_status === 'paid' ? 'שולם ✅' : event.payment_status === 'waived' ? 'הנחה/ביטול 🎁' : 'לא שולם'}
+          >
+            {event.payment_status === 'paid' ? '✅' : event.payment_status === 'waived' ? '🎁' : '⏳'} ₪
+          </span>
           {event.wa_messages_enabled && (
             <span className={`et-msg-badge ${event.guest_list_uploaded ? 'et-msg-badge--ok' : 'et-msg-badge--pending'}`}
               title={event.guest_list_uploaded ? `📱 הודעות - ${event.guest_list_count} מספרים` : '📱 הודעות - ממתין להעלאת רשימה'}
@@ -169,6 +176,22 @@ export default function EventRow({
                   >
                     {event.qr_page_sent ? '↩ סמן QR כלא נשלח' : '✅ סמן QR כנשלח'}
                   </button>
+                  <div className="et-dropdown__divider" />
+                  {event.payment_status !== 'paid' && (
+                    <button className="et-dropdown__item et-dropdown__item--success" onClick={() => act(() => onTogglePayment(event.id, 'paid'))}>
+                      💰 סמן כשולם
+                    </button>
+                  )}
+                  {event.payment_status !== 'waived' && (
+                    <button className="et-dropdown__item" onClick={() => act(() => onTogglePayment(event.id, 'waived'))}>
+                      🎁 סמן כהנחה/ביטול
+                    </button>
+                  )}
+                  {event.payment_status !== 'unpaid' && (
+                    <button className="et-dropdown__item et-dropdown__item--warning" onClick={() => act(() => onTogglePayment(event.id, 'unpaid'))}>
+                      ↩ סמן כלא שולם
+                    </button>
+                  )}
                   <div className="et-dropdown__divider" />
                   {event.status === 'active' ? (
                     <button className="et-dropdown__item et-dropdown__item--warning" onClick={() => act(() => onUpdateStatus(event.id, 'paused'))}>

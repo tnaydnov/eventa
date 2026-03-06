@@ -222,6 +222,7 @@ export const updateEventSchema = z.object({
   client_email: z.string().email().max(200).nullable().optional(),
   client_phone: z.string().max(20).nullable().optional(),
   communication_preference: z.enum(['email', 'phone', 'whatsapp', 'call-me']).nullable().optional(),
+  payment_status: z.enum(['unpaid', 'paid', 'waived']).optional(),
 });
 
 /* ---- Message schema ---- */

@@ -590,6 +590,19 @@ export function useAdminData() {
     }
   };
 
+  /* ─── toggle event payment status ─── */
+  const togglePaymentStatus = async (eventId: string, status: 'unpaid' | 'paid' | 'waived') => {
+    const res = await authedFetch(`/api/admin/events/${eventId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ payment_status: status }),
+    });
+    if (res.ok) {
+      setEvents(prev => prev.map(e => e.id === eventId ? { ...e, payment_status: status } : e));
+    } else {
+      alert('שגיאה בעדכון סטטוס תשלום');
+    }
+  };
+
   /* ─── update event details (client info, etc.) ─── */
   const updateEventDetails = async (
     id: string,
@@ -624,7 +637,7 @@ export function useAdminData() {
     loadMessagingStatus, updateMessagingConfig, triggerMessages,
     loadGuestPhones, adminAddGuestPhone, adminRemoveGuestPhone, adminUploadGuestFile,
     regeneratePortalToken, sendClientEmail, sendQrPage, loadMessageLog,
-    markAsPaid, waivePayment, resendPaymentLink, toggleQrSent,
+    markAsPaid, waivePayment, resendPaymentLink, toggleQrSent, togglePaymentStatus,
     updateEventDetails,
   };
 }

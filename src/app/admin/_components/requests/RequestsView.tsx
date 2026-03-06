@@ -32,10 +32,11 @@ interface Props {
   onApprove: (requestId: string, adminNotes?: string) => Promise<{ ok: boolean; error?: string }>;
   onDeny: (requestId: string, adminNotes?: string) => Promise<{ ok: boolean; error?: string }>;
   onDelete: (requestId: string) => Promise<{ ok: boolean; error?: string }>;
+  onSendPaymentLink: (requestId: string) => Promise<{ ok: boolean; error?: string }>;
   onReload: () => void;
 }
 
-export default function RequestsView({ requests, onApprove, onDeny, onDelete, onReload }: Props) {
+export default function RequestsView({ requests, onApprove, onDeny, onDelete, onSendPaymentLink, onReload }: Props) {
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -98,6 +99,18 @@ export default function RequestsView({ requests, onApprove, onDeny, onDelete, on
       alert('🗑️ הבקשה נמחקה');
     } else {
       alert(result.error || 'שגיאה במחיקת הבקשה');
+    }
+  };
+
+  const handleSendPaymentLink = async (id: string) => {
+    if (!confirm('לשלוח קישור תשלום ללקוח?')) return;
+    setProcessingId(id);
+    const result = await onSendPaymentLink(id);
+    setProcessingId(null);
+    if (result.ok) {
+      alert('📧 קישור תשלום נשלח ללקוח!');
+    } else {
+      alert(result.error || 'שגיאה בשליחת קישור תשלום');
     }
   };
 
@@ -350,6 +363,15 @@ export default function RequestsView({ requests, onApprove, onDeny, onDelete, on
                       >
                         {isProcessing ? '⏳ מעבד...' : '✅ אשר וצור אירוע'}
                       </button>
+                      {req.payment_status !== 'paid' && req.payment_status !== 'waived' && req.contact_email && (
+                        <button
+                          className="admin-btn admin-btn--primary"
+                          onClick={() => handleSendPaymentLink(req.id)}
+                          disabled={isProcessing}
+                        >
+                          {isProcessing ? '⏳ מעבד...' : '📧 שלח קישור תשלום'}
+                        </button>
+                      )}
                       <button
                         className="admin-btn admin-btn--red"
                         onClick={() => handleDeny(req.id)}
