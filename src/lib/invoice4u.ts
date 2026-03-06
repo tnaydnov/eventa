@@ -183,9 +183,11 @@ export async function isAuthenticated(): Promise<boolean> {
     const data = await apiJsonCall<Record<string, unknown>>('IsAuthenticated', {
       token: API_TOKEN,
     });
-    // Response could be { IsAuthenticatedResult: true } or just a boolean
-    const result = data.IsAuthenticatedResult ?? data;
-    return result === true;
+    // WCF returns the full User object when authenticated (not a boolean).
+    // Check for a valid user ID or ApiActive flag.
+    const id = Number(data.ID) || 0;
+    const apiActive = data.ApiActive === true;
+    return id > 0 || apiActive;
   } catch (err) {
     logger.error('[Invoice4U] IsAuthenticated failed', err);
     return false;
@@ -329,7 +331,7 @@ export async function createDocument(params: CreateDocumentParams): Promise<Invo
     if (params.payments?.length) {
       doc.Payments = params.payments.map(p => ({
         Amount: p.Amount,
-        Type: p.PaymentType,
+        PaymentType: p.PaymentType,
         Date: wcfDate(p.Date),
       }));
     }
