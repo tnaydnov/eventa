@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { WizardFormState } from '../wizard-config';
 import { MSG_ADDON } from '@/lib/config';
 
@@ -10,6 +11,8 @@ interface Props {
 
 export default function StepMessages({ state, onChange }: Props) {
   const enabled = state.wantsGuestMessages;
+  const [previewOpen, setPreviewOpen] = useState(true);
+  const eventName = state.eventName || 'האירוע שלכם';
 
   return (
     <div className="wiz-step">
@@ -21,6 +24,45 @@ export default function StepMessages({ state, onChange }: Props) {
           <br />
           ותנו להם להצטרף לאפליקציה מהבית.
         </p>
+      </div>
+
+      {/* ── WA message preview ── */}
+      <div className="wiz-msg-preview-section">
+        <button
+          type="button"
+          className={`wiz-msg-preview-toggle ${previewOpen ? 'wiz-msg-preview-toggle--open' : ''}`}
+          onClick={() => setPreviewOpen((v) => !v)}
+          aria-expanded={previewOpen}
+        >
+          <span>👀 איך ההודעה נראית?</span>
+          <span className="wiz-msg-preview-chevron">{previewOpen ? '▲' : '▼'}</span>
+        </button>
+
+        {previewOpen && (
+          <div className="wiz-msg-wa-frame">
+            <div className="wiz-msg-wa-header">
+              <div className="wiz-msg-wa-avatar">E</div>
+              <div className="wiz-msg-wa-name">Eventa</div>
+            </div>
+            <div className="wiz-msg-wa-chat">
+              <div className="wiz-msg-wa-bubble">
+                <p>מגיעים ל{eventName}? את/ה רווק/ה? 💍</p>
+                <p>הם מצאו את אהבתם, עכשיו תורכם! ❤️</p>
+                <p style={{ marginTop: 4 }}>
+                  באירוע תהיה לכם הזדמנות להצטרף לאפליקציית <strong>Eventa</strong> - ולראות את שאר הרווקים והרווקות שיהיו שם.
+                </p>
+                <p style={{ marginTop: 4 }}>
+                  אל תדאגו - זו אפליקציה ייעודית רק לאירוע זה, וכל הנתונים שלכם יימחקו כשבוע לאחר האירוע. 🔒
+                </p>
+                <p style={{ marginTop: 4 }}>
+                  כדאי לכם להיכנס כבר עכשיו ולבדוק את השטח…{'\n'}אולי תשיגו משהו מעניין 😏
+                </p>
+                <p className="wiz-msg-wa-link">🔗 קישור להצטרפות לאירוע</p>
+              </div>
+            </div>
+            <p className="wiz-msg-wa-note">* התוכן המדויק עשוי להשתנות מעט</p>
+          </div>
+        )}
       </div>
 
       {/* ── Strong stat ── */}

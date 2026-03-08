@@ -59,6 +59,7 @@ function validateStep(step: number, state: WizardFormState): string | null {
       }
       if (!state.startsAt) return 'יש לבחור תאריך ושעת התחלה';
       if (!state.endsAt) return 'יש לבחור תאריך ושעת סיום';
+      if (new Date(state.startsAt) < new Date()) return 'תאריך ההתחלה חייב להיות בעתיד';
       if (state.endsAt <= state.startsAt) return 'שעת הסיום חייבת להיות אחרי ההתחלה';
       return null;
     }

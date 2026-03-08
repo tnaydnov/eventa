@@ -1060,6 +1060,121 @@
 
 /* ═══ Step 5: Messages ═══ */
 
+/* ── WA preview ── */
+.wiz-msg-preview-section {
+  margin-top: 8px;
+  animation: wiz-step-enter 0.35s ease forwards;
+}
+
+.wiz-msg-preview-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  width: 100%;
+  text-align: right;
+  transition: background 0.2s, border-color 0.2s;
+  font-family: inherit;
+}
+
+.wiz-msg-preview-toggle:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.wiz-msg-preview-toggle--open {
+  border-color: rgba(212, 165, 154, 0.2);
+}
+
+.wiz-msg-preview-chevron {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.wiz-msg-wa-frame {
+  margin-top: 10px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  animation: wiz-step-enter 0.3s ease forwards;
+}
+
+.wiz-msg-wa-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #1f2c34;
+}
+
+.wiz-msg-wa-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #00a884;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wiz-msg-wa-name {
+  color: #e9edef;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.wiz-msg-wa-chat {
+  background: #0b141a;
+  padding: 14px 12px;
+  min-height: 100px;
+}
+
+.wiz-msg-wa-bubble {
+  background: #1a2c34;
+  border-radius: 0 8px 8px 8px;
+  padding: 8px 10px 6px;
+  max-width: 92%;
+  direction: rtl;
+  font-size: 0.8rem;
+  color: #e9edef;
+  line-height: 1.55;
+  white-space: pre-line;
+  box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
+}
+
+.wiz-msg-wa-bubble p {
+  margin: 0;
+}
+
+.wiz-msg-wa-bubble strong {
+  color: #fff;
+}
+
+.wiz-msg-wa-link {
+  margin-top: 6px;
+  color: #53bdeb;
+  font-size: 0.78rem;
+}
+
+.wiz-msg-wa-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 8px 12px;
+  margin: 0;
+  opacity: 0.7;
+}
+
 /* ── Stat callout ── */
 .wiz-msg-stat {
   display: flex;

@@ -12,6 +12,11 @@ export default function StepEventDetails({ state, onChange }: Props) {
   const typeConfig = WIZARD_TYPE_MAP[state.eventType];
   const nameField = typeConfig?.nameField;
 
+  // Minimum selectable datetime = now (rounded down to current minute)
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const minDateTime = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
   return (
     <div className="wiz-step">
       <div className="wiz-step__header">
@@ -49,6 +54,7 @@ export default function StepEventDetails({ state, onChange }: Props) {
             className="wiz-field__input"
             type="datetime-local"
             value={state.startsAt}
+            min={minDateTime}
             onChange={e => {
               const start = e.target.value;
               onChange({ startsAt: start });
@@ -57,7 +63,6 @@ export default function StepEventDetails({ state, onChange }: Props) {
               if (start && !state.endsAt && typeConfig) {
                 const startDate = new Date(start);
                 startDate.setHours(startDate.getHours() + typeConfig.defaultDurationHours);
-                const pad = (n: number) => String(n).padStart(2, '0');
                 const end = `${startDate.getFullYear()}-${pad(startDate.getMonth() + 1)}-${pad(startDate.getDate())}T${pad(startDate.getHours())}:${pad(startDate.getMinutes())}`;
                 onChange({ startsAt: start, endsAt: end });
               }
