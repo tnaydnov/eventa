@@ -229,17 +229,17 @@
   margin-top: 48px;
 }
 
-.pricing-addon-label {
-  font-size: 13px;
-  font-weight: 600;
+.pricing-addon-title {
+  font-size: clamp(20px, 4vw, 26px);
+  font-weight: 700;
   color: #a78bfa;
-  letter-spacing: 0.5px;
-  margin-bottom: 16px;
+  line-height: 1.4;
+  margin: 0 0 20px;
 }
 
 .pricing-card--addon {
-  text-align: right;
-  padding: 28px 28px 28px;
+  text-align: center;
+  padding: 32px 28px 28px;
   border-color: rgba(167, 139, 250, 0.15);
 }
 
@@ -248,31 +248,49 @@
 }
 
 .pricing-card--addon .pricing-card__features {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
-.pricing-addon-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 16px;
+/* ── Tag ── */
+.pricing-addon-tag {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary, #D4A59A);
+  background: rgba(212, 165, 154, 0.08);
+  border: 1px solid rgba(212, 165, 154, 0.18);
+  border-radius: 20px;
+  padding: 5px 16px;
+  margin-bottom: 20px;
+  letter-spacing: 0.3px;
 }
 
-.pricing-addon-header .pricing-card__badge--addon {
-  text-align: right;
-  margin-bottom: 10px;
-}
-
+/* ── Addon desc ── */
 .pricing-addon-desc {
   font-size: 14px;
   color: var(--text-muted, #b0b0b0);
+  line-height: 1.7;
+  margin: 16px 0 20px;
+}
+
+.pricing-addon-desc p {
+  margin: 0 0 10px;
+}
+
+.pricing-addon-desc p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Reinforcement ── */
+.pricing-addon-reinforcement {
+  font-size: 13px;
+  color: var(--text-muted, #b0b0b0);
+  margin: 0 0 24px;
+  opacity: 0.85;
   line-height: 1.6;
-  margin: 0;
 }
 
 .pricing-card--addon .pricing-card__price {
-  flex-shrink: 0;
   margin-bottom: 0;
 }
 
@@ -429,10 +447,5 @@
 
   .pricing-content {
     padding: 32px 16px 48px;
-  }
-
-  .pricing-addon-header {
-    flex-direction: column;
-    gap: 12px;
   }
 }

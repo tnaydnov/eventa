@@ -23,9 +23,10 @@ const BASE_FEATURES = [
 
 const MSG_FEATURES = [
   'הודעת WhatsApp לכל האורחים לפני האירוע',
-  'קישור אישי להצטרפות - ללא צורך ב-QR',
-  'העלאת רשימת אורחים מקובץ Excel',
-  'הודעת תודה יום אחרי האירוע',
+  'הצטרפות לאפליקציה מהבית – בלי צורך לסרוק QR',
+  'יותר רווקים ורווקות מצטרפים עוד לפני שהאירוע מתחיל',
+  'העלאה מהירה של רשימת האורחים מקובץ Excel',
+  'הודעת תודה לאורחים ביום שאחרי האירוע',
 ];
 
 /* ── Check‑icon shared across cards ── */
@@ -116,27 +117,34 @@ export default function PricingPage() {
 
         {/* ═══ Addon upgrade card ═══ */}
         <div className="pricing-addon-section">
-          <p className="pricing-addon-label">שדרוג מומלץ לאירועים גדולים</p>
+          <h2 className="pricing-addon-title">
+            הגדילו פי 3 את מספר הרווקים והרווקות באפליקציה
+          </h2>
 
           <div className="pricing-card pricing-card--addon">
-            <div className="pricing-addon-header">
-              <div>
-                <div className="pricing-card__badge pricing-card__badge--addon">
-                  הגדלת מספר המשתתפים באפליקציה
-                </div>
-                <p className="pricing-addon-desc">
-                  שליחת הודעת WhatsApp לכל האורחים לפני האירוע עם קישור ישיר להצטרפות.
-                </p>
-              </div>
-              <div className="pricing-card__price pricing-card__price--addon">
-                <span className="pricing-card__plus">+</span>
-                <span className="pricing-card__amount">{MSG_ADDON}</span>
-                <span className="pricing-card__currency">₪</span>
-              </div>
+            <div className="pricing-addon-tag">🔥 השדרוג שהכי מגדיל את מספר המשתתפים</div>
+
+            <div className="pricing-card__price pricing-card__price--addon">
+              <span className="pricing-card__plus">+</span>
+              <span className="pricing-card__amount">{MSG_ADDON}</span>
+              <span className="pricing-card__currency">₪</span>
+            </div>
+
+            <div className="pricing-addon-desc">
+              <p>
+                שליחת הודעת WhatsApp לכל האורחים לפני האירוע
+                <br />
+                עם קישור ישיר להצטרפות לאפליקציה.
+              </p>
+              <p>
+                כך האורחים יכולים להצטרף בנוחות מהבית,
+                <br />
+                בזמן שלהם — בלי לחץ ובלי צורך לסרוק QR במהלך האירוע.
+              </p>
             </div>
 
             <div className="pricing-addon-proof">
-              אירועים ששולחים הודעה מראש מקבלים פי 3 יותר משתמשים באפליקציה
+              אירועים ששולחים הודעה מראש מקבלים פי 3 יותר רווקים ורווקות באפליקציה
             </div>
 
             <ul className="pricing-card__features">
@@ -148,8 +156,12 @@ export default function PricingPage() {
               ))}
             </ul>
 
+            <p className="pricing-addon-reinforcement">
+              רוב הזוגות מוסיפים את השדרוג הזה כדי למקסם את מספר המשתתפים באפליקציה.
+            </p>
+
             <a href="/dating/order" className="pricing-card__cta pricing-card__cta--addon">
-              הוסיפו להזמנה
+              הוסיפו שליחת הודעות לאורחים
               <ArrowIcon />
             </a>
           </div>
@@ -161,7 +173,7 @@ export default function PricingPage() {
           <div className="pricing-total__breakdown">
             <span>חבילת Eventa לאירוע: <strong>₪{BASE_PRICE}</strong></span>
             <span className="pricing-total__optional">
-              עם שדרוג הודעות לאורחים: <strong>₪{BASE_PRICE + MSG_ADDON}</strong>
+              עם שליחת הודעות לאורחים: <strong>₪{BASE_PRICE + MSG_ADDON}</strong>
             </span>
           </div>
         </div>

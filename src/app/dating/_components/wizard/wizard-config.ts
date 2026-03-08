@@ -175,7 +175,7 @@ export const INITIAL_WIZARD_STATE: WizardFormState = {
   posterChoice: 'qr-only',
   selectedTemplateId: null,
   specialRequests: '',
-  wantsGuestMessages: false,
+  wantsGuestMessages: true,
   contactPreference: 'call-me',
   contactName: '',
   contactPhone: '',

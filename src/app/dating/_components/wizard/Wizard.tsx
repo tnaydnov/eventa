@@ -439,7 +439,11 @@ export default function Wizard() {
             className="wiz-nav__btn wiz-nav__btn--next"
             onClick={goNext}
           >
-            הבא
+            {step === 4
+              ? (state.wantsGuestMessages
+                  ? 'ממשיכים עם שליחת הודעות לאורחים'
+                  : 'ממשיכים בלי שליחת הודעות')
+              : 'הבא'}
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
               <path d="M7 4l-6 6 6 6" />
             </svg>
