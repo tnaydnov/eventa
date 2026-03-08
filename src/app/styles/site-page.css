@@ -21,7 +21,7 @@
 /* ── Header ── */
 .site-page__header {
   position: relative;
-  padding: 48px 24px 32px;
+  padding: 28px 24px 20px;
   text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -29,7 +29,7 @@
 .site-page__back {
   position: absolute;
   left: 20px;
-  top: 48px;
+  top: 28px;
   width: 36px;
   height: 36px;
   display: flex;

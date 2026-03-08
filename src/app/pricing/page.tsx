@@ -5,28 +5,70 @@ import { BASE_PRICE, MSG_ADDON } from '@/lib/config';
 export const metadata: Metadata = {
   title: 'מחירון | Eventa',
   description:
-    'מחירון שירותי Eventa - חבילת אירוע בסיסית וסרוויסים נוספים. תמחור פשוט ושקוף.',
+    'הפעילו את אפליקציית ההיכרויות של Eventa באירוע שלכם. חבילה אחת ברורה, תוספת אופציונלית.',
   alternates: { canonical: 'https://www.eventa.productions/pricing' },
 };
 
-/* ── Plan data ── */
+/* ── Feature lists ── */
 
 const BASE_FEATURES = [
   'אפליקציית היכרויות מלאה לאירוע',
-  'QR ייחודי + לינק הצטרפות',
-  'אימות אורחים בקוד SMS לנייד',
-  'גריד / סוויפ, לייקים, מאצ׳ים וצ׳אט',
-  'פוסטר מעוצב עם QR (קובץ דיגיטלי, תוך 24 שעות מאישור התשלום)',
+  'כניסה לאפליקציה דרך QR או קישור',
+  'כניסה מאובטחת עם קוד SMS',
+  'סוויפ, לייקים, מאצ׳ים וצ׳אט',
+  'פוסטר QR מוכן להדפסה',
   'רקע מותאם אישית (אופציונלי)',
-  'מחיקה אוטומטית של מידע אישי',
+  'מחיקה אוטומטית של מידע אישי בתום האירוע',
 ];
 
 const MSG_FEATURES = [
-  'שליחת הודעות WhatsApp לאורחים לפני האירוע',
+  'הודעת WhatsApp לכל האורחים לפני האירוע',
   'קישור אישי להצטרפות - ללא צורך ב-QR',
-  'העלאת רשימת טלפונים מ-Excel',
-  'הודעת פידבק יום אחרי האירוע',
+  'העלאת רשימת אורחים מקובץ Excel',
+  'הודעת תודה יום אחרי האירוע',
 ];
+
+/* ── Check‑icon shared across cards ── */
+function CheckIcon({ addon }: { addon?: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      className={`pricing-check${addon ? ' pricing-check--addon' : ''}`}
+      width="18"
+      height="18"
+      viewBox="0 0 20 20"
+      fill="none"
+    >
+      <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M6.5 10.5l2.5 2.5 4.5-5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/* ── Arrow icon for CTAs ── */
+function ArrowIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      width="16"
+      height="16"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <path d="M7 4l-6 6 6 6" />
+    </svg>
+  );
+}
 
 export default function PricingPage() {
   return (
@@ -35,141 +77,93 @@ export default function PricingPage() {
       <div className="pricing-glow" />
 
       <div className="pricing-content">
+        {/* ═══ Hero heading ═══ */}
         <h1 className="pricing-title">
-          תמחור <span className="pricing-title__accent">פשוט ושקוף</span>
+          הפעילו את <span className="pricing-title__accent">Eventa</span> באירוע שלכם
         </h1>
         <p className="pricing-subtitle">
-          בלי הפתעות, בלי עלויות נסתרות. חבילה אחת שכוללת הכל - ותוספת אופציונלית למי
-          שרוצה עוד.
+          בחרו את חבילת האירוע.
+          <br />
+          ניתן להוסיף שליחת הודעות לאורחים לפני האירוע (אופציונלי).
         </p>
 
-        {/* Cards row */}
-        <div className="pricing-cards">
-
-          {/* ── Base plan ── */}
-          <div className="pricing-card pricing-card--base">
-            <div className="pricing-card__badge">חבילת אירוע</div>
-            <div className="pricing-card__price">
-              <span className="pricing-card__currency">₪</span>
-              <span className="pricing-card__amount">{BASE_PRICE}</span>
-            </div>
-            <p className="pricing-card__per">לאירוע</p>
-
-            <ul className="pricing-card__features">
-              {BASE_FEATURES.map((f) => (
-                <li key={f}>
-                  <svg
-                    aria-hidden="true"
-                    focusable="false"
-                    className="pricing-check"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                  >
-                    <circle
-                      cx="10"
-                      cy="10"
-                      r="9"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    />
-                    <path
-                      d="M6.5 10.5l2.5 2.5 4.5-5"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-
-            <a href="/dating/order" className="pricing-card__cta">
-              להזמנה
-              <svg
-                aria-hidden="true"
-                focusable="false"
-                width="16"
-                height="16"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M7 4l-6 6 6 6" />
-              </svg>
-            </a>
+        {/* ═══ Main product card ═══ */}
+        <div className="pricing-card pricing-card--base">
+          <div className="pricing-card__badge">חבילת Eventa לאירוע</div>
+          <div className="pricing-card__price">
+            <span className="pricing-card__amount">{BASE_PRICE}</span>
+            <span className="pricing-card__currency">₪</span>
           </div>
+          <p className="pricing-card__per">תשלום חד-פעמי לאירוע</p>
 
-          {/* ── Messages add-on ── */}
+          <ul className="pricing-card__features">
+            {BASE_FEATURES.map((f) => (
+              <li key={f}>
+                <CheckIcon />
+                {f}
+              </li>
+            ))}
+          </ul>
+
+          <a href="/dating/order" className="pricing-card__cta">
+            הפעילו את Eventa לאירוע
+            <ArrowIcon />
+          </a>
+          <p className="pricing-card__reassurance">
+            אין התחייבות · ניתן לבטל עד 24 שעות לפני האירוע
+          </p>
+        </div>
+
+        {/* ═══ Addon upgrade card ═══ */}
+        <div className="pricing-addon-section">
+          <p className="pricing-addon-label">שדרוג מומלץ לאירועים גדולים</p>
+
           <div className="pricing-card pricing-card--addon">
-            <div className="pricing-card__badge pricing-card__badge--addon">
-              תוספת אופציונלית
+            <div className="pricing-addon-header">
+              <div>
+                <div className="pricing-card__badge pricing-card__badge--addon">
+                  הגדלת מספר המשתתפים באפליקציה
+                </div>
+                <p className="pricing-addon-desc">
+                  שליחת הודעת WhatsApp לכל האורחים לפני האירוע עם קישור ישיר להצטרפות.
+                </p>
+              </div>
+              <div className="pricing-card__price pricing-card__price--addon">
+                <span className="pricing-card__plus">+</span>
+                <span className="pricing-card__amount">{MSG_ADDON}</span>
+                <span className="pricing-card__currency">₪</span>
+              </div>
             </div>
-            <div className="pricing-card__price pricing-card__price--addon">
-              <span className="pricing-card__plus">+</span>
-              <span className="pricing-card__currency">₪</span>
-              <span className="pricing-card__amount">{MSG_ADDON}</span>
+
+            <div className="pricing-addon-proof">
+              אירועים ששולחים הודעה מראש מקבלים פי 3 יותר משתמשים באפליקציה
             </div>
-            <p className="pricing-card__per">הודעות לאורחים</p>
 
             <ul className="pricing-card__features">
               {MSG_FEATURES.map((f) => (
                 <li key={f}>
-                  <svg
-                    aria-hidden="true"
-                    focusable="false"
-                    className="pricing-check pricing-check--addon"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                  >
-                    <circle
-                      cx="10"
-                      cy="10"
-                      r="9"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    />
-                    <path
-                      d="M6.5 10.5l2.5 2.5 4.5-5"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <CheckIcon addon />
                   {f}
                 </li>
               ))}
             </ul>
 
             <a href="/dating/order" className="pricing-card__cta pricing-card__cta--addon">
-              להוספה בהזמנה
-              <svg
-                aria-hidden="true"
-                focusable="false"
-                width="16"
-                height="16"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M7 4l-6 6 6 6" />
-              </svg>
+              הוסיפו להזמנה
+              <ArrowIcon />
             </a>
           </div>
         </div>
 
-        {/* Bottom total strip */}
+        {/* ═══ Summary strip ═══ */}
         <div className="pricing-total">
-          <div className="pricing-total__label">חבילת אירוע</div>
-          <div className="pricing-total__value">₪{BASE_PRICE}</div>
+          <div className="pricing-total__label">סיכום הזמנה</div>
+          <div className="pricing-total__breakdown">
+            <span>חבילת Eventa לאירוע: <strong>₪{BASE_PRICE}</strong></span>
+            <span className="pricing-total__optional">
+              עם שדרוג הודעות לאורחים: <strong>₪{BASE_PRICE + MSG_ADDON}</strong>
+            </span>
+          </div>
         </div>
 
         {/* FAQ teaser */}

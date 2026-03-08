@@ -40,8 +40,8 @@ export default function SitePageLayout({
           <Image
             src="/icons/Eventa_Logo.png"
             alt="Eventa"
-            width={100}
-            height={34}
+            width={120}
+            height={40}
             style={{ objectFit: 'contain' }}
           />
         </Link>
