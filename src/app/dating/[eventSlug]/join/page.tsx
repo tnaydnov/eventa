@@ -131,6 +131,7 @@ function JoinPageContent({
   const [inAppBrowser, setInAppBrowser] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [statusChecked, setStatusChecked] = useState(false);
+  const [eventNotFound, setEventNotFound] = useState(false);
 
   // ─── Phone verification state ─────────────────────────────
   const [phone, setPhone] = useState('');
@@ -150,19 +151,28 @@ function JoinPageContent({
     async function checkEventStatus() {
       try {
         const res = await fetch(`/api/auth/event-status?slug=${encodeURIComponent(eventSlug)}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.status && data.status !== 'active' && data.status !== 'draft') {
-            const reason = data.status === 'ended' || data.status === 'archived' ? data.status : 'ended';
-            router.replace(`/dating/event-over?reason=${reason}`);
-            return;
-          }
-          if (data.status === 'not_found') {
-            setError('האירוע לא נמצא - ודאו שהקישור תקין');
-          }
+        const data = await res.json();
+
+        if (data.status === 'not_found') {
+          setEventNotFound(true);
+          setStatusChecked(true);
+          return;
+        }
+
+        if (data.status === 'error') {
+          // Server error — let user proceed but they'll hit the real
+          // validation at the send-otp / join step
+          setStatusChecked(true);
+          return;
+        }
+
+        if (data.status && data.status !== 'active' && data.status !== 'draft') {
+          const reason = data.status === 'ended' || data.status === 'archived' ? data.status : 'ended';
+          router.replace(`/dating/event-over?reason=${reason}`);
+          return;
         }
       } catch {
-        // If status check fails, let them proceed normally
+        // Network failure — let them proceed; API calls later will catch it
       }
       setStatusChecked(true);
     }
@@ -393,6 +403,28 @@ function JoinPageContent({
             }}
           >
             <img src="/icons/Eventa_Logo.png" alt="Eventa" width={100} height={100} style={{ objectFit: 'contain', opacity: 0.6, animation: 'eo-pulse 1.5s ease-in-out infinite' }} />
+          </div>
+        ) : eventNotFound ? (
+          <div
+            className="app-container"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '100dvh',
+              padding: 32,
+              textAlign: 'center',
+              gap: 20,
+            }}
+          >
+            <img src="/icons/Eventa_Logo.png" alt="Eventa" width={100} height={100} style={{ objectFit: 'contain', opacity: 0.5 }} />
+            <h1 style={{ fontSize: 24, color: 'var(--primary)', margin: 0 }}>האירוע לא נמצא</h1>
+            <p style={{ color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.6, maxWidth: 300 }}>
+              הקישור שקיבלתם לא מוביל לאירוע פעיל.
+              <br />
+              ודאו שהקישור תקין או פנו למארגן האירוע.
+            </p>
           </div>
         ) : (
           <div

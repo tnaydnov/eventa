@@ -26,22 +26,27 @@ export async function GET(req: NextRequest) {
   try {
     const supabase = getServiceClient();
 
-    const { data: event, error } = await supabase
+    // Use .select() without .maybeSingle() because slug recycling
+    // (migration 013) allows multiple events to share a slug when
+    // one is archived. Prefer the non-archived event if it exists.
+    const { data: events, error } = await supabase
       .from('events')
       .select('status, is_active')
-      .eq('slug', slug)
-      .maybeSingle();
+      .eq('slug', slug);
 
     if (error) {
       logger.error('[EVENT_STATUS] lookup error:', error.message);
       return NextResponse.json({ status: 'error' }, { status: 500 });
     }
 
-    if (!event) {
-      return NextResponse.json({ status: 'not_found' }, { status: 404 });
+    if (!events || events.length === 0) {
+      return NextResponse.json({ status: 'not_found' });
     }
 
-    // Return the raw status - let the client decide how to handle it
+    // If multiple events share this slug, prefer the non-archived one
+    const active = events.find((e: { status: string }) => e.status !== 'archived');
+    const event = active || events[0];
+
     return NextResponse.json({
       status: event.status as string,
       isActive: event.is_active as boolean,
