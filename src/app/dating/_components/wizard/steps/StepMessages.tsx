@@ -69,10 +69,3 @@ export default function StepMessages({ state, onChange }: Props) {
     </div>
   );
 }
-          <li>כ-3 שעות לפני האירוע - נשלח הודעות WhatsApp אוטומטית</li>
-          <li>יום אחרי האירוע - נשלח הודעת פידבק עם קישור למשוב קצר</li>
-        </ol>
-      </div>
-    </div>
-  );
-}
