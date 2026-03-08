@@ -1060,161 +1060,6 @@
 
 /* ═══ Step 5: Messages ═══ */
 
-/* ── Preview intro text ── */
-.wiz-msg-preview-intro {
-  font-size: 14px;
-  color: var(--text-muted);
-  line-height: 1.7;
-  text-align: center;
-  margin-bottom: 12px;
-}
-
-/* ── Preview section ── */
-.wiz-msg-preview-section {
-  margin-top: 8px;
-  animation: wiz-step-enter 0.35s ease forwards;
-}
-
-.wiz-msg-preview-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: none;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  padding: 10px 16px;
-  color: var(--text-muted);
-  font-size: 13px;
-  cursor: pointer;
-  width: 100%;
-  text-align: right;
-  transition: background 0.2s, border-color 0.2s;
-  font-family: inherit;
-}
-
-.wiz-msg-preview-toggle:hover {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.14);
-}
-
-.wiz-msg-preview-toggle--open {
-  border-color: rgba(212, 165, 154, 0.2);
-}
-
-.wiz-msg-preview-chevron {
-  font-size: 11px;
-  opacity: 0.6;
-}
-
-.wiz-msg-wa-frame {
-  margin-top: 10px;
-  border-radius: 14px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  animation: wiz-step-enter 0.3s ease forwards;
-}
-
-.wiz-msg-wa-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  background: #1f2c34;
-}
-
-.wiz-msg-wa-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #00a884;
-  color: #fff;
-  font-size: 0.82rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.wiz-msg-wa-name {
-  color: #e9edef;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.wiz-msg-wa-chat {
-  background: #0b141a;
-  padding: 14px 12px;
-  min-height: 100px;
-}
-
-.wiz-msg-wa-bubble {
-  background: #1a2c34;
-  border-radius: 0 8px 8px 8px;
-  padding: 8px 10px 6px;
-  max-width: 92%;
-  direction: rtl;
-  font-size: 0.8rem;
-  color: #e9edef;
-  line-height: 1.55;
-  white-space: pre-line;
-  box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
-}
-
-.wiz-msg-wa-bubble p {
-  margin: 0;
-}
-
-.wiz-msg-wa-bubble strong {
-  color: #fff;
-}
-
-.wiz-msg-wa-link {
-  margin-top: 6px;
-  color: #53bdeb;
-  font-size: 0.78rem;
-}
-
-.wiz-msg-wa-note {
-  font-size: 11px;
-  color: var(--text-muted);
-  text-align: center;
-  padding: 8px 12px;
-  margin: 0;
-  opacity: 0.7;
-}
-
-/* ── Tip / Why box ── */
-.wiz-msg-tip {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-top: 20px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: rgba(212, 165, 154, 0.06);
-  border: 1px solid rgba(212, 165, 154, 0.15);
-  animation: wiz-step-enter 0.35s ease forwards;
-}
-
-.wiz-msg-tip__icon {
-  font-size: 20px;
-  flex-shrink: 0;
-  line-height: 1;
-  margin-top: 1px;
-}
-
-.wiz-msg-tip__text {
-  font-size: 13px;
-  color: var(--text-muted);
-  line-height: 1.7;
-}
-
-.wiz-msg-tip__text strong {
-  color: var(--primary-light);
-  font-weight: 600;
-}
-
 /* ── Stat callout ── */
 .wiz-msg-stat {
   display: flex;
@@ -1227,7 +1072,6 @@
   border: 1px solid rgba(212, 165, 154, 0.18);
   text-align: center;
   justify-content: center;
-  animation: wiz-step-enter 0.4s ease forwards;
 }
 
 .wiz-msg-stat__icon {
@@ -1247,73 +1091,29 @@
   font-weight: 700;
 }
 
-.wiz-msg-stat--secondary {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-.wiz-msg-stat--secondary .wiz-msg-stat__text {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-.wiz-msg-stat--secondary .wiz-msg-stat__text strong {
-  color: var(--foreground);
-}
-
-/* ── Feature cards (always visible) ── */
-.wiz-msg-features {
-  margin-top: 20px;
-}
-
-.wiz-msg-features--active {
-  /* no expand/collapse needed — always visible */
-}
-
-.wiz-msg-features__grid {
+/* ── Benefits list ── */
+.wiz-msg-benefits {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.wiz-msg-feature {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 14px 16px;
+.wiz-msg-benefits li {
+  font-size: 14px;
+  color: var(--foreground);
+  line-height: 1.5;
+  padding: 12px 16px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.025);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.wiz-msg-feature__icon {
-  font-size: 20px;
-  flex-shrink: 0;
-  width: 32px;
-  text-align: center;
-}
-
-.wiz-msg-feature__text {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.wiz-msg-feature__text strong {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--foreground);
-}
-
-.wiz-msg-feature__text span {
-  font-size: 12px;
-  color: var(--text-muted);
-  line-height: 1.55;
-}
-
 /* ── Social proof badge ── */
 .wiz-msg-social-proof {
-  margin-top: 24px;
+  margin-top: 28px;
   font-size: 13px;
   font-weight: 600;
   color: var(--primary-light);
@@ -1322,7 +1122,7 @@
   margin-bottom: 10px;
 }
 
-/* ── Toggle card (upgrade decision) ── */
+/* ── Toggle card ── */
 .wiz-msg-toggle {
   width: 100%;
   padding: 20px;
@@ -1403,40 +1203,6 @@
   text-align: center;
   margin-top: 8px;
   opacity: 0.65;
-}
-
-/* ── How it works ── */
-.wiz-msg-howto {
-  margin-top: 24px;
-  padding: 16px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.wiz-msg-howto__title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--primary-light);
-  margin-bottom: 10px;
-}
-
-.wiz-msg-howto__steps {
-  margin: 0;
-  padding: 0 18px;
-  list-style-type: decimal;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.wiz-msg-howto__steps li {
-  font-size: 13px;
-  color: var(--text-muted);
-  line-height: 1.6;
 }
 
 /* Summary card disabled / coming soon */
