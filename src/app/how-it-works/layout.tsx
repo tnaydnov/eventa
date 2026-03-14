@@ -3,12 +3,12 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'איך זה עובד? | Eventa Dating',
   description:
-    'תהליך פשוט בשלושה שלבים: סריקת QR באירוע, יצירת פרופיל תוך דקה, שליחת לייקים וצ׳אט עם מאצ׳ים - הכל בדפדפן בלי אפליקציה.',
+    'שלוש דרכים להזמנת אפליקציית היכרויות לאירוע: תשלום מיידי, מילוי טופס ונחזור אליכם, או פנייה ישירה. סריקת QR, פרופיל ולייקים - הכל בדפדפן.',
   alternates: { canonical: 'https://www.eventa.productions/how-it-works' },
   openGraph: {
     title: 'איך זה עובד? | Eventa Dating',
     description:
-      'שלושה שלבים פשוטים להיכרויות באירוע: סריקת QR, פרופיל ולייקים - הכל בדפדפן.',
+      'שלוש דרכים להזמנת Eventa Dating לאירוע: תשלום מיידי, טופס פנייה, או יצירת קשר ישיר.',
     url: 'https://www.eventa.productions/how-it-works',
     images: [{ url: '/og-image.png', width: 1536, height: 1024, alt: 'Eventa Dating - How It Works' }],
   },
