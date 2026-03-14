@@ -20,9 +20,10 @@ export default function HomePage() {
         <Image
           src="/icons/Eventa_Logo.png"
           alt="Eventa"
-          width={110}
-          height={37}
+          width={160}
+          height={54}
           style={{ objectFit: 'contain' }}
+          quality={100}
           priority
         />
       </nav>
@@ -96,25 +97,25 @@ export default function HomePage() {
 
       {/* ── Footer ── */}
       <footer className="hp__footer">
+        <div className="hp__footer-brand">
+          <Image
+            src="/icons/Eventa_Logo.png"
+            alt="Eventa"
+            width={160}
+            height={54}
+            style={{ objectFit: 'contain' }}
+            quality={100}
+          />
+        </div>
         <div className="hp__footer-links">
-          <Link href="/how-it-works">איך זה עובד</Link>
-          <Link href="/faq">שאלות נפוצות</Link>
           <Link href="/privacy">מדיניות פרטיות</Link>
           <Link href="/terms">תנאי שימוש</Link>
           <Link href="/cookies">מדיניות עוגיות</Link>
           <Link href="/accessibility">הצהרת נגישות</Link>
         </div>
-        <div className="hp__footer-copy">
-          <span>© {new Date().getFullYear()}</span>
-          <Image
-            src="/icons/Eventa_Logo.png"
-            alt="Eventa"
-            width={80}
-            height={27}
-            style={{ objectFit: 'contain' }}
-          />
-          <span>כל הזכויות שמורות.</span>
-        </div>
+        <p className="hp__footer-copy">
+          © {new Date().getFullYear()} Eventa. כל הזכויות שמורות.
+        </p>
       </footer>
     </div>
   );

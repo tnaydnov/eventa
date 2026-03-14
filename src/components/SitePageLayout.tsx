@@ -72,6 +72,11 @@ export default function SitePageLayout({
           />
         </div>
         <div className="site-page__footer-links">
+          <Link href="/how-it-works">איך זה עובד</Link>
+          <Link href="/faq">שאלות נפוצות</Link>
+          <Link href="/pricing">מחירון</Link>
+        </div>
+        <div className="site-page__footer-links">
           <Link href="/privacy">מדיניות פרטיות</Link>
           <Link href="/terms">תנאי שימוש</Link>
           <Link href="/cookies">מדיניות עוגיות</Link>

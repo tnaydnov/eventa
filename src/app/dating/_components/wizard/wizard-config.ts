@@ -47,7 +47,7 @@ export const WIZARD_TYPES: WizardTypeConfig[] = [
       required: true,
       label: 'שמות הזוג באנגלית',
       placeholder: 'Maya & Daniel',
-      hint: 'יופיע בראש האפליקציה ובפוסטר הכניסה',
+      hint: 'יופיע בראש האפליקציה',
     },
     posterCatalog: 'wedding',
     defaultDurationHours: 6,

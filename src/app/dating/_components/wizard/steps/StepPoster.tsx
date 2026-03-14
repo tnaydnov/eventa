@@ -132,7 +132,7 @@ export default function StepPoster({ state, onChange }: Props) {
         </svg>
         <div>
           <p className="wiz-poster-note__text">
-            <strong>התבניות מוצגות כדוגמה בלבד</strong> - שמות בני הזוג/האירוע וקוד ה-QR המעודכן ישולבו בפוסטר הסופי, שיישלח אליכם כחלק מהסדר.
+            <strong>התבניות מוצגות כדוגמה בלבד</strong> - קוד ה-QR המעודכן ישולב בפוסטר הסופי, שיישלח אליכם כחלק מהסדר.
           </p>
           <p className="wiz-poster-note__text">
             בנוסף, תקבלו בנפרד את קוד ה-QR עצמו וגם את הקישור (URL) לצורך שיתוף דיגיטלי.
