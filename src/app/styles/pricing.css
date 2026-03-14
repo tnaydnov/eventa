@@ -173,31 +173,6 @@
     font-size: 16px;
   }
 }
-    gap: 12px;
-  }
-
-  .pricing-feature {
-    padding: 20px 16px;
-  }
-
-  .pricing-title {
-    font-size: clamp(48px, 14vw, 80px);
-  }
-
-  .pricing-promises {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .pricing-promise__sep {
-    width: 60px;
-    height: 1px;
-  }
-
-  .pricing-cta {
-    padding: 14px 28px;
-    font-size: 15px;
-  }
 }
 
 @media (min-width: 641px) and (max-width: 900px) {
