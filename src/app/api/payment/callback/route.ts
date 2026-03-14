@@ -6,7 +6,7 @@ import { getClearingLogById, createDocument, getDocument, DocumentType, PaymentT
 import { buildClientApprovalEmail, buildAdminPayNowNotification } from '@/lib/email-templates';
 import { generatePrettySlug } from '@/lib/slug';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
-import { APP_BASE_URL, BASE_PRICE, MSG_ADDON } from '@/lib/config';
+import { APP_BASE_URL, BASE_PRICE } from '@/lib/config';
 import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
 
 /**
@@ -236,14 +236,11 @@ async function sendDocumentAndEmails(ctx: {
 
   // ── Create itemised invoice-receipt ──
   try {
-    const totalShekelDoc = BASE_PRICE + ((request.wants_guest_messages as boolean) ? MSG_ADDON : 0);
+    const totalShekelDoc = BASE_PRICE;
 
     const items = [
-      { Name: 'חבילת אירוע Eventa', Price: BASE_PRICE, Quantity: 1 },
+      { Name: 'חבילת Eventa לאירוע', Price: BASE_PRICE, Quantity: 1 },
     ];
-    if (request.wants_guest_messages) {
-      items.push({ Name: 'שירות הודעות מוקדמות לאורחים', Price: MSG_ADDON, Quantity: 1 });
-    }
 
     const custResult = await getOrCreateCustomer({
       Name: (request.contact_name as string) || 'לקוח Eventa',
@@ -310,7 +307,7 @@ async function sendDocumentAndEmails(ctx: {
   // ── Send C4 approval email with receipt ──
   if (request.contact_email && newEvent) {
     try {
-      const totalShekel = BASE_PRICE + ((request.wants_guest_messages as boolean) ? MSG_ADDON : 0);
+      const totalShekel = BASE_PRICE;
       const eventUrl = `${APP_BASE_URL}/dating/${newEvent.slug}/join?k=${newEvent.join_code}`;
 
       const approvalEmail = buildClientApprovalEmail({

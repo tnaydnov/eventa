@@ -63,17 +63,16 @@ describe('label maps', () => {
     expect(LOOKING_FOR_LABELS).toHaveProperty('figuring_out');
   });
 
-  it('U-CON-10: EVENT_TYPE_LABELS has 5 entries', () => {
-    expect(Object.keys(EVENT_TYPE_LABELS)).toHaveLength(5);
+  it('U-CON-10: EVENT_TYPE_LABELS has 4 entries', () => {
+    expect(Object.keys(EVENT_TYPE_LABELS)).toHaveLength(4);
     expect(EVENT_TYPE_LABELS).toHaveProperty('wedding');
     expect(EVENT_TYPE_LABELS).toHaveProperty('party');
-    expect(EVENT_TYPE_LABELS).toHaveProperty('corporate');
     expect(EVENT_TYPE_LABELS).toHaveProperty('meetup');
     expect(EVENT_TYPE_LABELS).toHaveProperty('other');
   });
 
-  it('U-CON-11: EVENT_TYPE_ICONS has 5 entries', () => {
-    expect(Object.keys(EVENT_TYPE_ICONS)).toHaveLength(5);
+  it('U-CON-11: EVENT_TYPE_ICONS has 4 entries', () => {
+    expect(Object.keys(EVENT_TYPE_ICONS)).toHaveLength(4);
   });
 
   it('U-CON-12: EVENT_STATUS_LABELS has 5 entries', () => {

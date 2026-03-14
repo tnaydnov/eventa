@@ -58,7 +58,7 @@ function statusColor(s: string): string {
 }
 
 function typeColor(t: string): string {
-  return t === 'wedding' ? C.pink : t === 'party' ? C.orange : t === 'corporate' ? C.green : t === 'meetup' ? C.cyan : C.slate;
+  return t === 'wedding' ? C.pink : t === 'party' ? C.orange : t === 'meetup' ? C.cyan : C.slate;
 }
 
 /* ═══════════════════════════════════════

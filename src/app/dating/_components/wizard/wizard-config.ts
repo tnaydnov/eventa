@@ -68,20 +68,6 @@ export const WIZARD_TYPES: WizardTypeConfig[] = [
     supportsGuestMessages: true,
   },
   {
-    key: 'corporate',
-    label: 'אירוע חברה',
-    icon: 'building',
-    description: 'כנס, גיבוש, אירוע חברה',
-    nameField: {
-      required: false,
-      label: 'שם האירוע (לא חובה)',
-      placeholder: 'TechDay 2026',
-    },
-    posterCatalog: 'corporate',
-    defaultDurationHours: 4,
-    supportsGuestMessages: true,
-  },
-  {
     key: 'meetup',
     label: 'מיטאפ',
     icon: 'people',

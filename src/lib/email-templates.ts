@@ -31,7 +31,7 @@
  */
 
 import { EVENT_TYPE_LABELS } from '@/lib/constants';
-import { BASE_PRICE, MSG_ADDON } from '@/lib/config';
+import { BASE_PRICE } from '@/lib/config';
 
 /** Light logo (shown on dark backgrounds / dark mode). */
 const LOGO_LIGHT = 'https://www.eventa.productions/icons/Eventa_Logo.png';
@@ -365,22 +365,18 @@ function shell(title: string, inner: string, subtitle?: string): string {
 }
 
 /** Build the price breakdown table shared by admin & client emails. */
-function priceBlock(wantsGuestMessages: boolean): string {
-  const base = BASE_PRICE;
-  const msgAddon = wantsGuestMessages ? MSG_ADDON : 0;
-  const total = base + msgAddon;
-
+function priceBlock(_wantsGuestMessages: boolean): string {
   return `
         <!-- Price breakdown -->
         <tr>
           <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
             ${sectionTitle('\u05E2\u05DC\u05D5\u05EA')}
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('\u05D7\u05D1\u05D9\u05DC\u05D4 \u05D1\u05E1\u05D9\u05E1\u05D9\u05EA', ltr(`\u20AA${base}`))}
-              ${wantsGuestMessages ? row('\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD', ltr(`\u20AA${msgAddon}`)) : ''}
+              ${row('\u05D7\u05D1\u05D9\u05DC\u05EA Eventa \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2', ltr(`\u20AA${BASE_PRICE}`))}
+              ${_wantsGuestMessages ? row('\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD', '\u05DB\u05DC\u05D5\u05DC \u05D1\u05DE\u05D7\u05D9\u05E8') : ''}
               <tr>
                 <td dir="rtl" style="text-align:right;padding:14px 0 14px 12px;background-color:${C.card};color:${C.accent};font-size:16px;font-weight:700;width:100px;border-top:2px solid ${C.accent};vertical-align:top;">\u05E1\u05D4\u05F4\u05DB</td>
-                <td dir="rtl" style="text-align:right;padding:14px 12px 14px 0;background-color:${C.card};color:${C.text};font-size:20px;font-weight:700;border-top:2px solid ${C.accent};">${ltr(`\u20AA${total}`)}</td>
+                <td dir="rtl" style="text-align:right;padding:14px 12px 14px 0;background-color:${C.card};color:${C.text};font-size:20px;font-weight:700;border-top:2px solid ${C.accent};">${ltr(`\u20AA${BASE_PRICE}`)}</td>
               </tr>
             </table>
           </td>
@@ -1015,7 +1011,7 @@ export function buildAdminPayNowNotification(data: EventFormData & {
     eventLabel: escapeHtml(EVENT_TYPE_LABELS[data.eventType] || data.eventType),
   };
 
-  const totalShekel = BASE_PRICE + (data.wantsGuestMessages ? MSG_ADDON : 0);
+  const totalShekel = BASE_PRICE;
 
   const subject = `\u05EA\u05E9\u05DC\u05D5\u05DD \u05D4\u05EA\u05E7\u05D1\u05DC \u05D5\u05D0\u05D9\u05E8\u05D5\u05E2 \u05E0\u05D5\u05E6\u05E8 - ${data.contactName} | ${EVENT_TYPE_LABELS[data.eventType] || data.eventType} (\u20AA${totalShekel})`;
 

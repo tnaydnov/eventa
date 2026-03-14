@@ -65,15 +65,13 @@ export default function SitePageLayout({
           <Image
             src="/icons/Eventa_Logo.png"
             alt="Eventa"
-            width={90}
-            height={30}
+            width={160}
+            height={54}
             style={{ objectFit: 'contain' }}
+            quality={100}
           />
         </div>
         <div className="site-page__footer-links">
-          <Link href="/how-it-works">איך זה עובד</Link>
-          <Link href="/faq">שאלות נפוצות</Link>
-          <Link href="/pricing">מחירון</Link>
           <Link href="/privacy">מדיניות פרטיות</Link>
           <Link href="/terms">תנאי שימוש</Link>
           <Link href="/cookies">מדיניות עוגיות</Link>

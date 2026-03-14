@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import type { WizardFormState } from '../wizard-config';
-import { MSG_ADDON } from '@/lib/config';
 
 interface Props {
   state: WizardFormState;
@@ -100,7 +99,7 @@ export default function StepMessages({ state, onChange }: Props) {
             <div className="wiz-msg-toggle__title">
               שליחת הודעות WhatsApp לאורחים לפני האירוע
             </div>
-            <div className="wiz-msg-toggle__price">+₪{MSG_ADDON}</div>
+            <div className="wiz-msg-toggle__price">כלול במחיר</div>
           </div>
         </div>
       </button>

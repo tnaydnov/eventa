@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import type { EventRequest } from '../shared';
 import { PAYMENT_STATUS_DISPLAY, PAYMENT_METHOD_LABELS } from '../shared';
-import { BASE_PRICE, MSG_ADDON } from '@/lib/config';
+import { BASE_PRICE } from '@/lib/config';
 
 /* ─── Hebrew labels ─── */
 const EVENT_TYPE_LABELS: Record<string, string> = {
@@ -244,9 +244,7 @@ export default function RequestsView({ requests, onApprove, onDeny, onDelete, on
                     <div className="req-info-item">
                       <span className="req-info-label">� חבילה</span>
                       <span className="req-info-value" style={{ fontWeight: 600 }}>
-                        {req.wants_guest_messages
-                          ? `בסיסית + הודעות = ₪${BASE_PRICE + MSG_ADDON}`
-                          : `בסיסית = ₪${BASE_PRICE}`}
+                        ₪{BASE_PRICE}{req.wants_guest_messages ? ' (כולל הודעות)' : ''}
                       </span>
                     </div>
                     <div className="req-info-item">

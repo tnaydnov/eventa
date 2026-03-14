@@ -7,7 +7,6 @@ import { createClearingSession, isConfigured } from '@/lib/invoice4u';
 import {
   APP_BASE_URL,
   BASE_PRICE,
-  MSG_ADDON,
   PAYMENT_LINK_EXPIRY_DAYS,
   ORDER_NAME_MAX_LENGTH,
   ORDER_PHONE_MAX_LENGTH,
@@ -64,7 +63,7 @@ export async function POST(req: NextRequest) {
 
     const d = parsed.data;
     const wantsMessages = d.wantsGuestMessages;
-    const totalShekel = BASE_PRICE + (wantsMessages ? MSG_ADDON : 0);
+    const totalShekel = BASE_PRICE;
     const totalAgorot = totalShekel * 100;
 
     // ── Save draft order to event_requests ──
@@ -111,7 +110,7 @@ export async function POST(req: NextRequest) {
     const cancelUrl = `${APP_BASE_URL}/dating/order?payment=cancelled`;
 
     const description = wantsMessages
-      ? `Eventa – חבילת אירוע (₪${BASE_PRICE}) + הודעות (₪${MSG_ADDON})`
+      ? `Eventa – חבילת אירוע + הודעות (₪${BASE_PRICE})`
       : `Eventa – חבילת אירוע (₪${BASE_PRICE})`;
 
     const result = await createClearingSession({

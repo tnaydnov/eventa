@@ -4,7 +4,7 @@ import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { escapeHtml } from '@/lib/email-templates';
 import { createClearingSession, isConfigured } from '@/lib/invoice4u';
-import { APP_BASE_URL, BASE_PRICE, MSG_ADDON } from '@/lib/config';
+import { APP_BASE_URL, BASE_PRICE } from '@/lib/config';
 
 const PAYMENT_PROVIDER_LIVE = process.env.PAYMENT_PROVIDER_LIVE === 'true';
 

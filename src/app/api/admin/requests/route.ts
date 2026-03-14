@@ -6,7 +6,7 @@ import { getServiceClient, generateJoinCode, generateShortCode } from '@/lib/sup
 import { adminGuard, jsonError } from '../_helpers';
 import { logger } from '@/lib/logger';
 import { adminAuditLog } from '@/lib/admin-auth';
-import { APP_BASE_URL, BASE_PRICE, MSG_ADDON } from '@/lib/config';
+import { APP_BASE_URL, BASE_PRICE } from '@/lib/config';
 import {
   buildClientApprovalEmail,
 } from '@/lib/email-templates';
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        const totalShekel = (BASE_PRICE + (request.wants_guest_messages ? MSG_ADDON : 0));
+        const totalShekel = BASE_PRICE;
 
         const chargeResult = await chargeWithToken({
           customerId: request.invoice4u_customer_id,
@@ -128,13 +128,9 @@ export async function POST(req: NextRequest) {
           description: `Eventa - ${request.event_name || request.event_type}`,
           createDocument: true,
           docHeadline: `אירוע: ${request.event_name || request.event_type}`,
-          docItemNames: request.wants_guest_messages
-            ? `חבילת אירוע Eventa|תוסף הודעות אורחים`
-            : `חבילת אירוע Eventa`,
-          docItemQuantities: request.wants_guest_messages ? '1|1' : '1',
-          docItemPrices: request.wants_guest_messages
-            ? `${BASE_PRICE}|${MSG_ADDON}`
-            : `${BASE_PRICE}`,
+          docItemNames: 'חבילת Eventa לאירוע',
+          docItemQuantities: '1',
+          docItemPrices: `${BASE_PRICE}`,
         });
 
         if (!chargeResult.success) {
@@ -301,7 +297,7 @@ export async function POST(req: NextRequest) {
       // Send C4 approval email to client
       if (request.contact_email) {
         try {
-          const totalShekel = (BASE_PRICE + (request.wants_guest_messages ? MSG_ADDON : 0));
+          const totalShekel = (BASE_PRICE);
           const eventUrl = `${APP_BASE_URL}/dating/${newEvent.slug}/join?k=${newEvent.join_code}`;
 
           const approvalEmail = buildClientApprovalEmail({
@@ -420,14 +416,11 @@ export async function PATCH(req: NextRequest) {
       try {
         const totalShekel = request.total_price
           ? Math.round(request.total_price / 100)
-          : (BASE_PRICE + (request.wants_guest_messages ? MSG_ADDON : 0));
+          : BASE_PRICE;
 
         const items = [
-          { Name: 'חבילת אירוע Eventa', Price: BASE_PRICE, Quantity: 1 },
+          { Name: 'חבילת Eventa לאירוע', Price: BASE_PRICE, Quantity: 1 },
         ];
-        if (request.wants_guest_messages) {
-          items.push({ Name: 'תוסף הודעות אורחים', Price: MSG_ADDON, Quantity: 1 });
-        }
 
         const i4uPaymentType = PAYMENT_METHOD_TO_INVOICE4U[method] || PaymentType.Other;
 

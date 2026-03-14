@@ -46,19 +46,6 @@ export default function WizardIcon({ name, size = 24, className }: Props) {
         </svg>
       );
 
-    case 'building':
-      // Modern building - corporate
-      return (
-        <svg viewBox="0 0 24 24" fill="none" style={s} className={className} {...a11y}>
-          <rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
-          <rect x="8" y="7" width="3" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.2" />
-          <rect x="13" y="7" width="3" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.2" />
-          <rect x="8" y="12" width="3" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.2" />
-          <rect x="13" y="12" width="3" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.2" />
-          <path d="M10 21v-3.5a2 2 0 014 0V21" stroke="currentColor" strokeWidth="1.5" />
-        </svg>
-      );
-
     case 'people':
       // Two people - meetup
       return (

@@ -53,14 +53,7 @@
       "id": "party-dark-minimal",
       "file": "party/dark-minimal.jpg",
       "label": "Dark Minimal",
-      "types": ["party", "corporate", "meetup"],
-      "hasNameSlot": false
-    },
-    {
-      "id": "corporate-sleek",
-      "file": "corporate/sleek.jpg",
-      "label": "Sleek",
-      "types": ["corporate"],
+      "types": ["party", "meetup"],
       "hasNameSlot": false
     }
   ]

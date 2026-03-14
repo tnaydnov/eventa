@@ -92,7 +92,6 @@ export const DISCOUNT_VALIDITY_MONTHS = 6;
 export const EVENT_TYPE_LABELS: Record<string, string> = {
   wedding: 'חתונה',
   party: 'מסיבה',
-  corporate: 'אירוע חברה',
   meetup: 'מיטאפ',
   other: 'אחר',
 };
@@ -104,7 +103,6 @@ export const EVENT_TYPE_OPTIONS = Object.entries(EVENT_TYPE_LABELS).map(
 export const EVENT_TYPE_ICONS: Record<string, string> = {
   wedding: '💒',
   party: '🎉',
-  corporate: '🏢',
   meetup: '🤝',
   other: '📌',
 };

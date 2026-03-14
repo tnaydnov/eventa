@@ -2,7 +2,7 @@
 
 import type { WizardFormState } from '../wizard-config';
 import { WIZARD_TYPE_MAP } from '../wizard-config';
-import { BASE_PRICE, MSG_ADDON } from '@/lib/config';
+import { BASE_PRICE } from '@/lib/config';
 import WizardIcon from '../WizardIcons';
 
 interface Props {
@@ -112,19 +112,19 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
       {/* Price breakdown */}
       <div className="wiz-price">
         <div className="wiz-price__row">
-          <span>חבילת אירוע בסיסית</span>
+          <span>חבילת Eventa לאירוע</span>
           <span>₪{BASE_PRICE}</span>
         </div>
         {state.wantsGuestMessages && (
           <div className="wiz-price__row">
             <span>שירות הודעות WhatsApp</span>
-            <span>₪{MSG_ADDON}</span>
+            <span>כלול ✓</span>
           </div>
         )}
         <div className="wiz-price__divider" />
         <div className="wiz-price__row wiz-price__row--total">
           <span>סה״כ</span>
-          <span>₪{BASE_PRICE + (state.wantsGuestMessages ? MSG_ADDON : 0)}</span>
+          <span>₪{BASE_PRICE}</span>
         </div>
       </div>
 

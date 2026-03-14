@@ -124,11 +124,11 @@ export const PHONE_VERIFICATION_ENABLED =
 /** Whether the payment provider is live (true) or using stubs (false). */
 export const PAYMENT_PROVIDER_LIVE = process.env.PAYMENT_PROVIDER_LIVE === 'true';
 
-/** Base event package price in shekels. */
-export const BASE_PRICE = 250;
+/** Base event package price in shekels (includes all features). */
+export const BASE_PRICE = 300;
 
-/** Guest messaging add-on price in shekels. */
-export const MSG_ADDON = 50;
+/** Guest messaging add-on price in shekels (now included in base — kept for backward compat). */
+export const MSG_ADDON = 0;
 
 /** Number of days a payment link stays valid before expiring. */
 export const PAYMENT_LINK_EXPIRY_DAYS = 7;
@@ -149,9 +149,8 @@ export const INVOICE4U_API_TOKEN = process.env.INVOICE4U_API_TOKEN || '';
 
 /**
  * Calculate the total price in agorot (shekel × 100).
- * @param wantsGuestMessages Whether the client opted for the messaging add-on.
+ * Price is now flat ₪300 regardless of messaging choice.
  */
-export function calculateTotalPrice(wantsGuestMessages: boolean): number {
-  const shekel = BASE_PRICE + (wantsGuestMessages ? MSG_ADDON : 0);
-  return shekel * 100; // agorot
+export function calculateTotalPrice(_wantsGuestMessages: boolean): number {
+  return BASE_PRICE * 100; // agorot
 }

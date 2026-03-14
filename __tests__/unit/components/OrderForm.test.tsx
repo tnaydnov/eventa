@@ -110,7 +110,6 @@ describe('OrderForm', () => {
     const select = screen.getByRole('combobox');
     expect(select).toBeInTheDocument();
     expect(screen.getByText('חתונה')).toBeInTheDocument();
-    expect(screen.getByText('אירוע חברה')).toBeInTheDocument();
     expect(screen.getByText('מסיבה')).toBeInTheDocument();
     expect(screen.getByText('מיטאפ')).toBeInTheDocument();
     expect(screen.getByText('אחר')).toBeInTheDocument();

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import type { Event } from '@/lib/database.types';
-import { BASE_PRICE, MSG_ADDON } from '@/lib/config';
+import { BASE_PRICE } from '@/lib/config';
 
 interface EventServicesInfoProps {
   event: Event;
@@ -60,7 +60,6 @@ export default function EventServicesInfo({ event, onUpdateDetails }: EventServi
   };
 
   const hasWa = event.wa_messages_enabled;
-  const total = BASE_PRICE + (hasWa ? MSG_ADDON : 0);
 
   const hasContact = event.client_name || event.client_email || event.client_phone;
 
@@ -70,18 +69,18 @@ export default function EventServicesInfo({ event, onUpdateDetails }: EventServi
         <h3 className="ea-section__title">💰 שירותים ומחיר</h3>
         <div className="msg-status-grid">
           <div className="msg-status-item">
-            <span className="msg-status-label">אירוע בסיסי</span>
+            <span className="msg-status-label">חבילת Eventa</span>
             <span className="msg-status-value">₪{BASE_PRICE}</span>
           </div>
           <div className="msg-status-item">
             <span className="msg-status-label">הודעות WhatsApp</span>
             <span className="msg-status-value">
-              {hasWa ? `₪${MSG_ADDON} ✅` : '❌ לא נרכש'}
+              {hasWa ? 'כלול ✅' : '❌ לא נבחר'}
             </span>
           </div>
           <div className="msg-status-item">
             <span className="msg-status-label">סה״כ</span>
-            <span className="msg-status-value" style={{ fontWeight: 700 }}>₪{total}</span>
+            <span className="msg-status-value" style={{ fontWeight: 700 }}>₪{BASE_PRICE}</span>
           </div>
         </div>
       </div>

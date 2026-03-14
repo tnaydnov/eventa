@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { EVENT_TYPE_LABELS, EVENT_TYPE_ICONS } from '@/lib/constants';
-import { BASE_PRICE, MSG_ADDON } from '@/lib/config';
+import { BASE_PRICE } from '@/lib/config';
 import { slugify } from '../shared';
 
 /* ─── Types ─── */
@@ -353,7 +353,7 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
             <span className="ced-wa-toggle__icon">📱</span>
             <span className="ced-wa-toggle__text">
               <span className="ced-wa-toggle__label">שירות הודעות WhatsApp</span>
-              <span className="ced-wa-toggle__desc">{waEnabled ? `מופעל - +₪${MSG_ADDON}` : 'כבוי'}</span>
+              <span className="ced-wa-toggle__desc">{waEnabled ? 'מופעל' : 'כבוי'}</span>
             </span>
             <span className={`ced-wa-toggle__switch ${waEnabled ? 'ced-wa-toggle__switch--on' : ''}`}>
               <span className="ced-wa-toggle__switch-thumb" />
@@ -361,19 +361,9 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
           </button>
           {/* Pricing summary */}
           <div className="ced-pricing">
-            <div className="ced-pricing__row">
-              <span>אירוע בסיסי</span>
-              <span>₪{BASE_PRICE}</span>
-            </div>
-            {waEnabled && (
-              <div className="ced-pricing__row">
-                <span>הודעות WhatsApp</span>
-                <span>₪{MSG_ADDON}</span>
-              </div>
-            )}
             <div className="ced-pricing__row ced-pricing__row--total">
               <span>סה״כ</span>
-              <span>₪{BASE_PRICE + (waEnabled ? MSG_ADDON : 0)}</span>
+              <span>₪{BASE_PRICE}</span>
             </div>
           </div>
         </div>

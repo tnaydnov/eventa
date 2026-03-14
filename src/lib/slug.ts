@@ -61,7 +61,6 @@ export const CITY_CODES: Record<string, string> = {
 export const TYPE_CODES: Record<string, string> = {
   wedding: 'wedding',
   party: 'party',
-  corporate: 'corp',
   meetup: 'meetup',
   speed_dating: 'speed',
   singles_event: 'singles',
@@ -141,7 +140,6 @@ const TYPE_PREFIXES = [
   /^party\s+(of\s+|for\s+)?/i,
   /^event\s+(of\s+|for\s+)?/i,
   /^birthday\s+(of\s+|for\s+|party\s+)?/i,
-  /^corporate\s+(event\s+)?/i,
   /^meetup\s+(for\s+)?/i,
   // Hebrew
   /^(ה)?(חתונה|אירוע|מסיבה|יום הולדת|מפגש)\s+(של\s+)?/,
