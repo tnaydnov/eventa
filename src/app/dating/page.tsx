@@ -296,9 +296,10 @@ export default function LandingPage() {
           <Image
             src="/icons/Eventa_Logo.png"
             alt="Eventa"
-            width={90}
-            height={30}
+            width={120}
+            height={40}
             style={{ objectFit: 'contain' }}
+            quality={100}
           />
         </div>
         <div className="landing-footer__links">

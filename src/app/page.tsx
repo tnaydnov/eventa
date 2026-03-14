@@ -101,8 +101,8 @@ export default function HomePage() {
           <Image
             src="/icons/Eventa_Logo.png"
             alt="Eventa"
-            width={160}
-            height={54}
+            width={120}
+            height={40}
             style={{ objectFit: 'contain' }}
             quality={100}
           />
