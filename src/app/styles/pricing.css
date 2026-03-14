@@ -1,178 +1,178 @@
 /* ═══════════════════════════════════════════
-   Pricing Page — Clean card design
+   Pricing — Hero-price layout
    ═══════════════════════════════════════════ */
 
-/* ── Content wrapper ── */
-.pricing-content {
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 56px 20px 64px;
+/* ── Full-page centered hero ── */
+.pri {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-/* ═══ Card ═══ */
-.pricing-card {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  padding: 44px 32px 36px;
+  justify-content: center;
   text-align: center;
+  min-height: calc(100dvh - 200px);   /* fill viewport minus header/footer */
+  padding: 48px 24px 56px;
 }
 
-/* ── Label ── */
-.pricing-label {
-  font-size: 14px;
+/* ── Ambient glow ── */
+.pri__glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  width: 420px;
+  height: 320px;
+  background: radial-gradient(ellipse, rgba(212, 165, 154, 0.09), transparent 70%);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── All content above glow ── */
+.pri > *:not(.pri__glow) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Headline ── */
+.pri__headline {
+  font-size: 15px;
   font-weight: 600;
   color: var(--primary, #D4A59A);
-  margin: 0 0 28px;
   letter-spacing: 0.5px;
+  margin: 0 0 32px;
 }
 
-/* ── Price amount ── */
-.pricing-amount {
+/* ── Hero price ── */
+.pri__price {
   display: flex;
   align-items: baseline;
   justify-content: center;
-  gap: 4px;
-  margin-bottom: 6px;
-  direction: ltr;          /* numbers read LTR */
+  gap: 6px;
+  direction: ltr;
+  margin-bottom: 10px;
 }
 
-.pricing-currency {
-  font-size: 32px;
+.pri__currency {
+  font-size: 40px;
   font-weight: 700;
   color: var(--primary, #D4A59A);
   line-height: 1;
   align-self: flex-start;
-  margin-top: 12px;
+  margin-top: 18px;
 }
 
-.pricing-number {
-  font-size: clamp(72px, 16vw, 96px);
+.pri__number {
+  font-size: clamp(100px, 22vw, 140px);
   font-weight: 800;
   line-height: 1;
   color: #fff;
+  letter-spacing: -3px;
 }
 
-.pricing-per {
-  font-size: 14px;
-  color: var(--text-muted, #b0b0b0);
-  margin: 0 0 32px;
-}
-
-/* ── Divider ── */
-.pricing-divider {
-  width: 48px;
-  height: 2px;
-  border-radius: 1px;
-  background: var(--primary, #D4A59A);
-  opacity: 0.35;
-  margin: 0 auto 28px;
-}
-
-/* ── Includes list ── */
-.pricing-includes-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted, #b0b0b0);
-  margin: 0 0 16px;
-  text-align: right;
-}
-
-.pricing-includes {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 36px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.pricing-includes li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+/* ── Subtitle ── */
+.pri__sub {
   font-size: 15px;
-  color: #e8e4e0;
-  text-align: right;
-  direction: rtl;
+  line-height: 1.8;
+  color: rgba(176, 176, 176, 0.75);
+  margin: 0 0 40px;
 }
 
-.pricing-check {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  color: var(--primary, #D4A59A);
+/* ── Include chips ── */
+.pri__chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 44px;
+  max-width: 500px;
+}
+
+.pri__chip {
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(240, 237, 232, 0.75);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 100px;
+  white-space: nowrap;
 }
 
 /* ── CTA ── */
-.pricing-cta {
-  display: block;
-  width: 100%;
-  padding: 16px 0;
-  border-radius: 14px;
-  background: var(--primary, #D4A59A);
-  color: #1a1a1a;
-  font-size: 16px;
+.pri__cta {
+  display: inline-block;
+  padding: 16px 56px;
+  font-size: 17px;
   font-weight: 700;
+  font-family: inherit;
+  color: #1a1a1a;
+  background: var(--primary, #D4A59A);
+  border: none;
+  border-radius: 14px;
   text-decoration: none;
   text-align: center;
   transition: opacity 0.2s;
+  margin-bottom: 16px;
 }
 
-.pricing-cta:hover {
+.pri__cta:hover {
   opacity: 0.9;
 }
 
-/* ── Note ── */
-.pricing-note {
-  font-size: 12px;
-  color: var(--text-muted, #b0b0b0);
-  opacity: 0.65;
-  margin: 14px 0 0;
+/* ── Cancel note ── */
+.pri__cancel {
+  font-size: 13px;
+  color: rgba(176, 176, 176, 0.55);
+  margin: 0 0 48px;
 }
 
-/* ═══ Fine print ═══ */
-.pricing-fine-print {
+/* ── Fine print ── */
+.pri__fine {
   font-size: 12px;
-  color: var(--text-muted, #b0b0b0);
-  opacity: 0.55;
-  text-align: center;
-  margin-top: 32px;
   line-height: 1.8;
+  color: rgba(176, 176, 176, 0.4);
+  margin: 0;
+  max-width: 400px;
 }
 
-.pricing-fine-print a {
+.pri__fine a {
   color: var(--primary, #D4A59A);
   text-decoration: underline;
   text-underline-offset: 2px;
+  opacity: 0.7;
 }
 
-/* ── Responsive: tighten on small screens ── */
-@media (max-width: 480px) {
-  .pricing-card {
-    padding: 36px 24px 28px;
-    border-radius: 20px;
-  }
-}
-
-.pricing-disclosure__list a {
-  color: var(--primary, #D4A59A);
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.pricing-disclosure__list a:hover {
-  opacity: 0.8;
+.pri__fine a:hover {
+  opacity: 1;
 }
 
 /* ═══ Responsive ═══ */
-@media (max-width: 640px) {
-  .pricing-features {
-    grid-template-columns: 1fr;
+@media (max-width: 480px) {
+  .pri {
+    padding: 36px 20px 48px;
+    min-height: calc(100dvh - 160px);
+  }
+
+  .pri__currency {
+    font-size: 32px;
+    margin-top: 14px;
+  }
+
+  .pri__chips {
+    gap: 8px;
+  }
+
+  .pri__chip {
+    padding: 6px 13px;
+    font-size: 12px;
+  }
+
+  .pri__cta {
+    padding: 15px 44px;
+    font-size: 16px;
+  }
+}
     gap: 12px;
   }
 

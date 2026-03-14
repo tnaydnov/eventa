@@ -9,56 +9,47 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://www.eventa.productions/pricing' },
 };
 
-/* ── What's included — simple, client-friendly items ── */
 const INCLUDES = [
-  'אפליקציית היכרויות מוכנה לאירוע',
-  'הודעות WhatsApp לאורחים לפני האירוע',
-  'פוסטר QR מעוצב להדפסה',
-  'רקע מותאם אישית לאירוע',
-  'מחיקת כל המידע בתום האירוע',
+  'אפליקציית היכרויות לאירוע',
+  'הודעות WhatsApp לאורחים',
+  'פוסטר QR מעוצב',
+  'רקע מותאם אישית',
+  'מחיקת מידע בתום האירוע',
 ];
 
 export default function PricingPage() {
   return (
     <SitePageLayout wide className="pricing-page">
-      <div className="pricing-content">
+      <div className="pri">
 
-        {/* ═══ Price card ═══ */}
-        <div className="pricing-card">
-          <p className="pricing-label">מחיר אחד. בלי הפתעות.</p>
+        {/* ambient glow behind the number */}
+        <div className="pri__glow" aria-hidden="true" />
 
-          <div className="pricing-amount">
-            <span className="pricing-currency">₪</span>
-            <span className="pricing-number">{BASE_PRICE}</span>
-          </div>
+        {/* headline */}
+        <p className="pri__headline">מחיר אחד. בלי הפתעות.</p>
 
-          <p className="pricing-per">תשלום חד&#8209;פעמי לאירוע</p>
-
-          {/* Divider */}
-          <div className="pricing-divider" />
-
-          {/* What's included */}
-          <p className="pricing-includes-label">מה כלול:</p>
-          <ul className="pricing-includes">
-            {INCLUDES.map((item) => (
-              <li key={item}>
-                <svg className="pricing-check" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <path d="M6 10.5l3 3 5.5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                {item}
-              </li>
-            ))}
-          </ul>
-
-          {/* CTA */}
-          <a href="/dating/order" className="pricing-cta">
-            הזמינו עכשיו
-          </a>
-          <p className="pricing-note">ביטול חינם עד 24 שעות לפני האירוע</p>
+        {/* hero price */}
+        <div className="pri__price">
+          <span className="pri__currency">₪</span>
+          <span className="pri__number">{BASE_PRICE}</span>
         </div>
 
-        {/* ═══ Fine print ═══ */}
-        <p className="pricing-fine-print">
+        <p className="pri__sub">לאירוע · תשלום חד&#8209;פעמי · הכל כלול</p>
+
+        {/* includes – horizontal chips */}
+        <div className="pri__chips">
+          {INCLUDES.map((item) => (
+            <span className="pri__chip" key={item}>{item}</span>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <a href="/dating/order" className="pri__cta">הזמינו עכשיו</a>
+
+        <p className="pri__cancel">ביטול חינם עד 24 שעות לפני האירוע</p>
+
+        {/* fine-print */}
+        <p className="pri__fine">
           המחיר סופי · אין מנוי · אין תוספות ·
           ניתן לשלם גם ב&#8209;BIT · לפרטים נוספים ראו&nbsp;
           <a href="/terms">תנאי שימוש</a>
