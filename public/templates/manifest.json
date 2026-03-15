@@ -1,60 +1,133 @@
 {
   "templates": [
     {
-      "id": "wedding-golden-floral",
-      "file": "wedding/golden-floral.jpg",
-      "label": "Golden Floral",
-      "types": ["wedding"],
-      "hasNameSlot": true
+      "id": "meetup-into-the-sunset",
+      "file": "meetup/into-the-sunset.jpg",
+      "label": "Into the Sunset",
+      "types": ["meetup"]
     },
     {
-      "id": "wedding-golden-botanical",
-      "file": "wedding/golden-botanical.jpg",
-      "label": "Golden Botanical",
-      "types": ["wedding"],
-      "hasNameSlot": true
+      "id": "meetup-lchaim",
+      "file": "meetup/lchaim.jpg",
+      "label": "L'Chaim",
+      "types": ["meetup"]
     },
     {
-      "id": "wedding-rings-and-roses",
-      "file": "wedding/rings-and-roses.jpg",
-      "label": "Rings & Roses",
-      "types": ["wedding"],
-      "hasNameSlot": true
+      "id": "meetup-red-thread",
+      "file": "meetup/red-thread.jpg",
+      "label": "Red Thread",
+      "types": ["meetup"]
     },
     {
-      "id": "wedding-pearl-lace",
-      "file": "wedding/pearl-lace.jpg",
-      "label": "Pearl Lace",
-      "types": ["wedding"],
-      "hasNameSlot": true
+      "id": "meetup-stolen-kiss",
+      "file": "meetup/stolen-kiss.jpg",
+      "label": "Stolen Kiss",
+      "types": ["meetup"]
     },
     {
-      "id": "wedding-silver-bokeh",
-      "file": "wedding/silver-bokeh.jpg",
-      "label": "Silver Bokeh",
-      "types": ["wedding"],
-      "hasNameSlot": true
+      "id": "meetup-vintage-glam",
+      "file": "meetup/vintage-glam.jpg",
+      "label": "Vintage Glam",
+      "types": ["meetup"]
+    },
+
+    {
+      "id": "other-into-the-sunset",
+      "file": "other/into-the-sunset.jpg",
+      "label": "Into the Sunset",
+      "types": ["other"]
     },
     {
-      "id": "wedding-satin-elegance",
-      "file": "wedding/satin-elegance.jpg",
-      "label": "Satin Elegance",
-      "types": ["wedding"],
-      "hasNameSlot": true
+      "id": "other-lchaim",
+      "file": "other/lchaim.jpg",
+      "label": "L'Chaim",
+      "types": ["other"]
     },
     {
-      "id": "party-neon",
-      "file": "party/neon.jpg",
-      "label": "Neon Nights",
-      "types": ["party", "meetup"],
-      "hasNameSlot": false
+      "id": "other-red-thread",
+      "file": "other/red-thread.jpg",
+      "label": "Red Thread",
+      "types": ["other"]
     },
     {
-      "id": "party-dark-minimal",
-      "file": "party/dark-minimal.jpg",
-      "label": "Dark Minimal",
-      "types": ["party", "meetup"],
-      "hasNameSlot": false
+      "id": "other-stolen-kiss",
+      "file": "other/stolen-kiss.jpg",
+      "label": "Stolen Kiss",
+      "types": ["other"]
+    },
+    {
+      "id": "other-vintage-glam",
+      "file": "other/vintage-glam.jpg",
+      "label": "Vintage Glam",
+      "types": ["other"]
+    },
+
+    {
+      "id": "party-into-the-sunset",
+      "file": "party/into-the-sunset.jpg",
+      "label": "Into the Sunset",
+      "types": ["party"]
+    },
+    {
+      "id": "party-lchaim",
+      "file": "party/lchaim.jpg",
+      "label": "L'Chaim",
+      "types": ["party"]
+    },
+    {
+      "id": "party-red-thread",
+      "file": "party/red-thread.jpg",
+      "label": "Red Thread",
+      "types": ["party"]
+    },
+    {
+      "id": "party-stolen-kiss",
+      "file": "party/stolen-kiss.jpg",
+      "label": "Stolen Kiss",
+      "types": ["party"]
+    },
+    {
+      "id": "party-vintage-glam",
+      "file": "party/vintage-glam.jpg",
+      "label": "Vintage Glam",
+      "types": ["party"]
+    },
+
+    {
+      "id": "wedding-ever-after",
+      "file": "wedding/ever-after.jpg",
+      "label": "Ever After",
+      "types": ["wedding"]
+    },
+    {
+      "id": "wedding-golden-gaze",
+      "file": "wedding/golden-gaze.jpg",
+      "label": "Golden Gaze",
+      "types": ["wedding"]
+    },
+    {
+      "id": "wedding-hers-and-hers",
+      "file": "wedding/hers-and-hers.jpg",
+      "label": "Hers & Hers",
+      "types": ["wedding"]
+    },
+    {
+      "id": "wedding-his-and-his",
+      "file": "wedding/his-and-his.jpg",
+      "label": "His & His",
+      "types": ["wedding"]
+    },
+    {
+      "id": "wedding-just-married",
+      "file": "wedding/just-married.jpg",
+      "label": "Just Married",
+      "types": ["wedding"]
+    },
+    {
+      "id": "wedding-midnight-silhouette",
+      "file": "wedding/midnight-silhouette.jpg",
+      "label": "Midnight Silhouette",
+      "types": ["wedding"]
     }
   ]
 }

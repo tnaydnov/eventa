@@ -177,7 +177,7 @@ export interface PosterTemplate {
   /** Event types this template applies to. ['*'] = all types. */
   types: string[];
   /** Whether the poster has a name slot (requires event name) */
-  hasNameSlot: boolean;
+  hasNameSlot?: boolean;
 }
 
 export interface PosterManifest {
