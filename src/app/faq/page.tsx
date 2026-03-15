@@ -7,86 +7,121 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://www.eventa.productions/faq' },
 };
 
-/* Shared styles */
-const qaStyle: React.CSSProperties = {
-  marginBottom: '24px',
-  padding: '20px',
-  background: 'rgba(255, 255, 255, 0.03)',
-  borderRadius: '12px',
-  border: '1px solid rgba(212, 165, 154, 0.1)',
-};
-const questionStyle: React.CSSProperties = {
-  fontSize: '16px', fontWeight: 600, color: '#d4a59a',
-  margin: '0 0 10px', lineHeight: 1.6,
-};
-const answerStyle: React.CSSProperties = {
-  color: '#ccc', fontSize: '15px', lineHeight: 1.8, margin: 0,
-};
+/* ── FAQ data grouped by category ── */
 
-const faqs = [
+interface FaqCategory {
+  title: string;
+  icon: React.ReactNode;
+  items: { q: string; a: string }[];
+}
+
+const categories: FaqCategory[] = [
   {
-    q: 'מה זה Eventa?',
-    a: 'Eventa היא שכבת היכרויות שמתווספת לאירוע שלכם. האורחים סורקים QR או לוחצים על קישור, מאמתים את הנייד עם קוד SMS, בונים פרופיל ומתחילים - לייקים, מאצ\'ים וצ\'אט, ישר מהדפדפן.',
+    title: 'כללי',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    ),
+    items: [
+      {
+        q: 'מה זה Eventa?',
+        a: 'Eventa היא שכבת היכרויות שמתווספת לאירוע שלכם. האורחים סורקים QR או לוחצים על קישור, מאמתים את הנייד עם קוד SMS, בונים פרופיל ומתחילים - לייקים, מאצ\'ים וצ\'אט, ישר מהדפדפן.',
+      },
+      {
+        q: 'לאילו אירועים זה מתאים?',
+        a: 'חתונות, מסיבות, אירועי חברה, מיטאפים - כל אירוע שיש בו רווקים ורווקות שרוצים ליצור חיבורים.',
+      },
+      {
+        q: 'כמה אורחים יכולים להשתמש?',
+        a: 'אין הגבלה מעשית. המערכת בנויה להתמודד עם אירועים מכל גודל.',
+      },
+    ],
   },
   {
-    q: 'לאילו אירועים זה מתאים?',
-    a: 'חתונות, מסיבות, אירועי חברה, מיטאפים - כל אירוע שיש בו רווקים ורווקות שרוצים ליצור חיבורים.',
+    title: 'איך האורחים משתמשים',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+    ),
+    items: [
+      {
+        q: 'האם האורחים צריכים להוריד אפליקציה?',
+        a: 'לא. הכל עובד ישר מהדפדפן בטלפון. האורחים סורקים QR, מאמתים את הנייד עם קוד SMS, נרשמים תוך דקה ומתחילים. אפס הורדות.',
+      },
+      {
+        q: 'איך האורחים נכנסים למערכת?',
+        a: 'האורחים סורקים QR או לוחצים על קישור (אם רכשתם את תוספת ההודעות, הם מקבלים WhatsApp עם קישור אישי). הם מזינים מספר טלפון, מקבלים קוד אימות SMS, בונים פרופיל - וזהו.',
+      },
+      {
+        q: 'מה עם אורחים שלא מעוניינים?',
+        a: 'ההשתתפות לחלוטין וולונטרית. מי שלא סורק את ה-QR פשוט לא משתתף - זה לא משפיע על שום דבר באירוע.',
+      },
+    ],
   },
   {
-    q: 'האם האורחים צריכים להוריד אפליקציה?',
-    a: 'לא. הכל עובד ישר מהדפדפן בטלפון. האורחים סורקים QR, מאמתים את הנייד עם קוד SMS, נרשמים תוך דקה ומתחילים. אפס הורדות.',
+    title: 'הזמנה ותשלום',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    ),
+    items: [
+      {
+        q: 'כמה זמן לוקח לארגן את זה?',
+        a: 'ממלאים את טופס ההזמנה באתר, משלמים דרך הקישור שמגיע במייל, ותוך 24 שעות מאישור התשלום מקבלים פוסטר מעוצב עם QR כקובץ דיגיטלי - וזהו.',
+      },
+      {
+        q: 'איך משלמים?',
+        a: 'לאחר שליחת ההזמנה, תקבלו מייל עם קישור לתשלום מאובטח. ניתן גם לשלם באמצעות BIT או PayBox.',
+      },
+      {
+        q: 'איך מזמינים?',
+        a: 'דרך טופס ההזמנה באתר או במייל ל-contact@eventa.productions. נחזור אליכם תוך 48 שעות.',
+      },
+    ],
   },
   {
-    q: 'איך האורחים נכנסים למערכת?',
-    a: 'האורחים סורקים QR או לוחצים על קישור (אם רכשתם את תוספת ההודעות, הם מקבלים WhatsApp עם קישור אישי). הם מזינים מספר טלפון, מקבלים קוד אימות SMS, בונים פרופיל - וזהו.',
+    title: 'הפוסטר וההודעות',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    ),
+    items: [
+      {
+        q: 'מה קורה עם הפוסטר / ה-QR?',
+        a: 'לאחר אישור ההזמנה, אנחנו שולחים לכם פוסטר מעוצב עם קוד QR + לינק הצטרפות כקובץ דיגיטלי. ההדפסה והמיקום באירוע באחריותכם - שימו בכניסה, על הבר, במסך, בסטורי, איפה שבא לכם.',
+      },
+      {
+        q: 'מה זה תוספת ההודעות?',
+        a: 'מי שרוכש את תוספת ההודעות, יכול להעלות רשימת טלפונים (Excel) ולשלוח לאורחים הודעת WhatsApp עם קישור אישי כמה שעות לפני האירוע. יום אחרי - הודעת פידבק + קוד הנחה.',
+      },
+      {
+        q: 'אפשר להתאים את העיצוב לאירוע?',
+        a: 'כן. אפשר לבחור עיצוב לדף הכניסה, רקע מותאם לאפליקציה, כדי שהחוויה תרגיש חלק מהאירוע שלכם.',
+      },
+    ],
   },
   {
-    q: 'מה זה תוספת ההודעות?',
-    a: 'מי שרוכש את תוספת ההודעות, יכול להעלות רשימת טלפונים (Excel) ולשלוח לאורחים הודעת WhatsApp עם קישור אישי כמה שעות לפני האירוע. יום אחרי - הודעת פידבק + קוד הנחה.',
-  },
-  {
-    q: 'כמה זמן לוקח לארגן את זה?',
-    a: 'ממלאים את טופס ההזמנה באתר, משלמים דרך הקישור שמגיע במייל, ותוך 24 שעות מאישור התשלום מקבלים פוסטר מעוצב עם QR כקובץ דיגיטלי - וזהו.',
-  },
-  {
-    q: 'מה קורה עם הפוסטר / ה-QR?',
-    a: 'לאחר אישור ההזמנה, אנחנו שולחים לכם פוסטר מעוצב עם קוד QR + לינק הצטרפות כקובץ דיגיטלי. ההדפסה והמיקום באירוע באחריותכם - שימו בכניסה, על הבר, במסך, בסטורי, איפה שבא לכם.',
-  },
-  {
-    q: 'איך משלמים?',
-    a: 'לאחר שליחת ההזמנה, תקבלו מייל עם קישור לתשלום מאובטח. ניתן גם לשלם באמצעות BIT או PayBox.',
-  },
-  {
-    q: 'אפשר להתאים את העיצוב לאירוע?',
-    a: 'כן. אפשר לבחור עיצוב לדף הכניסה, רקע מותאם לאפליקציה, כדי שהחוויה תרגיש חלק מהאירוע שלכם.',
-  },
-  {
-    q: 'מה קורה עם המידע אחרי האירוע?',
-    a: 'כל המידע האישי של המשתתפים (כולל מספרי הטלפון) נמחק אוטומטית תוך 7 ימים מסיום האירוע. פרטיות מלאה, בלי מעקב, בלי פרסומות.',
-  },
-  {
-    q: 'האם זה בטוח לאורחים?',
-    a: 'בהחלט. אימות טלפון עם קוד SMS, מערכת חסימות, כל המשתתפים מוגבלים רק לאירוע הספציפי, והמידע נמחק אוטומטית. אנחנו לא משתפים מידע עם צד שלישי.',
-  },
-  {
-    q: 'כמה אורחים יכולים להשתמש?',
-    a: 'אין הגבלה מעשית. המערכת בנויה להתמודד עם אירועים מכל גודל.',
-  },
-  {
-    q: 'מה עם אורחים שלא מעוניינים?',
-    a: 'ההשתתפות לחלוטין וולונטרית. מי שלא סורק את ה-QR פשוט לא משתתף - זה לא משפיע על שום דבר באירוע.',
-  },
-  {
-    q: 'איך מזמינים?',
-    a: 'דרך טופס ההזמנה באתר או במייל ל-contact@eventa.productions. נחזור אליכם תוך 48 שעות.',
+    title: 'פרטיות ואבטחה',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    ),
+    items: [
+      {
+        q: 'מה קורה עם המידע אחרי האירוע?',
+        a: 'כל המידע האישי של המשתתפים (כולל מספרי הטלפון) נמחק אוטומטית תוך 7 ימים מסיום האירוע. פרטיות מלאה, בלי מעקב, בלי פרסומות.',
+      },
+      {
+        q: 'האם זה בטוח לאורחים?',
+        a: 'בהחלט. אימות טלפון עם קוד SMS, מערכת חסימות, כל המשתתפים מוגבלים רק לאירוע הספציפי, והמידע נמחק אוטומטית. אנחנו לא משתפים מידע עם צד שלישי.',
+      },
+    ],
   },
 ];
+
+/* Flatten for JSON-LD */
+const allFaqs = categories.flatMap((c) => c.items);
 
 export default function FaqPage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: faqs.map((faq) => ({
+    mainEntity: allFaqs.map((faq) => ({
       '@type': 'Question',
       name: faq.q,
       acceptedAnswer: {
@@ -97,18 +132,28 @@ export default function FaqPage() {
   };
 
   return (
-    <SitePageLayout title="שאלות נפוצות">
+    <SitePageLayout title="שאלות נפוצות" wide>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {faqs.map((faq, i) => (
-        <div key={i} style={qaStyle}>
-          <p style={questionStyle}>{faq.q}</p>
-          <p style={answerStyle}>{faq.a}</p>
-        </div>
-      ))}
+      <div className="faq">
+        {categories.map((cat, ci) => (
+          <div key={ci} className="faq__category">
+            <div className="faq__category-header">
+              <div className="faq__category-icon">{cat.icon}</div>
+              <h2 className="faq__category-title">{cat.title}</h2>
+            </div>
+            {cat.items.map((item, ii) => (
+              <details key={ii} className="faq__item">
+                <summary>{item.q}</summary>
+                <p className="faq__answer">{item.a}</p>
+              </details>
+            ))}
+          </div>
+        ))}
+      </div>
 
     </SitePageLayout>
   );
