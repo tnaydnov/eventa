@@ -15,6 +15,7 @@ export default function SitePageLayout({
   title,
   updatedAt,
   wide = false,
+  full = false,
   className,
 }: {
   children: ReactNode;
@@ -23,9 +24,12 @@ export default function SitePageLayout({
   updatedAt?: string;
   /** Use wider container (e.g. for pricing / how-it-works). Default: 640px. */
   wide?: boolean;
+  /** Use full-width container (e.g. for pricing). */
+  full?: boolean;
   /** Extra className on the outermost div (for page-specific selectors). */
   className?: string;
 }) {
+  const widthClass = full ? ' site-page__content--full' : wide ? ' site-page__content--wide' : '';
   return (
     <div dir="rtl" className={`site-page${className ? ` ${className}` : ''}`}>
       {/* Header */}
@@ -55,7 +59,7 @@ export default function SitePageLayout({
       </header>
 
       {/* Content */}
-      <main className={`site-page__content${wide ? ' site-page__content--wide' : ''}`}>
+      <main className={`site-page__content${widthClass}`}>
         {children}
       </main>
 

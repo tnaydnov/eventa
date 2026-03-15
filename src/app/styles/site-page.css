@@ -86,6 +86,10 @@
   max-width: 900px;
 }
 
+.site-page__content--full {
+  max-width: 1200px;
+}
+
 /* ── Footer (mirrors /dating landing footer) ── */
 .site-page__footer {
   padding: 48px 24px;

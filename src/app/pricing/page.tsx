@@ -72,7 +72,7 @@ const FEATURES = [
 
 export default function PricingPage() {
   return (
-    <SitePageLayout wide className="pricing-page">
+    <SitePageLayout full className="pricing-page">
       <div className="pri">
 
         {/* ambient glow behind the number */}
