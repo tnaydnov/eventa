@@ -20,8 +20,8 @@
   top: 42%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 600px;
-  height: 500px;
+  width: min(600px, 90vw);
+  height: min(500px, 70vw);
   background:
     radial-gradient(ellipse at center, rgba(212, 165, 154, 0.12) 0%, transparent 55%),
     radial-gradient(ellipse at 30% 60%, rgba(201, 165, 128, 0.08) 0%, transparent 50%);
@@ -41,19 +41,22 @@
    ═══════════════════════════════════════════ */
 .pri__grid {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr);
   align-items: center;
-  gap: 32px;
+  gap: clamp(12px, 2.5vw, 32px);
   width: 100%;
   max-width: 1100px;
   margin: 0 auto 40px;
+  padding: 0 8px;
+  box-sizing: border-box;
 }
 
 /* ── Feature columns ── */
 .pri__col {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: clamp(12px, 1.5vw, 20px);
+  min-width: 0;        /* prevent overflow */
 }
 
 .pri__col--start {
@@ -66,8 +69,10 @@
 
 /* ── Individual feature card ── */
 .pri__feat {
-  width: 240px;
-  padding: 22px 20px;
+  width: 100%;
+  max-width: 240px;
+  min-width: 0;
+  padding: clamp(14px, 1.5vw, 22px) clamp(12px, 1.5vw, 20px);
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
@@ -75,6 +80,7 @@
   -webkit-backdrop-filter: blur(8px);
   text-align: center;
   transition: border-color 0.3s, background 0.3s;
+  box-sizing: border-box;
 }
 
 .pri__feat:hover {
@@ -87,32 +93,32 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
-  margin: 0 auto 14px;
+  width: clamp(40px, 4vw, 52px);
+  height: clamp(40px, 4vw, 52px);
+  margin: 0 auto clamp(8px, 1vw, 14px);
   border-radius: 14px;
   background: rgba(212, 165, 154, 0.12);
   border: 1px solid rgba(212, 165, 154, 0.2);
 }
 
 .pri__feat-svg {
-  width: 26px;
-  height: 26px;
+  width: clamp(20px, 2vw, 26px);
+  height: clamp(20px, 2vw, 26px);
   color: var(--primary, #D4A59A);
 }
 
 /* ── Feature text ── */
 .pri__feat-title {
-  font-size: 15px;
+  font-size: clamp(13px, 1.2vw, 15px);
   font-weight: 700;
   color: var(--foreground, #F0EDE8);
-  margin: 0 0 6px;
+  margin: 0 0 4px;
 }
 
 .pri__feat-desc {
-  font-size: 12.5px;
+  font-size: clamp(11px, 1vw, 12.5px);
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 1.5;
   color: var(--text-muted, #B0B0B0);
   margin: 0;
 }
@@ -124,7 +130,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 16px;
+  min-width: 0;
+  padding: 0 clamp(4px, 1vw, 16px);
 }
 
 .pri__price {
@@ -137,11 +144,11 @@
 }
 
 .pri__currency {
-  font-size: 56px;
+  font-size: clamp(32px, 4vw, 56px);
   font-weight: 800;
   line-height: 1;
   align-self: flex-start;
-  margin-top: 28px;
+  margin-top: clamp(12px, 2vw, 28px);
   background: linear-gradient(135deg, var(--primary, #D4A59A) 0%, var(--accent-gold, #C9A580) 50%, var(--primary-light, #E8C4BB) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -149,7 +156,7 @@
 }
 
 .pri__number {
-  font-size: clamp(120px, 20vw, 200px);
+  font-size: clamp(72px, 14vw, 200px);
   font-weight: 900;
   line-height: 0.9;
   letter-spacing: -4px;
@@ -162,7 +169,7 @@
 
 /* ── Tagline below price ── */
 .pri__tagline {
-  font-size: 22px;
+  font-size: clamp(16px, 2vw, 22px);
   font-weight: 700;
   line-height: 1.5;
   color: var(--foreground, #F0EDE8);
@@ -173,17 +180,17 @@
    Bottom section: subtitle, CTA, fine print
    ═══════════════════════════════════════════ */
 .pri__sub {
-  font-size: 15px;
+  font-size: clamp(13px, 1.2vw, 15px);
   line-height: 1.8;
   color: rgba(176, 176, 176, 0.75);
   margin: 0 0 32px;
 }
 
-/* ── CTA — elongated rose-gold pill (inspired by the reference) ── */
+/* ── CTA — elongated rose-gold pill ── */
 .pri__cta {
   display: inline-block;
-  padding: 18px 56px;
-  font-size: 18px;
+  padding: 18px clamp(28px, 5vw, 56px);
+  font-size: clamp(15px, 1.4vw, 18px);
   font-weight: 700;
   font-family: inherit;
   color: #1a1a1a;
@@ -195,6 +202,8 @@
   box-shadow: 0 4px 24px rgba(212, 165, 154, 0.25);
   transition: transform 0.2s, box-shadow 0.2s;
   margin-bottom: 16px;
+  max-width: 90vw;
+  box-sizing: border-box;
 }
 
 .pri__cta:hover {
@@ -219,7 +228,7 @@
   line-height: 1.8;
   color: rgba(176, 176, 176, 0.4);
   margin: 0;
-  max-width: 500px;
+  max-width: min(500px, 90vw);
 }
 
 .pri__fine a {
@@ -234,15 +243,15 @@
 }
 
 /* ═══════════════════════════════════════════
-   Responsive — Tablet
+   Responsive — Tablet (≤ 900px):
+   Price on top, features in 2 columns below
    ═══════════════════════════════════════════ */
 @media (max-width: 900px) {
   .pri__grid {
     grid-template-columns: 1fr 1fr;
-    gap: 24px;
+    gap: 20px;
   }
 
-  /* Price spans full width on top */
   .pri__center {
     grid-column: 1 / -1;
     order: -1;
@@ -255,17 +264,13 @@
   }
 
   .pri__feat {
-    width: 100%;
     max-width: 280px;
-  }
-
-  .pri__number {
-    font-size: clamp(100px, 22vw, 160px);
   }
 }
 
 /* ═══════════════════════════════════════════
-   Responsive — Mobile
+   Responsive — Mobile (≤ 580px):
+   Single column stack
    ═══════════════════════════════════════════ */
 @media (max-width: 580px) {
   .pri {
@@ -274,39 +279,19 @@
 
   .pri__grid {
     grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .pri__center {
-    margin-bottom: 4px;
-  }
-
-  .pri__number {
-    font-size: clamp(90px, 28vw, 140px);
-    letter-spacing: -3px;
-  }
-
-  .pri__currency {
-    font-size: 40px;
-    margin-top: 18px;
-  }
-
-  .pri__tagline {
-    font-size: 19px;
+    gap: 14px;
   }
 
   .pri__feat {
-    width: 100%;
     max-width: 320px;
-  }
-
-  .pri__cta {
-    padding: 16px 40px;
-    font-size: 16px;
   }
 
   .pri__col--start,
   .pri__col--end {
     align-items: center;
+  }
+
+  .pri__cta {
+    padding: 16px 32px;
   }
 }
