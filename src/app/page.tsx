@@ -76,6 +76,24 @@ export default function HomePage() {
             <span className="hp__coming-tag">ויש עוד בדרך...</span>
             <div className="hp__coming-line" />
           </div>
+
+          {/* Rides - COMING SOON */}
+          <div className="hp__card hp__card--soon" aria-disabled="true">
+            <div className="hp__card-status hp__card-status--soon">
+              <span>בקרוב</span>
+            </div>
+            <div className="hp__card-icon hp__card-icon--muted">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+                <path d="M5 17h2m10 0h2M2 9l2-6h16l2 6M2 9h20v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V9z" />
+                <circle cx="7" cy="17" r="2" />
+                <circle cx="17" cy="17" r="2" />
+              </svg>
+            </div>
+            <h2 className="hp__card-title">Eventa Rides</h2>
+            <p className="hp__card-desc">
+              תיאום הסעות לאירוע. מציאת נהג תורן, שיתוף נסיעות ואירגון הגעה משותפת - כדי שכולם יגיעו בקלות.
+            </p>
+          </div>
         </div>
       </section>
 

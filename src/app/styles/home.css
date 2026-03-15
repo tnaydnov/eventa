@@ -298,9 +298,17 @@
 
 /* Soon card */
 .hp__card--soon {
-  padding: 24px 16px;
-  opacity: 0.6;
+  padding: 32px 24px;
+  opacity: 0.5;
+  pointer-events: none;
   position: relative;
+}
+
+.hp__card-status--soon {
+  color: rgba(201, 165, 128, 0.7);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
 }
 
 .hp__card--soon::after {
