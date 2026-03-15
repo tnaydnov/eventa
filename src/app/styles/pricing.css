@@ -1,29 +1,31 @@
 /* ═══════════════════════════════════════════
-   Pricing — Hero-price layout
+   Pricing — Hero-price with surrounding features
+   Inspired by: big central price + feature cards grid
    ═══════════════════════════════════════════ */
 
-/* ── Full-page centered hero ── */
+/* ── Container ── */
 .pri {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   text-align: center;
-  min-height: calc(100dvh - 200px);   /* fill viewport minus header/footer */
-  padding: 48px 24px 56px;
+  padding: 40px 24px 56px;
+  overflow: hidden;
 }
 
 /* ── Ambient glow ── */
 .pri__glow {
   position: absolute;
-  top: 50%;
+  top: 42%;
   left: 50%;
-  transform: translate(-50%, -55%);
-  width: 420px;
-  height: 320px;
-  background: radial-gradient(ellipse, rgba(212, 165, 154, 0.09), transparent 70%);
-  filter: blur(80px);
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 500px;
+  background:
+    radial-gradient(ellipse at center, rgba(212, 165, 154, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 30% 60%, rgba(201, 165, 128, 0.08) 0%, transparent 50%);
+  filter: blur(100px);
   pointer-events: none;
   z-index: 0;
 }
@@ -34,90 +36,174 @@
   z-index: 1;
 }
 
-/* ── Headline ── */
-.pri__headline {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--primary, #D4A59A);
-  letter-spacing: 0.5px;
-  margin: 0 0 32px;
+/* ═══════════════════════════════════════════
+   3-column grid: features | price | features
+   ═══════════════════════════════════════════ */
+.pri__grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto 40px;
 }
 
-/* ── Hero price ── */
+/* ── Feature columns ── */
+.pri__col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pri__col--start {
+  align-items: flex-end;   /* cards hug the center */
+}
+
+.pri__col--end {
+  align-items: flex-start;
+}
+
+/* ── Individual feature card ── */
+.pri__feat {
+  width: 240px;
+  padding: 22px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  text-align: center;
+  transition: border-color 0.3s, background 0.3s;
+}
+
+.pri__feat:hover {
+  border-color: rgba(212, 165, 154, 0.25);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* ── Feature icon ── */
+.pri__feat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  border-radius: 14px;
+  background: rgba(212, 165, 154, 0.12);
+  border: 1px solid rgba(212, 165, 154, 0.2);
+}
+
+.pri__feat-svg {
+  width: 26px;
+  height: 26px;
+  color: var(--primary, #D4A59A);
+}
+
+/* ── Feature text ── */
+.pri__feat-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--foreground, #F0EDE8);
+  margin: 0 0 6px;
+}
+
+.pri__feat-desc {
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--text-muted, #B0B0B0);
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════
+   Center — HUGE price
+   ═══════════════════════════════════════════ */
+.pri__center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px;
+}
+
 .pri__price {
   display: flex;
   align-items: baseline;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   direction: ltr;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
 }
 
 .pri__currency {
-  font-size: 40px;
-  font-weight: 700;
-  color: var(--primary, #D4A59A);
+  font-size: 56px;
+  font-weight: 800;
   line-height: 1;
   align-self: flex-start;
-  margin-top: 18px;
+  margin-top: 28px;
+  background: linear-gradient(135deg, var(--primary, #D4A59A) 0%, var(--accent-gold, #C9A580) 50%, var(--primary-light, #E8C4BB) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .pri__number {
-  font-size: clamp(100px, 22vw, 140px);
-  font-weight: 800;
-  line-height: 1;
-  color: #fff;
-  letter-spacing: -3px;
+  font-size: clamp(120px, 20vw, 200px);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -4px;
+  background: linear-gradient(135deg, var(--primary, #D4A59A) 0%, var(--accent-gold, #C9A580) 40%, var(--primary-light, #E8C4BB) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 4px 30px rgba(212, 165, 154, 0.25));
 }
 
-/* ── Subtitle ── */
+/* ── Tagline below price ── */
+.pri__tagline {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--foreground, #F0EDE8);
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════
+   Bottom section: subtitle, CTA, fine print
+   ═══════════════════════════════════════════ */
 .pri__sub {
   font-size: 15px;
   line-height: 1.8;
   color: rgba(176, 176, 176, 0.75);
-  margin: 0 0 40px;
+  margin: 0 0 32px;
 }
 
-/* ── Include chips ── */
-.pri__chips {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 44px;
-  max-width: 500px;
-}
-
-.pri__chip {
-  padding: 7px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  color: rgba(240, 237, 232, 0.75);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 100px;
-  white-space: nowrap;
-}
-
-/* ── CTA ── */
+/* ── CTA — elongated rose-gold pill (inspired by the reference) ── */
 .pri__cta {
   display: inline-block;
-  padding: 16px 56px;
-  font-size: 17px;
+  padding: 18px 56px;
+  font-size: 18px;
   font-weight: 700;
   font-family: inherit;
   color: #1a1a1a;
-  background: var(--primary, #D4A59A);
+  background: linear-gradient(135deg, var(--primary-light, #E8C4BB) 0%, var(--primary, #D4A59A) 50%, var(--accent-gold, #C9A580) 100%);
   border: none;
-  border-radius: 14px;
+  border-radius: 60px;
   text-decoration: none;
   text-align: center;
-  transition: opacity 0.2s;
+  box-shadow: 0 4px 24px rgba(212, 165, 154, 0.25);
+  transition: transform 0.2s, box-shadow 0.2s;
   margin-bottom: 16px;
 }
 
 .pri__cta:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 32px rgba(212, 165, 154, 0.35);
+}
+
+.pri__cta:active {
+  transform: translateY(0);
 }
 
 /* ── Cancel note ── */
@@ -133,7 +219,7 @@
   line-height: 1.8;
   color: rgba(176, 176, 176, 0.4);
   margin: 0;
-  max-width: 400px;
+  max-width: 500px;
 }
 
 .pri__fine a {
@@ -147,29 +233,80 @@
   opacity: 1;
 }
 
-/* ═══ Responsive ═══ */
-@media (max-width: 480px) {
+/* ═══════════════════════════════════════════
+   Responsive — Tablet
+   ═══════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .pri__grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  /* Price spans full width on top */
+  .pri__center {
+    grid-column: 1 / -1;
+    order: -1;
+    margin-bottom: 8px;
+  }
+
+  .pri__col--start,
+  .pri__col--end {
+    align-items: center;
+  }
+
+  .pri__feat {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .pri__number {
+    font-size: clamp(100px, 22vw, 160px);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   Responsive — Mobile
+   ═══════════════════════════════════════════ */
+@media (max-width: 580px) {
   .pri {
-    padding: 36px 20px 48px;
-    min-height: calc(100dvh - 160px);
+    padding: 32px 16px 48px;
+  }
+
+  .pri__grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .pri__center {
+    margin-bottom: 4px;
+  }
+
+  .pri__number {
+    font-size: clamp(90px, 28vw, 140px);
+    letter-spacing: -3px;
   }
 
   .pri__currency {
-    font-size: 32px;
-    margin-top: 14px;
+    font-size: 40px;
+    margin-top: 18px;
   }
 
-  .pri__chips {
-    gap: 8px;
+  .pri__tagline {
+    font-size: 19px;
   }
 
-  .pri__chip {
-    padding: 6px 13px;
-    font-size: 12px;
+  .pri__feat {
+    width: 100%;
+    max-width: 320px;
   }
 
   .pri__cta {
-    padding: 15px 44px;
+    padding: 16px 40px;
     font-size: 16px;
+  }
+
+  .pri__col--start,
+  .pri__col--end {
+    align-items: center;
   }
 }
