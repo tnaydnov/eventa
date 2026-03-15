@@ -759,106 +759,80 @@
 /* ═══ WhatsApp (org-whatsapp) ═══ */
 
 .hps--wa {
-  padding: 0 0 14px;
+  padding: 0;
 }
 
 .hps__wa-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   padding: 32px 12px 8px;
-  background: #075E54;
-  border-bottom: none;
+  background: #1f2c34;
 }
 
-.hps__wa-header-icon {
+.hps__wa-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #00a884;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.hps__wa-header span {
+.hps__wa-name {
+  color: #e9edef;
   font-size: 13px;
-  font-weight: 700;
-  color: #fff;
+  font-weight: 600;
 }
 
-.hps__wa-preview {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 10px 10px 6px;
-  gap: 6px;
-  background: url('data:image/svg+xml,<svg width="120" height="120" xmlns="http://www.w3.org/2000/svg"><rect width="120" height="120" fill="%23071a16"/></svg>');
-  background-color: #0b1e18;
+.hps__wa-chat {
+  background: #0b141a;
+  padding: 12px 10px;
 }
 
 .hps__wa-bubble {
-  background: #1a2e1a;
-  border-radius: 10px 10px 4px 10px;
-  padding: 8px 10px;
-  max-width: 88%;
-}
-
-.hps__wa-bubble--reply {
-  align-self: flex-end;
-  background: #005c4b;
-  border-radius: 10px 10px 10px 4px;
-}
-
-.hps__wa-sender {
-  font-size: 10px;
-  font-weight: 700;
-  color: #25D366;
-  margin-bottom: 2px;
-}
-
-.hps__wa-text {
+  background: #1a2c34;
+  border-radius: 0 8px 8px 8px;
+  padding: 8px 10px 6px;
+  max-width: 92%;
+  direction: rtl;
   font-size: 11px;
-  line-height: 1.5;
-  color: #e8e8e8;
+  color: #e9edef;
+  line-height: 1.55;
   white-space: pre-line;
+  box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
+}
+
+.hps__wa-bubble p {
+  margin: 0 0 4px;
+}
+
+.hps__wa-bubble p:last-child {
+  margin-bottom: 0;
+}
+
+.hps__wa-bubble strong {
+  color: #fff;
 }
 
 .hps__wa-link {
-  font-size: 10px;
+  margin-top: 4px;
   color: #53bdeb;
-  text-decoration: underline;
-  margin-top: 2px;
-  word-break: break-all;
+  font-size: 10px;
 }
 
-.hps__wa-time {
-  font-size: 8px;
-  color: rgba(255,255,255,0.4);
-  text-align: left;
-  direction: ltr;
-  margin-top: 2px;
-}
-
-.hps__wa-time--right {
-  text-align: right;
-}
-
-.hps__wa-stats {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  padding: 8px 14px;
-}
-
-.hps__wa-stat {
-  text-align: center;
+.hps__wa-note {
   font-size: 9px;
   color: var(--text-muted, #B0B0B0);
-  flex: 1;
-}
-
-.hps__wa-stat-n {
-  display: block;
-  font-size: 18px;
-  font-weight: 800;
-  color: #25D366;
-  margin-bottom: 2px;
+  text-align: center;
+  padding: 6px 12px;
+  margin: 0;
+  opacity: 0.7;
 }
 
 /* ═══ Place (org-place) ═══ */
