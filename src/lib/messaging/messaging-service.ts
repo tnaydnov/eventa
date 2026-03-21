@@ -5,7 +5,6 @@
  */
 import { getServiceClient } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
-import { WA_MARKETING_WINDOW_HOURS } from '@/lib/config';
 import { maskPhone } from './phone-utils';
 import { sendSms } from './sms-provider';
 import { sendWhatsAppTemplate } from './whatsapp-provider';
@@ -87,7 +86,7 @@ export async function sendOtp(
 
 /**
  * Send pre-event reminder via WhatsApp.
- * Opens a 24h Marketing conversation window.
+ * Uses utility template (transactional, not marketing).
  */
 export async function sendPreEventMessage(
   phone: string,
@@ -111,7 +110,7 @@ export async function sendPreEventMessage(
     phone,
     channel: 'whatsapp',
     messageType: 'pre_event',
-    waCategory: 'marketing',
+    waCategory: 'utility',
     status: result.success ? 'sent' : 'failed',
     providerMessageId: result.messageId,
     errorMessage: result.error,
@@ -128,7 +127,7 @@ export async function sendPreEventMessage(
 /**
  * Send welcome message via WhatsApp.
  * Only sent if this phone did NOT receive a pre-event message.
- * Opens a new 24h Marketing window.
+ * Uses utility template (transactional, not marketing).
  */
 export async function sendWelcomeMessage(
   phone: string,
@@ -188,7 +187,7 @@ export async function sendWelcomeMessage(
     phone,
     channel: 'whatsapp',
     messageType: 'welcome',
-    waCategory: 'marketing',
+    waCategory: 'utility',
     status: result.success ? 'sent' : 'failed',
     providerMessageId: result.messageId,
     errorMessage: result.error,
@@ -203,45 +202,32 @@ export async function sendWelcomeMessage(
 }
 
 /**
- * Send feedback message via WhatsApp.
- * Only sent if a Marketing window is still open (< 24h since last WA marketing message).
- * If no open window, skip - we don't open a new window just for feedback.
+ * Send feedback/thank-you message via WhatsApp.
+ * Uses utility template — no marketing window required.
+ * Includes feedback survey link and website link.
  */
 export async function sendFeedbackMessage(
   phone: string,
   config: EventMessagingConfig
 ): Promise<SendResult> {
+  // Check if feedback was already sent to this phone for this event
   const supabase = getServiceClient();
-
-  // Check if a marketing window is open
-  const windowCutoff = new Date(
-    Date.now() - WA_MARKETING_WINDOW_HOURS * 60 * 60 * 1000
-  ).toISOString();
-
-  const { data: recentMsg } = await supabase
+  const { data: existingMsg } = await supabase
     .from('message_log')
-    .select('created_at')
+    .select('id')
     .eq('event_id', config.eventId)
     .eq('phone', phone)
-    .eq('channel', 'whatsapp')
-    .eq('wa_category', 'marketing')
+    .eq('message_type', 'feedback')
     .eq('status', 'sent')
-    .gte('created_at', windowCutoff)
-    .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  if (!recentMsg) {
-    logger.info('[MESSAGING] Skipping feedback - no open WA marketing window', {
+  if (existingMsg) {
+    logger.info('[MESSAGING] Skipping feedback - already sent', {
       phone: maskPhone(phone),
       eventId: config.eventId,
     });
-    return {
-      success: false,
-      channel: 'whatsapp',
-      messageId: null,
-      error: 'no_open_window',
-    };
+    return { success: true, channel: 'whatsapp', messageId: null, error: null };
   }
 
   const result = await sendWhatsAppTemplate({
@@ -261,7 +247,7 @@ export async function sendFeedbackMessage(
     phone,
     channel: 'whatsapp',
     messageType: 'feedback',
-    waCategory: 'marketing',
+    waCategory: 'utility',
     status: result.success ? 'sent' : 'failed',
     providerMessageId: result.messageId,
     errorMessage: result.error,

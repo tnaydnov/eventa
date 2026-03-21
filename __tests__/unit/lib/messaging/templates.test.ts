@@ -92,7 +92,7 @@ describe('WA_TEMPLATES', () => {
   it('has expected template names', () => {
     expect(WA_TEMPLATES.PRE_EVENT).toBe('eventa_pre_event');
     expect(WA_TEMPLATES.WELCOME).toBe('eventa_welcome');
-    expect(WA_TEMPLATES.FEEDBACK).toBe('eventa_feedback');
+    expect(WA_TEMPLATES.FEEDBACK).toBe('eventa_feedback_v2');
   });
 });
 
@@ -138,13 +138,17 @@ describe('welcomeVars', () => {
 // ─── feedbackVars ───────────────────────────────────────
 
 describe('feedbackVars', () => {
-  it('builds 2 params: eventName, feedbackUrl', () => {
+  it('builds 3 params: eventName, feedbackUrl, websiteUrl', () => {
     const vars = feedbackVars(mockConfig);
-    expect(vars).toHaveLength(2);
+    expect(vars).toHaveLength(3);
     expect(vars[0]).toEqual({ type: 'text', text: 'מסיבת קיץ' });
     expect(vars[1]).toEqual({
       type: 'text',
       text: 'https://eventa.test/feedback/evt-001',
+    });
+    expect(vars[2]).toEqual({
+      type: 'text',
+      text: 'https://eventa.test',
     });
   });
 });

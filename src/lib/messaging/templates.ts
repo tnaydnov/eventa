@@ -51,11 +51,13 @@ export function welcomeVars(
   ];
 }
 
-/** Build WA template variables for feedback message (v2 - no discount) */
+/** Build WA template variables for feedback/thank-you message */
 export function feedbackVars(
   config: EventMessagingConfig
 ): WaTemplateParam[] {
   return [
+    { type: 'text', text: config.eventName },
     { type: 'text', text: buildFeedbackUrl(config.eventId) },
+    { type: 'text', text: APP_BASE_URL },
   ];
 }

@@ -129,7 +129,7 @@ export async function GET(
         pre_event_hours_before:
           (msgConfig?.pre_event_hours_before as number) ?? 3,
         feedback_hours_after:
-          (msgConfig?.feedback_hours_after as number) ?? 3,
+          (msgConfig?.feedback_hours_after as number) ?? 8,
         upload_reminder_days:
           (msgConfig?.upload_reminder_days as number[]) ?? [7, 3],
       },

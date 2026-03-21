@@ -20,9 +20,11 @@ const envSchema = z.object({
   TEXTME_API_TOKEN: z.string().min(1).optional(),
   TEXTME_USERNAME: z.string().min(1).optional(),
   TEXTME_SENDER_NAME: z.string().min(1).max(11).optional(),
-  // WhatsApp provider (optional - stubs used when absent)
-  WA_API_KEY: z.string().min(1).optional(),
-  WA_PHONE_NUMBER_ID: z.string().min(1).optional(),
+  // WhatsApp provider - Meta Cloud API (optional - stubs used when absent)
+  WHATSAPP_API_TOKEN: z.string().min(1).optional(),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().min(1).optional(),
+  WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().min(1).optional(),
+  WHATSAPP_APP_SECRET: z.string().min(1).optional(),
 });
 
 /** Validate environment variables at import time (server + client) */
@@ -37,8 +39,10 @@ export function validateEnv() {
     TEXTME_API_TOKEN: process.env.TEXTME_API_TOKEN,
     TEXTME_USERNAME: process.env.TEXTME_USERNAME,
     TEXTME_SENDER_NAME: process.env.TEXTME_SENDER_NAME,
-    WA_API_KEY: process.env.WA_API_KEY,
-    WA_PHONE_NUMBER_ID: process.env.WA_PHONE_NUMBER_ID,
+    WHATSAPP_API_TOKEN: process.env.WHATSAPP_API_TOKEN,
+    WHATSAPP_PHONE_NUMBER_ID: process.env.WHATSAPP_PHONE_NUMBER_ID,
+    WHATSAPP_WEBHOOK_VERIFY_TOKEN: process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN,
+    WHATSAPP_APP_SECRET: process.env.WHATSAPP_APP_SECRET,
   });
   if (!result.success) {
     // Use console.error here intentionally - logger.ts may depend on env vars

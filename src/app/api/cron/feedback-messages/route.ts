@@ -14,15 +14,15 @@ const MAX_MESSAGES_PER_RUN = 50;
 const INTER_MESSAGE_DELAY_MS = 100;
 
 /** Hours after event ends to start sending feedback. */
-const FEEDBACK_DELAY_HOURS = 1;
+const FEEDBACK_DELAY_HOURS = 8;
 
 /** Hours after event ends after which we stop attempting feedback. */
-const FEEDBACK_WINDOW_HOURS = 6;
+const FEEDBACK_WINDOW_HOURS = 12;
 
 /**
  * GET|POST /api/cron/feedback-messages
- * Sends WhatsApp feedback messages after events end.
- * Only sends if a WA marketing window is still open (< 24h since last WA message).
+ * Sends WhatsApp feedback/thank-you messages ~8 hours after events end.
+ * Uses utility templates (no marketing window required).
  * Auth: Bearer CRON_SECRET (timing-safe).
  * Schedule: Every hour via vercel.json.
  */

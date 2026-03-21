@@ -108,7 +108,7 @@ export const MSG_TIMING = {
   /** Hours before event start to send pre-event WA messages. */
   PRE_EVENT_HOURS_BEFORE: 3,
   /** Hours after event end to send feedback WA messages. */
-  FEEDBACK_HOURS_AFTER: 3,
+  FEEDBACK_HOURS_AFTER: 8,
   /** Days before event to send upload-reminder emails (descending). */
   UPLOAD_REMINDER_DAYS: [7, 3] as const,
 } as const;

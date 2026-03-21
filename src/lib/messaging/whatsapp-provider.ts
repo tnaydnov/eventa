@@ -1,16 +1,16 @@
 /**
- * 360dialog WhatsApp Business API client.
+ * Meta WhatsApp Cloud API client.
  *
- * API docs: https://docs.360dialog.com/
- * Uses Meta's Cloud API through 360dialog's proxy endpoint.
+ * API docs: https://developers.facebook.com/docs/whatsapp/cloud-api
+ * Sends template messages directly via Meta's Graph API.
  *
  * Message categories (Meta pricing):
  * - Authentication: OTP codes (not used - we use SMS for OTP)
- * - Marketing: pre-event reminders, welcome messages, feedback (~₪0.15/conversation)
- * - Utility: transactional (not used currently)
+ * - Utility: transactional messages - pre-event reminders, welcome, feedback
+ * - Marketing: promotional (not used)
  *
- * Conversation window: 24 hours per category.
- * All our WA messages are Marketing → one window per user per 24h.
+ * All our WA messages are Utility (transactional, event-related).
+ * Template messages can be sent without an open customer service window.
  *
  * When WA_PROVIDER_LIVE is false, the provider logs the message
  * and returns a stub success - no real WhatsApp message is sent.
@@ -20,11 +20,11 @@ import { logger } from '@/lib/logger';
 import { maskPhone } from './phone-utils';
 import type { SendWaTemplateParams, SendWaResult } from './types';
 
-/** 360dialog API base URL */
-const API_BASE = 'https://waba.360dialog.io/v1';
+/** Meta Graph API version */
+const GRAPH_API_VERSION = 'v22.0';
 
 /**
- * Send a WhatsApp template message via 360dialog.
+ * Send a WhatsApp template message via Meta Cloud API.
  * In stub mode (WA_PROVIDER_LIVE=false), logs and returns success.
  */
 export async function sendWhatsAppTemplate(
@@ -41,14 +41,23 @@ export async function sendWhatsAppTemplate(
   }
 
   // ── Live mode ──
-  const apiKey = process.env.WA_API_KEY;
-  if (!apiKey) {
-    return { success: false, messageId: null, error: 'WA_API_KEY not configured' };
+  const apiToken = process.env.WHATSAPP_API_TOKEN;
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+  if (!apiToken) {
+    return { success: false, messageId: null, error: 'WHATSAPP_API_TOKEN not configured' };
   }
+  if (!phoneNumberId) {
+    return { success: false, messageId: null, error: 'WHATSAPP_PHONE_NUMBER_ID not configured' };
+  }
+
+  // Meta Cloud API expects phone without '+' prefix
+  const recipientPhone = params.to.replace(/^\+/, '');
 
   const body = {
     messaging_product: 'whatsapp',
-    to: params.to.replace('+', ''), // 360dialog expects without '+'
+    recipient_type: 'individual',
+    to: recipientPhone,
     type: 'template',
     template: {
       name: params.templateName,
@@ -57,36 +66,46 @@ export async function sendWhatsAppTemplate(
     },
   };
 
+  const url = `https://graph.facebook.com/${GRAPH_API_VERSION}/${phoneNumberId}/messages`;
+
   try {
-    const response = await fetch(`${API_BASE}/messages`, {
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'D360-API-KEY': apiKey,
+        Authorization: `Bearer ${apiToken}`,
       },
       body: JSON.stringify(body),
     });
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
-      const errorMsg = (err as { error?: { message?: string } }).error?.message || `HTTP ${response.status}`;
-      logger.error('[WA] HTTP error', { to: maskPhone(params.to), template: params.templateName, error: errorMsg });
-      return {
-        success: false,
-        messageId: null,
+      const errorMsg =
+        (err as { error?: { message?: string } }).error?.message ||
+        `HTTP ${response.status}`;
+      logger.error('[WA] HTTP error', {
+        to: maskPhone(params.to),
+        template: params.templateName,
         error: errorMsg,
-      };
+      });
+      return { success: false, messageId: null, error: errorMsg };
     }
 
     const result = await response.json();
     return {
       success: true,
-      messageId: (result as { messages?: Array<{ id?: string }> }).messages?.[0]?.id || null,
+      messageId:
+        (result as { messages?: Array<{ id?: string }> }).messages?.[0]?.id ||
+        null,
       error: null,
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
-    logger.error('[WA] Send failed', { to: maskPhone(params.to), template: params.templateName, error: message });
+    logger.error('[WA] Send failed', {
+      to: maskPhone(params.to),
+      template: params.templateName,
+      error: message,
+    });
     return { success: false, messageId: null, error: message };
   }
 }
