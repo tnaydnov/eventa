@@ -57,15 +57,14 @@ describe('buildJoinUrl', () => {
 
 describe('buildFeedbackUrl', () => {
   it('builds correct feedback URL', () => {
-    expect(buildFeedbackUrl('evt-001')).toBe(
-      'https://eventa.test/feedback/evt-001'
+    expect(buildFeedbackUrl('summer-party')).toBe(
+      'https://eventa.test/dating/summer-party/feedback'
     );
   });
 
-  it('handles UUID-style event IDs', () => {
-    const uuid = '123e4567-e89b-12d3-a456-426614174000';
-    expect(buildFeedbackUrl(uuid)).toBe(
-      `https://eventa.test/feedback/${uuid}`
+  it('handles slug with special chars', () => {
+    expect(buildFeedbackUrl('noa-and-tomer-wedding')).toBe(
+      'https://eventa.test/dating/noa-and-tomer-wedding/feedback'
     );
   });
 });
@@ -90,7 +89,7 @@ describe('otpSmsText', () => {
 
 describe('WA_TEMPLATES', () => {
   it('has expected template names', () => {
-    expect(WA_TEMPLATES.PRE_EVENT).toBe('eventa_pre_event');
+    expect(WA_TEMPLATES.PRE_EVENT).toBe('eventa_pre_reminder');
     expect(WA_TEMPLATES.WELCOME).toBe('eventa_welcome');
     expect(WA_TEMPLATES.FEEDBACK).toBe('eventa_feedback_v2');
   });
@@ -99,25 +98,14 @@ describe('WA_TEMPLATES', () => {
 // ─── preEventVars ───────────────────────────────────────
 
 describe('preEventVars', () => {
-  it('builds 3 params: guestName, eventName, joinUrl', () => {
-    const vars = preEventVars(mockConfig, 'שרה');
-    expect(vars).toHaveLength(3);
-    expect(vars[0]).toEqual({ type: 'text', text: 'שרה' });
-    expect(vars[1]).toEqual({ type: 'text', text: 'מסיבת קיץ' });
-    expect(vars[2]).toEqual({
+  it('builds 2 params: eventName, joinUrl', () => {
+    const vars = preEventVars(mockConfig);
+    expect(vars).toHaveLength(2);
+    expect(vars[0]).toEqual({ type: 'text', text: 'מסיבת קיץ' });
+    expect(vars[1]).toEqual({
       type: 'text',
       text: 'https://eventa.test/dating/summer-party/join?k=ABC123',
     });
-  });
-
-  it('uses empty string when guestName is null', () => {
-    const vars = preEventVars(mockConfig, null);
-    expect(vars[0]).toEqual({ type: 'text', text: '' });
-  });
-
-  it('uses empty string when guestName is undefined', () => {
-    const vars = preEventVars(mockConfig);
-    expect(vars[0]).toEqual({ type: 'text', text: '' });
   });
 });
 
@@ -144,11 +132,11 @@ describe('feedbackVars', () => {
     expect(vars[0]).toEqual({ type: 'text', text: 'מסיבת קיץ' });
     expect(vars[1]).toEqual({
       type: 'text',
-      text: 'https://eventa.test/feedback/evt-001',
+      text: 'https://eventa.test/dating/summer-party/feedback',
     });
     expect(vars[2]).toEqual({
       type: 'text',
-      text: 'https://eventa.test',
+      text: 'https://eventa.test/dating',
     });
   });
 });

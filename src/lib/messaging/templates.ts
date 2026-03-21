@@ -11,8 +11,8 @@ export function buildJoinUrl(slug: string, joinCode: string): string {
 }
 
 /** Build the feedback URL for an event */
-export function buildFeedbackUrl(eventId: string): string {
-  return `${APP_BASE_URL}/feedback/${eventId}`;
+export function buildFeedbackUrl(slug: string): string {
+  return `${APP_BASE_URL}/dating/${slug}/feedback`;
 }
 
 // ── SMS Templates (plain text) ──
@@ -24,18 +24,16 @@ export function otpSmsText(code: string): string {
 // ── WhatsApp Template Names (registered in Meta dashboard) ──
 
 export const WA_TEMPLATES = {
-  PRE_EVENT: 'eventa_pre_event',
+  PRE_EVENT: 'eventa_pre_reminder',
   WELCOME: 'eventa_welcome',
   FEEDBACK: 'eventa_feedback_v2',
 } as const;
 
 /** Build WA template variables for pre-event message */
 export function preEventVars(
-  config: EventMessagingConfig,
-  guestName?: string | null
+  config: EventMessagingConfig
 ): WaTemplateParam[] {
   return [
-    { type: 'text', text: guestName || '' },
     { type: 'text', text: config.eventName },
     { type: 'text', text: buildJoinUrl(config.eventSlug, config.joinCode) },
   ];
@@ -57,7 +55,7 @@ export function feedbackVars(
 ): WaTemplateParam[] {
   return [
     { type: 'text', text: config.eventName },
-    { type: 'text', text: buildFeedbackUrl(config.eventId) },
-    { type: 'text', text: APP_BASE_URL },
+    { type: 'text', text: buildFeedbackUrl(config.eventSlug) },
+    { type: 'text', text: `${APP_BASE_URL}/dating` },
   ];
 }

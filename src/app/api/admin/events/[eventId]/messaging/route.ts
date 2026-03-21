@@ -298,8 +298,7 @@ async function handleManualPreEvent(
   for (const guest of guests) {
     const result = await sendPreEventMessage(
       guest.phone,
-      config,
-      guest.guest_name
+      config
     );
 
     if (result.success) {

@@ -90,8 +90,7 @@ export async function sendOtp(
  */
 export async function sendPreEventMessage(
   phone: string,
-  config: EventMessagingConfig,
-  guestName?: string | null
+  config: EventMessagingConfig
 ): Promise<SendResult> {
   const result = await sendWhatsAppTemplate({
     to: phone,
@@ -100,7 +99,7 @@ export async function sendPreEventMessage(
     components: [
       {
         type: 'body',
-        parameters: preEventVars(config, guestName),
+        parameters: preEventVars(config),
       },
     ],
   });
