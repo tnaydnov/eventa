@@ -20,7 +20,12 @@ export default function AppHeader() {
           border: 'none',
           color: 'var(--text-muted)',
           cursor: 'pointer',
-          padding: '4px',
+          padding: '10px',
+          minWidth: '44px',
+          minHeight: '44px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">

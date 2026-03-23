@@ -29,7 +29,7 @@ export default function BarChart({ data, maxBars }: BarChartProps) {
   }
 
   return (
-    <div className="bar-chart">
+    <div className="bar-chart" role="img" aria-label="תרשים עמודות">
       {items.map((item, i) => (
         <div key={i} className="bar-chart__row">
           <span className="bar-chart__label">{item.label}</span>

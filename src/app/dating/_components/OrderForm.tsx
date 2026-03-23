@@ -48,8 +48,9 @@ export default function OrderForm() {
     <form className="order-form" onSubmit={handleSubmit} dir="rtl">
       {/* Personal Info */}
       <div className="order-form__group">
-        <label className="order-form__label">שם מלא *</label>
+        <label className="order-form__label" htmlFor="order-name">שם מלא *</label>
         <input
+          id="order-name"
           className="order-form__input"
           type="text"
           placeholder="השם שלכם"
@@ -61,8 +62,9 @@ export default function OrderForm() {
 
       <div className="order-form__row">
         <div className="order-form__group">
-          <label className="order-form__label">טלפון *</label>
+          <label className="order-form__label" htmlFor="order-phone">טלפון *</label>
           <input
+            id="order-phone"
             className="order-form__input"
             type="tel"
             placeholder="050-0000000"
@@ -73,8 +75,9 @@ export default function OrderForm() {
           />
         </div>
         <div className="order-form__group">
-          <label className="order-form__label">אימייל</label>
+          <label className="order-form__label" htmlFor="order-email">אימייל</label>
           <input
+            id="order-email"
             className="order-form__input"
             type="email"
             placeholder="you@example.com"
@@ -95,7 +98,7 @@ export default function OrderForm() {
       </button>
 
       {error && (
-        <p style={{ color: '#ef4444', fontSize: '14px', textAlign: 'center', marginTop: '12px' }}>
+        <p role="alert" style={{ color: '#ef4444', fontSize: '14px', textAlign: 'center', marginTop: '12px' }}>
           {error}
         </p>
       )}

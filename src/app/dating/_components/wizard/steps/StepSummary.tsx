@@ -44,7 +44,7 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
               {typeConfig && <WizardIcon name={typeConfig.icon} size={16} className="wiz-summary__inline-icon" />} {typeConfig?.label}
             </div>
           </div>
-          <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(0)}>
+          <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(0)} aria-label="שנה סוג אירוע">
             שנה
           </button>
         </div>
@@ -59,7 +59,7 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
               {formatDateTime(state.startsAt)}
             </div>
           </div>
-          <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(1)}>
+          <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(1)} aria-label="שנה פרטי אירוע">
             שנה
           </button>
         </div>
@@ -74,7 +74,7 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
               }
             </div>
           </div>
-          <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(2)}>
+          <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(2)} aria-label="שנה רקע">
             שנה
           </button>
         </div>
@@ -90,7 +90,7 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
               {state.specialRequests && ' + בקשות מיוחדות'}
             </div>
           </div>
-          <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(3)}>
+          <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(3)} aria-label="שנה פוסטר">
             שנה
           </button>
         </div>
@@ -103,7 +103,7 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
               {state.wantsGuestMessages ? 'הודעות + Excel - כלול' : 'לא נבחר'}
             </div>
           </div>
-          <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(4)}>
+          <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(4)} aria-label="שנה הודעות">
             שנה
           </button>
         </div>

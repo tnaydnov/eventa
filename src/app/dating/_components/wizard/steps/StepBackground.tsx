@@ -72,6 +72,7 @@ export default function StepBackground({ state, onChange }: Props) {
         {/* Default option */}
         <button
           type="button"
+          aria-pressed={!state.wantsCustomBackground}
           className={`wiz-toggle${!state.wantsCustomBackground ? ' wiz-toggle--active' : ''}`}
           onClick={clearImage}
         >
@@ -86,6 +87,7 @@ export default function StepBackground({ state, onChange }: Props) {
         {/* Custom option */}
         <button
           type="button"
+          aria-pressed={state.wantsCustomBackground}
           className={`wiz-toggle${state.wantsCustomBackground ? ' wiz-toggle--active' : ''}`}
           onClick={() => {
             if (!state.wantsCustomBackground) {
@@ -111,7 +113,7 @@ export default function StepBackground({ state, onChange }: Props) {
           onDrop={handleDrop}
           role="button"
           tabIndex={0}
-          onKeyDown={e => { if (e.key === 'Enter') fileRef.current?.click(); }}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileRef.current?.click(); } }}
         >
           <div className="wiz-upload__icon"><WizardIcon name="upload" size={36} /></div>
           <p className="wiz-upload__text">גררו תמונה לכאן או לחצו לבחירה</p>

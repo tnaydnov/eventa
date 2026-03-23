@@ -253,7 +253,7 @@ export default function TermsContent() {
           לשאלות בנוגע לתנאים או לשירות, ניתן לפנות למפעיל השירות באמצעי הקשר המופיעים בשירות.
         </p>
         <p style={textStyle}>
-          דוא&quot;ל: <span style={linkColor}>contact@eventa.productions</span>
+          דוא&quot;ל: <a href="mailto:contact@eventa.productions" style={linkColor}>contact@eventa.productions</a>
         </p>
       </div>
 
@@ -262,11 +262,11 @@ export default function TermsContent() {
         <h2 style={headingStyle}>19. הצהרת נגישות</h2>
         <p style={textStyle}>
           אנו פועלים להנגיש את השירות בהתאם לתקנות הנגישות החלות בישראל
-          (תקן 5568 מבוסס WCAG 2.0 AA), במידת סבירות ביחס לאופי השירות הזמני.
+          (תקן 5568 מבוסס WCAG 2.1 AA), במידת סבירות ביחס לאופי השירות הזמני.
         </p>
         <p style={textStyle}>
           בכל שאלה, בקשה או דיווח על ליקוי נגישות ניתן לפנות אלינו
-          בדוא&quot;ל: <span style={linkColor}>contact@eventa.productions</span>.
+          בדוא&quot;ל: <a href="mailto:contact@eventa.productions" style={linkColor}>contact@eventa.productions</a>.
         </p>
       </div>
 
@@ -275,7 +275,7 @@ export default function TermsContent() {
         <h2 style={headingStyle}>20. מדיניות ביטולים והחזרים</h2>
         <p style={textStyle}>
           השירות מסופק בתשלום חד-פעמי לאירוע.
-          לביטול הזמנה יש לפנות למפעיל בדוא&quot;ל: <span style={linkColor}>contact@eventa.productions</span>.
+          לביטול הזמנה יש לפנות למפעיל בדוא&quot;ל: <a href="mailto:contact@eventa.productions" style={linkColor}>contact@eventa.productions</a>.
           להלן מדיניות הביטול:
         </p>
         <ul style={listStyle}>

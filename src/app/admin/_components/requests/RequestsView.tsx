@@ -163,10 +163,12 @@ export default function RequestsView({ requests, onApprove, onDeny, onDelete, on
       </div>
 
       {/* ─── Filter Tabs ─── */}
-      <div className="req-tabs">
+      <div className="req-tabs" role="tablist" aria-label="סינון בקשות">
         {filterTabs.map(tab => (
           <button
             key={tab.key}
+            role="tab"
+            aria-selected={filter === tab.key}
             className={`req-tab ${filter === tab.key ? 'req-tab--active' : ''}`}
             onClick={() => setFilter(tab.key)}
           >
@@ -198,9 +200,11 @@ export default function RequestsView({ requests, onApprove, onDeny, onDelete, on
               className={`req-card req-card--${req.status}`}
             >
               {/* Card Header - always visible */}
-              <div
+              <button
                 className="req-card__header"
                 onClick={() => setExpandedId(isExpanded ? null : req.id)}
+                type="button"
+                aria-expanded={isExpanded}
               >
                 <div className="req-card__main">
                   <span className={`admin-badge admin-badge--${req.status === 'pending' ? 'draft' : req.status === 'approved' ? 'active' : 'ended'}`}>
@@ -218,7 +222,7 @@ export default function RequestsView({ requests, onApprove, onDeny, onDelete, on
                   <span className="req-card__date">{fmtDate(req.created_at)}</span>
                   <span className="req-card__expand">{isExpanded ? '▲' : '▼'}</span>
                 </div>
-              </div>
+              </button>
 
               {/* Expanded Details */}
               {isExpanded && (
@@ -325,8 +329,9 @@ export default function RequestsView({ requests, onApprove, onDeny, onDelete, on
                   {/* Admin Notes */}
                   {req.status === 'pending' && (
                     <div className="req-notes">
-                      <label className="admin-label">הערות אדמין (אופציונלי)</label>
+                      <label className="admin-label" htmlFor={`req-notes-${req.id}`}>הערות אדמין (אופציונלי)</label>
                       <textarea
+                        id={`req-notes-${req.id}`}
                         className="admin-input req-notes__textarea"
                         placeholder="הערות פנימיות..."
                         value={adminNotes[req.id] || ''}

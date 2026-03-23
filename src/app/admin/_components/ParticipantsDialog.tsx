@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { Event } from '@/lib/database.types';
 import type { AdminParticipant } from './shared';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface ParticipantsDialogProps {
   event: Event;
@@ -13,6 +14,8 @@ interface ParticipantsDialogProps {
 
 export default function ParticipantsDialog({ event, participants, onClose, onBan }: ParticipantsDialogProps) {
   const [confirmTarget, setConfirmTarget] = useState<AdminParticipant | null>(null);
+  const mainRef = useFocusTrap(true, onClose);
+  const banRef = useFocusTrap(!!confirmTarget, () => setConfirmTarget(null));
 
   const handleBanClick = (p: AdminParticipant) => {
     if (p.is_banned) {
@@ -32,7 +35,7 @@ export default function ParticipantsDialog({ event, participants, onClose, onBan
 
   return (
     <div className="admin-overlay" onClick={onClose}>
-      <div className="admin-dialog admin-dialog--lg" role="dialog" aria-modal="true" aria-label="רשימת משתתפים" onClick={e => e.stopPropagation()}>
+      <div ref={mainRef} className="admin-dialog admin-dialog--lg" role="dialog" aria-modal="true" aria-label="רשימת משתתפים" onClick={e => e.stopPropagation()}>
         <h3 className="admin-dialog__title">
           👥 {event.name} - {participants.length} משתתפים
         </h3>
@@ -78,7 +81,7 @@ export default function ParticipantsDialog({ event, participants, onClose, onBan
       {/* ── Ban confirmation popup ── */}
       {confirmTarget && (
         <div className="admin-overlay" style={{ zIndex: 1001 }} onClick={(e) => { e.stopPropagation(); setConfirmTarget(null); }}>
-          <div className="admin-dialog" role="dialog" aria-modal="true" aria-label="אישור חסימת משתתף" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', textAlign: 'center' }}>
+          <div ref={banRef} className="admin-dialog" role="dialog" aria-modal="true" aria-label="אישור חסימת משתתף" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', textAlign: 'center' }}>
             <div style={{ fontSize: '40px', marginBottom: '12px' }}>🚫</div>
             <h3 className="admin-dialog__title" style={{ marginBottom: '8px' }}>
               חסימת {confirmTarget.display_name || 'משתתף/ת'}

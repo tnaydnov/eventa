@@ -103,8 +103,9 @@ export default function EventServicesInfo({ event, onUpdateDetails }: EventServi
         {editing ? (
           <div className="msg-status-grid" style={{ marginTop: 12 }}>
             <div className="msg-status-item" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 4 }}>
-              <label className="msg-status-label">שם מלא</label>
+              <label className="msg-status-label" htmlFor="esi-name">שם מלא</label>
               <input
+                id="esi-name"
                 className="admin-input admin-input--sm"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
@@ -113,8 +114,9 @@ export default function EventServicesInfo({ event, onUpdateDetails }: EventServi
               />
             </div>
             <div className="msg-status-item" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 4 }}>
-              <label className="msg-status-label">אימייל</label>
+              <label className="msg-status-label" htmlFor="esi-email">אימייל</label>
               <input
+                id="esi-email"
                 className="admin-input admin-input--sm admin-input--ltr"
                 type="email"
                 value={editEmail}
@@ -124,8 +126,9 @@ export default function EventServicesInfo({ event, onUpdateDetails }: EventServi
               />
             </div>
             <div className="msg-status-item" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 4 }}>
-              <label className="msg-status-label">טלפון</label>
+              <label className="msg-status-label" htmlFor="esi-phone">טלפון</label>
               <input
+                id="esi-phone"
                 className="admin-input admin-input--sm admin-input--ltr"
                 type="tel"
                 value={editPhone}
@@ -135,8 +138,9 @@ export default function EventServicesInfo({ event, onUpdateDetails }: EventServi
               />
             </div>
             <div className="msg-status-item" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 4 }}>
-              <label className="msg-status-label">העדפת תקשורת</label>
+              <label className="msg-status-label" htmlFor="esi-comm-pref">העדפת תקשורת</label>
               <select
+                id="esi-comm-pref"
                 className="admin-input admin-input--sm"
                 value={editPref}
                 onChange={(e) => setEditPref(e.target.value)}

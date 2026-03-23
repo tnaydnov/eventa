@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { EVENT_TYPE_LABELS, EVENT_TYPE_ICONS } from '@/lib/constants';
 import { BASE_PRICE } from '@/lib/config';
 import { slugify } from '../shared';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 /* ─── Types ─── */
 
@@ -57,6 +58,7 @@ const EVENT_TYPES = Object.entries(EVENT_TYPE_LABELS).map(([value, label]) => ({
 /* ─── Component ─── */
 
 export default function CreateEventDialog({ open, onClose, onCreate }: CreateEventDialogProps) {
+  const containerRef = useFocusTrap(open, onClose);
   /* ─── Form state ─── */
   const [step, setStep] = useState<'type' | 'details'>('type');
   const [eventType, setEventType] = useState('wedding');
@@ -170,6 +172,7 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
     return (
       <div className="admin-overlay" onClick={handleClose}>
         <div
+          ref={containerRef}
           className="admin-dialog admin-dialog--lg admin-animate-in"
           role="dialog"
           aria-modal="true"
@@ -208,6 +211,7 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
   return (
     <div className="admin-overlay" onClick={handleClose}>
       <div
+        ref={containerRef}
         className="admin-dialog admin-dialog--lg admin-animate-in"
         role="dialog"
         aria-modal="true"
@@ -216,7 +220,7 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
       >
         {/* Title */}
         <div className="ced-header">
-          <button className="ced-back-btn" onClick={handleBack} type="button" title="חזרה לבחירת סוג">
+          <button className="ced-back-btn" onClick={handleBack} type="button" aria-label="חזרה לבחירת סוג">
             ←
           </button>
           <h3 className="admin-dialog__title" style={{ margin: 0 }}>
@@ -226,8 +230,9 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
 
         {/* Event name */}
         <div className="ced-field">
-          <label className="admin-label">שם האירוע *</label>
+          <label className="admin-label" htmlFor="ced-name">שם האירוע *</label>
           <input
+            id="ced-name"
             className="admin-input"
             type="text"
             placeholder="לדוגמא: החתונה של דנה ויובל"
@@ -247,8 +252,9 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
         {/* Dates */}
         <div className="admin-grid-2">
           <div className="ced-field">
-            <label className="admin-label">תחילת האירוע *</label>
+            <label className="admin-label" htmlFor="ced-starts-at">תחילת האירוע *</label>
             <input
+              id="ced-starts-at"
               className="admin-input admin-input--ltr"
               type="datetime-local"
               value={startsAt}
@@ -256,8 +262,9 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
             />
           </div>
           <div className="ced-field">
-            <label className="admin-label">סיום האירוע *</label>
+            <label className="admin-label" htmlFor="ced-ends-at">סיום האירוע *</label>
             <input
+              id="ced-ends-at"
               className="admin-input admin-input--ltr"
               type="datetime-local"
               value={endsAt}
@@ -277,8 +284,9 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
 
         <div className="admin-grid-2">
           <div className="ced-field">
-            <label className="admin-label">שם מלא *</label>
+            <label className="admin-label" htmlFor="ced-client-name">שם מלא *</label>
             <input
+              id="ced-client-name"
               className="admin-input"
               type="text"
               placeholder="שם הלקוח"
@@ -288,8 +296,9 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
             />
           </div>
           <div className="ced-field">
-            <label className="admin-label">אימייל *</label>
+            <label className="admin-label" htmlFor="ced-client-email">אימייל *</label>
             <input
+              id="ced-client-email"
               className="admin-input admin-input--ltr"
               type="email"
               placeholder="client@example.com"
@@ -302,8 +311,9 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
 
         <div className="admin-grid-2">
           <div className="ced-field">
-            <label className="admin-label">טלפון</label>
+            <label className="admin-label" htmlFor="ced-client-phone">טלפון</label>
             <input
+              id="ced-client-phone"
               className="admin-input admin-input--ltr"
               type="tel"
               placeholder="050-0000000"
@@ -313,8 +323,9 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
             />
           </div>
           <div className="ced-field">
-            <label className="admin-label">העדפת תקשורת</label>
+            <label className="admin-label" htmlFor="ced-comm-pref">העדפת תקשורת</label>
             <select
+              id="ced-comm-pref"
               className="admin-input"
               value={commPref}
               onChange={(e) => setCommPref(e.target.value)}
@@ -329,8 +340,9 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
 
         {/* Description */}
         <div className="ced-field">
-          <label className="admin-label">תיאור (אופציונלי)</label>
+          <label className="admin-label" htmlFor="ced-description">תיאור (אופציונלי)</label>
           <textarea
+            id="ced-description"
             className="admin-input ced-textarea"
             placeholder="תיאור קצר של האירוע..."
             value={description}

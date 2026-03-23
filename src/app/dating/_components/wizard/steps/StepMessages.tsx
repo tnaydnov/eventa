@@ -88,6 +88,8 @@ export default function StepMessages({ state, onChange }: Props) {
 
       <button
         type="button"
+        role="switch"
+        aria-checked={enabled}
         className={`wiz-msg-toggle ${enabled ? 'wiz-msg-toggle--active' : ''}`}
         onClick={() => onChange({ wantsGuestMessages: !enabled })}
       >

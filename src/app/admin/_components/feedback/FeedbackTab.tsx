@@ -72,6 +72,7 @@ function ResponseCard({ response, index }: { response: FeedbackResponse; index: 
         className="afb-response-header"
         onClick={() => setExpanded(!expanded)}
         type="button"
+        aria-expanded={expanded}
       >
         <div className="afb-response-header__right">
           <span className="afb-response-num">#{index + 1}</span>
@@ -225,6 +226,7 @@ export default function FeedbackTab({ eventId, eventSlug }: { eventId: string; e
             value={feedbackUrl}
             readOnly
             onClick={e => (e.target as HTMLInputElement).select()}
+            aria-label="קישור לסקר פידבק"
           />
           <button
             className={`admin-btn admin-btn--sm ${copied ? 'admin-btn--green' : 'admin-btn--primary'}`}

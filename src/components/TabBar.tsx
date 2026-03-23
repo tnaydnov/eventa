@@ -49,7 +49,7 @@ export default function TabBar() {
           href={tab.path}
           prefetch={true}
           className={pathname === tab.path ? 'active' : ''}
-          aria-label={tab.label}
+          aria-label={tab.badge > 0 ? `${tab.label} (${tab.badge > 9 ? '9+' : tab.badge} חדשים)` : tab.label}
           aria-current={pathname === tab.path ? 'page' : undefined}
         >
           {tab.icon}

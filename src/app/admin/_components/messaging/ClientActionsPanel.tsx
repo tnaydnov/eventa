@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface ClientActionsPanelProps {
   eventId: string;
@@ -274,9 +275,10 @@ function ActionDialog({ action, onConfirm, onCancel, loading, previewHtml, custo
   previewHtml: string | null;
   customFields?: React.ReactNode;
 }) {
+  const containerRef = useFocusTrap(true, onCancel);
   return (
     <div className="act-dialog-overlay" onClick={onCancel}>
-      <div className="act-dialog" onClick={e => e.stopPropagation()}>
+      <div ref={containerRef} className="act-dialog" role="dialog" aria-modal="true" aria-label={action.label} onClick={e => e.stopPropagation()}>
         <div className="act-dialog__header">
           <span className="act-dialog__icon">{action.icon}</span>
           <h3 className="act-dialog__title">{action.label}</h3>

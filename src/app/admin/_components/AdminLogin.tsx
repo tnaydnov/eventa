@@ -16,22 +16,23 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
 
   return (
     <div className="admin-root" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-      <div className="admin-card" style={{ maxWidth: '380px', width: '100%', textAlign: 'center', padding: '32px' }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔐</div>
+      <form className="admin-card" style={{ maxWidth: '380px', width: '100%', textAlign: 'center', padding: '32px' }} onSubmit={e => { e.preventDefault(); handleSubmit(); }} aria-label="כניסת אדמין">
+        <div style={{ fontSize: '48px', marginBottom: '16px' }} aria-hidden="true">🔐</div>
         <h1 style={{ color: 'var(--admin-accent)', marginTop: 0, marginBottom: '24px', fontSize: '22px' }}>ניהול Eventa</h1>
+        <label htmlFor="admin-password" className="sr-only">סיסמת אדמין</label>
         <input
+          id="admin-password"
           type="password"
           placeholder="סיסמת אדמין"
           value={password}
           onChange={e => setPassword(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSubmit()}
           className="admin-input"
           style={{ marginBottom: '16px' }}
         />
-        <button onClick={handleSubmit} className="admin-btn admin-btn--primary" style={{ width: '100%', padding: '12px' }}>
+        <button type="submit" className="admin-btn admin-btn--primary" style={{ width: '100%', padding: '12px' }}>
           כניסה
         </button>
-      </div>
+      </form>
     </div>
   );
 }

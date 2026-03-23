@@ -16,7 +16,7 @@ export default function HomePage() {
       <div className="hp__ambient" />
 
       {/* ── Nav ── */}
-      <nav className="hp__nav">
+      <div className="hp__nav">
         <Image
           src="/icons/Eventa_Logo.png"
           alt="Eventa"
@@ -26,7 +26,7 @@ export default function HomePage() {
           quality={100}
           priority
         />
-      </nav>
+      </div>
 
       {/* ── Hero ── */}
       <header className="hp__hero">

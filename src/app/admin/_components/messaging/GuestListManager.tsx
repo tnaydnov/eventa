@@ -149,6 +149,7 @@ export default function GuestListManager({
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={adding}
+            aria-label="שם אורח"
           />
           <input
             className="msg-input"
@@ -158,6 +159,7 @@ export default function GuestListManager({
             onChange={(e) => setPhone(e.target.value)}
             disabled={adding}
             dir="ltr"
+            aria-label="מספר טלפון"
           />
           <button
             className="admin-btn admin-btn--sm admin-btn--primary"
@@ -177,6 +179,7 @@ export default function GuestListManager({
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         dir="rtl"
+        aria-label="חיפוש ברשימת אורחים"
       />
 
       {/* Table */}
@@ -191,12 +194,12 @@ export default function GuestListManager({
           <table className="msg-table">
             <thead>
               <tr>
-                <th>שם</th>
-                <th>טלפון</th>
-                <th>מקור</th>
-                <th>SMS</th>
-                <th>פידבק</th>
-                {!isArchived && <th>פעולה</th>}
+                <th scope="col">שם</th>
+                <th scope="col">טלפון</th>
+                <th scope="col">מקור</th>
+                <th scope="col">SMS</th>
+                <th scope="col">פידבק</th>
+                {!isArchived && <th scope="col">פעולה</th>}
               </tr>
             </thead>
             <tbody>

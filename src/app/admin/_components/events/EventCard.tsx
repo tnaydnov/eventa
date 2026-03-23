@@ -106,7 +106,7 @@ export default function EventRow({
   };
 
   return (
-    <tr className="et-row" onClick={() => onViewDetails(event)}>
+    <tr className="et-row" onClick={() => onViewDetails(event)} tabIndex={0} role="link" onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onViewDetails(event); } }}>
       <td className="et-td">
         <span className="et-type-icon">{typeIcon}</span>
       </td>
@@ -145,9 +145,9 @@ export default function EventRow({
       </td>
       <td className="et-td et-td--actions" onClick={e => e.stopPropagation()}>
         <div className="et-actions-wrap">
-          <button className="et-menu-btn" ref={btnRef} onClick={() => setMenuOpen(!menuOpen)}>⋮</button>
+          <button className="et-menu-btn" ref={btnRef} onClick={() => setMenuOpen(!menuOpen)} aria-label="פעולות אירוע" aria-haspopup="menu" aria-expanded={menuOpen}>⋮</button>
           {menuOpen && menuPos && createPortal(
-            <div className="et-dropdown" ref={menuRef} style={{ position: 'fixed', top: menuPos.top, left: menuPos.left }}>
+            <div className="et-dropdown" ref={menuRef} role="menu" style={{ position: 'fixed', top: menuPos.top, left: menuPos.left }}>
               <button className="et-dropdown__item" onClick={() => act(() => onViewDetails(event))}>
                 📊 פרטים ואנליטיקס
               </button>

@@ -173,10 +173,12 @@ export default function EventAnalyticsView({
       </div>
 
       {/* ─── Tabs ─── */}
-      <div className="edt-tabs">
+      <div className="edt-tabs" role="tablist" aria-label="לשוניות פרטי אירוע">
         {TABS.map(tab => (
           <button
             key={tab.key}
+            role="tab"
+            aria-selected={activeTab === tab.key}
             className={`edt-tab ${activeTab === tab.key ? 'edt-tab--active' : ''}`}
             onClick={() => setActiveTab(tab.key)}
           >

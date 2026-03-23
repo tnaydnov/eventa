@@ -176,8 +176,10 @@
   top: 12px;
   right: 12px;
   z-index: 150;
-  width: 40px;
-  height: 40px;
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
   background: var(--admin-surface);
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-sm);
@@ -4333,6 +4335,7 @@
   align-items: center;
   gap: 4px;
   padding: 2px 6px;
+  min-height: 44px;
   border-radius: 4px;
   background: var(--admin-card);
   border: 1px solid var(--admin-border);

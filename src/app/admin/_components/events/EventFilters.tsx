@@ -33,12 +33,14 @@ export default function EventFilters({
   return (
     <div className="admin-animate-in">
       {/* Status tabs */}
-      <div className="admin-tabs">
+      <div className="admin-tabs" role="tablist" aria-label="סינון לפי סטטוס">
         {TABS.map(tab => {
           const count = tab.key === 'all' ? totalCount : (statusCounts[tab.key] || 0);
           return (
             <button
               key={tab.key}
+              role="tab"
+              aria-selected={statusTab === tab.key}
               className={`admin-tab ${statusTab === tab.key ? 'admin-tab--active' : ''}`}
               onClick={() => onStatusTabChange(tab.key)}
             >
@@ -57,12 +59,14 @@ export default function EventFilters({
             placeholder="🔍 חיפוש לפי שם או slug..."
             value={search}
             onChange={e => onSearchChange(e.target.value)}
+            aria-label="חיפוש אירועים"
           />
         </div>
         <select
           className="admin-select"
           value={typeFilter}
           onChange={e => onTypeFilterChange(e.target.value)}
+          aria-label="סינון לפי סוג אירוע"
         >
           <option value="">כל הסוגים</option>
           {EVENT_TYPE_OPTIONS.map(opt => (

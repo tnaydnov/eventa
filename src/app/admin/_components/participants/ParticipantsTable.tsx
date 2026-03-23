@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { adminFetch, type AdminParticipant } from '../shared';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 /* ─── Types ─── */
 
@@ -82,8 +83,7 @@ export default function ParticipantsTable({ eventId, isArchived, messagesEnabled
   useEffect(() => { fetchParticipants(); }, [fetchParticipants]);
 
   /* ─── Ban / unban ─── */
-  const [confirmTarget, setConfirmTarget] = useState<AdminParticipant | null>(null);
-
+  const [confirmTarget, setConfirmTarget] = useState<AdminParticipant | null>(null);  const banDialogRef = useFocusTrap(!!confirmTarget, () => setConfirmTarget(null));
   const handleBanClick = (p: AdminParticipant) => {
     if (p.is_banned) {
       // Unban - no confirmation needed
@@ -188,6 +188,8 @@ export default function ParticipantsTable({ eventId, isArchived, messagesEnabled
     <th
       className="pt-th pt-th--sortable"
       onClick={() => toggleSort(field)}
+      scope="col"
+      aria-sort={sortField === field ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
     >
       {label}
       {sortField === field && (
@@ -209,23 +211,27 @@ export default function ParticipantsTable({ eventId, isArchived, messagesEnabled
             placeholder="🔍 חיפוש שם..."
             value={search}
             onChange={e => setSearch(e.target.value)}
+            aria-label="חיפוש משתתפים"
           />
           <div className="pt-gender-tabs">
             <button
               className={`pt-gender-tab ${genderFilter === 'all' ? 'pt-gender-tab--active' : ''}`}
               onClick={() => setGenderFilter('all')}
+              aria-pressed={genderFilter === 'all'}
             >
               הכל ({complete.length})
             </button>
             <button
               className={`pt-gender-tab ${genderFilter === 'male' ? 'pt-gender-tab--active' : ''}`}
               onClick={() => setGenderFilter('male')}
+              aria-pressed={genderFilter === 'male'}
             >
               👨 ({totalMen})
             </button>
             <button
               className={`pt-gender-tab ${genderFilter === 'female' ? 'pt-gender-tab--active' : ''}`}
               onClick={() => setGenderFilter('female')}
+              aria-pressed={genderFilter === 'female'}
             >
               👩 ({totalWomen})
             </button>
@@ -237,24 +243,28 @@ export default function ParticipantsTable({ eventId, isArchived, messagesEnabled
               <button
                 className={`pt-gender-tab ${sourceFilter === 'all' ? 'pt-gender-tab--active' : ''}`}
                 onClick={() => setSourceFilter('all')}
+                aria-pressed={sourceFilter === 'all'}
               >
                 כל המקורות
               </button>
               <button
                 className={`pt-gender-tab ${sourceFilter === 'sms' ? 'pt-gender-tab--active' : ''}`}
                 onClick={() => setSourceFilter('sms')}
+                aria-pressed={sourceFilter === 'sms'}
               >
                 📱 SMS
               </button>
               <button
                 className={`pt-gender-tab ${sourceFilter === 'qr' ? 'pt-gender-tab--active' : ''}`}
                 onClick={() => setSourceFilter('qr')}
+                aria-pressed={sourceFilter === 'qr'}
               >
                 📸 QR
               </button>
               <button
                 className={`pt-gender-tab ${feedbackFilter === 'consent' ? 'pt-gender-tab--active' : ''}`}
                 onClick={() => setFeedbackFilter(feedbackFilter === 'consent' ? 'all' : 'consent')}
+                aria-pressed={feedbackFilter === 'consent'}
               >
                 הסכימו לפידבק
               </button>
@@ -309,11 +319,11 @@ export default function ParticipantsTable({ eventId, isArchived, messagesEnabled
                     <SortHeader field="gender" label="מגדר" />
                     <SortHeader field="age" label="גיל" />
                     <SortHeader field="created_at" label="הצטרפ/ה" />
-                    {messagesEnabled && <th className="pt-th">טלפון</th>}
-                    {messagesEnabled && <th className="pt-th">מקור</th>}
-                    {messagesEnabled && <th className="pt-th">פידבק</th>}
+                    {messagesEnabled && <th className="pt-th" scope="col">טלפון</th>}
+                    {messagesEnabled && <th className="pt-th" scope="col">מקור</th>}
+                    {messagesEnabled && <th className="pt-th" scope="col">פידבק</th>}
                     <SortHeader field="is_banned" label="סטטוס" />
-                    {!isArchived && <th className="pt-th">פעולות</th>}
+                    {!isArchived && <th className="pt-th" scope="col">פעולות</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -385,7 +395,7 @@ export default function ParticipantsTable({ eventId, isArchived, messagesEnabled
       {/* ── Ban confirmation popup ── */}
       {confirmTarget && (
         <div className="admin-overlay" onClick={() => setConfirmTarget(null)}>
-          <div className="admin-dialog" role="dialog" aria-modal="true" aria-label="אישור חסימת משתתף" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', textAlign: 'center' }}>
+          <div ref={banDialogRef} className="admin-dialog" role="dialog" aria-modal="true" aria-label="אישור חסימת משתתף" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', textAlign: 'center' }}>
             <div style={{ fontSize: '40px', marginBottom: '12px' }}>🚫</div>
             <h3 className="admin-dialog__title" style={{ marginBottom: '8px' }}>
               חסימת {confirmTarget.display_name || 'משתתף/ת'}

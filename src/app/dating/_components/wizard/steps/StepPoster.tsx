@@ -73,6 +73,7 @@ export default function StepPoster({ state, onChange }: Props) {
           {/* QR-only option */}
           <button
             type="button"
+            aria-pressed={state.posterChoice === 'qr-only'}
             className={`wiz-poster wiz-poster--qr${state.posterChoice === 'qr-only' ? ' wiz-poster--selected' : ''}`}
             onClick={selectQrOnly}
           >
@@ -92,6 +93,7 @@ export default function StepPoster({ state, onChange }: Props) {
               <div key={t.id} className="wiz-poster-wrap">
                 <button
                   type="button"
+                  aria-pressed={state.selectedTemplateId === t.id}
                   className={`wiz-poster${state.selectedTemplateId === t.id ? ' wiz-poster--selected' : ''}`}
                   onClick={() => selectTemplate(t.id)}
                 >
@@ -155,7 +157,7 @@ export default function StepPoster({ state, onChange }: Props) {
 
       {/* Full-screen preview modal - portaled to body to bypass parent transforms */}
       {previewSrc && createPortal(
-        <div className="wiz-poster-modal" onClick={closePreview}>
+        <div className="wiz-poster-modal" role="dialog" aria-modal="true" aria-label={`תצוגה מקדימה: ${previewLabel}`} onClick={closePreview}>
           <button type="button" className="wiz-poster-modal__close" onClick={closePreview} aria-label="סגור תצוגה מקדימה">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 6 6 18" /><path d="m6 6 12 12" />

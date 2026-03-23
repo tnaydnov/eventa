@@ -456,6 +456,7 @@ export default function HowItWorksPage() {
   const [journey, setJourney] = useState<Journey>('organizer');
   const [step, setStep] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
+  const [paused, setPaused] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const steps = journey === 'organizer' ? ORGANIZER_STEPS : GUEST_STEPS;
@@ -502,13 +503,14 @@ export default function HowItWorksPage() {
   /* Auto-advance timer: progress bar fills over 6s then moves to next */
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
+    if (paused) return;
     timerRef.current = setTimeout(() => {
       if (step < steps.length - 1) {
         goTo(step + 1);
       }
     }, 6000);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [step, steps.length, goTo]);
+  }, [step, steps.length, goTo, paused]);
 
   return (
     <SitePageLayout full className="hiw">
@@ -554,17 +556,24 @@ export default function HowItWorksPage() {
               <div key={i} className="hiw__progress-track">
                 <div
                   className={`hiw__progress-fill${i < step ? ' hiw__progress-fill--done' : i === step ? ' hiw__progress-fill--active' : ''}`}
-                  style={i === step ? { animationDuration: '6s' } : undefined}
+                  style={i === step ? { animationDuration: paused ? '0s' : '6s', animationPlayState: paused ? 'paused' : 'running' } : undefined}
                 />
               </div>
             ))}
+            <button
+              className="hiw__pause-btn"
+              onClick={() => setPaused((p) => !p)}
+              aria-label={paused ? 'המשך הצגה אוטומטית' : 'השהה הצגה אוטומטית'}
+            >
+              {paused ? '▶' : '⏸'}
+            </button>
           </div>
 
           {/* ── Main layout: text + phone ── */}
           <div className="hiw__stage">
 
             {/* Text side */}
-            <div className={`hiw__text${transitioning ? ' hiw__text--out' : ''}`}>
+            <div className={`hiw__text${transitioning ? ' hiw__text--out' : ''}`} aria-live="polite">
               <div className="hiw__step-badge">{step + 1}</div>
               <h2 className="hiw__step-title">{current.title}</h2>
               <p className="hiw__step-desc">{current.desc}</p>
@@ -573,8 +582,8 @@ export default function HowItWorksPage() {
               </div>
             </div>
 
-            {/* Phone side */}
-            <div className="hiw__phone-wrap">
+            {/* Phone side — decorative mockup, hidden from screen readers */}
+            <div className="hiw__phone-wrap" aria-hidden="true">
               <div className="hiw__phone">
                 <div className="hiw__phone-notch" />
                 <div className={`hiw__phone-screen${transitioning ? ' hiw__phone-screen--out' : ''}`}>

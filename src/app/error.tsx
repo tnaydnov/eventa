@@ -9,8 +9,8 @@ export default function GlobalError({
 }) {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-6" dir="rtl">
-      <div className="text-center space-y-6 max-w-sm">
-        <div className="text-7xl">😕</div>
+      <div className="text-center space-y-6 max-w-sm" role="alert">
+        <div className="text-7xl" role="img" aria-label="פרצוף מבולבל">😕</div>
         <h1 className="text-3xl font-bold text-white">
           משהו השתבש
         </h1>

@@ -520,7 +520,7 @@ function JoinPageContent({
                   </Checkbox>
 
                   {error && (
-                    <p style={{ color: 'var(--danger)', fontSize: 14 }}>{error}</p>
+                    <p role="alert" style={{ color: 'var(--danger)', fontSize: 14 }}>{error}</p>
                   )}
 
                   <button
@@ -563,7 +563,7 @@ function JoinPageContent({
                   </Checkbox>
 
                   {error && (
-                    <p style={{ color: 'var(--danger)', fontSize: 14 }}>{error}</p>
+                    <p role="alert" style={{ color: 'var(--danger)', fontSize: 14 }}>{error}</p>
                   )}
 
                   <button
@@ -621,7 +621,7 @@ function JoinPageContent({
                   />
 
                   {error && (
-                    <p style={{ color: 'var(--danger)', fontSize: 14 }}>{error}</p>
+                    <p role="alert" style={{ color: 'var(--danger)', fontSize: 14 }}>{error}</p>
                   )}
 
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>

@@ -92,7 +92,7 @@ export default function GlobalAnalyticsView() {
       </div>
 
       {loading && <div className="ad-empty-state"><div className="ad-empty-state__icon">⏳</div><p className="ad-empty-state__text">טוען אנליטיקס…</p></div>}
-      {error && !loading && <div className="ad-empty-state"><div className="ad-empty-state__icon">⚠️</div><p className="ad-empty-state__text">{error}</p><button className="admin-btn admin-btn--primary" onClick={loadData}>נסה שוב</button></div>}
+      {error && !loading && <div className="ad-empty-state" role="alert"><div className="ad-empty-state__icon">⚠️</div><p className="ad-empty-state__text">{error}</p><button className="admin-btn admin-btn--primary" onClick={loadData}>נסה שוב</button></div>}
 
       {data && !loading && <AnalyticsContent d={data} />}
     </div>
@@ -162,7 +162,7 @@ function AnalyticsContent({ d }: { d: GlobalAnalytics }) {
 
       {/* ════════════ Incomplete Registrations Banner ════════════ */}
       {d.incompleteRegistrations > 0 && (
-        <div className="ad-incomplete-banner">
+        <div className="ad-incomplete-banner" role="status">
           <div className="ad-incomplete-banner__icon">⚠️</div>
           <div className="ad-incomplete-banner__content">
             <span className="ad-incomplete-banner__count">{fmt(d.incompleteRegistrations)}</span>
@@ -534,7 +534,7 @@ function KPI({ icon, value, label, sub, accent }: {
 }) {
   return (
     <div className={`ad-kpi${accent ? ` ad-kpi--${accent}` : ''}`}>
-      {icon && <div className="ad-kpi__icon">{icon}</div>}
+      {icon && <div className="ad-kpi__icon" aria-hidden="true">{icon}</div>}
       <div className="ad-kpi__value">{value}</div>
       <div className="ad-kpi__label">{label}</div>
       {sub && <div className="ad-kpi__sub">{sub}</div>}
@@ -545,7 +545,7 @@ function KPI({ icon, value, label, sub, accent }: {
 function Section({ icon, title, children }: { icon: string; title: string; children: React.ReactNode }) {
   return (
     <div className="ad-section">
-      <h3 className="ad-section__title"><span className="ad-section__icon">{icon}</span>{title}</h3>
+      <h3 className="ad-section__title"><span className="ad-section__icon" aria-hidden="true">{icon}</span>{title}</h3>
       {children}
     </div>
   );

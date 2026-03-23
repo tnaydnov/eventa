@@ -21,7 +21,7 @@ export default function AccessibilityContent() {
         <p style={textStyle}>
           Eventa מחויבת להנגשת השירות לאנשים עם מוגבלויות,
           בהתאם לתקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), התשע&quot;ג-2013,
-          ובהתאם לתקן הישראלי ת&quot;י 5568 המבוסס על הנחיות WCAG 2.0 ברמה AA.
+          ובהתאם לתקן הישראלי ת&quot;י 5568 המבוסס על הנחיות WCAG 2.1 ברמה AA.
         </p>
       </div>
 
@@ -87,7 +87,7 @@ export default function AccessibilityContent() {
       <div style={sectionStyle}>
         <h2 style={headingStyle}>התקן שלפיו הונגש האתר</h2>
         <p style={textStyle}>
-          האתר הונגש בהתאם לתקן הישראלי ת&quot;י 5568, המבוסס על הנחיות WCAG 2.0 ברמת AA
+          האתר הונגש בהתאם לתקן הישראלי ת&quot;י 5568, המבוסס על הנחיות WCAG 2.1 ברמת AA
           (Web Content Accessibility Guidelines).
         </p>
       </div>
@@ -110,7 +110,7 @@ export default function AccessibilityContent() {
         </p>
         <ul style={listStyle}>
           <li style={liStyle}>
-            דוא&quot;ל: <span style={linkColor}>contact@eventa.productions</span>
+            דוא&quot;ל: <a href="mailto:contact@eventa.productions" style={linkColor}>contact@eventa.productions</a>
           </li>
         </ul>
         <p style={textStyle}>

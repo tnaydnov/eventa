@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import type { MessagingConfig, EventMessagingStatus } from '../shared';
 
 interface MessagingControlsProps {
@@ -207,6 +208,7 @@ interface ActionDialogProps {
 }
 
 function ActionDialog({ action, onConfirm, onCancel, loading, previewHtml, customFields }: ActionDialogProps) {
+  const containerRef = useFocusTrap(true, onCancel);
   const targetLabel = action.target === 'client' ? '👤 ללקוח' : '👥 לאורחים';
   const channelLabel =
     action.channel === 'email' ? '📧 אימייל' :
@@ -217,7 +219,7 @@ function ActionDialog({ action, onConfirm, onCancel, loading, previewHtml, custo
 
   return (
     <div className="act-dialog-overlay" onClick={onCancel}>
-      <div className={`act-dialog ${dangerClass}`} onClick={e => e.stopPropagation()}>
+      <div ref={containerRef} className={`act-dialog ${dangerClass}`} role="dialog" aria-modal="true" aria-label={action.label} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="act-dialog__header">
           <span className="act-dialog__icon">{action.icon}</span>
@@ -450,6 +452,7 @@ export default function MessagingControls({
               className="msg-portal-input"
               dir="ltr"
               onClick={(e) => (e.target as HTMLInputElement).select()}
+              aria-label="קישור פורטל העלאת אורחים"
             />
           </div>
         )}

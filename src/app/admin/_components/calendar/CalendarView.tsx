@@ -109,21 +109,21 @@ export default function CalendarView({ events, onViewEvent }: CalendarViewProps)
 
       {/* Navigation */}
       <div className="cal-nav">
-        <button className="admin-btn admin-btn--sm admin-btn--ghost" onClick={prevMonth}>→</button>
+        <button className="admin-btn admin-btn--sm admin-btn--ghost" onClick={prevMonth} aria-label="חודש קודם">→</button>
         <h3 className="cal-nav__title">
           {HEBREW_MONTHS[viewMonth]} {viewYear}
         </h3>
-        <button className="admin-btn admin-btn--sm admin-btn--ghost" onClick={nextMonth}>←</button>
+        <button className="admin-btn admin-btn--sm admin-btn--ghost" onClick={nextMonth} aria-label="חודש הבא">←</button>
         <button className="admin-btn admin-btn--sm admin-btn--ghost cal-nav__today" onClick={goToday}>
           היום
         </button>
       </div>
 
       {/* Calendar grid */}
-      <div className="cal-grid">
+      <div className="cal-grid" role="grid" aria-label="לוח שנה">
         {/* Day headers */}
         {HEBREW_DAYS.map(d => (
-          <div key={d} className="cal-day-header">{d}</div>
+          <div key={d} className="cal-day-header" role="columnheader">{d}</div>
         ))}
 
         {/* Day cells */}
@@ -156,7 +156,7 @@ export default function CalendarView({ events, onViewEvent }: CalendarViewProps)
                     key={ev.id}
                     className="cal-event-chip"
                     onClick={() => onViewEvent(ev)}
-                    title={`${ev.name} (${EVENT_STATUS_LABELS[ev.status] || ev.status})`}
+                    aria-label={`${ev.name} (${EVENT_STATUS_LABELS[ev.status] || ev.status})`}
                   >
                     <span
                       className="cal-event-chip__dot"

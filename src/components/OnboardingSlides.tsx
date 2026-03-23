@@ -75,7 +75,7 @@ export default function OnboardingSlides({ onComplete }: OnboardingSlidesProps) 
   const slide = SLIDES[current];
 
   return (
-    <div style={styles.overlay}>
+    <div style={styles.overlay} role="dialog" aria-modal="true" aria-label="מדריך הכרות עם Eventa">
       <div style={styles.container}>
         {/* Header */}
         <div style={styles.header}>

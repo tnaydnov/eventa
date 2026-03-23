@@ -56,11 +56,11 @@ export default function MessageLog({ entries }: MessageLogProps) {
         <table className="msg-table">
           <thead>
             <tr>
-              <th>זמן</th>
-              <th>סוג</th>
-              <th>ערוץ</th>
-              <th>סטטוס</th>
-              <th>שגיאה</th>
+              <th scope="col">זמן</th>
+              <th scope="col">סוג</th>
+              <th scope="col">ערוץ</th>
+              <th scope="col">סטטוס</th>
+              <th scope="col">שגיאה</th>
             </tr>
           </thead>
           <tbody>

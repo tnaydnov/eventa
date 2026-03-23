@@ -36,13 +36,14 @@ export default function Sidebar({
       <div
         className={`admin-sidebar-overlay ${isOpen ? 'admin-sidebar-overlay--open' : ''}`}
         onClick={onClose}
+        role="presentation"
       />
 
       <aside className={`admin-sidebar ${isOpen ? 'admin-sidebar--open' : ''}`}>
         {/* Brand */}
         <div className="admin-sidebar__brand">
           <div>
-            <div className="admin-sidebar__brand-text">🎉 Eventa</div>
+            <div className="admin-sidebar__brand-text"><span aria-hidden="true">🎉</span> Eventa</div>
             <div className="admin-sidebar__brand-sub">ניהול אירועים</div>
           </div>
         </div>
@@ -53,7 +54,7 @@ export default function Sidebar({
             className={`admin-sidebar__nav-item ${activeView === 'events' ? 'admin-sidebar__nav-item--active' : ''}`}
             onClick={() => { onNavigate('events'); onClose(); }}
           >
-            <span className="admin-sidebar__nav-icon">📋</span>
+            <span className="admin-sidebar__nav-icon" aria-hidden="true">📋</span>
             אירועים
             <span style={{ marginRight: 'auto', fontSize: '12px', opacity: 0.7 }}>{totalEvents}</span>
           </button>
@@ -62,7 +63,7 @@ export default function Sidebar({
             className={`admin-sidebar__nav-item ${activeView === 'calendar' ? 'admin-sidebar__nav-item--active' : ''}`}
             onClick={() => { onNavigate('calendar'); onClose(); }}
           >
-            <span className="admin-sidebar__nav-icon">📅</span>
+            <span className="admin-sidebar__nav-icon" aria-hidden="true">📅</span>
             לוח שנה
           </button>
 
@@ -70,7 +71,7 @@ export default function Sidebar({
             className={`admin-sidebar__nav-item ${activeView === 'requests' ? 'admin-sidebar__nav-item--active' : ''}`}
             onClick={() => { onNavigate('requests'); onClose(); }}
           >
-            <span className="admin-sidebar__nav-icon">📩</span>
+            <span className="admin-sidebar__nav-icon" aria-hidden="true">📩</span>
             בקשות
             {pendingRequestsCount > 0 && (
               <span className="admin-sidebar__badge">{pendingRequestsCount}</span>
@@ -81,7 +82,7 @@ export default function Sidebar({
             className={`admin-sidebar__nav-item ${activeView === 'global-analytics' ? 'admin-sidebar__nav-item--active' : ''}`}
             onClick={() => { onNavigate('global-analytics'); onClose(); }}
           >
-            <span className="admin-sidebar__nav-icon">📊</span>
+            <span className="admin-sidebar__nav-icon" aria-hidden="true">📊</span>
             אנליטיקס כללי
           </button>
         </nav>

@@ -28,7 +28,7 @@ export default function StepEventDetails({ state, onChange }: Props) {
         {/* Event Name - dynamic per type */}
         {nameField && (
           <div className="wiz-field">
-            <label className="wiz-field__label">
+            <label className="wiz-field__label" htmlFor="wiz-event-name">
               {nameField.label}
               {nameField.required && ' *'}
             </label>
@@ -36,6 +36,7 @@ export default function StepEventDetails({ state, onChange }: Props) {
               <span className="wiz-field__hint">{nameField.hint}</span>
             )}
             <input
+              id="wiz-event-name"
               className="wiz-field__input"
               type="text"
               dir={state.eventType === 'wedding' ? 'ltr' : 'rtl'}
@@ -49,8 +50,9 @@ export default function StepEventDetails({ state, onChange }: Props) {
 
         {/* Date & Time */}
         <div className="wiz-field">
-          <label className="wiz-field__label">תאריך ושעת התחלה *</label>
+          <label className="wiz-field__label" htmlFor="wiz-starts-at">תאריך ושעת התחלה *</label>
           <input
+            id="wiz-starts-at"
             className="wiz-field__input"
             type="datetime-local"
             value={state.startsAt}
@@ -71,8 +73,9 @@ export default function StepEventDetails({ state, onChange }: Props) {
         </div>
 
         <div className="wiz-field">
-          <label className="wiz-field__label">תאריך ושעת סיום *</label>
+          <label className="wiz-field__label" htmlFor="wiz-ends-at">תאריך ושעת סיום *</label>
           <input
+            id="wiz-ends-at"
             className="wiz-field__input"
             type="datetime-local"
             value={state.endsAt}

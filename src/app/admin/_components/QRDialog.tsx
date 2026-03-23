@@ -1,6 +1,7 @@
 'use client';
 
 import type { Event } from '@/lib/database.types';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface QRDialogProps {
   event: Event;
@@ -11,9 +12,10 @@ interface QRDialogProps {
 }
 
 export default function QRDialog({ event, dataUrl, onClose, onDownload, onCopyUrl }: QRDialogProps) {
+  const containerRef = useFocusTrap(true, onClose);
   return (
     <div className="admin-overlay" onClick={onClose}>
-      <div className="admin-dialog" role="dialog" aria-modal="true" aria-label="QR code" style={{ textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+      <div ref={containerRef} className="admin-dialog" role="dialog" aria-modal="true" aria-label="QR code" style={{ textAlign: 'center' }} onClick={e => e.stopPropagation()}>
         <h3 className="admin-dialog__title" style={{ color: 'var(--admin-accent)' }}>
           📱 QR - {event.name}
         </h3>

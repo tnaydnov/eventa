@@ -583,7 +583,7 @@ function KPI({ icon, value, label, sub, accent }: {
 }) {
   return (
     <div className={`ad-kpi${accent ? ` ad-kpi--${accent}` : ''}`}>
-      {icon && <div className="ad-kpi__icon">{icon}</div>}
+      {icon && <div className="ad-kpi__icon" aria-hidden="true">{icon}</div>}
       <div className="ad-kpi__value">{value}</div>
       <div className="ad-kpi__label">{label}</div>
       {sub && <div className="ad-kpi__sub">{sub}</div>}
@@ -595,7 +595,7 @@ function Section({ icon, title, children }: { icon: string; title: string; child
   return (
     <div className="ad-section">
       <h3 className="ad-section__title">
-        <span className="ad-section__icon">{icon}</span>
+        <span className="ad-section__icon" aria-hidden="true">{icon}</span>
         {title}
       </h3>
       {children}

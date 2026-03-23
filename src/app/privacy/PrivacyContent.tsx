@@ -44,7 +44,7 @@ export default function PrivacyContent() {
           לשאלות או בקשות בנושא פרטיות ניתן לפנות באמצעי הקשר המוצגים בשירות.
         </p>
         <p style={textStyle}>
-          דוא&quot;ל: <span style={linkColor}>contact@eventa.productions</span>
+          דוא&quot;ל: <a href="mailto:contact@eventa.productions" style={linkColor}>contact@eventa.productions</a>
         </p>
       </div>
 
@@ -246,7 +246,7 @@ export default function PrivacyContent() {
           לפניות פרטיות, שאלות או בקשות - השתמש/י באמצעי הקשר המופיעים בשירות.
         </p>
         <p style={textStyle}>
-          דוא&quot;ל: <span style={linkColor}>contact@eventa.productions</span>
+          דוא&quot;ל: <a href="mailto:contact@eventa.productions" style={linkColor}>contact@eventa.productions</a>
         </p>
       </div>
     </>
