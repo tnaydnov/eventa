@@ -760,6 +760,9 @@
 
 .hps--wa {
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .hps__wa-header {
@@ -793,6 +796,7 @@
 .hps__wa-chat {
   background: #0b141a;
   padding: 12px 10px;
+  flex: 1;
 }
 
 .hps__wa-bubble {
