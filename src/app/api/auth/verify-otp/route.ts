@@ -16,7 +16,7 @@ const FP_PATTERN = /^[a-f0-9-]+$/i;
 
 /**
  * POST /api/auth/verify-otp
- * Verify OTP, create/reconnect participant, issue session, send welcome WA.
+ * Verify OTP, create/reconnect participant, issue session, send welcome SMS.
  *
  * Flow:
  *  1. CSRF check
@@ -27,7 +27,7 @@ const FP_PATTERN = /^[a-f0-9-]+$/i;
  *  6. Check ban status (phone + fingerprints)
  *  7. Find existing participant by phone + event_id → reconnect or create
  *  8. Sign session JWT, set httpOnly cookie
- *  9. Fire-and-forget: send welcome WhatsApp if eligible
+ *  9. Fire-and-forget: send welcome SMS if eligible
  * 10. Return session data
  */
 export async function POST(req: NextRequest) {
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     // Find active event by slug + join code
     const { data: event, error: eventError } = await supabase
       .from('events')
-      .select('id, slug, name, join_code, is_active, background_image, wa_messages_enabled')
+      .select('id, slug, name, join_code, is_active, background_image')
       .eq('slug', eventSlug)
       .eq('join_code', joinCode)
       .eq('is_active', true)
@@ -252,14 +252,14 @@ export async function POST(req: NextRequest) {
       eventName: event.name,
     });
 
-    // Fire-and-forget: send welcome WA if eligible and WA is enabled
-    if (event.wa_messages_enabled && smsConsent) {
+    // Fire-and-forget: send welcome SMS to every guest who consented
+    if (smsConsent) {
       const msgConfig: EventMessagingConfig = {
         eventId: event.id,
         eventName: event.name,
         eventSlug: event.slug,
         joinCode: event.join_code,
-        waMessagesEnabled: event.wa_messages_enabled,
+        messagesEnabled: true,
       };
 
       void sendWelcomeMessage(phone, msgConfig).catch((err) =>

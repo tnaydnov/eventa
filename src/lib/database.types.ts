@@ -9,13 +9,13 @@ export type EventType = 'wedding' | 'party' | 'meetup' | 'other';
 export type EventStatus = 'draft' | 'active' | 'paused' | 'ended' | 'archived';
 export type MessageType = 'text' | 'image' | 'system';
 export type NotificationType = 'like_received' | 'new_message';
-export type MessageChannel = 'sms' | 'whatsapp' | 'email';
+export type MessageChannel = 'sms' | 'email';
 export type MessagePurpose =
   | 'otp' | 'pre_event' | 'welcome' | 'feedback'
   | 'upload_reminder_7d' | 'upload_reminder_3d'
   | 'upload_instructions' | 'event_summary'
   | 'addon_invoice' | 'custom_reminder';
-export type WaCategory = 'authentication' | 'marketing' | 'utility';
+
 export type MessageLogStatus = 'sent' | 'delivered' | 'failed' | 'read';
 
 /* ---------- Payment types ---------- */
@@ -201,7 +201,6 @@ export interface MessageLog {
   phone: string | null;
   channel: MessageChannel;
   message_type: MessagePurpose;
-  wa_category: WaCategory | null;
   status: MessageLogStatus;
   provider_message_id: string | null;
   error_message: string | null;

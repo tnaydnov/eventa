@@ -78,7 +78,7 @@ export default function PrivacyContent() {
 
         <h3 style={subHeadingStyle}>ד. הסכמות והעדפות תקשורת</h3>
         <ul style={listStyle}>
-          <li style={liStyle}>הסכמה לקבלת הודעות SMS ו-WhatsApp מהמערכת (אופציונלי, ניתן לשינוי בכל עת).</li>
+          <li style={liStyle}>הסכמה לקבלת הודעות SMS מהמערכת (אופציונלי, ניתן לשינוי בכל עת).</li></li>
           <li style={liStyle}>הודעת פידבק לאחר האירוע עשויה להישלח למשתתפים שנתנו הסכמה לקבלת הודעות.</li>
         </ul>
 
@@ -157,8 +157,7 @@ export default function PrivacyContent() {
         <ul style={listStyle}>
           <li style={liStyle}><strong>Supabase</strong> - מסד נתונים, אחסון קבצים, תקשורת בזמן אמת</li>
           <li style={liStyle}><strong>Vercel</strong> - אירוח והפצת האתר (CDN / Serverless)</li>
-          <li style={liStyle}><strong>ספק SMS (לדוגמא TextMe)</strong> - לצורך שליחת קוד אימות (OTP) בלבד. מספר הטלפון מועבר לספק לצורך השליחה בלבד.</li>
-          <li style={liStyle}><strong>WhatsApp Business API (Meta)</strong> - לצורך שליחת הודעות לאורחים (הזמנה לאירוע, פידבק), בכפוף להסכמת המשתמש/ת.</li>
+          <li style={liStyle}><strong>ספק SMS (לדוגמא TextMe)</strong> - לצורך שליחת קוד אימות (OTP) והודעות לאורחים. מספר הטלפון מועבר לספק לצורך השליחה בלבד.</li>
         </ul>
         <p style={boldText}>
           איננו משלבים נכון למועד זה שירותי אנליטיקה / פרסום (כגון Google Analytics, Mixpanel וכו&apos;).

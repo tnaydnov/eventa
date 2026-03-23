@@ -15,7 +15,7 @@ interface EventServicesInfoProps {
 }
 
 const CONTACT_PREF_LABELS: Record<string, string> = {
-  whatsapp: '📱 WhatsApp',
+  whatsapp: '📱 וואטסאפ',
   phone: '📞 טלפון',
   email: '📧 אימייל',
   'call-me': '🔙 חזרו אליי',
@@ -59,7 +59,7 @@ export default function EventServicesInfo({ event, onUpdateDetails }: EventServi
     }
   };
 
-  const hasWa = event.wa_messages_enabled;
+  const hasMessages = event.wa_messages_enabled;
 
   const hasContact = event.client_name || event.client_email || event.client_phone;
 
@@ -73,9 +73,9 @@ export default function EventServicesInfo({ event, onUpdateDetails }: EventServi
             <span className="msg-status-value">₪{BASE_PRICE}</span>
           </div>
           <div className="msg-status-item">
-            <span className="msg-status-label">הודעות WhatsApp</span>
+            <span className="msg-status-label">הודעות לאורחים</span>
             <span className="msg-status-value">
-              {hasWa ? 'כלול ✅' : '❌ לא נבחר'}
+              {hasMessages ? 'כלול ✅' : '❌ לא נבחר'}
             </span>
           </div>
           <div className="msg-status-item">
@@ -143,7 +143,7 @@ export default function EventServicesInfo({ event, onUpdateDetails }: EventServi
               >
                 <option value="email">📧 אימייל</option>
                 <option value="phone">📞 טלפון</option>
-                <option value="whatsapp">📱 WhatsApp</option>
+                <option value="whatsapp">📱 וואטסאפ</option>
                 <option value="call-me">🔙 חזרו אליי</option>
               </select>
             </div>

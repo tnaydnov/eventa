@@ -559,7 +559,7 @@ function JoinPageContent({
                   />
 
                   <Checkbox checked={smsConsent} onChange={() => setSmsConsent(!smsConsent)}>
-                    אני מאשר/ת קבלת הודעות SMS או WhatsApp הקשורות לשימוש בשירות Eventa, כולל קודי אימות ועדכונים.
+                    אני מאשר/ת קבלת הודעות SMS הקשורות לשימוש בשירות Eventa, כולל קודי אימות ועדכונים.
                   </Checkbox>
 
                   {error && (

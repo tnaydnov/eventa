@@ -89,12 +89,6 @@ export const APP_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://eventa.p
 /** Whether the SMS provider is live (true) or using stubs (false). */
 export const SMS_PROVIDER_LIVE = process.env.SMS_PROVIDER_LIVE === 'true';
 
-/** Whether the WhatsApp provider is live (true) or using stubs (false). */
-export const WA_PROVIDER_LIVE = process.env.WA_PROVIDER_LIVE === 'true';
-
-/** WhatsApp marketing conversation window duration in hours. */
-export const WA_MARKETING_WINDOW_HOURS = 24;
-
 /** Maximum guest phones per event. */
 export const MAX_GUEST_PHONES_PER_EVENT = 10_000;
 
@@ -105,10 +99,10 @@ export const MAX_GUEST_NAME_LENGTH = 100;
 
 /** Centralised timing constants for cron-driven messaging. */
 export const MSG_TIMING = {
-  /** Hours before event start to send pre-event WA messages. */
+  /** Hours before event start to send pre-event messages. */
   PRE_EVENT_HOURS_BEFORE: 3,
-  /** Hours after event end to send feedback WA messages. */
-  FEEDBACK_HOURS_AFTER: 8,
+  /** Hours after event end to send feedback messages. */
+  FEEDBACK_HOURS_AFTER: 12,
   /** Days before event to send upload-reminder emails (descending). */
   UPLOAD_REMINDER_DAYS: [7, 3] as const,
 } as const;

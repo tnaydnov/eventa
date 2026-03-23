@@ -341,7 +341,7 @@ export default function EventAnalyticsView({
 
       {/* ═══ TAB: Participants ═══ */}
       {activeTab === 'participants' && (
-        <ParticipantsTable eventId={event.id} isArchived={isArchived} waMessagesEnabled={event.wa_messages_enabled} />
+        <ParticipantsTable eventId={event.id} isArchived={isArchived} messagesEnabled={event.wa_messages_enabled} />
       )}
 
       {/* ═══ TAB: Messaging ═══ */}
@@ -365,16 +365,16 @@ export default function EventAnalyticsView({
         ) : (
           <div className="ea-section" style={{ textAlign: 'center', padding: '40px 20px' }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>📩</div>
-            <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8, color: 'var(--admin-text)' }}>הודעות WhatsApp כבויות</h3>
+            <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8, color: 'var(--admin-text)' }}>הודעות כבויות</h3>
             <p style={{ fontSize: 14, color: 'var(--admin-muted)', marginBottom: 20, lineHeight: 1.6 }}>
               שירות ההודעות לא פעיל עבור אירוע זה.<br/>
-              הפעילו כדי לשלוח הזמנות ופידבק לאורחים דרך WhatsApp.
+              הפעילו כדי לשלוח הזמנות ופידבק לאורחים.
             </p>
             <button
               className="admin-btn admin-btn--primary"
-              onClick={() => updateMessagingConfig(event.id, { waMessagesEnabled: true })}
+              onClick={() => updateMessagingConfig(event.id, { messagesEnabled: true })}
             >
-              ✅ הפעל הודעות WhatsApp
+              ✅ הפעל הודעות
             </button>
           </div>
         )

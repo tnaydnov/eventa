@@ -95,7 +95,7 @@ export async function POST(
         const startsMs = new Date(event.starts_at).getTime();
         const preEventMs = MSG_TIMING.PRE_EVENT_HOURS_BEFORE * 60 * 60 * 1000;
         const messageSendAt = new Date(startsMs - preEventMs).toISOString();
-        // Upload deadline = same as message send time (must upload before WA goes out)
+        // Upload deadline = same as message send time (must upload before messages go out)
         const uploadDeadline = messageSendAt;
 
         email = buildClientUploadReminder7DayEmail({

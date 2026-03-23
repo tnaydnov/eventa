@@ -7,7 +7,7 @@ interface MessageLogProps {
 }
 
 const CHANNEL_LABELS: Record<string, string> = {
-  whatsapp: '📱 WhatsApp',
+  whatsapp: '📱 WhatsApp (ישן)',
   sms: '📲 SMS',
   email: '📧 Email',
 };

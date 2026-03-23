@@ -19,7 +19,7 @@ interface MessagingControlsProps {
 /* ── Action definitions ── */
 
 type ActionTarget = 'client' | 'guests';
-type ActionChannel = 'email' | 'whatsapp' | 'system';
+type ActionChannel = 'email' | 'sms' | 'system';
 
 interface ActionDef {
   id: string;
@@ -38,18 +38,17 @@ interface ActionDef {
 const GUEST_ACTIONS: ActionDef[] = [
   {
     id: 'send_pre_event',
-    label: 'שלח WA עכשיו',
+    label: 'שלח הודעות עכשיו',
     icon: '📱',
     target: 'guests',
-    channel: 'whatsapp',
-    description: 'שולח הודעת WhatsApp לכל האורחים ברשימה שעדיין לא קיבלו הודעה. כולל קישור הצטרפות לאירוע.',
+    channel: 'sms',
+    description: 'שולח הודעת SMS לכל האורחים ברשימה שעדיין לא קיבלו הודעה. כולל קישור הצטרפות לאירוע.',
     preview: [
-      '📱 WhatsApp אל: כל האורחים ברשימה שטרם קיבלו',
+      '📱 SMS אל: כל האורחים ברשימה שטרם קיבלו',
       '📝 תבנית: הזמנה לאירוע עם קישור הצטרפות',
       '⚡ שליחה: מיידית, עד 50 הודעות בבת אחת',
-      '💰 עלות: ~₪0.15 לכל שיחה (חלון 24 שעות)',
     ],
-    confirmLabel: 'שלח הודעות WA',
+    confirmLabel: 'שלח הודעות',
     dangerLevel: 'danger',
     disabled: (s) => s.totalGuestPhones === 0,
     disabledReason: 'אין אורחים ברשימה',
@@ -59,11 +58,11 @@ const GUEST_ACTIONS: ActionDef[] = [
     label: 'שלח פידבק עכשיו',
     icon: '💬',
     target: 'guests',
-    channel: 'whatsapp',
+    channel: 'sms',
     description: 'שולח הודעת פידבק לכל המשתתפים שנתנו הסכמה ועדיין לא קיבלו.',
     preview: [
-      '📱 WhatsApp אל: משתתפים שנתנו הסכמה וטרם קיבלו פידבק',
-      '📝 תבנית: בקשת פידבק + קוד הנחה לאירוע הבא',
+      '📱 SMS אל: משתתפים שנתנו הסכמה וטרם קיבלו פידבק',
+      '📝 תבנית: בקשת פידבק + קישור למשוב',
       '⚡ שליחה: מיידית, עד 50 הודעות בבת אחת',
     ],
     confirmLabel: 'שלח פידבק',
@@ -134,12 +133,11 @@ function generateEmailPreview(actionId: string, eventName: string, eventDate: st
     case 'send_pre_event': return emailShell('הזמנה ל-' + safeName, `
       <tr><td dir="rtl" style="text-align:right;padding:20px 24px;background:${PE.card};border-bottom:1px solid ${PE.border};">
         <div style="text-align:center;margin-bottom:12px;"><span style="font-size:28px;">📱</span></div>
-        <div style="text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#22c55e;margin-bottom:12px;">WhatsApp Message Preview</div>
+        <div style="text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#22c55e;margin-bottom:12px;">SMS Message Preview</div>
         <div style="background:#0b3d2e;border-radius:12px;padding:16px;color:#e0e0e0;font-size:13px;line-height:1.7;direction:rtl;">
-          <div>שלום [שם האורח]! 🎉</div>
-          <div style="margin-top:8px;">הוזמנתם לאירוע <strong>${safeName}</strong></div>
-          <div>📅 ${date}${time ? ` בשעה ${time}` : ''}</div>
-          <div style="margin-top:8px;">הצטרפו עכשיו ותתחילו להכיר אנשים חדשים:</div>
+          <div>מגיע/ה ל${safeName}? 💍</div>
+          <div style="margin-top:8px;">כנסו לאפליקציית ההיכרויות של האירוע וגלו מי עוד יהיה שם 😏</div>
+          <div style="margin-top:8px;">נתראה באירוע! 🎉</div>
           <div style="margin-top:6px;"><a href="#" style="color:#60a5fa;text-decoration:underline;">🔗 קישור הצטרפות</a></div>
         </div>
         <div style="text-align:center;font-size:11px;color:${PE.dim};margin-top:10px;">* נשלח לכל האורחים ברשימה שטרם קיבלו הודעה</div>
@@ -148,17 +146,11 @@ function generateEmailPreview(actionId: string, eventName: string, eventDate: st
     case 'send_feedback': return emailShell('פידבק - ' + safeName, `
       <tr><td dir="rtl" style="text-align:right;padding:20px 24px;background:${PE.card};border-bottom:1px solid ${PE.border};">
         <div style="text-align:center;margin-bottom:12px;"><span style="font-size:28px;">💬</span></div>
-        <div style="text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#22c55e;margin-bottom:12px;">WhatsApp Message Preview</div>
+        <div style="text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#22c55e;margin-bottom:12px;">SMS Message Preview</div>
         <div style="background:#0b3d2e;border-radius:12px;padding:16px;color:#e0e0e0;font-size:13px;line-height:1.7;direction:rtl;">
-          <div>איזו חתונה הייתה אתמול… וואו 😍</div>
-          <div style="margin-top:8px;">אנחנו מקווים שגם לכם יצא להדליק איזה ניצוץ דרך אפליקציית <strong>Eventa</strong> 😉</div>
-          <div>(ואם לא - תמיד יש את התמונות… מי יודע 🤭)</div>
-          <div style="margin-top:8px;">נשמח לשמוע איך הייתה החוויה שלכם באירוע ובאפליקציה:</div>
-          <div style="margin-top:6px;"><a href="#" style="color:#60a5fa;text-decoration:underline;">🔗 קישור למשוב קצר</a></div>
-          <div style="margin-top:8px;">לכל שאלה או יצירת קשר עם הצוות שלנו:</div>
-          <div><a href="#" style="color:#60a5fa;text-decoration:underline;">🌐 https://www.eventa.productions/dating</a></div>
-          <div style="margin-top:8px;">שמחנו להיות חלק מהרגעים שלכם,</div>
-          <div>צוות Eventa 💙</div>
+          <div>תודה שהשתתפתם ב${safeName}! 🎉</div>
+          <div style="margin-top:8px;">נשמח לשמוע איך הייתה החוויה:</div>
+          <div style="margin-top:6px;"><a href="#" style="color:#60a5fa;text-decoration:underline;">🔗 קישור למשוב</a></div>
         </div>
         <div style="text-align:center;font-size:11px;color:${PE.dim};margin-top:10px;">* נשלח למשתתפים שנתנו הסכמה לקבלת הודעות</div>
       </td></tr>`, '');
@@ -218,7 +210,7 @@ function ActionDialog({ action, onConfirm, onCancel, loading, previewHtml, custo
   const targetLabel = action.target === 'client' ? '👤 ללקוח' : '👥 לאורחים';
   const channelLabel =
     action.channel === 'email' ? '📧 אימייל' :
-    action.channel === 'whatsapp' ? '📱 WhatsApp' : '🔧 מערכת';
+    action.channel === 'sms' ? '📱 SMS' : '🔧 מערכת';
   const dangerClass =
     action.dangerLevel === 'danger' ? 'act-dialog--danger' :
     action.dangerLevel === 'warning' ? 'act-dialog--warning' : '';
@@ -245,7 +237,7 @@ function ActionDialog({ action, onConfirm, onCancel, loading, previewHtml, custo
         {/* Custom fields (for custom email) - placed BEFORE preview */}
         {customFields}
 
-        {/* Real email / WA preview */}
+        {/* Real email / SMS preview */}
         {previewHtml ? (
           <div className="act-dialog__preview">
             <div className="act-dialog__preview-header">
@@ -319,7 +311,7 @@ export default function MessagingControls({
       switch (actionId) {
         case 'send_pre_event':
           result = await onTrigger(eventId, 'pre_event');
-          if (result.ok) alert(`✅ נשלחו ${result.sent ?? 0} הודעות WhatsApp`);
+          if (result.ok) alert(`✅ נשלחו ${result.sent ?? 0} הודעות`);
           else alert(result.error || 'שגיאה');
           break;
 
@@ -330,9 +322,9 @@ export default function MessagingControls({
           break;
 
         case 'toggle_wa': {
-          const next = !status.waMessagesEnabled;
-          result = await onToggleWA(eventId, { waMessagesEnabled: next });
-          if (result.ok) alert(next ? '✅ הודעות WhatsApp הופעלו' : '✅ הודעות WhatsApp כובו');
+          const next = !status.messagesEnabled;
+          result = await onToggleWA(eventId, { messagesEnabled: next });
+          if (result.ok) alert(next ? '✅ הודעות הופעלו' : '✅ הודעות כובו');
           else alert(result.error || 'שגיאה');
           break;
         }
@@ -350,7 +342,7 @@ export default function MessagingControls({
       setLoading(false);
       setActiveDialog(null);
     }
-  }, [eventId, onTrigger, onToggleWA, onRegenerateToken, status.waMessagesEnabled]);
+  }, [eventId, onTrigger, onToggleWA, onRegenerateToken, status.messagesEnabled]);
 
   const openAction = (actionId: string) => {
     setActiveDialog(actionId);
@@ -360,17 +352,17 @@ export default function MessagingControls({
     if (id === 'toggle_wa') {
       return {
         id: 'toggle_wa',
-        label: status.waMessagesEnabled ? 'כבה WA' : 'הפעל WA',
-        icon: status.waMessagesEnabled ? '🔴' : '✅',
+        label: status.messagesEnabled ? 'כבה הודעות' : 'הפעל הודעות',
+        icon: status.messagesEnabled ? '🔴' : '✅',
         target: 'guests',
         channel: 'system',
-        description: status.waMessagesEnabled
-          ? 'מכבה את שירות ההודעות WhatsApp - לא יישלחו הודעות לאורחים.'
-          : 'מפעיל את שירות ההודעות WhatsApp - יאפשר שליחת הזמנות ופידבק לאורחים.',
-        preview: status.waMessagesEnabled
+        description: status.messagesEnabled
+          ? 'מכבה את שירות ההודעות - לא יישלחו הודעות לאורחים.'
+          : 'מפעיל את שירות ההודעות - יאפשר שליחת הזמנות ופידבק לאורחים.',
+        preview: status.messagesEnabled
           ? ['⚠️ הודעות עתידיות (Pre-Event, פידבק) לא יישלחו', '🔧 ניתן להפעיל מחדש בכל עת']
           : ['✅ יפעיל שליחת הודעות לאורחים ברשימה', '📱 הודעות Pre-Event ופידבק יישלחו לפי לוח הזמנים'],
-        confirmLabel: status.waMessagesEnabled ? 'כבה הודעות' : 'הפעל הודעות',
+        confirmLabel: status.messagesEnabled ? 'כבה הודעות' : 'הפעל הודעות',
         dangerLevel: 'warning',
       };
     }
@@ -410,9 +402,9 @@ export default function MessagingControls({
         <h3 className="ea-section__title">📊 סטטוס שירות</h3>
         <div className="msg-status-grid">
           <div className="msg-status-item">
-            <span className="msg-status-label">WhatsApp</span>
-            <span className={`admin-badge ${status.waMessagesEnabled ? 'admin-badge--active' : 'admin-badge--ended'}`}>
-              {status.waMessagesEnabled ? '✅ פעיל' : '🔴 כבוי'}
+            <span className="msg-status-label">הודעות</span>
+            <span className={`admin-badge ${status.messagesEnabled ? 'admin-badge--active' : 'admin-badge--ended'}`}>
+              {status.messagesEnabled ? '✅ פעיל' : '🔴 כבוי'}
             </span>
           </div>
           <div className="msg-status-item">
@@ -482,7 +474,7 @@ export default function MessagingControls({
           <div className="act-group">
             <div className="act-group__header">
               <span className="act-group__badge act-group__badge--guests">👥 פעולות מול האורחים</span>
-              <span className="act-group__hint">WhatsApp לרשימת הטלפונים</span>
+              <span className="act-group__hint">הודעות לרשימת הטלפונים</span>
             </div>
             <div className="act-grid">
               {GUEST_ACTIONS.map(a => {
@@ -512,11 +504,11 @@ export default function MessagingControls({
             </div>
             <div className="act-grid">
               <button
-                className={`act-card ${status.waMessagesEnabled ? 'act-card--danger' : 'act-card--success'}`}
+                className={`act-card ${status.messagesEnabled ? 'act-card--danger' : 'act-card--success'}`}
                 onClick={() => openAction('toggle_wa')}
               >
-                <span className="act-card__icon">{status.waMessagesEnabled ? '🔴' : '✅'}</span>
-                <span className="act-card__label">{status.waMessagesEnabled ? 'כבה WA' : 'הפעל WA'}</span>
+                <span className="act-card__icon">{status.messagesEnabled ? '🔴' : '✅'}</span>
+                <span className="act-card__label">{status.messagesEnabled ? 'כבה הודעות' : 'הפעל הודעות'}</span>
                 <span className="act-card__channel">🔧</span>
               </button>
             </div>

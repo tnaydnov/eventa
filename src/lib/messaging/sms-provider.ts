@@ -4,8 +4,8 @@
  * API docs: https://docs.textme.co.il/sms/
  * Examples: https://docs.textme.co.il/sms/example.html
  *
- * This provider is used ONLY for OTP codes.
- * WhatsApp is used for all other messages (welcome, pre-event, feedback).
+ * This provider is used for ALL messages:
+ * OTP codes, pre-event reminders, welcome messages, and feedback.
  *
  * When SMS_PROVIDER_LIVE is false, the provider logs the message
  * and returns a stub success — no real SMS is sent.

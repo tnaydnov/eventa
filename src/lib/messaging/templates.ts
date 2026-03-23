@@ -1,9 +1,9 @@
 /**
- * Message templates - centralized Hebrew text and WA template names.
+ * Message templates - centralized Hebrew text for SMS messages.
  * No hardcoded message strings anywhere else in the codebase.
  */
 import { APP_BASE_URL, OTP_EXPIRY_S } from '@/lib/config';
-import type { EventMessagingConfig, WaTemplateParam } from './types';
+import type { EventMessagingConfig } from './types';
 
 /** Build the join URL for an event */
 export function buildJoinUrl(slug: string, joinCode: string): string {
@@ -21,41 +21,49 @@ export function otpSmsText(code: string): string {
   return `Eventa - קוד האימות שלך: ${code}\nתוקף: ${OTP_EXPIRY_S / 60} דקות`;
 }
 
-// ── WhatsApp Template Names (registered in Meta dashboard) ──
+/** Build pre-event SMS text */
+export function preEventSmsText(config: EventMessagingConfig): string {
+  const joinUrl = buildJoinUrl(config.eventSlug, config.joinCode);
+  return `מגיע/ה ל${config.eventName}? את/ה רווק/ה? 💍
 
-export const WA_TEMPLATES = {
-  PRE_EVENT: 'eventa_pre_reminder',
-  WELCOME: 'eventa_welcome',
-  FEEDBACK: 'eventa_feedback_v2',
-} as const;
+באירוע תהיה לכם הזדמנות להצטרף לאפליקציית Eventa - ולראות את שאר הרווקים והרווקות שיהיו שם.
 
-/** Build WA template variables for pre-event message */
-export function preEventVars(
-  config: EventMessagingConfig
-): WaTemplateParam[] {
-  return [
-    { type: 'text', text: config.eventName },
-    { type: 'text', text: buildJoinUrl(config.eventSlug, config.joinCode) },
-  ];
+אל תדאגו - זו אפליקציה ייעודית רק לאירוע זה, וכל הנתונים שלכם יימחקו כשבוע לאחר האירוע. 🔒
+
+כדאי לכם להיכנס כבר עכשיו ולבדוק את השטח…
+אולי תשיגו משהו מעניין 😏
+
+🔗 ${joinUrl}
+
+נתראה באירוע! 🎉`;
 }
 
-/** Build WA template variables for welcome message */
-export function welcomeVars(
-  config: EventMessagingConfig
-): WaTemplateParam[] {
-  return [
-    { type: 'text', text: config.eventName },
-    { type: 'text', text: buildJoinUrl(config.eventSlug, config.joinCode) },
-  ];
+/** Build welcome SMS text */
+export function welcomeSmsText(config: EventMessagingConfig): string {
+  const joinUrl = buildJoinUrl(config.eventSlug, config.joinCode);
+  return `ברוכים הבאים ל${config.eventName}! 🎉
+
+ההרשמה שלך בוצעה בהצלחה ✅
+
+עכשיו אפשר להיכנס לאפליקציה, לבנות פרופיל ולראות מי עוד מגיע לאירוע 👀
+
+🔗 ${joinUrl}
+
+💡 אל תדאגו - תוך 7 ימים מסיום האירוע, הפרופיל וכל הנתונים שלכם נמחקים אוטומטית. 🔒`;
 }
 
-/** Build WA template variables for feedback/thank-you message */
-export function feedbackVars(
-  config: EventMessagingConfig
-): WaTemplateParam[] {
-  return [
-    { type: 'text', text: config.eventName },
-    { type: 'text', text: buildFeedbackUrl(config.eventSlug) },
-    { type: 'text', text: `${APP_BASE_URL}/dating` },
-  ];
+/** Build feedback SMS text */
+export function feedbackSmsText(config: EventMessagingConfig): string {
+  const feedbackUrl = buildFeedbackUrl(config.eventSlug);
+  return `תודה שהשתתפתם ב${config.eventName}! 🙏
+
+עשיתם Match? מקווים שזה הולך לכיוונים טובים! ❤️
+
+נשמח לשמוע איך היה - מלאו משוב קצר של דקה:
+${feedbackUrl}
+
+💫 אם אתם מארגנים אירוע בעצמכם - Eventa תמיד כאן:
+https://eventa.productions/dating
+
+תודה רבה ונתראה! 💜`;
 }

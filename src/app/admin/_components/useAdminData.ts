@@ -299,7 +299,7 @@ export function useAdminData() {
         const raw = await res.json();
         // Map snake_case API response → camelCase EventMessagingStatus
         setMessagingStatus({
-          waMessagesEnabled: raw.wa_messages_enabled ?? false,
+          messagesEnabled: raw.wa_messages_enabled ?? false,
           preEventSendAt: raw.pre_event_send_at ?? null,
           feedbackSendAt: raw.feedback_send_at ?? null,
           preEventSentCount: raw.pre_event_sent_count ?? 0,
@@ -317,8 +317,8 @@ export function useAdminData() {
   const updateMessagingConfig = async (eventId: string, config: Partial<MessagingConfig>): Promise<{ ok: boolean; error?: string }> => {
     // Convert camelCase client config → snake_case API format
     const apiPayload: Record<string, unknown> = {};
-    if (config.waMessagesEnabled !== undefined) {
-      apiPayload.wa_messages_enabled = config.waMessagesEnabled;
+    if (config.messagesEnabled !== undefined) {
+      apiPayload.wa_messages_enabled = config.messagesEnabled;
     }
     if (config.preEventHoursBefore !== undefined || config.feedbackHoursAfter !== undefined) {
       apiPayload.messaging_config = {
@@ -332,10 +332,10 @@ export function useAdminData() {
       body: JSON.stringify(apiPayload),
     });
     if (res.ok) {
-      // Update local events state immediately if WA toggle changed
-      if (config.waMessagesEnabled !== undefined) {
+      // Update local events state immediately if messaging toggle changed
+      if (config.messagesEnabled !== undefined) {
         setEvents(prev => prev.map(e =>
-          e.id === eventId ? { ...e, wa_messages_enabled: config.waMessagesEnabled! } : e
+          e.id === eventId ? { ...e, wa_messages_enabled: config.messagesEnabled! } : e
         ));
       }
       await loadMessagingStatus(eventId);
@@ -371,8 +371,8 @@ export function useAdminData() {
           name: (g.guest_name as string) || null,
           source: (g.source as string) || 'manual',
           normalizedPhone: (g.phone as string) || '',
-          waPreEventSent: g.wa_pre_event_sent === true,
-          waFeedbackSent: g.wa_feedback_sent === true,
+          preEventSent: g.wa_pre_event_sent === true,
+          feedbackSent: g.wa_feedback_sent === true,
           createdAt: (g.created_at as string) || '',
         }));
         setGuestPhones(mapped);

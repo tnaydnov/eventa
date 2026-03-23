@@ -218,8 +218,8 @@ function GuestUploadContent({
         </span>
       </div>
 
-      {/* Timing info - right after header, only when WA enabled and not read-only */}
-      {data.event.waMessagesEnabled && !isReadOnly && (
+      {/* Timing info - right after header, only when messaging enabled and not read-only */}
+      {data.event.messagesEnabled && !isReadOnly && (
         <TimingInfo startsAt={data.event.startsAt} />
       )}
 
@@ -270,8 +270,8 @@ function GuestUploadContent({
         onSearch={handleSearch}
       />
 
-      {/* Message preview & timing info - only when WA enabled */}
-      {data.event.waMessagesEnabled && !isReadOnly && (
+      {/* Message preview & timing info - only when messaging enabled */}
+      {data.event.messagesEnabled && !isReadOnly && (
         <MessagePreview
           eventName={data.event.name}
           startsAt={data.event.startsAt}
@@ -280,13 +280,13 @@ function GuestUploadContent({
 
       {/* Footer */}
       <div className="portal-info">
-        {data.event.waMessagesEnabled ? (
+        {data.event.messagesEnabled ? (
           <p>
-            הודעות WhatsApp יישלחו אוטומטית 3 שעות לפני תחילת האירוע.
+            הודעות יישלחו אוטומטית 3 שעות לפני תחילת האירוע.
           </p>
         ) : (
           <p>
-            שירות הודעות WhatsApp לא פעיל לאירוע זה.
+            שירות ההודעות לא פעיל לאירוע זה.
             <br />
             הרשימה תשמש לניהול האורחים בלבד.
           </p>

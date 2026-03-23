@@ -66,7 +66,7 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
   const [endsAt, setEndsAt] = useState(() => defaultEnd(defaultStart()));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [waEnabled, setWaEnabled] = useState(false);
+  const [msgEnabled, setMsgEnabled] = useState(false);
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [clientPhone, setClientPhone] = useState('');
@@ -99,7 +99,7 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
     setEndsAt(defaultEnd(defaultStart()));
     setSubmitting(false);
     setError('');
-    setWaEnabled(false);
+    setMsgEnabled(false);
     setClientName('');
     setClientEmail('');
     setClientPhone('');
@@ -134,7 +134,7 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
         description: description.trim(),
         starts_at: new Date(startsAt).toISOString(),
         ends_at: new Date(endsAt).toISOString(),
-        wa_messages_enabled: waEnabled,
+        wa_messages_enabled: msgEnabled,
         client_name: clientName.trim(),
         client_email: clientEmail.trim(),
         client_phone: clientPhone.trim(),
@@ -321,7 +321,7 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
             >
               <option value="email">📧 אימייל</option>
               <option value="phone">📞 טלפון</option>
-              <option value="whatsapp">📱 WhatsApp</option>
+              <option value="whatsapp">📱 וואטסאפ</option>
               <option value="call-me">🔙 חזרו אליי</option>
             </select>
           </div>
@@ -343,19 +343,19 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
           )}
         </div>
 
-        {/* WhatsApp messaging toggle */}
+        {/* Messaging toggle */}
         <div className="ced-field">
           <button
             type="button"
-            className={`ced-wa-toggle ${waEnabled ? 'ced-wa-toggle--active' : ''}`}
-            onClick={() => setWaEnabled(!waEnabled)}
+            className={`ced-wa-toggle ${msgEnabled ? 'ced-wa-toggle--active' : ''}`}
+            onClick={() => setMsgEnabled(!msgEnabled)}
           >
             <span className="ced-wa-toggle__icon">📱</span>
             <span className="ced-wa-toggle__text">
-              <span className="ced-wa-toggle__label">שירות הודעות WhatsApp</span>
-              <span className="ced-wa-toggle__desc">{waEnabled ? 'מופעל' : 'כבוי'}</span>
+              <span className="ced-wa-toggle__label">שירות הודעות לאורחים</span>
+              <span className="ced-wa-toggle__desc">{msgEnabled ? 'מופעל' : 'כבוי'}</span>
             </span>
-            <span className={`ced-wa-toggle__switch ${waEnabled ? 'ced-wa-toggle__switch--on' : ''}`}>
+            <span className={`ced-wa-toggle__switch ${msgEnabled ? 'ced-wa-toggle__switch--on' : ''}`}>
               <span className="ced-wa-toggle__switch-thumb" />
             </span>
           </button>

@@ -10,19 +10,18 @@ import type { EventMessagingConfig } from '@/lib/messaging';
 /** Maximum participants to message per cron invocation (15s Vercel timeout). */
 const MAX_MESSAGES_PER_RUN = 50;
 
-/** Delay between WA API calls (ms). */
+/** Delay between SMS API calls (ms). */
 const INTER_MESSAGE_DELAY_MS = 100;
 
 /** Hours after event ends to start sending feedback. */
-const FEEDBACK_DELAY_HOURS = 8;
+const FEEDBACK_DELAY_HOURS = 12;
 
 /** Hours after event ends after which we stop attempting feedback. */
-const FEEDBACK_WINDOW_HOURS = 12;
+const FEEDBACK_WINDOW_HOURS = 18;
 
 /**
  * GET|POST /api/cron/feedback-messages
- * Sends WhatsApp feedback/thank-you messages ~8 hours after events end.
- * Uses utility templates (no marketing window required).
+ * Sends SMS feedback/thank-you messages ~12 hours after events end.
  * Auth: Bearer CRON_SECRET (timing-safe).
  * Schedule: Every hour via vercel.json.
  */
@@ -64,7 +63,7 @@ async function handler(req: NextRequest) {
     // Find ended events in the feedback window
     const { data: events, error: eventError } = await supabase
       .from('events')
-      .select('id, name, slug, join_code, wa_messages_enabled')
+      .select('id, name, slug, join_code')
       .eq('status', 'ended')
       .gte('ends_at', windowStart)
       .lte('ends_at', windowEnd);
@@ -125,7 +124,7 @@ async function handler(req: NextRequest) {
         eventName: event.name,
         eventSlug: event.slug,
         joinCode: event.join_code,
-        waMessagesEnabled: event.wa_messages_enabled ?? false,
+        messagesEnabled: true,
       };
 
       for (const p of participants) {

@@ -80,7 +80,7 @@ export async function POST(
   try {
     const supabase = getServiceClient();
 
-    // Verify event exists and has WA messaging enabled
+    // Verify event exists and has messaging enabled
     const { data: event, error: evErr } = await supabase
       .from('events')
       .select('id, wa_messages_enabled')

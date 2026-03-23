@@ -86,10 +86,10 @@ export default function GuestListManager({
 
   const handleDownloadCSV = useCallback(() => {
     if (guests.length === 0) return;
-    const header = 'name,phone,source,wa_pre_event,wa_feedback,created_at\n';
+    const header = 'name,phone,source,pre_event,feedback,created_at\n';
     const rows = guests.map(
       (g) =>
-        `"${g.name || ''}","${g.phone}","${g.source}","${g.waPreEventSent ? 'כן' : 'לא'}","${g.waFeedbackSent ? 'כן' : 'לא'}","${g.createdAt}"`
+        `"${g.name || ''}","${g.phone}","${g.source}","${g.preEventSent ? 'כן' : 'לא'}","${g.feedbackSent ? 'כן' : 'לא'}","${g.createdAt}"`
     );
     const csv = header + rows.join('\n');
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
@@ -194,7 +194,7 @@ export default function GuestListManager({
                 <th>שם</th>
                 <th>טלפון</th>
                 <th>מקור</th>
-                <th>WA</th>
+                <th>SMS</th>
                 <th>פידבק</th>
                 {!isArchived && <th>פעולה</th>}
               </tr>
@@ -205,15 +205,15 @@ export default function GuestListManager({
                   <td>{g.name || '-'}</td>
                   <td dir="ltr" style={{ textAlign: 'left' }}>{g.phone}</td>
                   <td title={g.source}>{sourceLabel(g.source)}</td>
-                  <td>{g.waPreEventSent ? '✅' : '-'}</td>
-                  <td>{g.waFeedbackSent ? '✅' : '-'}</td>
+                  <td>{g.preEventSent ? '✅' : '-'}</td>
+                  <td>{g.feedbackSent ? '✅' : '-'}</td>
                   {!isArchived && (
                     <td>
                       <button
                         className="admin-btn admin-btn--sm admin-btn--red"
                         onClick={() => handleRemove(g.id)}
-                        disabled={g.waPreEventSent || removingId === g.id}
-                        title={g.waPreEventSent ? 'לא ניתן - כבר נשלחה הודעה' : 'הסרה'}
+                        disabled={g.preEventSent || removingId === g.id}
+                        title={g.preEventSent ? 'לא ניתן - כבר נשלחה הודעה' : 'הסרה'}
                       >
                         {removingId === g.id ? '…' : '🗑'}
                       </button>

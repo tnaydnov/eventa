@@ -7,15 +7,10 @@
 export type {
   MessageChannel,
   MessagePurpose,
-  WaCategory,
   SendResult,
   EventMessagingConfig,
   SendSmsParams,
   SendSmsResult,
-  WaTemplateParam,
-  WaTemplateComponent,
-  SendWaTemplateParams,
-  SendWaResult,
 } from './types';
 
 // Phone utilities
@@ -31,15 +26,13 @@ export {
   buildJoinUrl,
   buildFeedbackUrl,
   otpSmsText,
-  WA_TEMPLATES,
-  preEventVars,
-  welcomeVars,
-  feedbackVars,
+  preEventSmsText,
+  welcomeSmsText,
+  feedbackSmsText,
 } from './templates';
 
-// Providers (low-level - prefer using the messaging service)
+// Provider (low-level - prefer using the messaging service)
 export { sendSms } from './sms-provider';
-export { sendWhatsAppTemplate } from './whatsapp-provider';
 
 // High-level messaging service
 export {

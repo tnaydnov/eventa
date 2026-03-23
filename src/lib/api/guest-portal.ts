@@ -18,7 +18,7 @@ export interface PortalData {
     startsAt: string;
     endsAt: string;
     status: string;
-    waMessagesEnabled: boolean;
+    messagesEnabled: boolean;
   };
   guests: PortalGuest[];
   total: number;

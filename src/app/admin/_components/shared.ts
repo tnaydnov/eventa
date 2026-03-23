@@ -312,7 +312,7 @@ export const slugify = (s: string) =>
 /* ---------- Messaging & Guest Phone Management ---------- */
 
 export interface EventMessagingStatus {
-  waMessagesEnabled: boolean;
+  messagesEnabled: boolean;
   preEventSendAt: string | null;   // ISO timestamp when pre-event messages fire
   feedbackSendAt: string | null;   // ISO timestamp when feedback messages fire
   preEventSentCount: number;
@@ -328,15 +328,15 @@ export interface GuestPhoneAdmin {
   name: string | null;
   source: 'file' | 'manual' | 'portal';
   normalizedPhone: string;
-  waPreEventSent: boolean;
-  waFeedbackSent: boolean;
+  preEventSent: boolean;
+  feedbackSent: boolean;
   createdAt: string;
 }
 
 export interface MessageLogEntry {
   id: string;
   phoneId: string;
-  channel: 'whatsapp' | 'sms' | 'email';
+  channel: 'sms' | 'email';
   messageType: 'pre_event' | 'feedback' | 'reminder' | 'custom';
   status: 'pending' | 'sent' | 'delivered' | 'failed';
   sentAt: string;
@@ -344,7 +344,7 @@ export interface MessageLogEntry {
 }
 
 export interface MessagingConfig {
-  waMessagesEnabled: boolean;
+  messagesEnabled: boolean;
   preEventHoursBefore: number;
   feedbackHoursAfter: number;
 }
@@ -359,7 +359,6 @@ export interface MessagingOverview {
   totalFailed: number;
   channelBreakdown: {
     sms: number;
-    whatsapp: number;
     email: number;
   };
 }

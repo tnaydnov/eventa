@@ -10,7 +10,7 @@ import type { EventMessagingConfig } from '@/lib/messaging';
 /** Maximum guests to message per cron invocation (15s Vercel timeout). */
 const MAX_MESSAGES_PER_RUN = 50;
 
-/** Delay between WA API calls to avoid provider rate limits (ms). */
+/** Delay between SMS API calls to avoid provider rate limits (ms). */
 const INTER_MESSAGE_DELAY_MS = 100;
 
 /** How many hours before event start to begin sending. */
@@ -18,7 +18,7 @@ const PRE_EVENT_WINDOW_HOURS = 3;
 
 /**
  * GET|POST /api/cron/pre-event-messages
- * Sends WhatsApp pre-event reminders 2-3 hours before event start.
+ * Sends SMS pre-event reminders 2-3 hours before event start.
  * Auth: Bearer CRON_SECRET (timing-safe).
  * Schedule: Every hour via vercel.json.
  */
@@ -52,7 +52,7 @@ async function handler(req: NextRequest) {
       now.getTime() + PRE_EVENT_WINDOW_HOURS * 60 * 60 * 1000
     ).toISOString();
 
-    // Find events starting within the next N hours that have WA enabled
+    // Find events starting within the next N hours that have messaging enabled
     const { data: events, error: eventError } = await supabase
       .from('events')
       .select('id, name, slug, join_code, starts_at, wa_messages_enabled')
@@ -117,7 +117,7 @@ async function handler(req: NextRequest) {
         eventName: event.name,
         eventSlug: event.slug,
         joinCode: event.join_code,
-        waMessagesEnabled: true,
+        messagesEnabled: true,
       };
 
       for (const guest of guests) {

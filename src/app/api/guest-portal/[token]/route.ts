@@ -13,6 +13,11 @@ import {
 } from '@/lib/guest-upload';
 import { jsonError } from '@/lib/route-helpers';
 
+// ─── Constants ────────────────────────────────────────────────
+
+/** Portal locks for edits this many hours before event start. */
+const PORTAL_LOCKOUT_HOURS_BEFORE = 5;
+
 // ג”€ג”€ג”€ Helpers ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
 /** Escape LIKE/ILIKE wildcard characters in user input. */
@@ -113,13 +118,17 @@ export async function GET(
       return jsonError('Event not found', 404);
     }
 
-    // Block portal access if WA messaging is disabled for this event
+    // Block portal access if messaging is disabled for this event
     if (!event.wa_messages_enabled) {
       return jsonError('שירות ההודעות אינו פעיל עבור אירוע זה - הפורטל לא זמין', 403);
     }
 
-    // Check if event is archived or has already started (portal locked)
-    const isReadOnly = event.status === 'archived' || (event.starts_at && new Date(event.starts_at) <= new Date());
+    // Portal is read-only once we're within PORTAL_LOCKOUT_HOURS_BEFORE of event start
+    const lockoutTime = event.starts_at
+      ? new Date(new Date(event.starts_at).getTime() - PORTAL_LOCKOUT_HOURS_BEFORE * 60 * 60 * 1000)
+      : null;
+    const isReadOnly = event.status === 'archived'
+      || (lockoutTime !== null && new Date() >= lockoutTime);
 
     // Pagination & search
     const url = new URL(req.url);
@@ -181,10 +190,13 @@ export async function GET(
     // Determine upload status
     let uploadStatus: string;
     const eventStarted = event.starts_at && new Date(event.starts_at) <= new Date();
+    const portalLocked = lockoutTime !== null && new Date() >= lockoutTime;
     if (event.status === 'archived') {
       uploadStatus = 'archived';
     } else if (eventStarted) {
       uploadStatus = 'started';
+    } else if (portalLocked) {
+      uploadStatus = 'started'; // Reuse 'started' state — portal is locked for message preparation
     } else if (!event.guest_list_uploaded || total === 0) {
       uploadStatus = 'empty';
     } else {
@@ -205,7 +217,7 @@ export async function GET(
         startsAt: event.starts_at,
         endsAt: event.ends_at,
         status: event.status,
-        waMessagesEnabled: event.wa_messages_enabled,
+        messagesEnabled: event.wa_messages_enabled,
       },
       guests: formattedGuests,
       total,
@@ -250,7 +262,7 @@ export async function POST(
 
     const eventId = portalData.event_id;
 
-    // Check event is not archived, not started, and WA enabled
+    // Check event is not archived, not in lockout window, and messaging enabled
     const { data: evPost } = await supabase
       .from('events')
       .select('id, status, starts_at, wa_messages_enabled')
@@ -258,15 +270,18 @@ export async function POST(
       .maybeSingle();
 
     if (!evPost || evPost.status === 'archived') {
-      return jsonError('׳”׳׳™׳¨׳•׳¢ ׳”׳¡׳×׳™׳™׳ - ׳׳ ׳ ׳™׳×׳ ׳׳¢׳“׳›׳ ׳׳× ׳”׳¨׳©׳™׳׳”', 400);
+      return jsonError('האירוע הסתיים - לא ניתן לעדכן את הרשימה', 400);
     }
 
     if (!evPost.wa_messages_enabled) {
       return jsonError('שירות ההודעות אינו פעיל עבור אירוע זה - הפורטל לא זמין', 403);
     }
 
-    if (evPost.starts_at && new Date(evPost.starts_at) <= new Date()) {
-      return jsonError('׳”׳׳™׳¨׳•׳¢ ׳›׳‘׳¨ ׳”׳×׳—׳™׳ - ׳׳ ׳ ׳™׳×׳ ׳׳¢׳“׳›׳ ׳׳× ׳”׳¨׳©׳™׳׳”', 400);
+    const postLockout = evPost.starts_at
+      ? new Date(new Date(evPost.starts_at).getTime() - PORTAL_LOCKOUT_HOURS_BEFORE * 60 * 60 * 1000)
+      : null;
+    if (postLockout && new Date() >= postLockout) {
+      return jsonError('הפורטל ננעל להכנת שליחת ההודעות - לא ניתן לעדכן את הרשימה', 400);
     }
 
     const contentType = req.headers.get('content-type') || '';
@@ -482,7 +497,7 @@ export async function DELETE(
     const eventId = portalData.event_id;
 
 
-    // Check event is not archived, not started, and WA enabled
+    // Check event is not archived, not in lockout window, and messaging enabled
     const { data: evDel } = await supabase
       .from('events')
       .select('id, status, starts_at, wa_messages_enabled')
@@ -490,15 +505,18 @@ export async function DELETE(
       .maybeSingle();
 
     if (!evDel || evDel.status === 'archived') {
-      return jsonError('׳”׳׳™׳¨׳•׳¢ ׳”׳¡׳×׳™׳™׳ - ׳׳ ׳ ׳™׳×׳ ׳׳¢׳“׳›׳ ׳׳× ׳”׳¨׳©׳™׳׳”', 400);
+      return jsonError('האירוע הסתיים - לא ניתן לעדכן את הרשימה', 400);
     }
 
     if (!evDel.wa_messages_enabled) {
       return jsonError('שירות ההודעות אינו פעיל עבור אירוע זה - הפורטל לא זמין', 403);
     }
 
-    if (evDel.starts_at && new Date(evDel.starts_at) <= new Date()) {
-      return jsonError('׳”׳׳™׳¨׳•׳¢ ׳›׳‘׳¨ ׳”׳×׳—׳™׳ - ׳׳ ׳ ׳™׳×׳ ׳׳¢׳“׳›׳ ׳׳× ׳”׳¨׳©׳™׳׳”', 400);
+    const delLockout = evDel.starts_at
+      ? new Date(new Date(evDel.starts_at).getTime() - PORTAL_LOCKOUT_HOURS_BEFORE * 60 * 60 * 1000)
+      : null;
+    if (delLockout && new Date() >= delLockout) {
+      return jsonError('הפורטל ננעל להכנת שליחת ההודעות - לא ניתן לעדכן את הרשימה', 400);
     }
 
     const body = await req.json();

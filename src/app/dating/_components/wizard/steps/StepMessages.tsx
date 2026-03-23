@@ -19,13 +19,13 @@ export default function StepMessages({ state, onChange }: Props) {
       <div className="wiz-step__header">
         <h2 className="wiz-step__title">יותר רווקים ורווקות באפליקציה</h2>
         <p className="wiz-step__subtitle">
-          שלחו הודעת WhatsApp לאורחים לפני האירוע
+          שלחו הודעה לאורחים לפני האירוע
           <br />
           ותנו להם להצטרף לאפליקציה מהבית.
         </p>
       </div>
 
-      {/* ── WA message preview ── */}
+      {/* ── Message preview ── */}
       <div className="wiz-msg-preview-section">
         <button
           type="button"
@@ -45,8 +45,7 @@ export default function StepMessages({ state, onChange }: Props) {
             </div>
             <div className="wiz-msg-wa-chat">
               <div className="wiz-msg-wa-bubble">
-                <p>מגיעים ל{eventName}? את/ה רווק/ה? 💍</p>
-                <p>הם מצאו את אהבתם, עכשיו תורכם! ❤️</p>
+                <p>מגיע/ה ל{eventName}? את/ה רווק/ה? 💍</p>
                 <p style={{ marginTop: 4 }}>
                   באירוע תהיה לכם הזדמנות להצטרף לאפליקציית <strong>Eventa</strong> - ולראות את שאר הרווקים והרווקות שיהיו שם.
                 </p>
@@ -57,6 +56,7 @@ export default function StepMessages({ state, onChange }: Props) {
                   כדאי לכם להיכנס כבר עכשיו ולבדוק את השטח…{'\n'}אולי תשיגו משהו מעניין 😏
                 </p>
                 <p className="wiz-msg-wa-link">🔗 קישור להצטרפות לאירוע</p>
+                <p style={{ marginTop: 4 }}>נתראה באירוע! 🎉</p>
               </div>
             </div>
             <p className="wiz-msg-wa-note">* התוכן המדויק עשוי להשתנות מעט</p>
@@ -97,7 +97,7 @@ export default function StepMessages({ state, onChange }: Props) {
           </div>
           <div className="wiz-msg-toggle__content">
             <div className="wiz-msg-toggle__title">
-              שליחת הודעות WhatsApp לאורחים לפני האירוע
+              שליחת הודעות לאורחים לפני האירוע
             </div>
             <div className="wiz-msg-toggle__price">כלול במחיר</div>
           </div>

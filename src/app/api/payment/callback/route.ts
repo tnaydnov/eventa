@@ -17,7 +17,7 @@ import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
  * Phase 1 (fast — before redirect):
  *   1. Verify payment via GetClearingLogById
  *   2. Mark order as paid
- *   3. Auto-create event (slug, join_code, background, WA messaging, portal)
+ *   3. Auto-create event (slug, join_code, background, messaging, portal)
  *
  * Phase 2 (after() — runs after the response is sent):
  *   4. Create itemised invoice-receipt via SOAP
@@ -169,7 +169,7 @@ export async function GET(req: NextRequest) {
       })
       .eq('id', rid);
 
-    // ── 5. Set up WA messaging + portal ──
+    // ── 5. Set up messaging + portal ──
     if (request.wants_guest_messages) {
       try {
         await supabase

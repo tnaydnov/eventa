@@ -8,7 +8,7 @@ import { adminFetch, type AdminParticipant } from '../shared';
 type SortField = 'display_name' | 'gender' | 'age' | 'created_at' | 'is_banned';
 type SortDir = 'asc' | 'desc';
 type GenderFilter = 'all' | 'male' | 'female';
-type SourceFilter = 'all' | 'wa' | 'qr';
+type SourceFilter = 'all' | 'sms' | 'qr';
 type FeedbackFilter = 'all' | 'consent' | 'banned';
 
 interface ParticipantsTableProps {
@@ -16,7 +16,7 @@ interface ParticipantsTableProps {
   /** If true, the event is archived and ban actions are hidden. */
   isArchived?: boolean;
   /** If true, messaging columns (phone, source, feedback) are shown. */
-  waMessagesEnabled?: boolean;
+  messagesEnabled?: boolean;
 }
 
 /* ─── Helpers ─── */
@@ -35,7 +35,7 @@ const shortDate = (iso: string) => {
 const SORT_ICONS: Record<SortDir, string> = { asc: '↑', desc: '↓' };
 
 const sourceLabel = (s: string) =>
-  s === 'pre_event_link' ? '📱 WA' : '📸 QR';
+  s === 'pre_event_link' ? '📱 SMS' : '📸 QR';
 
 const feedbackLabel = (p: AdminParticipant) => {
   if (!p.phone) return '-';
@@ -45,7 +45,7 @@ const feedbackLabel = (p: AdminParticipant) => {
 
 /* ─── Component ─── */
 
-export default function ParticipantsTable({ eventId, isArchived, waMessagesEnabled }: ParticipantsTableProps) {
+export default function ParticipantsTable({ eventId, isArchived, messagesEnabled }: ParticipantsTableProps) {
   const [participants, setParticipants] = useState<AdminParticipant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -128,13 +128,13 @@ export default function ParticipantsTable({ eventId, isArchived, waMessagesEnabl
     }
 
     // Source filter (messaging only)
-    if (waMessagesEnabled && sourceFilter !== 'all') {
-      const src = sourceFilter === 'wa' ? 'pre_event_link' : 'qr_on_spot';
+    if (messagesEnabled && sourceFilter !== 'all') {
+      const src = sourceFilter === 'sms' ? 'pre_event_link' : 'qr_on_spot';
       result = result.filter(p => p.join_source === src);
     }
 
     // Feedback filter (messaging only)
-    if (waMessagesEnabled && feedbackFilter !== 'all') {
+    if (messagesEnabled && feedbackFilter !== 'all') {
       if (feedbackFilter === 'consent') {
         result = result.filter(p => p.sms_consent);
       } else if (feedbackFilter === 'banned') {
@@ -174,7 +174,7 @@ export default function ParticipantsTable({ eventId, isArchived, waMessagesEnabl
     });
 
     return result;
-  }, [participants, genderFilter, sourceFilter, feedbackFilter, waMessagesEnabled, search, sortField, sortDir]);
+  }, [participants, genderFilter, sourceFilter, feedbackFilter, messagesEnabled, search, sortField, sortDir]);
 
   /* ─── Counts (only count profile-complete participants) ─── */
   const complete = participants.filter((p: any) => p.profile_complete !== false);
@@ -232,7 +232,7 @@ export default function ParticipantsTable({ eventId, isArchived, waMessagesEnabl
           </div>
 
           {/* Source + feedback filters (messaging events only) */}
-          {waMessagesEnabled && (
+          {messagesEnabled && (
             <div className="pt-gender-tabs" style={{ marginTop: 6 }}>
               <button
                 className={`pt-gender-tab ${sourceFilter === 'all' ? 'pt-gender-tab--active' : ''}`}
@@ -241,10 +241,10 @@ export default function ParticipantsTable({ eventId, isArchived, waMessagesEnabl
                 כל המקורות
               </button>
               <button
-                className={`pt-gender-tab ${sourceFilter === 'wa' ? 'pt-gender-tab--active' : ''}`}
-                onClick={() => setSourceFilter('wa')}
+                className={`pt-gender-tab ${sourceFilter === 'sms' ? 'pt-gender-tab--active' : ''}`}
+                onClick={() => setSourceFilter('sms')}
               >
-                📱 WA
+                📱 SMS
               </button>
               <button
                 className={`pt-gender-tab ${sourceFilter === 'qr' ? 'pt-gender-tab--active' : ''}`}
@@ -309,9 +309,9 @@ export default function ParticipantsTable({ eventId, isArchived, waMessagesEnabl
                     <SortHeader field="gender" label="מגדר" />
                     <SortHeader field="age" label="גיל" />
                     <SortHeader field="created_at" label="הצטרפ/ה" />
-                    {waMessagesEnabled && <th className="pt-th">טלפון</th>}
-                    {waMessagesEnabled && <th className="pt-th">מקור</th>}
-                    {waMessagesEnabled && <th className="pt-th">פידבק</th>}
+                    {messagesEnabled && <th className="pt-th">טלפון</th>}
+                    {messagesEnabled && <th className="pt-th">מקור</th>}
+                    {messagesEnabled && <th className="pt-th">פידבק</th>}
                     <SortHeader field="is_banned" label="סטטוס" />
                     {!isArchived && <th className="pt-th">פעולות</th>}
                   </tr>
@@ -334,17 +334,17 @@ export default function ParticipantsTable({ eventId, isArchived, waMessagesEnabl
                       <td className="pt-td pt-td--date">
                         {shortDate(p.created_at)}
                       </td>
-                      {waMessagesEnabled && (
+                      {messagesEnabled && (
                         <td className="pt-td" dir="ltr" style={{ textAlign: 'center' }}>
                           {p.phone || '-'}
                         </td>
                       )}
-                      {waMessagesEnabled && (
+                      {messagesEnabled && (
                         <td className="pt-td" style={{ textAlign: 'center' }}>
                           {sourceLabel(p.join_source)}
                         </td>
                       )}
-                      {waMessagesEnabled && (
+                      {messagesEnabled && (
                         <td className="pt-td" style={{ textAlign: 'center' }}>
                           {feedbackLabel(p)}
                         </td>

@@ -7,8 +7,8 @@
  *     C1. Call Me Back - client filled the form, wants a callback
  *     C3. Contact Only - client left contact details without filling event form
  *     C4. Approval - order approved, charged, event created
- *     C5. Upload Reminder (7-day) - WhatsApp guest list upload reminder
- *     C6. Upload Reminder (3-day) - urgent WhatsApp guest list upload reminder
+ *     C5. Upload Reminder (7-day) - guest list upload reminder
+ *     C6. Upload Reminder (3-day) - urgent guest list upload reminder
  *     C7. Event Summary - post-event stats (day after)
  *     C8. QR Page Ready - A4 print page with QR code attachments
  *
@@ -105,7 +105,7 @@ function fmtDateTime(iso: string): string {
 }
 
 /**
- * Schedule info block: shows WhatsApp send time and upload deadline.
+ * Schedule info block: shows message send time and upload deadline.
  * Returns a full <tr> with a table inside an accentBg box.
  */
 function scheduleBlock(messageSendAt: string, uploadDeadline: string): string {
@@ -555,7 +555,7 @@ export function buildClientContactOnlyEmail(data: {
    C4. CLIENT - APPROVAL
    Order approved + charged + event created.
    Full order details + payment confirmation.
-   If WhatsApp messaging: portal link + explanation + reminders info.
+   If messaging enabled: portal link + explanation + reminders info.
    ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג•ג• */
 
 export function buildClientApprovalEmail(params: EventFormData & {
@@ -595,16 +595,16 @@ export function buildClientApprovalEmail(params: EventFormData & {
           </td>
         </tr>`;
 
-  /* WhatsApp messaging section (only if chosen) */
+  /* Messaging section (only if chosen) */
   const waSection = params.wantsGuestMessages && params.portalUrl ? `
         ${divider()}
 
-        <!-- WhatsApp messaging info -->
+        <!-- Guest messaging info -->
         <tr>
           <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
-            ${sectionTitle(`\u05E9\u05D9\u05E8\u05D5\u05EA \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD`)}
+            ${sectionTitle('\u05e9\u05d9\u05e8\u05d5\u05ea \u05d4\u05d5\u05d3\u05e2\u05d5\u05ea \u05dc\u05d0\u05d5\u05e8\u05d7\u05d9\u05dd')}
             <div dir="rtl" style="direction:rtl;text-align:right;font-size:15px;color:${C.muted};line-height:1.7;margin-bottom:20px;">
-              \u05D4\u05D6\u05DE\u05E0\u05EA\u05DD \u05D0\u05EA \u05E9\u05D9\u05E8\u05D5\u05EA \u05D4\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD. \u05DB\u05D3\u05D9 \u05E9\u05E0\u05D5\u05DB\u05DC \u05DC\u05E9\u05DC\u05D5\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E9\u05DC\u05DB\u05DD \u05DC\u05E4\u05E0\u05D9 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2, \u05D9\u05E9 \u05DC\u05D4\u05E2\u05DC\u05D5\u05EA \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05DE\u05E1\u05E4\u05E8\u05D9 \u05D4\u05D8\u05DC\u05E4\u05D5\u05DF \u05D3\u05E8\u05DA \u05E4\u05D5\u05E8\u05D8\u05DC \u05D4\u05DC\u05E7\u05D5\u05D7.
+              \u05d4\u05d6\u05de\u05e0\u05ea\u05dd \u05d0\u05ea \u05e9\u05d9\u05e8\u05d5\u05ea \u05d4\u05d4\u05d5\u05d3\u05e2\u05d5\u05ea \u05dc\u05d0\u05d5\u05e8\u05d7\u05d9\u05dd. \u05db\u05d3\u05d9 \u05e9\u05e0\u05d5\u05db\u05dc \u05dc\u05e9\u05dc\u05d5\u05d7 \u05d4\u05d5\u05d3\u05e2\u05d5\u05ea \u05dc\u05d0\u05d5\u05e8\u05d7\u05d9\u05dd \u05e9\u05dc\u05db\u05dd \u05dc\u05e4\u05e0\u05d9 \u05d4\u05d0\u05d9\u05e8\u05d5\u05e2, \u05d9\u05e9 \u05dc\u05d4\u05e2\u05dc\u05d5\u05ea \u05d0\u05ea \u05e8\u05e9\u05d9\u05de\u05ea \u05de\u05e1\u05e4\u05e8\u05d9 \u05d4\u05d8\u05dc\u05e4\u05d5\u05df \u05d3\u05e8\u05da \u05e4\u05d5\u05e8\u05d8\u05dc \u05d4\u05dc\u05e7\u05d5\u05d7.
             </div>
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
               ${stepRow(1, `\u05D4\u05D9\u05DB\u05E0\u05E1\u05D5 \u05DC\u05E4\u05D5\u05E8\u05D8\u05DC \u05D4\u05DC\u05E7\u05D5\u05D7`)}
@@ -691,16 +691,16 @@ export function buildEventCreatedEmail(params: {
 
   const eventLabel = escapeHtml(EVENT_TYPE_LABELS[params.eventType] || params.eventType);
 
-  /* WhatsApp messaging section (only if addon chosen + portal exists) */
+  /* Messaging section (only if addon chosen + portal exists) */
   const waSection = params.wantsGuestMessages && params.portalUrl ? `
         ${divider()}
 
-        <!-- WhatsApp messaging info -->
+        <!-- Guest messaging info -->
         <tr>
           <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
-            ${sectionTitle(`\u05E9\u05D9\u05E8\u05D5\u05EA \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD`)}
+            ${sectionTitle('\u05e9\u05d9\u05e8\u05d5\u05ea \u05d4\u05d5\u05d3\u05e2\u05d5\u05ea \u05dc\u05d0\u05d5\u05e8\u05d7\u05d9\u05dd')}
             <div dir="rtl" style="direction:rtl;text-align:right;font-size:15px;color:${C.muted};line-height:1.7;margin-bottom:20px;">
-              \u05D4\u05D6\u05DE\u05E0\u05EA\u05DD \u05D0\u05EA \u05E9\u05D9\u05E8\u05D5\u05EA \u05D4\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD. \u05DB\u05D3\u05D9 \u05E9\u05E0\u05D5\u05DB\u05DC \u05DC\u05E9\u05DC\u05D5\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E9\u05DC\u05DB\u05DD \u05DC\u05E4\u05E0\u05D9 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2, \u05D9\u05E9 \u05DC\u05D4\u05E2\u05DC\u05D5\u05EA \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05DE\u05E1\u05E4\u05E8\u05D9 \u05D4\u05D8\u05DC\u05E4\u05D5\u05DF \u05D3\u05E8\u05DA \u05E4\u05D5\u05E8\u05D8\u05DC \u05D4\u05DC\u05E7\u05D5\u05D7.
+              \u05d4\u05d6\u05de\u05e0\u05ea\u05dd \u05d0\u05ea \u05e9\u05d9\u05e8\u05d5\u05ea \u05d4\u05d4\u05d5\u05d3\u05e2\u05d5\u05ea \u05dc\u05d0\u05d5\u05e8\u05d7\u05d9\u05dd. \u05db\u05d3\u05d9 \u05e9\u05e0\u05d5\u05db\u05dc \u05dc\u05e9\u05dc\u05d5\u05d7 \u05d4\u05d5\u05d3\u05e2\u05d5\u05ea \u05dc\u05d0\u05d5\u05e8\u05d7\u05d9\u05dd \u05e9\u05dc\u05db\u05dd \u05dc\u05e4\u05e0\u05d9 \u05d4\u05d0\u05d9\u05e8\u05d5\u05e2, \u05d9\u05e9 \u05dc\u05d4\u05e2\u05dc\u05d5\u05ea \u05d0\u05ea \u05e8\u05e9\u05d9\u05de\u05ea \u05de\u05e1\u05e4\u05e8\u05d9 \u05d4\u05d8\u05dc\u05e4\u05d5\u05df \u05d3\u05e8\u05da \u05e4\u05d5\u05e8\u05d8\u05dc \u05d4\u05dc\u05e7\u05d5\u05d7.
             </div>
             <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
               ${stepRow(1, `\u05D4\u05D9\u05DB\u05E0\u05E1\u05D5 \u05DC\u05E4\u05D5\u05E8\u05D8\u05DC \u05D4\u05DC\u05E7\u05D5\u05D7`)}
@@ -869,7 +869,7 @@ export function buildClientUploadReminder7DayEmail(params: {
         ${greeting(
           safeName,
           `\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong> \u05D1\u05E2\u05D5\u05D3 <strong>${ltr(String(params.daysLeft))}</strong> \u05D9\u05DE\u05D9\u05DD \u05D5\u05E2\u05D3\u05D9\u05D9\u05DF \u05DC\u05D0 \u05D4\u05E2\u05DC\u05D9\u05EA\u05DD \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05D4\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD.`,
-          `\u05DB\u05D3\u05D9 \u05E9\u05E0\u05D5\u05DB\u05DC \u05DC\u05E9\u05DC\u05D5\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E9\u05DC\u05DB\u05DD, \u05D0\u05E0\u05D7\u05E0\u05D5 \u05E6\u05E8\u05D9\u05DB\u05D9\u05DD \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05DE\u05E1\u05E4\u05E8\u05D9 \u05D4\u05D8\u05DC\u05E4\u05D5\u05DF.`,
+          `\u05DB\u05D3\u05D9 \u05E9\u05E0\u05D5\u05DB\u05DC \u05DC\u05E9\u05DC\u05D5\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05E9\u05DC\u05DB\u05DD, \u05D0\u05E0\u05D7\u05E0\u05D5 \u05E6\u05E8\u05D9\u05DB\u05D9\u05DD \u05D0\u05EA \u05E8\u05E9\u05D9\u05DE\u05EA \u05DE\u05E1\u05E4\u05E8\u05D9 \u05D4\u05D8\u05DC\u05E4\u05D5\u05DF.`,
         )}
 
         ${scheduleBlock(params.messageSendAt, params.uploadDeadline)}
@@ -916,7 +916,7 @@ export function buildClientUploadReminder3DayEmail(params: {
         <tr>
           <td ${RTL} style="text-align:right;padding:0 32px;background-color:${C.card};">
             <div dir="rtl" style="direction:rtl;text-align:right;font-size:15px;color:${C.warn};font-weight:600;line-height:1.6;">
-              \u05D1\u05DC\u05D9 \u05D4\u05E8\u05E9\u05D9\u05DE\u05D4, \u05DC\u05D0 \u05E0\u05D5\u05DB\u05DC \u05DC\u05E9\u05DC\u05D5\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA ${ltr('WhatsApp')} \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD.
+              \u05D1\u05DC\u05D9 \u05D4\u05E8\u05E9\u05D9\u05DE\u05D4, \u05DC\u05D0 \u05E0\u05D5\u05DB\u05DC \u05DC\u05E9\u05DC\u05D5\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05DC\u05D0\u05D5\u05E8\u05D7\u05D9\u05DD.
             </div>
           </td>
         </tr>

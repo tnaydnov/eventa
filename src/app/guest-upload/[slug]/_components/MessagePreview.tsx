@@ -34,7 +34,7 @@ export default function MessagePreview({ eventName, startsAt }: MessagePreviewPr
 
       {expanded && (
         <div className="wa-phone-frame">
-          {/* ── WhatsApp top bar ── */}
+          {/* ── SMS top bar ── */}
           <div className="wa-topbar">
             <svg className="wa-back-arrow" viewBox="0 0 24 24" fill="none">
               <path d="M15 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -104,7 +104,7 @@ export default function MessagePreview({ eventName, startsAt }: MessagePreviewPr
           </div>
 
           <p className="wa-disclaimer">
-            * ההודעה נשלחת אוטומטית דרך WhatsApp. התוכן המדויק עשוי להשתנות מעט.
+            * ההודעה נשלחת אוטומטית דרך SMS. התוכן המדויק עשוי להשתנות מעט.
           </p>
         </div>
       )}

@@ -55,7 +55,7 @@ const CLIENT_ACTIONS: ActionDef[] = [
     preview: [
       '📧 מייל אל: הלקוח שהזמין את השירות',
       '📝 נושא: "סיכום האירוע שלך"',
-      '📎 כולל: מספר משתתפים, לייקים, התאמות, שיחות, הודעות WA שנשלחו',
+      '📎 כולל: מספר משתתפים, לייקים, התאמות, שיחות, הודעות שנשלחו',
     ],
     confirmLabel: 'שלח סיכום',
   },
@@ -137,7 +137,7 @@ function generateEmailPreview(actionId: string, eventName: string, eventDate: st
       <tr><td dir="rtl" style="text-align:right;padding:20px 24px 4px;border-bottom:1px solid ${PE.border};background:${PE.card};">
         <div style="font-size:15px;font-weight:500;">שלום [שם הלקוח],</div>
         <div style="font-size:13px;color:${PE.muted};margin-top:6px;line-height:1.6;">האירוע <strong>${safeName}</strong> בעוד <strong>7</strong> ימים ועדיין לא העליתם את רשימת האורחים.</div>
-        <div style="font-size:13px;color:${PE.muted};line-height:1.6;padding-bottom:16px;">כדי שנוכל לשלוח הודעות <span dir="ltr">WhatsApp</span> לאורחים, אנחנו צריכים את רשימת המספרים.</div>
+        <div style="font-size:13px;color:${PE.muted};line-height:1.6;padding-bottom:16px;">כדי שנוכל לשלוח הודעות לאורחים, אנחנו צריכים את רשימת המספרים.</div>
       </td></tr>
       <tr><td style="padding:20px 24px;text-align:center;background:${PE.card};">
         <a href="${uploadLink}" style="display:inline-block;background:${PE.accent};border-radius:10px;padding:14px 28px;color:#fff;font-size:15px;font-weight:700;text-decoration:none;">העלו את הרשימה עכשיו</a>
@@ -152,7 +152,7 @@ function generateEmailPreview(actionId: string, eventName: string, eventDate: st
       <tr><td dir="rtl" style="text-align:right;padding:20px 24px 4px;border-bottom:1px solid ${PE.border};background:${PE.card};">
         <div style="font-size:15px;font-weight:500;">שלום [שם הלקוח],</div>
         <div style="font-size:13px;color:${PE.muted};margin-top:6px;line-height:1.6;">האירוע <strong>${safeName}</strong> כבר בעוד <strong>3 ימים</strong> ועדיין אין לנו את רשימת האורחים.</div>
-        <div style="font-size:14px;color:#e65100;font-weight:600;line-height:1.6;padding-bottom:16px;">בלי הרשימה, לא נוכל לשלוח הודעות WhatsApp לאורחים.</div>
+        <div style="font-size:14px;color:#e65100;font-weight:600;line-height:1.6;padding-bottom:16px;">בלי הרשימה, לא נוכל לשלוח הודעות לאורחים.</div>
       </td></tr>
       <tr><td style="padding:20px 24px;text-align:center;background:${PE.card};">
         <a href="${uploadLink}" style="display:inline-block;background:#ff9800;border-radius:10px;padding:14px 28px;color:#fff;font-size:15px;font-weight:700;text-decoration:none;">העלו עכשיו - לפני שמאוחר!</a>
@@ -167,7 +167,7 @@ function generateEmailPreview(actionId: string, eventName: string, eventDate: st
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${PE.accent};margin-bottom:10px;">נתוני האירוע</div>
         <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
           ${peRow('משתתפים', '[XX]')}
-          ${peRow('הגיעו מ-WhatsApp', '[XX]')}
+          ${peRow('הגיעו מהודעה', '[XX]')}
           ${peRow('הגיעו מ-QR', '[XX]')}
           ${peRow('התאמות (Matches)', '[XX]')}
           ${peRow('הודעות שנשלחו', '[XX/XX]')}

@@ -96,15 +96,11 @@ export async function GET(
     ).length;
 
     // Estimated cost (simplified)
-    const waMessages = logs.filter(
-      (l: { channel: string; status: string }) =>
-        l.channel === 'whatsapp' && l.status === 'sent'
-    ).length;
     const smsMessages = logs.filter(
       (l: { channel: string; status: string }) =>
         l.channel === 'sms' && l.status === 'sent'
     ).length;
-    const estimatedCost = waMessages * 0.15 + smsMessages * 0.04;
+    const estimatedCost = smsMessages * 0.04;
 
     // messaging_config included in the event query above
     const msgConfig = ((event as Record<string, unknown>).messaging_config as Record<string, unknown>) ?? null;
@@ -142,7 +138,7 @@ export async function GET(
 
 /**
  * PATCH /api/admin/events/[eventId]/messaging
- * Toggle WA messaging on/off and/or update timing config.
+ * Toggle messaging on/off and/or update timing config.
  */
 export async function PATCH(
   req: NextRequest,
@@ -243,7 +239,7 @@ export async function POST(
 
     if (evErr || !event) return jsonError('Event not found', 404);
     if (!event.wa_messages_enabled) {
-      return jsonError('WhatsApp messaging is not enabled for this event', 400);
+      return jsonError('Messaging is not enabled for this event', 400);
     }
 
     const config: EventMessagingConfig = {
@@ -251,7 +247,7 @@ export async function POST(
       eventSlug: event.slug,
       eventName: event.name,
       joinCode: event.join_code,
-      waMessagesEnabled: event.wa_messages_enabled,
+      messagesEnabled: event.wa_messages_enabled,
     };
 
     if (parsed.data.action === 'send_pre_event') {

@@ -268,7 +268,7 @@ export async function POST(req: NextRequest) {
     let portalUrl: string | undefined;
     if (request.wants_guest_messages) {
       try {
-        // 5a. Enable WA messaging on the created event
+        // 5a. Enable messaging on the created event
         await supabase
           .from('events')
           .update({

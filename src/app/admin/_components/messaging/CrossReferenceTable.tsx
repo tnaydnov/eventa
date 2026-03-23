@@ -71,7 +71,7 @@ export default function CrossReferenceTable({ eventId }: CrossReferenceTableProp
           <span className="msg-status-value">{data.guestListCount}</span>
         </div>
         <div className="msg-status-item">
-          <span className="msg-status-label">הצטרפו מ-WA</span>
+          <span className="msg-status-label">הצטרפו מ-SMS</span>
           <span className="msg-status-value">{data.joinedCount}</span>
         </div>
         <div className="msg-status-item">

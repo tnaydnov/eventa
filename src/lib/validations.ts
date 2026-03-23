@@ -20,11 +20,6 @@ const envSchema = z.object({
   TEXTME_API_TOKEN: z.string().min(1).optional(),
   TEXTME_USERNAME: z.string().min(1).optional(),
   TEXTME_SENDER_NAME: z.string().min(1).max(11).optional(),
-  // WhatsApp provider - Meta Cloud API (optional - stubs used when absent)
-  WHATSAPP_API_TOKEN: z.string().min(1).optional(),
-  WHATSAPP_PHONE_NUMBER_ID: z.string().min(1).optional(),
-  WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().min(1).optional(),
-  WHATSAPP_APP_SECRET: z.string().min(1).optional(),
 });
 
 /** Validate environment variables at import time (server + client) */
@@ -39,10 +34,6 @@ export function validateEnv() {
     TEXTME_API_TOKEN: process.env.TEXTME_API_TOKEN,
     TEXTME_USERNAME: process.env.TEXTME_USERNAME,
     TEXTME_SENDER_NAME: process.env.TEXTME_SENDER_NAME,
-    WHATSAPP_API_TOKEN: process.env.WHATSAPP_API_TOKEN,
-    WHATSAPP_PHONE_NUMBER_ID: process.env.WHATSAPP_PHONE_NUMBER_ID,
-    WHATSAPP_WEBHOOK_VERIFY_TOKEN: process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN,
-    WHATSAPP_APP_SECRET: process.env.WHATSAPP_APP_SECRET,
   });
   if (!result.success) {
     // Use console.error here intentionally - logger.ts may depend on env vars
@@ -59,14 +50,13 @@ export const lookingForValues = ['serious', 'casual', 'friends', 'figuring_out']
 export const messageTypeValues = ['text', 'image'] as const;
 export const eventTypeValues = ['wedding', 'party', 'meetup', 'other'] as const;
 export const eventStatusValues = ['draft', 'active', 'paused', 'ended', 'archived'] as const;
-export const messageLogChannelValues = ['sms', 'whatsapp', 'email'] as const;
+export const messageLogChannelValues = ['sms', 'email'] as const;
 export const messagePurposeValues = [
   'otp', 'pre_event', 'welcome', 'feedback',
   'upload_reminder_7d', 'upload_reminder_3d',
   'upload_instructions', 'event_summary',
   'addon_invoice', 'custom_reminder',
 ] as const;
-export const waCategoryValues = ['authentication', 'marketing', 'utility'] as const;
 
 /* ---- Guest phone schemas ---- */
 export const guestPhoneSchema = z.object({
