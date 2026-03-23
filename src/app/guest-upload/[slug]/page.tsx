@@ -193,8 +193,8 @@ function GuestUploadContent({
   if (error || !data) {
     return (
       <div className="portal-container">
-        <div className="portal-error">
-          <span className="portal-error-icon">⚠️</span>
+        <div className="portal-error" role="alert">
+          <span className="portal-error-icon" aria-hidden="true">⚠️</span>
           <span className="portal-error-title">שגיאה</span>
           <p>{error || 'לא ניתן לטעון את הנתונים'}</p>
         </div>
@@ -207,13 +207,13 @@ function GuestUploadContent({
   const templateUrl = getTemplateDownloadUrl(token);
 
   return (
-    <div className="portal-container">
+    <main id="main-content" className="portal-container">
       {/* Event header */}
       <div className="portal-header">
         <h1>{data.event.name}</h1>
         <p className="portal-event-date">{formatDate(data.event.startsAt)}</p>
         <span className={`portal-status-badge ${status.cls}`}>
-          {status.emoji} {status.label}
+          <span aria-hidden="true">{status.emoji}</span> {status.label}
           {data.uploadStatus === 'uploaded' && ` (${data.total})`}
         </span>
       </div>
@@ -225,10 +225,10 @@ function GuestUploadContent({
 
       {/* Read-only banner */}
       {isReadOnly && (
-        <div className="portal-read-only-banner">
+        <div className="portal-read-only-banner" role="status">
           {data.uploadStatus === 'started'
-            ? 'האירוע התחיל. לא ניתן לעדכן את הרשימה יותר. 🔒'
-            : 'האירוע הסתיים. הרשימה שלכם נשמרה. תודה! 🎉'}
+            ? <>האירוע התחיל. לא ניתן לעדכן את הרשימה יותר. <span aria-hidden="true">🔒</span></>
+            : <>האירוע הסתיים. הרשימה שלכם נשמרה. תודה! <span aria-hidden="true">🎉</span></>}
         </div>
       )}
 
@@ -292,6 +292,6 @@ function GuestUploadContent({
           </p>
         )}
       </div>
-    </div>
+    </main>
   );
 }

@@ -32,7 +32,7 @@ export default function BannedPage({
             gap: '24px',
           }}
         >
-          <div style={{ fontSize: '64px' }}>🚫</div>
+          <div style={{ fontSize: '64px' }}><span aria-hidden="true">🚫</span></div>
 
           <h1 style={{ fontSize: '24px', color: '#ff4d4d', margin: 0 }}>
             הגישה שלך נחסמה
@@ -64,6 +64,18 @@ export default function BannedPage({
           >
             לא ניתן להירשם מחדש ממכשיר זה.
           </div>
+
+          <a
+            href="/dating"
+            style={{
+              marginTop: '8px',
+              color: 'var(--primary, #d4a59a)',
+              fontSize: '14px',
+              textDecoration: 'underline',
+            }}
+          >
+            חזרו לדף הראשי
+          </a>
         </div>
       </PageTransition>
     </MobileGuard>

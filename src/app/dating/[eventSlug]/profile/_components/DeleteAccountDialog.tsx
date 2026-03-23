@@ -35,7 +35,7 @@ export default function DeleteAccountDialog({
   };
 
   return (
-    <AnimatedOverlay isOpen={isOpen} onClose={onClose}>
+    <AnimatedOverlay isOpen={isOpen} onClose={onClose} ariaLabel="מחיקת חשבון">
       <div style={{ textAlign: 'center' }}>
         <div style={{ marginBottom: '12px', color: 'var(--danger)' }}><TrashIcon size={40} /></div>
         <h3 style={{ marginBottom: '8px', color: 'var(--danger)' }}>מחיקת חשבון?</h3>

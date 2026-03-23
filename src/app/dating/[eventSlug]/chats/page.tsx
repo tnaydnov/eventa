@@ -159,13 +159,17 @@ export default function ChatsPage({
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>לחצו על פרופיל כדי לשלוח הודעה ראשונה</p>
               </div>
             ) : (
-              <StaggerContainer>
-                {conversations.map((conv) => (
-                    <StaggerItem key={conv.id}>
-                      <ChatListItem conv={conv} onClick={handleChatClick} />
-                    </StaggerItem>
-                ))}
-              </StaggerContainer>
+              <div role="list" aria-label="רשימת שיחות">
+                <StaggerContainer>
+                  {conversations.map((conv) => (
+                      <StaggerItem key={conv.id}>
+                        <div role="listitem">
+                          <ChatListItem conv={conv} onClick={handleChatClick} />
+                        </div>
+                      </StaggerItem>
+                  ))}
+                </StaggerContainer>
+              </div>
             )}
           </div>
           <TabBar />

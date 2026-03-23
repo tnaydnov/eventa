@@ -11,12 +11,12 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div className="hp" dir="rtl">
+    <main id="main-content" className="hp" dir="rtl">
       {/* ── Ambient layer ── */}
-      <div className="hp__ambient" />
+      <div className="hp__ambient" aria-hidden="true" />
 
       {/* ── Nav ── */}
-      <div className="hp__nav">
+      <nav className="hp__nav" aria-label="ניווט ראשי">
         <Image
           src="/icons/Eventa_Logo.png"
           alt="Eventa"
@@ -26,7 +26,7 @@ export default function HomePage() {
           quality={100}
           priority
         />
-      </div>
+      </nav>
 
       {/* ── Hero ── */}
       <header className="hp__hero">
@@ -125,16 +125,16 @@ export default function HomePage() {
             quality={100}
           />
         </div>
-        <div className="hp__footer-links">
+        <nav className="hp__footer-links" aria-label="קישורים בתחתית">
           <Link href="/privacy">מדיניות פרטיות</Link>
           <Link href="/terms">תנאי שימוש</Link>
           <Link href="/cookies">מדיניות עוגיות</Link>
           <Link href="/accessibility">הצהרת נגישות</Link>
-        </div>
+        </nav>
         <p className="hp__footer-copy">
           © {new Date().getFullYear()} Eventa. כל הזכויות שמורות.
         </p>
       </footer>
-    </div>
+    </main>
   );
 }

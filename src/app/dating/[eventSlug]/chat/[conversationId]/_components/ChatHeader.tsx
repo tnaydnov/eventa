@@ -26,6 +26,7 @@ export default function ChatHeader({ otherUser, onBack, onUserClick, onMenuToggl
     >
       <button
         onClick={onBack}
+        aria-label="חזרה"
         style={{
           background: 'none',
           border: 'none',
@@ -70,6 +71,8 @@ export default function ChatHeader({ otherUser, onBack, onUserClick, onMenuToggl
 
       <button
         onClick={onMenuToggle}
+        aria-label="תפריט פעולות"
+        aria-haspopup="true"
         style={{
           background: 'none',
           border: 'none',

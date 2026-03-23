@@ -211,7 +211,7 @@ export default function LikesPage({
                               participant={p}
                               onClick={handleProfileClick}
                               badge={
-                                <div style={{
+                                  <div aria-hidden="true" style={{
                                   position: 'absolute',
                                   top: '8px',
                                   right: '8px',

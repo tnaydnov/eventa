@@ -120,7 +120,7 @@ export function AnimatedToast({ message }: { message: string }) {
 }
 
 /* ---- Modal overlay animation ---- */
-export function AnimatedOverlay({ children, isOpen, onClose, ariaLabel }: { children: ReactNode; isOpen: boolean; onClose: () => void; ariaLabel?: string }) {
+export function AnimatedOverlay({ children, isOpen, onClose, ariaLabel }: { children: ReactNode; isOpen: boolean; onClose: () => void; ariaLabel: string }) {
   const focusTrapRef = useFocusTrap(isOpen, onClose);
 
   return (

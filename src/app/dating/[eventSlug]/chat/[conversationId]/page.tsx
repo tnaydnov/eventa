@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect, useState, useRef } from 'react';
+import { use, useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSessionStore, useToastStore, useNotificationStore, useChatsStore } from '@/lib/store';
 import {
@@ -62,6 +62,8 @@ export default function ChatRoomPage({
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fullscreenCloseBtnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
 
   // ─── Load older messages (keyset pagination) ──────────────────
@@ -318,6 +320,29 @@ export default function ChatRoomPage({
     setDeleteMenuMsgId(null);
   };
 
+  // ─── Escape key to close fullscreen image ──────────────────────
+  useEffect(() => {
+    if (!fullscreenImage) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setFullscreenImage(null); };
+    window.addEventListener('keydown', onKey);
+    // Auto-focus close button when viewer opens
+    requestAnimationFrame(() => fullscreenCloseBtnRef.current?.focus());
+    return () => window.removeEventListener('keydown', onKey);
+  }, [fullscreenImage]);
+
+  // ─── Escape key to close dropdown menu ─────────────────────────
+  useEffect(() => {
+    if (!showMenu) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowMenu(false); };
+    window.addEventListener('keydown', onKey);
+    // Auto-focus first menu item
+    requestAnimationFrame(() => {
+      const firstBtn = menuRef.current?.querySelector<HTMLElement>('button');
+      firstBtn?.focus();
+    });
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showMenu]);
+
   // ─── Render ───────────────────────────────────────────────────
 
   if (loading) {
@@ -342,6 +367,8 @@ export default function ChatRoomPage({
         {/* Menu dropdown */}
         {showMenu && (
           <div
+            ref={menuRef}
+            role="menu"
             style={{
               position: 'absolute',
               top: 'calc(60px + env(safe-area-inset-top))',
@@ -355,6 +382,7 @@ export default function ChatRoomPage({
             }}
           >
             <button
+              role="menuitem"
               onClick={() => {
                 setShowMenu(false);
                 setShowBlockConfirm(true);
@@ -370,7 +398,7 @@ export default function ChatRoomPage({
                 fontSize: '14px',
               }}
             >
-              🚫 חסום משתמש
+              <span aria-hidden="true">🚫 </span>חסום משתמש
             </button>
           </div>
         )}
@@ -446,6 +474,9 @@ export default function ChatRoomPage({
       {/* Fullscreen image viewer */}
       {fullscreenImage && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="תמונה בגודל מלא"
           onClick={() => setFullscreenImage(null)}
           style={{
             position: 'fixed',
@@ -460,6 +491,7 @@ export default function ChatRoomPage({
           }}
         >
           <button
+            ref={fullscreenCloseBtnRef}
             onClick={() => setFullscreenImage(null)}
             style={{
               position: 'absolute',
@@ -468,8 +500,8 @@ export default function ChatRoomPage({
               background: 'rgba(255,255,255,0.15)',
               border: 'none',
               borderRadius: '50%',
-              width: '40px',
-              height: '40px',
+              width: '44px',
+              height: '44px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

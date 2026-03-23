@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-6" dir="rtl">
+    <main id="main-content" className="min-h-screen bg-black flex items-center justify-center p-6" dir="rtl">
       <div className="text-center space-y-6 max-w-sm">
         <div className="text-7xl" role="img" aria-label="לב שבור">💔</div>
         <h1 className="text-3xl font-bold text-white">
@@ -18,6 +18,6 @@ export default function NotFound() {
           חזרה לדף הבית
         </Link>
       </div>
-    </div>
+    </main>
   );
 }

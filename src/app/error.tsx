@@ -8,7 +8,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-6" dir="rtl">
+    <main id="main-content" className="min-h-screen bg-black flex items-center justify-center p-6" dir="rtl">
       <div className="text-center space-y-6 max-w-sm" role="alert">
         <div className="text-7xl" role="img" aria-label="פרצוף מבולבל">😕</div>
         <h1 className="text-3xl font-bold text-white">
@@ -24,6 +24,6 @@ export default function GlobalError({
           נסו שוב
         </button>
       </div>
-    </div>
+    </main>
   );
 }

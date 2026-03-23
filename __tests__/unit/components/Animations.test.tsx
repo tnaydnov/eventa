@@ -94,7 +94,7 @@ describe('AnimatedToast', () => {
 describe('AnimatedOverlay', () => {
   it('renders nothing when isOpen is false', () => {
     const { container } = render(
-      <AnimatedOverlay isOpen={false} onClose={vi.fn()}>
+      <AnimatedOverlay isOpen={false} onClose={vi.fn()} ariaLabel="Test">
         Content
       </AnimatedOverlay>
     );
@@ -103,7 +103,7 @@ describe('AnimatedOverlay', () => {
 
   it('renders children when isOpen is true', () => {
     render(
-      <AnimatedOverlay isOpen={true} onClose={vi.fn()}>
+      <AnimatedOverlay isOpen={true} onClose={vi.fn()} ariaLabel="Test">
         Modal content
       </AnimatedOverlay>
     );
@@ -113,7 +113,7 @@ describe('AnimatedOverlay', () => {
   it('calls onClose when clicking overlay background', () => {
     const onClose = vi.fn();
     const { container } = render(
-      <AnimatedOverlay isOpen={true} onClose={onClose}>
+      <AnimatedOverlay isOpen={true} onClose={onClose} ariaLabel="Test">
         Content
       </AnimatedOverlay>
     );
@@ -126,7 +126,7 @@ describe('AnimatedOverlay', () => {
   it('does not call onClose when clicking inner content', () => {
     const onClose = vi.fn();
     const { container } = render(
-      <AnimatedOverlay isOpen={true} onClose={onClose}>
+      <AnimatedOverlay isOpen={true} onClose={onClose} ariaLabel="Test">
         <button>Inner</button>
       </AnimatedOverlay>
     );

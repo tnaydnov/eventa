@@ -23,7 +23,7 @@ export default function StatCard({ icon, label, value, sub, accent, color }: Sta
   return (
     <div className="stat-card">
       <div className="stat-card__top">
-        <span className="stat-card__icon">{icon}</span>
+        <span className="stat-card__icon" aria-hidden="true">{icon}</span>
         <span className="stat-card__value" style={valueColor ? { color: valueColor } : undefined}>
           {typeof value === 'number' ? value.toLocaleString() : value}
         </span>

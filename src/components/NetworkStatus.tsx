@@ -60,7 +60,9 @@ export default function NetworkStatus() {
         opacity: online && showReconnected ? 0.95 : 1,
       }}
     >
-      {online ? '✓ חזרתם לרשת' : '⚡ אין חיבור לאינטרנט'}
+      {online
+        ? <><span aria-hidden="true">✓ </span>חזרתם לרשת</>
+        : <><span aria-hidden="true">⚡ </span>אין חיבור לאינטרנט</>}
     </div>
   );
 }

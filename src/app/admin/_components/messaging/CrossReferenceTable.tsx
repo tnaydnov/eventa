@@ -50,8 +50,8 @@ export default function CrossReferenceTable({ eventId }: CrossReferenceTableProp
   if (loading) {
     return (
       <div className="ea-section">
-        <h3 className="ea-section__title">🔗 הצלבת נתונים</h3>
-        <div className="admin-skeleton" style={{ height: 100 }} />
+        <h3 className="ea-section__title"><span aria-hidden="true">🔗 </span>הצלבת נתונים</h3>
+        <div className="admin-skeleton" role="status" aria-label="טוען נתונים..." style={{ height: 100 }} />
       </div>
     );
   }
@@ -64,7 +64,7 @@ export default function CrossReferenceTable({ eventId }: CrossReferenceTableProp
 
   return (
     <div className="ea-section">
-      <h3 className="ea-section__title">🔗 הצלבת נתונים: רשימה ← משתתפים</h3>
+      <h3 className="ea-section__title"><span aria-hidden="true">🔗 </span>הצלבת נתונים: רשימה <span aria-hidden="true">← </span>משתתפים</h3>
       <div className="msg-status-grid">
         <div className="msg-status-item">
           <span className="msg-status-label">רשימת אורחים</span>
@@ -86,7 +86,7 @@ export default function CrossReferenceTable({ eventId }: CrossReferenceTableProp
 
       {/* Funnel bar */}
       <div className="msg-funnel">
-        <div className="msg-funnel-bar">
+        <div className="msg-funnel-bar" aria-hidden="true">
           <div
             className="msg-funnel-fill"
             style={{ width: `${Math.min(joinRate, 100)}%` }}

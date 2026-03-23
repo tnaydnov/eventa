@@ -15,7 +15,7 @@ const shimmerStyle: React.CSSProperties = {
 /* ── Grid skeleton (profile cards) ─────────────────── */
 export function GridSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <div className="profile-grid" style={{ padding: '0 16px' }}>
+    <div className="profile-grid" role="status" aria-label="טוען תוכן..." style={{ padding: '0 16px' }}>
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} style={{ ...shimmerStyle, aspectRatio: '3/4', borderRadius: '16px' }} />
       ))}
@@ -26,7 +26,7 @@ export function GridSkeleton({ count = 6 }: { count?: number }) {
 /* ── Chat list skeleton ────────────────────────────── */
 export function ChatsSkeleton({ count = 5 }: { count?: number }) {
   return (
-    <div style={{ padding: '8px 0' }}>
+    <div role="status" aria-label="טוען שיחות..." style={{ padding: '8px 0' }}>
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px' }}>
           <div style={{ ...shimmerStyle, width: 48, height: 48, borderRadius: '50%', flexShrink: 0 }} />
@@ -43,7 +43,7 @@ export function ChatsSkeleton({ count = 5 }: { count?: number }) {
 /* ── Likes / matches grid skeleton ─────────────────── */
 export function LikesSkeleton({ count = 4 }: { count?: number }) {
   return (
-    <div className="profile-grid" style={{ padding: '16px' }}>
+    <div className="profile-grid" role="status" aria-label="טוען לייקים..." style={{ padding: '16px' }}>
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} style={{ ...shimmerStyle, aspectRatio: '3/4', borderRadius: '16px' }} />
       ))}
@@ -54,7 +54,7 @@ export function LikesSkeleton({ count = 4 }: { count?: number }) {
 /* ── Chat room message skeleton ────────────────────── */
 export function ChatRoomSkeleton({ count = 8 }: { count?: number }) {
   return (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div role="status" aria-label="טוען הודעות..." style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       {Array.from({ length: count }).map((_, i) => {
         const isRight = i % 3 !== 0;
         return (

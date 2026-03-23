@@ -3,21 +3,21 @@
 /* Shared inline styles */
 const sectionStyle: React.CSSProperties = { marginBottom: '36px' };
 const headingStyle: React.CSSProperties = {
-  fontSize: '18px', fontWeight: 700, color: '#d4a59a',
+  fontSize: '1.125rem', fontWeight: 700, color: '#d4a59a',
   marginBottom: '14px', paddingBottom: '8px',
   borderBottom: '1px solid rgba(212, 165, 154, 0.15)',
 };
-const textStyle: React.CSSProperties = { color: '#ccc', fontSize: '15px', lineHeight: 1.8, margin: '0 0 10px' };
+const textStyle: React.CSSProperties = { color: '#ccc', fontSize: '0.9375rem', lineHeight: 1.8, margin: '0 0 10px' };
 const tableStyle: React.CSSProperties = {
-  width: '100%', borderCollapse: 'collapse', fontSize: '14px', marginTop: '12px',
+  width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem', marginTop: '12px',
 };
 const thStyle: React.CSSProperties = {
   textAlign: 'right', padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.12)',
-  color: '#d4a59a', fontWeight: 600, fontSize: '13px',
+  color: '#d4a59a', fontWeight: 600, fontSize: '0.8125rem',
 };
 const tdStyle: React.CSSProperties = {
   textAlign: 'right', padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)',
-  color: '#bbb', fontSize: '14px', verticalAlign: 'top',
+  color: '#bbb', fontSize: '0.875rem', verticalAlign: 'top',
 };
 const boldText: React.CSSProperties = { ...textStyle, fontWeight: 600, marginTop: '14px' };
 
@@ -38,10 +38,10 @@ export default function CookiesContent() {
         <table style={tableStyle}>
           <thead>
             <tr>
-              <th style={thStyle}>שם העוגייה</th>
-              <th style={thStyle}>מטרה</th>
-              <th style={thStyle}>משך</th>
-              <th style={thStyle}>סוג</th>
+              <th scope="col" style={thStyle}>שם העוגייה</th>
+              <th scope="col" style={thStyle}>מטרה</th>
+              <th scope="col" style={thStyle}>משך</th>
+              <th scope="col" style={thStyle}>סוג</th>
             </tr>
           </thead>
           <tbody>

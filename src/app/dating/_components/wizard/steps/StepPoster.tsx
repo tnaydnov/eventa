@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import type { WizardFormState, PosterTemplate } from '../wizard-config';
 import { getTemplatesForType } from '../wizard-config';
 import WizardIcon from '../WizardIcons';
@@ -17,6 +18,12 @@ export default function StepPoster({ state, onChange }: Props) {
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
   const [previewLabel, setPreviewLabel] = useState('');
 
+  const closePreview = useCallback(() => {
+    setPreviewSrc(null);
+    setPreviewLabel('');
+  }, []);
+
+  const previewRef = useFocusTrap(!!previewSrc, closePreview);
   // Load poster manifest
   useEffect(() => {
     fetch('/templates/manifest.json')
@@ -41,19 +48,6 @@ export default function StepPoster({ state, onChange }: Props) {
     setPreviewSrc(src);
     setPreviewLabel(label);
   };
-
-  const closePreview = useCallback(() => {
-    setPreviewSrc(null);
-    setPreviewLabel('');
-  }, []);
-
-  // Close on Escape
-  useEffect(() => {
-    if (!previewSrc) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closePreview(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [previewSrc, closePreview]);
 
   return (
     <div className="wiz-step">
@@ -157,7 +151,7 @@ export default function StepPoster({ state, onChange }: Props) {
 
       {/* Full-screen preview modal - portaled to body to bypass parent transforms */}
       {previewSrc && createPortal(
-        <div className="wiz-poster-modal" role="dialog" aria-modal="true" aria-label={`תצוגה מקדימה: ${previewLabel}`} onClick={closePreview}>
+        <div ref={previewRef} className="wiz-poster-modal" role="dialog" aria-modal="true" aria-label={`תצוגה מקדימה: ${previewLabel}`} onClick={closePreview}>
           <button type="button" className="wiz-poster-modal__close" onClick={closePreview} aria-label="סגור תצוגה מקדימה">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 6 6 18" /><path d="m6 6 12 12" />

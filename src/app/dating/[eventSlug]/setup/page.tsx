@@ -260,6 +260,8 @@ export default function ProfileSetupPage({
                     <button
                       key={opt.value}
                       type="button"
+                      role="radio"
+                      aria-checked={lookingFor === opt.value}
                       className={`profile-edit-pill${lookingFor === opt.value ? ' active' : ''}`}
                       style={{ flex: 'none' }}
                       onClick={() => setValue('looking_for', lookingFor === opt.value ? null : opt.value as LookingFor, { shouldValidate: true })}

@@ -195,7 +195,7 @@ export default function DemoPhone() {
   const renderHeader = () => (
     <header className="demo-header">
       <h1>Dana & Itai</h1>
-      <button className="demo-header-btn" onClick={() => setScreen('profile')}>{I.person}</button>
+      <button className="demo-header-btn" onClick={() => setScreen('profile')} aria-label="פרופיל">{I.person}</button>
     </header>
   );
 
@@ -223,10 +223,10 @@ export default function DemoPhone() {
   const renderViewToggle = () => (
     <div className="dvt-wrap">
       <div className="dvt-pill">
-        <button className={viewMode === 'swipe' ? 'dvt-on' : ''} onClick={() => toggleView('swipe')}>
+        <button className={viewMode === 'swipe' ? 'dvt-on' : ''} onClick={() => toggleView('swipe')} aria-label="תצוגת סוויפ">
           {I.swipe(viewMode === 'swipe' ? '#1a1a1a' : 'var(--text-muted)')}
         </button>
-        <button className={viewMode === 'grid' ? 'dvt-on' : ''} onClick={() => toggleView('grid')}>
+        <button className={viewMode === 'grid' ? 'dvt-on' : ''} onClick={() => toggleView('grid')} aria-label="תצוגת גריד">
           {I.grid(viewMode === 'grid' ? '#1a1a1a' : 'var(--text-muted)')}
         </button>
       </div>
@@ -264,8 +264,8 @@ export default function DemoPhone() {
               <img src={currentSwipe.photo} alt={currentSwipe.name} draggable={false}/>
               <div className="demo-sc-grad">
                 <div className="demo-sc-nameline"><span className="demo-sc-name">{currentSwipe.name}</span><span className="demo-sc-age">{currentSwipe.age}</span></div>
-                <div className="demo-sc-city">📍 {currentSwipe.city}</div>
-                <div className="demo-sc-tag">🎯 {currentSwipe.lookingFor}</div>
+                <div className="demo-sc-city"><span aria-hidden="true">📍</span> {currentSwipe.city}</div>
+                <div className="demo-sc-tag"><span aria-hidden="true">🎯</span> {currentSwipe.lookingFor}</div>
                 <p className="demo-sc-bio">{currentSwipe.bio}</p>
               </div>
               {swipeDelta > 20 && <div className="demo-badge-like" style={{ opacity: Math.min(Math.abs(swipeDelta) / 80, 1) }}>LIKE</div>}
@@ -273,17 +273,17 @@ export default function DemoPhone() {
             </div>
           </div>
           <div className="demo-sa" dir="ltr">
-            <button className="demo-sa-skip" onClick={handleSwipeBtnSkip}>✕</button>
-            <button className="demo-sa-view" onClick={() => openUser(currentSwipe)}>{I.personSm}</button>
-            <button className="demo-sa-like" onClick={handleSwipeBtnLike}>♥</button>
+            <button className="demo-sa-skip" onClick={handleSwipeBtnSkip} aria-label="דלג">✕</button>
+            <button className="demo-sa-view" onClick={() => openUser(currentSwipe)} aria-label="צפה בפרופיל">{I.personSm}</button>
+            <button className="demo-sa-like" onClick={handleSwipeBtnLike} aria-label="לייק">♥</button>
           </div>
         </>
       ) : (
         <div className="demo-empty">
           <div style={{ opacity: 0.8, color: 'var(--primary)' }}>{I.heartFill('var(--primary)', 52)}</div>
-          <p className="demo-empty-t">עברת על כולם! 🎉</p>
+          <p className="demo-empty-t">עברת על כולם! <span aria-hidden="true">🎉</span></p>
           <p className="demo-empty-s">כשמישהו חדש יצטרף - הוא יופיע כאן אוטומטית</p>
-          <button className="demo-empty-btn" onClick={() => { setSkippedUsers(new Set()); setLikedUsers(new Set()); setSentLikes(new Set()); }}>🔄 אפס רשימה</button>
+          <button className="demo-empty-btn" onClick={() => { setSkippedUsers(new Set()); setLikedUsers(new Set()); setSentLikes(new Set()); }}><span aria-hidden="true">🔄</span> אפס רשימה</button>
         </div>
       )}
     </div>
@@ -297,7 +297,7 @@ export default function DemoPhone() {
       <div className="demo-user-info">
         <div className="demo-user-name">{selectedUser.name} <span>{selectedUser.age}</span></div>
         <div className="demo-user-meta">{selectedUser.gender} · {selectedUser.city}</div>
-        <span className="demo-user-tag">🎯 {selectedUser.lookingFor}</span>
+        <span className="demo-user-tag"><span aria-hidden="true">🎯</span> {selectedUser.lookingFor}</span>
         <p className="demo-user-bio">{selectedUser.bio}</p>
       </div>
       <div className="demo-user-acts">
@@ -368,14 +368,14 @@ export default function DemoPhone() {
       <div style={{ padding: '0 0 8px' }}>
         {likesTab === 'matches' ? (
           matchList.length === 0 ? (
-            <div className="demo-empty"><div style={{ fontSize: 48 }}>💞</div><p className="demo-empty-t">עדיין אין התאמות</p><p className="demo-empty-s">כששני אנשים עושים לייק אחד לשני - זו התאמה!</p></div>
+            <div className="demo-empty"><div style={{ fontSize: 48 }} aria-hidden="true">💞</div><p className="demo-empty-t">עדיין אין התאמות</p><p className="demo-empty-s">כששני אנשים עושים לייק אחד לשני - זו התאמה!</p></div>
           ) : (
             <div className="profile-grid" style={{ padding: '12px' }}>
               {matchList.map(u => (
                 <div key={u.seed} className="grid-card" {...kbClick(() => openUser(u))} style={{ position: 'relative' }}>
                   <img src={u.photo} alt={u.name} draggable={false}/>
                   <div className="card-overlay"><div className="name">{u.name}</div></div>
-                  <div className="demo-match-label">💞 Match</div>
+                  <div className="demo-match-label"><span aria-hidden="true">💞</span> Match</div>
                 </div>
               ))}
             </div>
@@ -420,11 +420,11 @@ export default function DemoPhone() {
       </div>
       <div className="demo-scroll" style={{ padding: '0 12px 24px' }}>
         <div className="demo-pe-sec">
-          <div className="demo-pe-head"><span>📷 תמונות</span><span className="demo-pe-cnt">0/10</span></div>
+          <div className="demo-pe-head"><span><span aria-hidden="true">📷</span> תמונות</span><span className="demo-pe-cnt">0/10</span></div>
           <div className="demo-pe-add"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" aria-hidden="true" focusable="false"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>הוספה</span></div>
         </div>
         <div className="demo-pe-sec">
-          <div className="demo-pe-head">✏️ פרטים בסיסיים</div>
+          <div className="demo-pe-head"><span aria-hidden="true">✏️</span> פרטים בסיסיים</div>
           <label className="demo-pe-lbl">שם / כינוי</label>
           <input className="demo-pe-inp" value={myName} onChange={e => setMyName(e.target.value)} />
           <label className="demo-pe-lbl">גיל</label>
@@ -435,7 +435,7 @@ export default function DemoPhone() {
           <textarea className="demo-pe-inp demo-pe-ta" placeholder="ספרו משהו על עצמכם..." value={myBio} onChange={e => setMyBio(e.target.value)} />
         </div>
         <div className="demo-pe-sec">
-          <div className="demo-pe-head">❤️ מגדר והעדפות</div>
+          <div className="demo-pe-head"><span aria-hidden="true">❤️</span> מגדר והעדפות</div>
           <label className="demo-pe-lbl">אני</label>
           <div className="demo-chips">{['גבר', 'אישה', 'אחר'].map(v => <button key={v} className={`demo-chip${myGender === v ? ' demo-chip-on' : ''}`} onClick={() => setMyGender(v)}>{v}</button>)}</div>
           <label className="demo-pe-lbl">מעוניין/ת ב</label>
@@ -454,14 +454,14 @@ export default function DemoPhone() {
   const renderMatch = () => matchPopup && (
     <div className="demo-match-ov" onClick={() => setMatchPopup(null)}>
       <div className="demo-match-card" onClick={e => e.stopPropagation()}>
-        <div className="demo-match-title">✨ יש לכם מאצ׳!</div>
+        <div className="demo-match-title"><span aria-hidden="true">✨</span> יש לכם מאצ׳!</div>
         <div className="demo-match-pics">
           <div className="demo-match-ring"><img src={USERS[0].photo} alt="" /></div>
           <div className="demo-match-heart">{I.heartFill('#f87171', 20)}</div>
           <div className="demo-match-ring"><img src={matchPopup.photo} alt="" /></div>
         </div>
         <div className="demo-match-sub">אתם ו{matchPopup.name}</div>
-        <button className="demo-match-cta" onClick={() => { setMatchPopup(null); openChat(matchPopup); setActiveTab('chats'); }}>שלחו הודעה 💬</button>
+        <button className="demo-match-cta" onClick={() => { setMatchPopup(null); openChat(matchPopup); setActiveTab('chats'); }}>שלחו הודעה <span aria-hidden="true">💬</span></button>
         <button className="demo-match-skip" onClick={() => setMatchPopup(null)}>המשיכו לגלול</button>
       </div>
     </div>

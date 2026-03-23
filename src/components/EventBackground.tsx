@@ -18,7 +18,7 @@ export default function EventBackground() {
       {/* Activate event-background overrides via data attribute - CSS in event-bg.css */}
       <div data-event-bg />
       <div
-        aria-hidden
+        aria-hidden="true"
         style={{
           position: 'fixed',
           inset: 0,

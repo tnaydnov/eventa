@@ -54,7 +54,7 @@ export default function MessagingTab({
 
   if (!messagingStatus) {
     return (
-      <div className="ea-loading">
+      <div className="ea-loading" role="status" aria-label="טוען נתוני הודעות...">
         <div className="admin-skeleton admin-skeleton--card" />
         <div className="admin-skeleton" style={{ height: 200 }} />
       </div>

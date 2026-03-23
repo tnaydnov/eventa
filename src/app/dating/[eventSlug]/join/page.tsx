@@ -456,7 +456,7 @@ function JoinPageContent({
                   color: '#ffb432',
                 }}
               >
-                <strong>⚠️ שימו לב</strong>
+                <strong><span aria-hidden="true">⚠️</span> שימו לב</strong>
                 <br />
                 אתם גולשים מתוך אפליקציה חיצונית. כדי שהחיבור שלכם יישמר,
                 פתחו את הקישור ב-
@@ -490,7 +490,7 @@ function JoinPageContent({
                     fontFamily: 'inherit',
                   }}
                 >
-                  {linkCopied ? '✅ הקישור הועתק!' : '📋 העתק קישור'}
+                  <span role="status" aria-live="polite">{linkCopied ? <><span aria-hidden="true">✅</span> הקישור הועתק!</> : <><span aria-hidden="true">📋</span> העתק קישור</>}</span>
                 </button>
               </div>
             )}

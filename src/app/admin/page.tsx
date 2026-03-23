@@ -176,7 +176,7 @@ export default function AdminPage() {
         />
 
         {/* Main content */}
-        <main className="admin-main">
+        <main id="main-content" className="admin-main">
           <h1 className="sr-only">לוח בקרה - אדמין</h1>
           <div className="admin-main__content">
             {activeView === 'events' && !detailEvent && (

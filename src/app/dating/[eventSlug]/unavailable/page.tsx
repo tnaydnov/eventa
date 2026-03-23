@@ -83,7 +83,7 @@ function UnavailableContent({
             gap: '24px',
           }}
         >
-          <div style={{ fontSize: '64px' }}>{content.emoji}</div>
+          <div style={{ fontSize: '64px' }}><span aria-hidden="true">{content.emoji}</span></div>
 
           <h1
             style={{
@@ -121,6 +121,18 @@ function UnavailableContent({
               {content.note}
             </div>
           )}
+
+          <a
+            href="/dating"
+            style={{
+              marginTop: '16px',
+              color: 'var(--primary, #d4a59a)',
+              fontSize: '14px',
+              textDecoration: 'underline',
+            }}
+          >
+            חזרו לדף הראשי
+          </a>
         </div>
       </PageTransition>
     </MobileGuard>

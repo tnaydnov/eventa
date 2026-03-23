@@ -12,8 +12,10 @@ export const metadata: Metadata = {
 
 export default function OrderPage() {
   return (
-    <Suspense>
-      <Wizard />
-    </Suspense>
+    <main id="main-content">
+      <Suspense>
+        <Wizard />
+      </Suspense>
+    </main>
   );
 }

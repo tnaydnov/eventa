@@ -3,11 +3,11 @@
 /* Shared inline styles */
 const sectionStyle: React.CSSProperties = { marginBottom: '36px' };
 const headingStyle: React.CSSProperties = {
-  fontSize: '18px', fontWeight: 700, color: '#d4a59a',
+  fontSize: '1.125rem', fontWeight: 700, color: '#d4a59a',
   marginBottom: '14px', paddingBottom: '8px',
   borderBottom: '1px solid rgba(212, 165, 154, 0.15)',
 };
-const textStyle: React.CSSProperties = { color: '#ccc', fontSize: '15px', lineHeight: 1.8, margin: '0 0 10px' };
+const textStyle: React.CSSProperties = { color: '#ccc', fontSize: '0.9375rem', lineHeight: 1.8, margin: '0 0 10px' };
 const listStyle: React.CSSProperties = { ...textStyle, paddingRight: '20px', listStyleType: 'disc' };
 const liStyle: React.CSSProperties = { marginBottom: '8px' };
 const boldText: React.CSSProperties = { ...textStyle, fontWeight: 600, marginTop: '14px' };

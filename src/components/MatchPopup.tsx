@@ -285,6 +285,7 @@ export default function MatchPopup() {
                 style={{
                   width: '100%',
                   padding: '12px 24px',
+                  minHeight: '44px',
                   background: 'rgba(255,255,255,0.08)',
                   border: '1px solid rgba(255,255,255,0.12)',
                   borderRadius: '14px',

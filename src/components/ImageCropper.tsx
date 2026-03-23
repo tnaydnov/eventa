@@ -227,6 +227,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   cancelBtn: {
     padding: '12px 32px',
+    minHeight: '44px',
     background: 'rgba(255,255,255,0.1)',
     color: '#fff',
     border: 'none',
@@ -237,6 +238,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   confirmBtn: {
     padding: '12px 32px',
+    minHeight: '44px',
     background: 'linear-gradient(135deg, #D4A59A, #C9A580)',
     color: '#1a1a1a',
     border: 'none',

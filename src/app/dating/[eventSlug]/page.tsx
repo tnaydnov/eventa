@@ -392,6 +392,7 @@ function EventPageContent({
                       key={f}
                       className={`filter-chip ${filter === f ? 'active' : ''}`}
                       onClick={() => setFilter(f)}
+                      aria-pressed={filter === f}
                     >
                       {f === 'all' ? 'כולם' : f === 'men' ? 'גברים' : 'נשים'}
                     </button>

@@ -59,7 +59,7 @@ export default function SitePageLayout({
       </header>
 
       {/* Content */}
-      <main className={`site-page__content${widthClass}`}>
+      <main id="main-content" className={`site-page__content${widthClass}`}>
         {children}
       </main>
 
@@ -75,7 +75,7 @@ export default function SitePageLayout({
             quality={100}
           />
         </div>
-        <div className="site-page__footer-links">
+        <nav className="site-page__footer-links" aria-label="קישורים בתחתית">
           <Link href="/how-it-works">איך זה עובד</Link>
           <Link href="/faq">שאלות נפוצות</Link>
           <Link href="/pricing">מחירון</Link>
@@ -83,7 +83,7 @@ export default function SitePageLayout({
           <Link href="/terms">תנאי שימוש</Link>
           <Link href="/cookies">מדיניות עוגיות</Link>
           <Link href="/accessibility">הצהרת נגישות</Link>
-        </div>
+        </nav>
         <p className="site-page__footer-copy">
           © {new Date().getFullYear()} Eventa. כל הזכויות שמורות.
         </p>

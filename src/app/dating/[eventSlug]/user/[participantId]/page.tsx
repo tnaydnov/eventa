@@ -161,6 +161,7 @@ export default function UserProfilePage({
         {/* Back button */}
         <button
           onClick={() => router.back()}
+          aria-label="חזרה"
           style={{
             position: 'absolute',
             top: 'calc(12px + env(safe-area-inset-top))',
@@ -187,6 +188,20 @@ export default function UserProfilePage({
         {/* Photos carousel with swipe + tap zones */}
         <div
           className="profile-photos"
+          tabIndex={0}
+          role="region"
+          aria-roledescription="קרוסלה"
+          aria-label={`תמונות של ${user.display_name}, ${photoIndex + 1} מתוך ${user.photos.length}`}
+          onKeyDown={(e) => {
+            if (user.photos.length <= 1) return;
+            if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              setPhotoIndex((i) => (i + 1) % user.photos.length);
+            } else if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              setPhotoIndex((i) => (i - 1 + user.photos.length) % user.photos.length);
+            }
+          }}
           onTouchStart={(e) => {
             touchStartX.current = e.touches[0].clientX;
           }}
@@ -260,6 +275,7 @@ export default function UserProfilePage({
               </div>
               {/* Left/right arrow hints */}
               <div
+                aria-hidden="true"
                 style={{
                   position: 'absolute',
                   top: '50%',
@@ -273,6 +289,7 @@ export default function UserProfilePage({
                 ‹
               </div>
               <div
+                aria-hidden="true"
                 style={{
                   position: 'absolute',
                   top: '50%',

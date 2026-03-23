@@ -34,6 +34,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div
+          role="alert"
           style={{
             display: 'flex',
             flexDirection: 'column',
@@ -60,6 +61,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             }}
             style={{
               padding: '12px 32px',
+              minHeight: '44px',
               background: '#e91e63',
               color: 'white',
               border: 'none',

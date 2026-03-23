@@ -23,7 +23,9 @@ export default function EventLayout({
       <EventBackground />
       <NetworkStatus />
       <HeartbeatPinger />
-      {children}
+      <main id="main-content">
+        {children}
+      </main>
       <RealtimeNotificationListener />
       <MatchPopup />
     </SessionProvider>

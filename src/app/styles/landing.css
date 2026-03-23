@@ -1371,7 +1371,8 @@
 .landing-footer__links a {
   color: var(--text-muted);
   font-size: 13px;
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 2px;
   transition: color 0.2s ease;
 }
 

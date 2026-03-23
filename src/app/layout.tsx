@@ -98,9 +98,7 @@ export default function RootLayout({
           }}
         />
         <ErrorBoundary>
-          <main id="main-content">
             {children}
-          </main>
         </ErrorBoundary>
       </body>
     </html>

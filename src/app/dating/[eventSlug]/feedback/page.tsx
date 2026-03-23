@@ -394,6 +394,7 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
                 value={improvement}
                 onChange={(e) => setImprovement(e.target.value.slice(0, 500))}
                 placeholder="נשמח לשמוע רעיונות או הצעות"
+                aria-label="משהו שהיית משפר/ת"
                 maxLength={500}
                 rows={4}
               />
@@ -433,7 +434,7 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
               {successStory === 'yes' && (
                 <motion.div className="rc-followup" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.35 }}>
                   <p className="rc-followup__label">רוצה לספר לנו קצת?</p>
-                  <textarea className="rc-textarea" value={successStoryText} onChange={(e) => setSuccessStoryText(e.target.value.slice(0, 500))} placeholder="נשמח לשמוע..." maxLength={500} rows={3} />
+                  <textarea className="rc-textarea" value={successStoryText} onChange={(e) => setSuccessStoryText(e.target.value.slice(0, 500))} placeholder="נשמח לשמוע..." aria-label="ספרו לנו על החיבור" maxLength={500} rows={3} />
                   <label className="rc-check">
                     <input type="checkbox" checked={allowPublish} onChange={(e) => setAllowPublish(e.target.checked)} />
                     <span className="rc-check__box" />
@@ -491,7 +492,7 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
             <motion.button className="rc-ghost" onClick={back} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.34 }}>
               חזרה לשאלות
             </motion.button>
-            {error && <motion.p className="rc-error" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>{error}</motion.p>}
+            {error && <motion.p className="rc-error" role="alert" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>{error}</motion.p>}
           </div>
         );
       }
@@ -555,6 +556,7 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
   /* ━━━ Render ━━━ */
   return (
     <div className="recap" data-slide={slide}>
+      <h1 className="sr-only">משוב אחרי אירוע</h1>
       <div className="recap__bg" aria-hidden>
         <div className="recap__gradient" />
       </div>

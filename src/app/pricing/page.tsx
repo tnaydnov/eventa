@@ -88,7 +88,7 @@ export default function PricingPage() {
             {FEATURES.slice(0, 3).map((f) => (
               <div className="pri__feat" key={f.title}>
                 <div className="pri__feat-icon">{f.icon}</div>
-                <h3 className="pri__feat-title">{f.title}</h3>
+                <h2 className="pri__feat-title">{f.title}</h2>
                 <p className="pri__feat-desc">{f.desc}</p>
               </div>
             ))}
@@ -108,7 +108,7 @@ export default function PricingPage() {
             {FEATURES.slice(3).map((f) => (
               <div className="pri__feat" key={f.title}>
                 <div className="pri__feat-icon">{f.icon}</div>
-                <h3 className="pri__feat-title">{f.title}</h3>
+                <h2 className="pri__feat-title">{f.title}</h2>
                 <p className="pri__feat-desc">{f.desc}</p>
               </div>
             ))}

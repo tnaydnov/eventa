@@ -45,7 +45,7 @@ export default function OrderForm() {
   }, [form]);
 
   return (
-    <form className="order-form" onSubmit={handleSubmit} dir="rtl">
+    <form className="order-form" onSubmit={handleSubmit} dir="rtl" aria-describedby={error ? 'order-form-error' : undefined}>
       {/* Personal Info */}
       <div className="order-form__group">
         <label className="order-form__label" htmlFor="order-name">שם מלא *</label>
@@ -93,12 +93,13 @@ export default function OrderForm() {
         type="submit"
         disabled={submitted || sending}
         style={submitted ? { background: '#22c55e', boxShadow: 'none' } : undefined}
+        aria-live="polite"
       >
         {submitted ? '✓ הפרטים נשלחו בהצלחה!' : sending ? 'שולח...' : 'שלחו פרטים'}
       </button>
 
       {error && (
-        <p role="alert" style={{ color: '#ef4444', fontSize: '14px', textAlign: 'center', marginTop: '12px' }}>
+        <p id="order-form-error" role="alert" style={{ color: '#ef4444', fontSize: '14px', textAlign: 'center', marginTop: '12px' }}>
           {error}
         </p>
       )}

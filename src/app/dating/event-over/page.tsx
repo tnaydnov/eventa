@@ -110,7 +110,7 @@ function EventOverContent() {
   }, []);
 
   return (
-    <div className={`eo${revealed ? ' eo--revealed' : ''}`}>
+    <main id="main-content" className={`eo${revealed ? ' eo--revealed' : ''}`}>
       {/* Ambient light layer */}
       <div className="eo__ambient" />
 
@@ -165,7 +165,7 @@ function EventOverContent() {
           <p className="eo__cta-label">האירוע הבא יכול להיות שלכם</p>
           <a href="/dating" className="eo__btn" onClick={(e) => { e.preventDefault(); handleSkip(); }}>
             <span>גלו עוד</span>
-            <svg className="eo__btn-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="eo__btn-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </a>
@@ -187,6 +187,6 @@ function EventOverContent() {
         </div>
         <span className="eo__timer-label">מועברים לאתר הראשי</span>
       </div>
-    </div>
+    </main>
   );
 }

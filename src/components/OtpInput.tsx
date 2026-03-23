@@ -182,6 +182,7 @@ export default function OtpInput({
             onFocus={(e) => e.target.select()}
             aria-label={`ספרה ${i + 1} מתוך ${length}`}
             aria-invalid={!!error}
+            aria-describedby={error ? 'otp-error' : undefined}
             style={{
               width: 44,
               height: 52,
@@ -203,6 +204,7 @@ export default function OtpInput({
 
       {error && (
         <p
+          id="otp-error"
           role="alert"
           style={{
             color: 'var(--danger)',

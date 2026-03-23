@@ -16,27 +16,27 @@ function scrollTo(id: string) {
 /* ── Feature data ── */
 const FEATURES = [
   {
-    icon: '📱',
+    icon: <span aria-hidden="true">📱</span>,
     title: 'ישר מהדפדפן',
     desc: 'אפליקציית PWA שנפתחת ישר מהדפדפן - האורחים סורקים QR, נרשמים תוך דקה, ומתחילים. בלי חנות אפליקציות, בלי הורדה.',
   },
   {
-    icon: '💘',
+    icon: <span aria-hidden="true">💘</span>,
     title: 'גריד, סוויפ ומאצ׳',
     desc: 'גריד תמונות או סוויפ בסגנון טינדר - שני מצבי גלילה לבחירה. שליחת לייקים, ובמקרה של לייק הדדי - נוצר מאצ׳ ונפתח צ׳אט.',
   },
   {
-    icon: '💬',
+    icon: <span aria-hidden="true">💬</span>,
     title: 'צ׳אט מיידי',
     desc: 'הודעות טקסט ותמונות בין מאצ׳ים - צ׳אט פרטי שנפתח ברגע שנוצר חיבור הדדי.',
   },
   {
-    icon: '⏳',
+    icon: <span aria-hidden="true">⏳</span>,
     title: 'מוגבל לאירוע',
     desc: 'הכל קורה בזמן אמת, במהלך האירוע עצמו. אין פיד אינסופי, אין התמכרות - רק חלון הזדמנות קצר שיוצר ריגוש אמיתי.',
   },
   {
-    icon: '🔒',
+    icon: <span aria-hidden="true">🔒</span>,
     title: 'פרטיות מלאה',
     desc: 'כל המידע האישי נמחק אוטומטית 7 ימים אחרי האירוע. ללא מעקב, ללא מודעות, ללא שיתוף עם צד שלישי.',
   },
@@ -58,6 +58,16 @@ export default function LandingPage() {
     els.forEach(el => io.observe(el));
     return () => io.disconnect();
   }, []);
+
+  /* ── Escape key closes mobile menu ── */
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [menuOpen]);
 
   return (
     <div className="landing" ref={revealRef}>
@@ -91,7 +101,7 @@ export default function LandingPage() {
         </button>
 
         {menuOpen && (
-          <div className="landing-nav__mobile-menu">
+          <div className="landing-nav__mobile-menu" role="dialog" aria-label="תפריט ניווט">
             <a href="/how-it-works" onClick={() => setMenuOpen(false)}>איך זה עובד</a>
             <a href="/faq" onClick={() => setMenuOpen(false)}>שאלות נפוצות</a>
             <a href="/pricing" onClick={() => setMenuOpen(false)}>מחירון</a>
@@ -100,11 +110,12 @@ export default function LandingPage() {
         )}
       </nav>
 
+      <main id="main-content">
       {/* ═══ Hero ═══ */}
       <section className="landing-hero">
         <div className="landing-hero__glow" />
         <div className="landing-hero__content">
-          <span className="landing-badge">✨ הדור הבא של אירועים חברתיים</span>
+          <span className="landing-badge"><span aria-hidden="true">✨</span> הדור הבא של אירועים חברתיים</span>
           <h1 className="landing-heading">
             הפכו כל אירוע<br />
             ל<span className="gradient-text">חוויית היכרויות</span> בלתי נשכחת
@@ -148,7 +159,7 @@ export default function LandingPage() {
 
       {/* ═══ Features ═══ */}
       <section id="features" className="landing-section landing-features reveal">
-        <span className="landing-badge">🎯 למה Eventa?</span>
+        <span className="landing-badge"><span aria-hidden="true">🎯</span> למה Eventa?</span>
         <h2 className="landing-heading" style={{ fontSize: 'clamp(26px, 4vw, 42px)' }}>
           הכל מה שהאירוע שלכם <span className="gradient-text">צריך</span>
         </h2>
@@ -170,7 +181,7 @@ export default function LandingPage() {
 
       {/* ═══ Demo ═══ */}
       <section id="demo" className="landing-section landing-demo reveal">
-        <span className="landing-badge">📱 ראו בעצמכם</span>
+        <span className="landing-badge"><span aria-hidden="true">📱</span> ראו בעצמכם</span>
         <h2 className="landing-heading" style={{ fontSize: 'clamp(26px, 4vw, 42px)' }}>
           חווית השימוש - <span className="gradient-text">בדיוק ככה</span>
         </h2>
@@ -191,7 +202,7 @@ export default function LandingPage() {
           <div className="demo-phone-wrapper">
             <DemoPhone />
             <div className="demo-try-hint">
-              <span className="demo-try-hand">👆</span>
+              <span className="demo-try-hand" aria-hidden="true">👆</span>
               <span>לחצו וגלו - זה אינטראקטיבי!</span>
             </div>
           </div>
@@ -247,7 +258,7 @@ export default function LandingPage() {
 
       {/* ═══ Order / Contact ═══ */}
       <section id="order" className="landing-section landing-order reveal">
-        <span className="landing-badge">📋 בואו נתחיל</span>
+        <span className="landing-badge"><span aria-hidden="true">📋</span> בואו נתחיל</span>
         <h2 className="landing-heading" style={{ fontSize: 'clamp(26px, 4vw, 42px)' }}>
           הזמינו <span className="gradient-text">Eventa</span> לאירוע שלכם
         </h2>
@@ -290,6 +301,8 @@ export default function LandingPage() {
         </div>
       </section>
 
+      </main>
+
       {/* ═══ Footer ═══ */}
       <footer className="landing-footer">
         <div className="landing-footer__brand">
@@ -302,7 +315,7 @@ export default function LandingPage() {
             quality={100}
           />
         </div>
-        <div className="landing-footer__links">
+        <nav className="landing-footer__links" aria-label="קישורים בתחתית">
           <a href="/how-it-works">איך זה עובד</a>
           <a href="/faq">שאלות נפוצות</a>
           <a href="/pricing">מחירון</a>
@@ -310,7 +323,7 @@ export default function LandingPage() {
           <a href="/terms">תנאי שימוש</a>
           <a href="/cookies">מדיניות עוגיות</a>
           <a href="/accessibility">הצהרת נגישות</a>
-        </div>
+        </nav>
         <p className="landing-footer__copy">
           © {new Date().getFullYear()} Eventa. כל הזכויות שמורות.
         </p>
