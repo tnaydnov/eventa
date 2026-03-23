@@ -149,6 +149,15 @@ export default function SwipeCard({
       <div
         onClick={handleCardTap}
         className="swipe-card-inner"
+        tabIndex={isTop ? 0 : -1}
+        role="region"
+        aria-roledescription="גלריית תמונות"
+        aria-label={`${participant.display_name} - תמונה ${photoIndex + 1} מתוך ${photos.length}`}
+        onKeyDown={(e) => {
+          if (photos.length <= 1) return;
+          if (e.key === 'ArrowLeft') { e.preventDefault(); setPhotoIndex((i) => (i - 1 + photos.length) % photos.length); }
+          else if (e.key === 'ArrowRight') { e.preventDefault(); setPhotoIndex((i) => (i + 1) % photos.length); }
+        }}
       >
         {/* ── Photo ── */}
         {photos.length > 0 ? (

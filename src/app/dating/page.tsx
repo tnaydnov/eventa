@@ -72,7 +72,7 @@ export default function LandingPage() {
   return (
     <div className="landing" ref={revealRef}>
       {/* ═══ Nav ═══ */}
-      <nav className="landing-nav">
+      <nav className="landing-nav" aria-label="ניווט ראשי">
         <div className="landing-nav__logo">
           <Image
             src="/icons/Eventa_Logo.png"

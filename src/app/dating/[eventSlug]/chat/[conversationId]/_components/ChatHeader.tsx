@@ -32,8 +32,13 @@ export default function ChatHeader({ otherUser, onBack, onUserClick, onMenuToggl
           border: 'none',
           color: 'var(--foreground)',
           cursor: 'pointer',
-          padding: '4px',
+          padding: '8px',
           fontSize: '18px',
+          minWidth: '44px',
+          minHeight: '44px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
         ←
@@ -43,6 +48,10 @@ export default function ChatHeader({ otherUser, onBack, onUserClick, onMenuToggl
         <div
           style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, cursor: 'pointer' }}
           onClick={onUserClick}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onUserClick(); } }}
+          aria-label={`פרופיל ${otherUser.display_name}`}
         >
           {otherUser.photos.length > 0 ? (
             <img

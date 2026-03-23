@@ -48,9 +48,9 @@ export default class ErrorBoundary extends Component<Props, State> {
           }}
         >
           <div style={{ fontSize: '48px' }} aria-hidden="true">😵</div>
-          <h2 style={{ fontSize: '20px', color: '#e91e63', margin: 0 }}>
+          <h1 style={{ fontSize: '20px', color: '#e91e63', margin: 0 }}>
             אופס, משהו השתבש
-          </h2>
+          </h1>
           <p style={{ color: '#8892b0', fontSize: '14px', maxWidth: '280px' }}>
             קרתה שגיאה לא צפויה. נסו לרענן את הדף.
           </p>

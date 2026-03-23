@@ -46,6 +46,7 @@ export default function AddPhoneForm({ onAdd, disabled }: AddPhoneFormProps) {
             className="portal-input portal-input--rtl"
             type="text"
             placeholder="שם (אופציונלי)"
+            aria-label="שם (אופציונלי)"
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={disabled || loading}
@@ -58,6 +59,7 @@ export default function AddPhoneForm({ onAdd, disabled }: AddPhoneFormProps) {
             type="tel"
             inputMode="tel"
             placeholder="050-1234567"
+            aria-label="מספר טלפון"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             disabled={disabled || loading}
@@ -75,7 +77,7 @@ export default function AddPhoneForm({ onAdd, disabled }: AddPhoneFormProps) {
         </div>
       </form>
       {error && (
-        <p style={{ color: '#f87171', fontSize: '0.8rem', marginTop: 8 }}>
+        <p role="alert" style={{ color: '#f87171', fontSize: '0.8rem', marginTop: 8 }}>
           {error}
         </p>
       )}

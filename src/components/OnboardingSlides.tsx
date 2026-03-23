@@ -118,10 +118,12 @@ export default function OnboardingSlides({ onComplete }: OnboardingSlidesProps) 
         </div>
 
         {/* Dots */}
-        <div style={styles.dots}>
+        <div style={styles.dots} role="group" aria-label="מיקום בשקופיות">
           {SLIDES.map((_, i) => (
             <div
               key={i}
+              role="img"
+              aria-label={`שקופית ${i + 1} מתוך ${SLIDES.length}${i === current ? ' (נוכחית)' : ''}`}
               style={{
                 ...styles.dot,
                 ...(i === current ? styles.dotActive : {}),

@@ -143,11 +143,13 @@ export default function LikesPage({
           <AppHeader />
           <div className="main-content">
             {/* Sub-tabs */}
-            <div style={{ display: 'flex', borderBottom: '1px solid var(--card-border)' }} role="tablist" aria-label="סוגי לייקים">
+            <div style={{ display: 'flex', borderBottom: '1px solid var(--card-border)' }} role="tablist" aria-label="סוגי לייקים" onKeyDown={(e) => { const tabs = ['matches', 'received', 'sent'] as const; const idx = tabs.indexOf(tab); let next: typeof tab | undefined; if (e.key === 'ArrowLeft') next = tabs[(idx + 1) % 3]; else if (e.key === 'ArrowRight') next = tabs[(idx - 1 + 3) % 3]; if (next) { e.preventDefault(); setTab(next); document.getElementById(`tab-${next}`)?.focus(); } }}>
               <button
                 onClick={() => setTab('matches')}
+                id="tab-matches"
                 role="tab"
                 aria-selected={tab === 'matches'}
+                tabIndex={tab === 'matches' ? 0 : -1}
                 aria-controls="tabpanel-likes"
                 style={{
                   flex: 1, padding: '12px', background: 'none', border: 'none',
@@ -160,8 +162,10 @@ export default function LikesPage({
               </button>
               <button
                 onClick={() => setTab('received')}
+                id="tab-received"
                 role="tab"
                 aria-selected={tab === 'received'}
+                tabIndex={tab === 'received' ? 0 : -1}
                 aria-controls="tabpanel-likes"
                 style={{
                   flex: 1, padding: '12px', background: 'none', border: 'none',
@@ -174,8 +178,10 @@ export default function LikesPage({
               </button>
               <button
                 onClick={() => setTab('sent')}
+                id="tab-sent"
                 role="tab"
                 aria-selected={tab === 'sent'}
+                tabIndex={tab === 'sent' ? 0 : -1}
                 aria-controls="tabpanel-likes"
                 style={{
                   flex: 1, padding: '12px', background: 'none', border: 'none',
@@ -191,7 +197,7 @@ export default function LikesPage({
             {loading ? (
               <LikesSkeleton />
             ) : (
-              <div className="likes-section" id="tabpanel-likes" role="tabpanel">
+              <div className="likes-section" id="tabpanel-likes" role="tabpanel" aria-labelledby={`tab-${tab}`}>
                 {tab === 'matches' ? (
                   matches.length === 0 ? (
                     <div style={{ textAlign: 'center', color: 'var(--foreground)', padding: '40px' }}>

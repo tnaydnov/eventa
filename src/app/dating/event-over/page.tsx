@@ -173,7 +173,7 @@ function EventOverContent() {
       </div>
 
       {/* Bottom: progress ring + countdown */}
-      <div className="eo__bottom">
+      <div className="eo__bottom" role="timer" aria-live="polite" aria-label={`מועברים לאתר הראשי בעוד ${countdown} שניות`}>
         <div className="eo__timer">
           <svg className="eo__ring" viewBox="0 0 40 40">
             <circle className="eo__ring-bg" cx="20" cy="20" r="17" />

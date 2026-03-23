@@ -190,6 +190,10 @@ export default function ProfilePhotoGrid({
               onDrop={() => handleDrop(idx)}
               onDragEnd={handleDragEnd}
               onClick={() => handlePhotoTap(idx)}
+              role="button"
+              tabIndex={0}
+              aria-label={`תמונה ${idx + 1}${idx === 0 ? ' (ראשית)' : ''}${selectedIdx === idx ? ' - נבחרה' : ''}`}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handlePhotoTap(idx); } }}
             >
               <img src={getPhotoUrl(photo.storage_path)} alt="" draggable={false} />
               {deletingId === photo.id && (
@@ -212,6 +216,7 @@ export default function ProfilePhotoGrid({
                 className="profile-edit-photo-remove"
                 onClick={(e) => { e.stopPropagation(); handleDeletePhoto(photo); }}
                 disabled={deletingId === photo.id}
+                aria-label={`מחיקת תמונה ${idx + 1}`}
               >✕</button>
               {idx === 0 && <span className="profile-edit-photo-badge">ראשית</span>}
               <span className="profile-edit-photo-order">{idx + 1}</span>

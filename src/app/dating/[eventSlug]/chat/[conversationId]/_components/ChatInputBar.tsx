@@ -24,6 +24,7 @@ export default function ChatInputBar({
     <div className="message-input-bar">
       <button
         onClick={() => fileInputRef.current?.click()}
+        aria-label="שליחת תמונה"
         style={{
           background: 'var(--primary)',
           border: 'none',
@@ -49,6 +50,7 @@ export default function ChatInputBar({
       />
       <input
         placeholder="הקלידו הודעה..."
+        aria-label="הקלידו הודעה"
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
@@ -58,7 +60,7 @@ export default function ChatInputBar({
           }
         }}
       />
-      <button onClick={onSend} disabled={!text.trim() || sending}>
+      <button onClick={onSend} disabled={!text.trim() || sending} aria-label="שליחת הודעה">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <line x1="22" y1="2" x2="11" y2="13" />
           <polygon points="22 2 15 22 11 13 2 9 22 2" />

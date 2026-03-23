@@ -79,6 +79,7 @@ export default function GuestListTable({
           type="text"
           className="portal-search-input"
           placeholder="🔍 חיפוש לפי שם או מספר טלפון..."
+          aria-label="חיפוש לפי שם או מספר טלפון"
           defaultValue={searchQuery}
           onChange={handleSearchInput}
           dir="rtl"
@@ -92,19 +93,26 @@ export default function GuestListTable({
             לא נמצאו תוצאות לחיפוש &quot;{searchQuery}&quot;
           </p>
         ) : (
-          <div className="portal-guest-table">
+          <div className="portal-guest-table" role="table" aria-label="רשימת אורחים">
+            <div role="row" style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}>
+              <span role="columnheader">שם</span>
+              <span role="columnheader">טלפון</span>
+              <span role="columnheader">סטטוס</span>
+              {!isReadOnly && <span role="columnheader">פעולות</span>}
+            </div>
             {guests.map((guest) => (
-              <div key={guest.id} className="portal-guest-row">
-                <span className="portal-guest-name">
+              <div key={guest.id} className="portal-guest-row" role="row">
+                <span className="portal-guest-name" role="cell">
                   {guest.name || '-'}
                 </span>
-                <span className="portal-guest-phone">{guest.phone}</span>
+                <span className="portal-guest-phone" role="cell">{guest.phone}</span>
                 <span
                   className={`portal-guest-status ${
                     guest.sent
                       ? 'portal-guest-status--sent'
                       : 'portal-guest-status--pending'
                   }`}
+                  role="cell"
                 >
                   {guest.sent ? 'נשלח ✓' : 'ממתין'}
                 </span>
@@ -114,6 +122,7 @@ export default function GuestListTable({
                     onClick={() => handleRemove(guest.id)}
                     disabled={guest.sent || removingId === guest.id}
                     title={guest.sent ? 'לא ניתן להסיר - כבר נשלחה הודעה' : 'הסרה'}
+                    aria-label="הסרת אורח"
                   >
                     {removingId === guest.id ? '…' : '🗑'}
                   </button>
