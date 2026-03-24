@@ -242,6 +242,9 @@ export default function LikesPage({
                     <div style={{ textAlign: 'center', color: 'var(--foreground)', padding: '40px' }}>
                       <div style={{ marginBottom: '16px', opacity: 0.8 }}><HeartFilledIcon size={48} color="var(--primary)" /></div>
                       <p style={{ fontSize: '16px', fontWeight: 500 }}>עדיין לא קיבלתם לייקים</p>
+                      <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '8px' }}>
+                        כשמישהו יעשה לכם לייק - הוא יופיע כאן!
+                      </p>
                     </div>
                   ) : (
                     <StaggerContainer className="profile-grid">
@@ -259,6 +262,9 @@ export default function LikesPage({
                   <div style={{ textAlign: 'center', color: 'var(--foreground)', padding: '40px' }}>
                     <div style={{ marginBottom: '16px', opacity: 0.8 }}><HeartIcon size={48} color="var(--primary)" /></div>
                     <p style={{ fontSize: '16px', fontWeight: 500 }}>עדיין לא עשיתם לייקים</p>
+                    <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '8px' }}>
+                      גלשו לגריד ותעשו לייק למי שמוצא חן לכם!
+                    </p>
                   </div>
                 ) : (
                   <StaggerContainer className="profile-grid">
