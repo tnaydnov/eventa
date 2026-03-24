@@ -19,11 +19,12 @@
   margin: 0 auto;
 }
 
-/* Alternating section tints for visual rhythm */
-.landing-section:nth-child(odd) {
+/* Alternating section tints for visual rhythm
+   Sections sit at odd positions inside <main>, so use even to skip all. */
+.landing-section:nth-child(even) {
   position: relative;
 }
-.landing-section:nth-child(odd)::before {
+.landing-section:nth-child(even)::before {
   content: '';
   position: absolute;
   inset: 0;
