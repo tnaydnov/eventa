@@ -40,7 +40,7 @@ export default function UploadResultDisplay({
           <span>{invalid} לא תקינים</span>
         </div>
       )}
-      <div className="portal-result-line" style={{ marginTop: 8 }}>
+      <div className="portal-result-line portal-result-line--summary">
         <span>📊</span>
         <span>סה״כ ברשימה: {totalInList} אורחים</span>
       </div>
@@ -48,13 +48,13 @@ export default function UploadResultDisplay({
       {errors.length > 0 && (
         <div className="portal-result-errors">
           <strong>פירוט שגיאות:</strong>
-          {errors.slice(0, 10).map((err, i) => (
-            <div key={i} className="portal-result-error-item">
+          {errors.slice(0, 10).map((err) => (
+            <div key={`${err.row}-${err.phone}-${err.reason}`} className="portal-result-error-item">
               שורה {err.row}: {err.phone || '(ריק)'} - {err.reason}
             </div>
           ))}
           {errors.length > 10 && (
-            <div className="portal-result-error-item" style={{ opacity: 0.6 }}>
+            <div className="portal-result-error-item portal-result-error-item--faded">
               ו-{errors.length - 10} שגיאות נוספות…
             </div>
           )}

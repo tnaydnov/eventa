@@ -37,15 +37,25 @@ export interface UploadResult {
   totalInList: number;
 }
 
-export interface AddPhoneResult {
-  success: boolean;
+export interface MutationResult {
   totalInList: number;
-  error?: string;
+}
+
+// ─── Helpers ────────────────────────────────────────────
+
+const portalUrl = (token: string) => `/api/guest-portal/${token}`;
+
+async function parseBody(res: Response): Promise<Record<string, unknown>> {
+  return res.json().catch(() => ({}));
+}
+
+async function ensureOk(res: Response, fallback: string): Promise<Record<string, unknown>> {
+  const body = await parseBody(res);
+  if (!res.ok) throw new Error((body.error as string) || fallback);
+  return body;
 }
 
 // ─── API Functions ──────────────────────────────────────
-
-const portalUrl = (token: string) => `/api/guest-portal/${token}`;
 
 /** Fetch portal data with paginated guest list. */
 export async function getPortalData(
@@ -56,11 +66,8 @@ export async function getPortalData(
   const params = new URLSearchParams({ page: String(page) });
   if (search.trim()) params.set('search', search.trim());
   const res = await fetch(`${portalUrl(token)}?${params}`);
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || 'שגיאה בטעינת הנתונים');
-  }
-  return res.json();
+  const body = await ensureOk(res, 'שגיאה בטעינת הנתונים');
+  return body as unknown as PortalData;
 }
 
 /** Upload a guest phone file (Excel / CSV). */
@@ -76,56 +83,39 @@ export async function uploadGuestFile(
     body: formData,
   });
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || 'שגיאה בהעלאת הקובץ');
-  }
-  return res.json();
+  const body = await ensureOk(res, 'שגיאה בהעלאת הקובץ');
+  return body as unknown as UploadResult;
 }
 
-/** Add a single phone number to the guest list. */
+/** Add a single phone number to the guest list. Throws on failure. */
 export async function addGuestPhone(
   token: string,
   phone: string,
   name?: string
-): Promise<AddPhoneResult> {
+): Promise<MutationResult> {
   const res = await fetch(portalUrl(token), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ phone, name: name || undefined }),
   });
 
-  const body = await res.json().catch(() => ({}));
-
-  if (!res.ok) {
-    return {
-      success: false,
-      totalInList: 0,
-      error: body.error || 'שגיאה בהוספת המספר',
-    };
-  }
-
-  return { success: true, totalInList: body.totalInList };
+  const body = await ensureOk(res, 'שגיאה בהוספת המספר');
+  return { totalInList: (body.totalInList as number) ?? 0 };
 }
 
-/** Remove a phone from the guest list by ID. */
+/** Remove a phone from the guest list by ID. Throws on failure. */
 export async function removeGuestPhone(
   token: string,
   phoneId: string
-): Promise<{ success: boolean; totalInList: number; error?: string }> {
+): Promise<MutationResult> {
   const res = await fetch(portalUrl(token), {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ phoneId }),
   });
 
-  const body = await res.json().catch(() => ({}));
-
-  if (!res.ok) {
-    return { success: false, totalInList: 0, error: body.error || 'שגיאה בהסרת המספר' };
-  }
-
-  return { success: true, totalInList: body.totalInList };
+  const body = await ensureOk(res, 'שגיאה בהסרת המספר');
+  return { totalInList: (body.totalInList as number) ?? 0 };
 }
 
 /** Get download URL for the guest template Excel file. */

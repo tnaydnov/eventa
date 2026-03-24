@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { type ChangeEvent, useState, useCallback, useRef, useEffect } from 'react';
 import type { PortalGuest } from '@/lib/api/guest-portal';
 
 interface GuestListTableProps {
@@ -27,13 +27,25 @@ export default function GuestListTable({
   onSearch,
 }: GuestListTableProps) {
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState('');
+  const [searchValue, setSearchValue] = useState(searchQuery);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   const handleRemove = useCallback(
     async (phoneId: string) => {
       setRemovingId(phoneId);
+      setRemoveError('');
       try {
         await onRemove(phoneId);
+      } catch (err) {
+        setRemoveError(err instanceof Error ? err.message : 'שגיאה בהסרת המספר');
       } finally {
         setRemovingId(null);
       }
@@ -42,9 +54,9 @@ export default function GuestListTable({
   );
 
   const handleSearchInput = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: ChangeEvent<HTMLInputElement>) => {
       const val = e.target.value;
-      // Debounce search to avoid spamming API
+      setSearchValue(val);
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
         onSearch(val);
@@ -57,7 +69,7 @@ export default function GuestListTable({
     return (
       <div className="portal-section">
         <h2 className="portal-section-title">📋 רשימת אורחים</h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '20px 0' }}>
+        <p className="portal-no-results">
           טרם הועלו מספרים. העלו קובץ או הוסיפו מספרים בודדים.
         </p>
       </div>
@@ -73,63 +85,72 @@ export default function GuestListTable({
         <span className="portal-list-count">{total} אורחים</span>
       </div>
 
-      {/* Search input */}
+      {/* Search input — controlled */}
       <div className="portal-search-wrapper">
         <input
           type="text"
           className="portal-search-input"
           placeholder="🔍 חיפוש לפי שם או מספר טלפון..."
           aria-label="חיפוש לפי שם או מספר טלפון"
-          defaultValue={searchQuery}
+          value={searchValue}
           onChange={handleSearchInput}
           dir="rtl"
         />
       </div>
 
+      {removeError && (
+        <p role="alert" className="portal-field-error">{removeError}</p>
+      )}
+
       {/* Scrollable guest table */}
       <div className="portal-guest-scroll">
         {guests.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', textAlign: 'center', padding: '16px 0' }}>
+          <p className="portal-no-results">
             לא נמצאו תוצאות לחיפוש &quot;{searchQuery}&quot;
           </p>
         ) : (
-          <div className="portal-guest-table" role="table" aria-label="רשימת אורחים">
-            <div role="row" style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}>
-              <span role="columnheader">שם</span>
-              <span role="columnheader">טלפון</span>
-              <span role="columnheader">סטטוס</span>
-              {!isReadOnly && <span role="columnheader">פעולות</span>}
-            </div>
-            {guests.map((guest) => (
-              <div key={guest.id} className="portal-guest-row" role="row">
-                <span className="portal-guest-name" role="cell">
-                  {guest.name || '-'}
-                </span>
-                <span className="portal-guest-phone" role="cell">{guest.phone}</span>
-                <span
-                  className={`portal-guest-status ${
-                    guest.sent
-                      ? 'portal-guest-status--sent'
-                      : 'portal-guest-status--pending'
-                  }`}
-                  role="cell"
-                >
-                  {guest.sent ? 'נשלח ✓' : 'ממתין'}
-                </span>
-                {!isReadOnly && (
-                  <button
-                    className="portal-guest-remove"
-                    onClick={() => handleRemove(guest.id)}
-                    disabled={guest.sent || removingId === guest.id}
-                    title={guest.sent ? 'לא ניתן להסיר - כבר נשלחה הודעה' : 'הסרה'}
-                    aria-label="הסרת אורח"
+          <table className="portal-guest-table" aria-label="רשימת אורחים">
+            <thead className="sr-only">
+              <tr>
+                <th>שם</th>
+                <th>טלפון</th>
+                <th>סטטוס</th>
+                {!isReadOnly && <th>פעולות</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {guests.map((guest) => (
+                <tr key={guest.id} className="portal-guest-row">
+                  <td className="portal-guest-name">
+                    {guest.name || '-'}
+                  </td>
+                  <td className="portal-guest-phone">{guest.phone}</td>
+                  <td
+                    className={`portal-guest-status ${
+                      guest.sent
+                        ? 'portal-guest-status--sent'
+                        : 'portal-guest-status--pending'
+                    }`}
                   >
-                    {removingId === guest.id ? '…' : '🗑'}
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
+                    {guest.sent ? 'נשלח ✓' : 'ממתין'}
+                  </td>
+                  {!isReadOnly && (
+                    <td>
+                      <button
+                        className="portal-guest-remove"
+                        onClick={() => handleRemove(guest.id)}
+                        disabled={guest.sent || removingId === guest.id}
+                        title={guest.sent ? 'לא ניתן להסיר - כבר נשלחה הודעה' : 'הסרה'}
+                        aria-label="הסרת אורח"
+                      >
+                        {removingId === guest.id ? '…' : '🗑'}
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
 

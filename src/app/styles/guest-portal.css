@@ -309,6 +309,20 @@
   line-height: 1.5;
 }
 
+.portal-result-line--summary {
+  margin-top: 8px;
+}
+
+.portal-result-error-item--faded {
+  opacity: 0.6;
+}
+
+.portal-field-error {
+  color: #f87171;
+  font-size: 0.82rem;
+  margin: 6px 0;
+}
+
 /* ── Guest List Table ── */
 .portal-list-header {
   display: flex;
@@ -325,17 +339,20 @@
 .portal-guest-table {
   width: 100%;
   font-size: 0.8rem;
+  border-collapse: collapse;
 }
 
 .portal-guest-row {
-  display: flex;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  gap: 8px;
+  display: table-row;
 }
 
-.portal-guest-row:last-child {
+.portal-guest-row td {
+  padding: 10px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: middle;
+}
+
+.portal-guest-row:last-child td {
   border-bottom: none;
 }
 
@@ -805,6 +822,14 @@
 
 .wa-msg-text strong {
   color: #fff;
+}
+
+.wa-msg-text--spaced {
+  margin-top: 4px;
+}
+
+.wa-encrypt-icon {
+  opacity: 0.6;
 }
 
 .wa-msg-link {

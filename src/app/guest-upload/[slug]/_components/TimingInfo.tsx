@@ -1,29 +1,7 @@
-'use client';
+import { formatSendTime, formatDeadline } from '../formatters';
 
 interface TimingInfoProps {
   startsAt: string;
-}
-
-const hebrewFormat: Intl.DateTimeFormatOptions = {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-  hour: '2-digit',
-  minute: '2-digit',
-};
-
-function formatSendTime(startsAt: string): string {
-  const eventDate = new Date(startsAt);
-  // Messages sent 3 hours before event
-  const sendTime = new Date(eventDate.getTime() - 3 * 60 * 60 * 1000);
-  return new Intl.DateTimeFormat('he-IL', hebrewFormat).format(sendTime);
-}
-
-function formatDeadline(startsAt: string): string {
-  const eventDate = new Date(startsAt);
-  // Deadline = 2 hours before send time = 5 hours before event
-  const deadline = new Date(eventDate.getTime() - 5 * 60 * 60 * 1000);
-  return new Intl.DateTimeFormat('he-IL', hebrewFormat).format(deadline);
 }
 
 export default function TimingInfo({ startsAt }: TimingInfoProps) {

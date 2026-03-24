@@ -1,17 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { formatTime } from '../formatters';
 
 interface MessagePreviewProps {
   eventName: string;
   startsAt: string;
-}
-
-function formatTime(startsAt: string): string {
-  return new Intl.DateTimeFormat('he-IL', {
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(startsAt));
 }
 
 export default function MessagePreview({ eventName, startsAt }: MessagePreviewProps) {
@@ -71,10 +65,10 @@ export default function MessagePreview({ eventName, startsAt }: MessagePreviewPr
                 <p className="wa-msg-text" style={{ marginTop: 4 }}>
                   באירוע תהיה לכם הזדמנות להצטרף לאפליקציית <strong>Eventa</strong> - ולראות את שאר הרווקים והרווקות שיהיו שם.
                 </p>
-                <p className="wa-msg-text" style={{ marginTop: 4 }}>
+                <p className="wa-msg-text wa-msg-text--spaced">
                   אל תדאגו - זו אפליקציה ייעודית רק לאירוע זה, וכל הנתונים שלכם יימחקו כשבוע לאחר האירוע. 🔒
                 </p>
-                <p className="wa-msg-text" style={{ marginTop: 4 }}>
+                <p className="wa-msg-text wa-msg-text--spaced">
                   כדאי לכם להיכנס כבר עכשיו ולבדוק את השטח…{'\n'}אולי תשיגו משהו מעניין 😏
                 </p>
                 <p className="wa-msg-link">

@@ -21,12 +21,16 @@ export default function UploadZone({ onUpload, templateUrl, disabled }: UploadZo
   const [showGuide, setShowGuide] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const [fileError, setFileError] = useState('');
+
   const handleFile = useCallback(
     async (file: File) => {
       const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
       if (!ACCEPTED.includes(file.type) && !ACCEPTED_EXT.includes(ext)) {
+        setFileError('סוג קובץ לא נתמך. אנא העלו קובץ Excel (.xlsx) או CSV.');
         return;
       }
+      setFileError('');
       setUploading(true);
       try {
         await onUpload(file);
@@ -109,7 +113,6 @@ export default function UploadZone({ onUpload, templateUrl, disabled }: UploadZo
         href={templateUrl}
         download
         className="portal-template-btn"
-        tabIndex={0}
       >
         📥 הורידו את הטמפלט
       </a>
@@ -154,6 +157,10 @@ export default function UploadZone({ onUpload, templateUrl, disabled }: UploadZo
             <p>✅ מספרים כפולים יסוננו אוטומטית</p>
           </div>
         </div>
+      )}
+
+      {fileError && (
+        <p role="alert" className="portal-field-error">{fileError}</p>
       )}
 
       {/* Drop zone */}

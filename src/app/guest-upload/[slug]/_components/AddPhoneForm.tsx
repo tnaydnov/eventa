@@ -1,9 +1,14 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { type FormEvent, useState, useCallback } from 'react';
+
+/** Strip spaces/dashes from phone for cleaner submission. */
+function normalizePhone(raw: string): string {
+  return raw.replace(/[\s\-()]/g, '');
+}
 
 interface AddPhoneFormProps {
-  onAdd: (phone: string, name?: string) => Promise<{ success: boolean; error?: string }>;
+  onAdd: (phone: string, name?: string) => Promise<void>;
   disabled?: boolean;
 }
 
@@ -14,22 +19,18 @@ export default function AddPhoneForm({ onAdd, disabled }: AddPhoneFormProps) {
   const [error, setError] = useState('');
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: FormEvent) => {
       e.preventDefault();
-      const trimmed = phone.trim();
-      if (!trimmed) return;
+      const normalized = normalizePhone(phone);
+      if (!normalized) return;
       setError('');
       setLoading(true);
       try {
-        const result = await onAdd(trimmed, name.trim() || undefined);
-        if (result.success) {
-          setPhone('');
-          setName('');
-        } else {
-          setError(result.error || 'שגיאה בהוספת המספר');
-        }
-      } catch {
-        setError('שגיאה בהוספת המספר');
+        await onAdd(normalized, name.trim() || undefined);
+        setPhone('');
+        setName('');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'שגיאה בהוספת המספר');
       } finally {
         setLoading(false);
       }
@@ -77,7 +78,7 @@ export default function AddPhoneForm({ onAdd, disabled }: AddPhoneFormProps) {
         </div>
       </form>
       {error && (
-        <p role="alert" style={{ color: '#f87171', fontSize: '0.8rem', marginTop: 8 }}>
+        <p role="alert" className="portal-field-error">
           {error}
         </p>
       )}

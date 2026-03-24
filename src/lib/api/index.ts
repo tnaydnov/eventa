@@ -46,5 +46,5 @@ export type {
   PortalData,
   PortalGuest,
   UploadResult,
-  AddPhoneResult,
+  MutationResult,
 } from './guest-portal';
