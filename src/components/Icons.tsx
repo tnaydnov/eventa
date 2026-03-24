@@ -104,7 +104,7 @@ export function SparklesIcon({ size = 18, color = 'currentColor', className, 'ar
 
 export function MatchHeartIcon({ size = 18, color = 'currentColor', className, 'aria-hidden': ariaHidden = true }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 28 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden={ariaHidden} focusable="false">
+    <svg width={Math.round(size * 28 / 24)} height={size} viewBox="0 0 28 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden={ariaHidden} focusable="false">
       <path d="M18.84 4.61a5.5 5.5 0 00-7.78 0L10 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L10 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" opacity="0.45" />
       <path d="M26.84 4.61a5.5 5.5 0 00-7.78 0L18 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L18 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
     </svg>
