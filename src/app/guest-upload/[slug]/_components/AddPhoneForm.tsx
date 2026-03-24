@@ -1,11 +1,7 @@
 'use client';
 
 import { type FormEvent, useState, useCallback } from 'react';
-
-/** Strip spaces/dashes from phone for cleaner submission. */
-function normalizePhone(raw: string): string {
-  return raw.replace(/[\s\-()]/g, '');
-}
+import { normalizePhone } from '@/lib/messaging/phone-utils';
 
 interface AddPhoneFormProps {
   onAdd: (phone: string, name?: string) => Promise<void>;
@@ -22,7 +18,10 @@ export default function AddPhoneForm({ onAdd, disabled }: AddPhoneFormProps) {
     async (e: FormEvent) => {
       e.preventDefault();
       const normalized = normalizePhone(phone);
-      if (!normalized) return;
+      if (!normalized) {
+        setError('מספר לא תקין — הזינו סלולרי ישראלי (למשל 050-1234567 או +972501234567)');
+        return;
+      }
       setError('');
       setLoading(true);
       try {

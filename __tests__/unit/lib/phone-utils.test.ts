@@ -78,6 +78,36 @@ describe('normalizePhone', () => {
       expect(normalized).toBe(`+972${prefix.slice(1)}1234567`);
     }
   });
+
+  // ── New format support ────────────────────────────────
+
+  it('normalizes +972 with redundant leading zero +9720501234567', () => {
+    expect(normalizePhone('+9720501234567')).toBe('+972501234567');
+  });
+
+  it('normalizes +972-050-1234567 (dashes + redundant zero)', () => {
+    expect(normalizePhone('+972-050-1234567')).toBe('+972501234567');
+  });
+
+  it('normalizes 9720501234567 (no plus, redundant zero)', () => {
+    expect(normalizePhone('9720501234567')).toBe('+972501234567');
+  });
+
+  it('normalizes 00972501234567 (international dial prefix)', () => {
+    expect(normalizePhone('00972501234567')).toBe('+972501234567');
+  });
+
+  it('normalizes 009720501234567 (international dial + redundant zero)', () => {
+    expect(normalizePhone('009720501234567')).toBe('+972501234567');
+  });
+
+  it('normalizes bare 501234567 (Excel-stripped leading zero)', () => {
+    expect(normalizePhone('501234567')).toBe('+972501234567');
+  });
+
+  it('normalizes bare 521234567 (Excel-stripped, prefix 052)', () => {
+    expect(normalizePhone('521234567')).toBe('+972521234567');
+  });
 });
 
 // ─── isValidIsraeliMobile ───────────────────────────────

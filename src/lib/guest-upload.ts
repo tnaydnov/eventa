@@ -192,14 +192,8 @@ export function validateGuestRows(
     const row = rows[i];
     const rowNum = i + 2; // 1-based, +1 for header row
 
-    // Smart parsing: if phone looks like a number (no leading zero), prepend '0'
-    let rawPhone = row.phone;
-    if (/^\d{8,9}$/.test(rawPhone) && !rawPhone.startsWith('0')) {
-      rawPhone = '0' + rawPhone;
-    }
-
-    // Normalize
-    const normalized = normalizePhone(rawPhone);
+    // Normalize (handles all Israeli formats including Excel-stripped leading zeros)
+    const normalized = normalizePhone(row.phone);
     if (!normalized) {
       invalid++;
       errors.push({
@@ -211,7 +205,7 @@ export function validateGuestRows(
     }
 
     // Validate Israeli mobile
-    if (!isValidIsraeliMobile(rawPhone)) {
+    if (!isValidIsraeliMobile(normalized)) {
       invalid++;
       errors.push({
         row: rowNum,
