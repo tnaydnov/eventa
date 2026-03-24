@@ -1,86 +1,61 @@
-'use client';
+import { LegalSection, LegalText } from '@/components/legal';
 
-/* Shared inline styles */
-const sectionStyle: React.CSSProperties = { marginBottom: '36px' };
-const headingStyle: React.CSSProperties = {
-  fontSize: '1.125rem', fontWeight: 700, color: '#d4a59a',
-  marginBottom: '14px', paddingBottom: '8px',
-  borderBottom: '1px solid rgba(212, 165, 154, 0.15)',
-};
-const textStyle: React.CSSProperties = { color: '#ccc', fontSize: '0.9375rem', lineHeight: 1.8, margin: '0 0 10px' };
-const tableStyle: React.CSSProperties = {
-  width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem', marginTop: '12px',
-};
-const thStyle: React.CSSProperties = {
-  textAlign: 'right', padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.12)',
-  color: '#d4a59a', fontWeight: 600, fontSize: '0.8125rem',
-};
-const tdStyle: React.CSSProperties = {
-  textAlign: 'right', padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)',
-  color: '#bbb', fontSize: '0.875rem', verticalAlign: 'top',
-};
-const boldText: React.CSSProperties = { ...textStyle, fontWeight: 600, marginTop: '14px' };
+const thCls = 'text-right p-2.5 px-3 border-b border-white/12 text-[var(--primary)] font-semibold text-[0.8125rem]';
+const tdCls = 'text-right p-2.5 px-3 border-b border-white/[0.06] text-[#bbb] text-sm align-top';
 
 export default function CookiesContent() {
   return (
     <>
-      {/* Intro */}
-      <div style={sectionStyle}>
-        <p style={textStyle}>
+      <LegalSection title="מבוא">
+        <LegalText>
           השירות משתמש ב<strong>עוגיות חיוניות</strong> להפעלת התחברות ואבטחת סשן.
           איננו משתמשים בעוגיות פרסום או מעקב.
-        </p>
-      </div>
+        </LegalText>
+      </LegalSection>
 
-      {/* טבלת עוגיות */}
-      <div style={sectionStyle}>
-        <h2 style={headingStyle}>עוגיות עיקריות</h2>
-        <table style={tableStyle}>
+      <LegalSection title="עוגיות עיקריות">
+        <table className="w-full border-collapse text-sm mt-3">
           <thead>
             <tr>
-              <th scope="col" style={thStyle}>שם העוגייה</th>
-              <th scope="col" style={thStyle}>מטרה</th>
-              <th scope="col" style={thStyle}>משך</th>
-              <th scope="col" style={thStyle}>סוג</th>
+              <th scope="col" className={thCls}>שם העוגייה</th>
+              <th scope="col" className={thCls}>מטרה</th>
+              <th scope="col" className={thCls}>משך</th>
+              <th scope="col" className={thCls}>סוג</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style={tdStyle}><code style={{ color: '#d4a59a' }}>ws_session</code></td>
-              <td style={tdStyle}>התחברות ושמירת מצב סשן משתמש</td>
-              <td style={tdStyle}>30 יום</td>
-              <td style={tdStyle}>חיונית / פונקציונלית</td>
+              <td className={tdCls}><code className="text-[var(--primary)]">ws_session</code></td>
+              <td className={tdCls}>התחברות ושמירת מצב סשן משתמש</td>
+              <td className={tdCls}>30 יום</td>
+              <td className={tdCls}>חיונית / פונקציונלית</td>
             </tr>
             <tr>
-              <td style={tdStyle}><code style={{ color: '#d4a59a' }}>ws_admin</code></td>
-              <td style={tdStyle}>גישה לממשק ניהול (אדמין)</td>
-              <td style={tdStyle}>48 שעות</td>
-              <td style={tdStyle}>חיונית / פונקציונלית</td>
+              <td className={tdCls}><code className="text-[var(--primary)]">ws_admin</code></td>
+              <td className={tdCls}>גישה לממשק ניהול (אדמין)</td>
+              <td className={tdCls}>48 שעות</td>
+              <td className={tdCls}>חיונית / פונקציונלית</td>
             </tr>
           </tbody>
         </table>
-      </div>
+      </LegalSection>
 
-      {/* אבטחה */}
-      <div style={sectionStyle}>
-        <h2 style={headingStyle}>מאפייני אבטחה</h2>
-        <p style={textStyle}>
+      <LegalSection title="מאפייני אבטחה">
+        <LegalText>
           כל העוגיות מוגדרות עם מאפייני אבטחה: <strong>HttpOnly</strong> (אינן נגישות ל-JavaScript),{' '}
           <strong>Secure</strong> (בסביבת פרודקשן), ו-<strong>SameSite</strong> (הגנה מפני CSRF).
-        </p>
-      </div>
+        </LegalText>
+      </LegalSection>
 
-      {/* ניהול */}
-      <div style={{ ...sectionStyle, marginBottom: 0 }}>
-        <h2 style={headingStyle}>ניהול עוגיות</h2>
-        <p style={textStyle}>
+      <LegalSection title="ניהול עוגיות">
+        <LegalText>
           העוגיות הן פונקציונליות ונדרשות להפעלת השירות. ניתן למחוק עוגיות דרך הגדרות הדפדפן,
           אך ייתכן שחלק מהשירות לא יעבוד לאחר מכן.
-        </p>
-        <p style={boldText}>
+        </LegalText>
+        <LegalText bold>
           Eventa אינה משתמשת בעוגיות לצרכי פרסום, מעקב, או אנליטיקה.
-        </p>
-      </div>
+        </LegalText>
+      </LegalSection>
     </>
   );
 }
