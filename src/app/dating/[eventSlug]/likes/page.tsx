@@ -201,7 +201,7 @@ export default function LikesPage({
                 {tab === 'matches' ? (
                   matches.length === 0 ? (
                     <div style={{ textAlign: 'center', color: 'var(--foreground)', padding: '40px' }}>
-                      <div style={{ marginBottom: '16px', opacity: 0.8 }}><MatchHeartIcon size={48} color="var(--primary)" /></div>
+                      <div style={{ marginBottom: '16px', opacity: 0.8 }}><MatchHeartIcon size={56} color="var(--primary)" /></div>
                       <p style={{ fontSize: '16px', fontWeight: 500 }}>עדיין אין התאמות</p>
                       <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '8px' }}>
                         כששני אנשים עושים לייק אחד לשני - זו התאמה!
