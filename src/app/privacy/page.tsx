@@ -1,12 +1,12 @@
-import type { Metadata } from 'next';
 import SitePageLayout from '@/components/SitePageLayout';
+import { legalMetadata } from '@/components/legal';
 import PrivacyContent from './PrivacyContent';
 
-export const metadata: Metadata = {
-  title: 'מדיניות פרטיות | Eventa',
-  description: 'מדיניות הפרטיות של Eventa - כיצד אנו אוספים, משתמשים ומגנים על המידע שלכם.',
-  alternates: { canonical: 'https://www.eventa.productions/privacy' },
-};
+export const metadata = legalMetadata(
+  'מדיניות פרטיות',
+  'מדיניות הפרטיות של Eventa - כיצד אנו אוספים, משתמשים ומגנים על המידע שלכם.',
+  '/privacy',
+);
 
 export default function PrivacyPage() {
   return (

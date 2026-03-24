@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
 
 export const metadata: Metadata = {
   title: 'איך זה עובד? | Eventa Dating',
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
 export default function HowItWorksLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return <>{children}</>;
 }

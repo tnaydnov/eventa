@@ -1,12 +1,12 @@
-import type { Metadata } from 'next';
 import SitePageLayout from '@/components/SitePageLayout';
+import { legalMetadata } from '@/components/legal';
 import TermsContent from './TermsContent';
 
-export const metadata: Metadata = {
-  title: 'תנאי שימוש | Eventa',
-  description: 'תנאי השימוש של Eventa - כללים, התחייבויות ומדיניות השירות.',
-  alternates: { canonical: 'https://www.eventa.productions/terms' },
-};
+export const metadata = legalMetadata(
+  'תנאי שימוש',
+  'תנאי השימוש של Eventa - כללים, התחייבויות ומדיניות השירות.',
+  '/terms',
+);
 
 export default function TermsPage() {
   return (

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
 import SitePageLayout from '@/components/SitePageLayout';
 
 export const metadata: Metadata = {
@@ -9,10 +10,17 @@ export const metadata: Metadata = {
 
 /* ── FAQ data grouped by category ── */
 
+interface FaqItem {
+  q: string;
+  a: ReactNode;
+  /** Plain-text fallback for JSON-LD when `a` contains JSX */
+  aText?: string;
+}
+
 interface FaqCategory {
   title: string;
-  icon: React.ReactNode;
-  items: { q: string; a: string }[];
+  icon: ReactNode;
+  items: FaqItem[];
 }
 
 const categories: FaqCategory[] = [
@@ -72,7 +80,8 @@ const categories: FaqCategory[] = [
       },
       {
         q: 'איך מזמינים?',
-        a: 'דרך טופס ההזמנה באתר - ממלאים פרטים, משלמים ומקבלים את הפוסטר. מעדיפים שניצור איתכם קשר? השאירו פרטים או שלחו מייל ל-contact@eventa.productions.',
+        a: <>דרך טופס ההזמנה באתר - ממלאים פרטים, משלמים ומקבלים את הפוסטר. מעדיפים שניצור איתכם קשר? השאירו פרטים או שלחו מייל ל-<a href="mailto:contact@eventa.productions" style={{ color: 'var(--primary)', textDecoration: 'none' }}>contact@eventa.productions</a>.</>,
+        aText: 'דרך טופס ההזמנה באתר - ממלאים פרטים, משלמים ומקבלים את הפוסטר. מעדיפים שניצור איתכם קשר? השאירו פרטים או שלחו מייל ל-contact@eventa.productions.',
       },
     ],
   },
@@ -126,7 +135,7 @@ export default function FaqPage() {
       name: faq.q,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: faq.a,
+        text: faq.aText ?? faq.a,
       },
     })),
   };
@@ -139,14 +148,14 @@ export default function FaqPage() {
       />
 
       <div className="faq">
-        {categories.map((cat, ci) => (
-          <div key={ci} className="faq__category">
+        {categories.map((cat) => (
+          <div key={cat.title} className="faq__category">
             <div className="faq__category-header">
               <div className="faq__category-icon">{cat.icon}</div>
               <h2 className="faq__category-title">{cat.title}</h2>
             </div>
-            {cat.items.map((item, ii) => (
-              <details key={ii} className="faq__item">
+            {cat.items.map((item) => (
+              <details key={item.q} className="faq__item">
                 <summary>{item.q}</summary>
                 <p className="faq__answer">{item.a}</p>
               </details>

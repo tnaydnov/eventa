@@ -1,254 +1,209 @@
-'use client';
-
-/* Shared inline styles */
-const sectionStyle: React.CSSProperties = { marginBottom: '36px' };
-const headingStyle: React.CSSProperties = {
-  fontSize: '1.125rem', fontWeight: 700, color: '#d4a59a',
-  marginBottom: '14px', paddingBottom: '8px',
-  borderBottom: '1px solid rgba(212, 165, 154, 0.15)',
-};
-const subHeadingStyle: React.CSSProperties = {
-  fontSize: '0.9375rem', fontWeight: 600, color: '#d4a59a',
-  marginBottom: '8px', marginTop: '16px',
-};
-const textStyle: React.CSSProperties = { color: '#ccc', fontSize: '0.9375rem', lineHeight: 1.8, margin: '0 0 10px' };
-const listStyle: React.CSSProperties = { ...textStyle, paddingRight: '20px', listStyleType: 'disc' };
-const liStyle: React.CSSProperties = { marginBottom: '8px' };
-const boldText: React.CSSProperties = { ...textStyle, fontWeight: 600, marginTop: '14px' };
-const linkColor: React.CSSProperties = { color: '#d4a59a', fontWeight: 500 };
+import { LegalSection, LegalSubheading, LegalText, LegalList, LegalLink } from '@/components/legal';
 
 export default function PrivacyContent() {
   return (
     <>
-      {/* מבוא */}
-      <div style={sectionStyle}>
-        <h2 style={headingStyle}>מבוא והגדרות</h2>
-        <p style={textStyle}>
+      <LegalSection title="מבוא והגדרות">
+        <LegalText>
           מדיניות פרטיות זו מפרטת כיצד מפעיל השירות של <strong>Eventa</strong> (&quot;המפעיל&quot;, &quot;אנחנו&quot;, &quot;השירות&quot;)
           אוסף, משתמש, מאחסן ומוחק מידע בעת שימוש באפליקציה.
-        </p>
-        <p style={textStyle}>
+        </LegalText>
+        <LegalText>
           השירות מיועד לשימוש במהלך אירועים ומאפשר יצירת קשרים בין משתתפים באותו אירוע.
-        </p>
-        <p style={textStyle}>
+        </LegalText>
+        <LegalText>
           אנו פועלים לנקוט אמצעי אבטחה סבירים ולפעול בהתאם לדינים החלים עלינו.
           אם אינך מסכים/ה למדיניות זו, אנא הימנע/י משימוש בשירות.
-        </p>
-      </div>
+        </LegalText>
+      </LegalSection>
 
-      {/* 1 */}
-      <div style={sectionStyle}>
-        <h2 style={headingStyle}>1. מי מפעיל את השירות ופרטי קשר</h2>
-        <p style={textStyle}>
+      <LegalSection title="1. מי מפעיל את השירות ופרטי קשר">
+        <LegalText>
           השירות מופעל על-ידי מפעיל השירות (מפעיל פרטי).
           לשאלות או בקשות בנושא פרטיות ניתן לפנות באמצעי הקשר המוצגים בשירות.
-        </p>
-        <p style={textStyle}>
-          דוא&quot;ל: <a href="mailto:contact@eventa.productions" style={linkColor}>contact@eventa.productions</a>
-        </p>
-      </div>
+        </LegalText>
+        <LegalText>
+          דוא&quot;ל: <LegalLink href="mailto:contact@eventa.productions">contact@eventa.productions</LegalLink>
+        </LegalText>
+      </LegalSection>
 
-      {/* 2 */}
-      <div style={sectionStyle}>
-        <h2 style={headingStyle}>2. איזה מידע אנו אוספים</h2>
-        <p style={textStyle}>אנו אוספים/מעבדים מידע בהתאם לתכונות שבהן נעשה שימוש:</p>
+      <LegalSection title="2. איזה מידע אנו אוספים">
+        <LegalText>אנו אוספים/מעבדים מידע בהתאם לתכונות שבהן נעשה שימוש:</LegalText>
 
-        <h3 style={subHeadingStyle}>א. מספר טלפון נייד</h3>
-        <p style={textStyle}>
+        <LegalSubheading>א. מספר טלפון נייד</LegalSubheading>
+        <LegalText>
           מספר טלפון נייד ישראלי, משמש לאימות זהות באמצעות קוד SMS חד-פעמי (OTP)
           ולמניעת שימוש כפול. המספר נמחק אוטומטית תוך 7 ימים מסיום האירוע.
-        </p>
+        </LegalText>
 
-        <h3 style={subHeadingStyle}>ב. מידע פרופיל (מסופק על-ידך)</h3>
-        <p style={textStyle}>
+        <LegalSubheading>ב. מידע פרופיל (מסופק על-ידך)</LegalSubheading>
+        <LegalText>
           שם תצוגה, גיל (דיווח עצמי), מגדר, למי את/ה נמשך/ת (נטייה/העדפה),
           &quot;מחפש/ת&quot;, עיר, ביוגרפיה, ותמונות פרופיל (עד כמות שמוגדרת בשירות).
-        </p>
+        </LegalText>
 
-        <h3 style={subHeadingStyle}>ב. מידע תקשורת ותוכן</h3>
-        <p style={textStyle}>
+        <LegalSubheading>ג. מידע תקשורת ותוכן</LegalSubheading>
+        <LegalText>
           הודעות טקסט, תמונות בצ&apos;אט, התראות הקשורות ללייקים / הודעות.
-        </p>
+        </LegalText>
 
-        <h3 style={subHeadingStyle}>ג. מידע התנהגות ותפעול</h3>
-        <p style={textStyle}>
+        <LegalSubheading>ד. מידע התנהגות ותפעול</LegalSubheading>
+        <LegalText>
           לייקים שנשלחו/התקבלו, התאמות / שיחות, חסימות, סטטוס פעילות
           (למשל עדכון &quot;נראה לאחרונה&quot;, ככל שמופעל בשירות).
-        </p>
+        </LegalText>
 
-        <h3 style={subHeadingStyle}>ד. הסכמות והעדפות תקשורת</h3>
-        <ul style={listStyle}>
-          <li style={liStyle}>הסכמה לקבלת הודעות SMS מהמערכת (אופציונלי, ניתן לשינוי בכל עת).</li>
-          <li style={liStyle}>הודעת פידבק לאחר האירוע עשויה להישלח למשתתפים שנתנו הסכמה לקבלת הודעות.</li>
-        </ul>
+        <LegalSubheading>ה. הסכמות והעדפות תקשורת</LegalSubheading>
+        <LegalList>
+          <li>הסכמה לקבלת הודעות SMS מהמערכת (אופציונלי, ניתן לשינוי בכל עת).</li>
+          <li>הודעת פידבק לאחר האירוע עשויה להישלח למשתתפים שנתנו הסכמה לקבלת הודעות.</li>
+        </LegalList>
 
-        <h3 style={subHeadingStyle}>ה. מזהים טכניים</h3>
-        <ul style={listStyle}>
-          <li style={liStyle}>מזהה טכני / UUID הנשמר בדפדפן (למשל לצורך חיבור מחדש, מניעת שימוש כפול / עקיפת חסימות).</li>
-          <li style={liStyle}>פרטי אירוע / משתתף מתוך סשן (eventId, participantId וכו&apos;).</li>
-        </ul>
-        <p style={textStyle}>
+        <LegalSubheading>ו. מזהים טכניים</LegalSubheading>
+        <LegalList>
+          <li>מזהה טכני / UUID הנשמר בדפדפן (למשל לצורך חיבור מחדש, מניעת שימוש כפול / עקיפת חסימות).</li>
+          <li>פרטי אירוע / משתתף מתוך סשן (eventId, participantId וכו&apos;).</li>
+        </LegalList>
+        <LegalText>
           מזהים אלה עשויים להיחשב מזהים אישיים / מזהים טכניים, גם אם אינם כוללים שם אמיתי.
-        </p>
-      </div>
+        </LegalText>
+      </LegalSection>
 
-      {/* 3 */}
-      <div style={sectionStyle}>
-        <h2 style={headingStyle}>3. Cookies ואחסון מקומי (LocalStorage)</h2>
-        <p style={textStyle}>השירות משתמש באמצעים טכניים להפעלת התחברות ושמירת סשן:</p>
+      <LegalSection title="3. Cookies ואחסון מקומי (LocalStorage)">
+        <LegalText>השירות משתמש באמצעים טכניים להפעלת התחברות ושמירת סשן:</LegalText>
 
-        <h3 style={subHeadingStyle}>עוגיות חיוניות (Functional / Strictly Necessary)</h3>
-        <ul style={listStyle}>
-          <li style={liStyle}><strong>ws_session</strong> - עוגיית סשן לצורך התחברות והפעלת השירות (כוללת מזהי אירוע / משתתף).</li>
-          <li style={liStyle}><strong>ws_admin</strong> - עוגיית סשן לממשק אדמין.</li>
-        </ul>
-        <p style={textStyle}>
+        <LegalSubheading>עוגיות חיוניות (Functional / Strictly Necessary)</LegalSubheading>
+        <LegalList>
+          <li><strong>ws_session</strong> - עוגיית סשן לצורך התחברות והפעלת השירות (כוללת מזהי אירוע / משתתף).</li>
+          <li><strong>ws_admin</strong> - עוגיית סשן לממשק אדמין.</li>
+        </LegalList>
+        <LegalText>
           העוגיות מוגדרות כעוגיות חיוניות, ואינן מיועדות לפרסום / מעקב / אנליטיקה.
           העוגיות מוגדרות עם מאפייני אבטחה (כגון HttpOnly, Secure בסביבת פרודקשן, SameSite בהתאם להגדרות השירות).
-        </p>
+        </LegalText>
 
-        <h3 style={subHeadingStyle}>LocalStorage / אחסון דפדפן</h3>
-        <p style={textStyle}>ייתכן שנשמרים בדפדפן מפתחות טכניים כגון:</p>
-        <ul style={listStyle}>
-          <li style={liStyle}>נתוני גיבוי סשן (לשחזור מצב התחברות)</li>
-          <li style={liStyle}>מזהה טכני אקראי (UUID)</li>
-          <li style={liStyle}>דגלים פנימיים (למשל &quot;הפרופיל הושלם&quot;)</li>
-        </ul>
-        <p style={textStyle}>
+        <LegalSubheading>LocalStorage / אחסון דפדפן</LegalSubheading>
+        <LegalText>ייתכן שנשמרים בדפדפן מפתחות טכניים כגון:</LegalText>
+        <LegalList>
+          <li>נתוני גיבוי סשן (לשחזור מצב התחברות)</li>
+          <li>מזהה טכני אקראי (UUID)</li>
+          <li>דגלים פנימיים (למשל &quot;הפרופיל הושלם&quot;)</li>
+        </LegalList>
+        <LegalText>
           באפשרותך למחוק נתונים אלה דרך הגדרות הדפדפן (&quot;ניקוי נתוני אתר&quot;).
-        </p>
-      </div>
+        </LegalText>
+      </LegalSection>
 
-      {/* 4 */}
-      <div style={sectionStyle}>
-        <h2 style={headingStyle}>4. מטרות העיבוד</h2>
-        <p style={textStyle}>אנו משתמשים במידע לצורך:</p>
-        <ul style={listStyle}>
-          <li style={liStyle}>הפעלת השירות (פרופילים, לייקים, צ&apos;אט)</li>
-          <li style={liStyle}>אבטחה ומניעת שימוש לרעה (חסימות, בדיקות גישה, מניעת עקיפה, מניעת ספאם)</li>
-          <li style={liStyle}>תפעול ותחזוקה (איתור תקלות ושיפור יציבות)</li>
-        </ul>
-        <p style={textStyle}>בנוסף, ייתכן שימוש במידע לצורך:</p>
-        <ul style={listStyle}>
-          <li style={liStyle}>שיפור השירות ותכונותיו</li>
-          <li style={liStyle}>בדיקות עומסים, ניטור תקלות ופיתוח עתידי</li>
-          <li style={liStyle}>זיהוי דפוסי שימוש מצטברים שאינם מזהים משתמשים</li>
-        </ul>
-        <p style={boldText}>
+      <LegalSection title="4. מטרות העיבוד">
+        <LegalText>אנו משתמשים במידע לצורך:</LegalText>
+        <LegalList>
+          <li>הפעלת השירות (פרופילים, לייקים, צ&apos;אט)</li>
+          <li>אבטחה ומניעת שימוש לרעה (חסימות, בדיקות גישה, מניעת עקיפה, מניעת ספאם)</li>
+          <li>תפעול ותחזוקה (איתור תקלות ושיפור יציבות)</li>
+        </LegalList>
+        <LegalText>בנוסף, ייתכן שימוש במידע לצורך:</LegalText>
+        <LegalList>
+          <li>שיפור השירות ותכונותיו</li>
+          <li>בדיקות עומסים, ניטור תקלות ופיתוח עתידי</li>
+          <li>זיהוי דפוסי שימוש מצטברים שאינם מזהים משתמשים</li>
+        </LegalList>
+        <LegalText bold>
           איננו מוכרים מידע אישי ואיננו משתפים מידע למטרות פרסום / שיווק.
-        </p>
-      </div>
+        </LegalText>
+      </LegalSection>
 
-      {/* 5 */}
-      <div style={sectionStyle}>
-        <h2 style={headingStyle}>5. בסיס לעיבוד</h2>
-        <p style={textStyle}>הבסיס לעיבוד הוא:</p>
-        <ul style={listStyle}>
-          <li style={liStyle}>הסכמתך בעת שימוש בשירות</li>
-          <li style={liStyle}>הסכמה נפרדת לתכונות הדורשות הרשאות (כגון מצלמה / גלריה)</li>
-          <li style={liStyle}>אינטרס לגיטימי של המפעיל לאבטחת השירות, מניעת הונאה, ואכיפת תנאי השימוש</li>
-        </ul>
-      </div>
+      <LegalSection title="5. בסיס לעיבוד">
+        <LegalText>הבסיס לעיבוד הוא:</LegalText>
+        <LegalList>
+          <li>הסכמתך בעת שימוש בשירות</li>
+          <li>הסכמה נפרדת לתכונות הדורשות הרשאות (כגון מצלמה / גלריה)</li>
+          <li>אינטרס לגיטימי של המפעיל לאבטחת השירות, מניעת הונאה, ואכיפת תנאי השימוש</li>
+        </LegalList>
+      </LegalSection>
 
-      {/* 6 */}
-      <div style={sectionStyle}>
-        <h2 style={headingStyle}>6. שיתוף מידע עם צדדים שלישיים</h2>
-        <p style={textStyle}>אנו משתמשים בספקי תשתית טכנית בלבד:</p>
-        <ul style={listStyle}>
-          <li style={liStyle}><strong>Supabase</strong> - מסד נתונים, אחסון קבצים, תקשורת בזמן אמת</li>
-          <li style={liStyle}><strong>Vercel</strong> - אירוח והפצת האתר (CDN / Serverless)</li>
-          <li style={liStyle}><strong>ספק SMS (לדוגמא TextMe)</strong> - לצורך שליחת קוד אימות (OTP) והודעות לאורחים. מספר הטלפון מועבר לספק לצורך השליחה בלבד.</li>
-        </ul>
-        <p style={boldText}>
+      <LegalSection title="6. שיתוף מידע עם צדדים שלישיים">
+        <LegalText>אנו משתמשים בספקי תשתית טכנית בלבד:</LegalText>
+        <LegalList>
+          <li><strong>Supabase</strong> - מסד נתונים, אחסון קבצים, תקשורת בזמן אמת</li>
+          <li><strong>Vercel</strong> - אירוח והפצת האתר (CDN / Serverless)</li>
+          <li><strong>ספק SMS (לדוגמא TextMe)</strong> - לצורך שליחת קוד אימות (OTP) והודעות לאורחים. מספר הטלפון מועבר לספק לצורך השליחה בלבד.</li>
+        </LegalList>
+        <LegalText bold>
           איננו משלבים נכון למועד זה שירותי אנליטיקה / פרסום (כגון Google Analytics, Mixpanel וכו&apos;).
-        </p>
-      </div>
+        </LegalText>
+      </LegalSection>
 
-      {/* 7 */}
-      <div style={sectionStyle}>
-        <h2 style={headingStyle}>7. אבטחת מידע</h2>
-        <p style={textStyle}>אנו נוקטים אמצעי אבטחה סבירים, לרבות:</p>
-        <ul style={listStyle}>
-          <li style={liStyle}>תקשורת מוצפנת (HTTPS / TLS)</li>
-          <li style={liStyle}>שימוש בעוגיות HttpOnly ואבטחה מוגברת בסביבת פרודקשן</li>
-          <li style={liStyle}>הגנות נגד CSRF, Rate Limiting, וסניטציה לקלט</li>
-          <li style={liStyle}>בקרות גישה והרשאות</li>
-        </ul>
-        <p style={textStyle}>
+      <LegalSection title="7. אבטחת מידע">
+        <LegalText>אנו נוקטים אמצעי אבטחה סבירים, לרבות:</LegalText>
+        <LegalList>
+          <li>תקשורת מוצפנת (HTTPS / TLS)</li>
+          <li>שימוש בעוגיות HttpOnly ואבטחה מוגברת בסביבת פרודקשן</li>
+          <li>הגנות נגד CSRF, Rate Limiting, וסניטציה לקלט</li>
+          <li>בקרות גישה והרשאות</li>
+        </LegalList>
+        <LegalText>
           יחד עם זאת, אין מערכת חסינה לחלוטין, ולכן אין באפשרותנו להבטיח אבטחה מוחלטת.
-        </p>
-      </div>
+        </LegalText>
+      </LegalSection>
 
-      {/* 8 */}
-      <div style={sectionStyle}>
-        <h2 style={headingStyle}>8. שמירת מידע ומחיקה (Retention)</h2>
-        <p style={textStyle}>השירות נועד להיות זמני:</p>
-        <ul style={listStyle}>
-          <li style={liStyle}>
+      <LegalSection title="8. שמירת מידע ומחיקה (Retention)">
+        <LegalText>השירות נועד להיות זמני:</LegalText>
+        <LegalList>
+          <li>
             מידע אישי הקשור לאירוע (פרופילים, הודעות, תמונות, לייקים, חסימות)
             נמחק בדרך כלל <strong>בתוך עד 7 ימים</strong> מסיום האירוע.
           </li>
-          <li style={liStyle}>
+          <li>
             ייתכן עיכוב קצר במחיקה עקב גיבויים טכניים, תקלות, או צורך בהגנה מפני הונאה / עקיפה.
           </li>
-          <li style={liStyle}>
+          <li>
             נתונים מצטברים / סטטיסטיים שאינם מזהים משתמשים עשויים להישמר לצרכי תפעול / שיווק
             (למשל: מספר משתתפים, מספר לייקים), ללא פרטי משתמש מזהים.
           </li>
-        </ul>
-      </div>
+        </LegalList>
+      </LegalSection>
 
-      {/* 9 */}
-      <div style={sectionStyle}>
-        <h2 style={headingStyle}>9. זכויות המשתמש/ת</h2>
-        <p style={textStyle}>בכפוף לדינים החלים, באפשרותך:</p>
-        <ul style={listStyle}>
-          <li style={liStyle}>לעדכן פרטים בפרופיל</li>
-          <li style={liStyle}>למחוק חשבון (ככל שהאפשרות זמינה בשירות)</li>
-          <li style={liStyle}>לבקש עיון / תיקון / מחיקה / הגבלה דרך יצירת קשר עם המפעיל</li>
-        </ul>
-        <p style={textStyle}>
+      <LegalSection title="9. זכויות המשתמש/ת">
+        <LegalText>בכפוף לדינים החלים, באפשרותך:</LegalText>
+        <LegalList>
+          <li>לעדכן פרטים בפרופיל</li>
+          <li>למחוק חשבון (ככל שהאפשרות זמינה בשירות)</li>
+          <li>לבקש עיון / תיקון / מחיקה / הגבלה דרך יצירת קשר עם המפעיל</li>
+        </LegalList>
+        <LegalText>
           <strong>לתשומת לב:</strong> מחיקה מן השירות הפעיל לא בהכרח מוחקת מיד גיבויים טכניים.
-        </p>
-      </div>
+        </LegalText>
+      </LegalSection>
 
-      {/* 10 */}
-      <div style={sectionStyle}>
-        <h2 style={headingStyle}>10. קטינים</h2>
-        <p style={textStyle}>
+      <LegalSection title="10. קטינים">
+        <LegalText>
           השירות מיועד לבני 18+ בלבד. איננו אוספים ביודעין מידע מקטינים.
           אם יימצא חשד סביר לקטינות - ננקוט צעדים להסרה / חסימה / מחיקה.
-        </p>
-      </div>
+        </LegalText>
+      </LegalSection>
 
-      {/* 11 */}
-      <div style={sectionStyle}>
-        <h2 style={headingStyle}>11. העברת מידע מחוץ לישראל</h2>
-        <p style={textStyle}>
+      <LegalSection title="11. העברת מידע מחוץ לישראל">
+        <LegalText>
           חלק מספקי התשתית (למשל Supabase, Vercel) עשויים לאחסן ולעבד מידע מחוץ לישראל.
           העברת מידע זו מתבצעת בהתאם למנגנוני אבטחה מקובלים, לרבות שימוש בפרוטוקולי הצפנה ושרתי ענן מאובטחים.
-        </p>
-      </div>
+        </LegalText>
+      </LegalSection>
 
-      {/* 12 */}
-      <div style={sectionStyle}>
-        <h2 style={headingStyle}>12. שינויים במדיניות</h2>
-        <p style={textStyle}>
+      <LegalSection title="12. שינויים במדיניות">
+        <LegalText>
           מדיניות זו עשויה להתעדכן מעת לעת. השינויים יפורסמו בשירות.
           המשך שימוש לאחר פרסום שינוי מהווה הסכמה למדיניות המעודכנת.
-        </p>
-      </div>
+        </LegalText>
+      </LegalSection>
 
-      {/* 13 */}
-      <div style={{ ...sectionStyle, marginBottom: 0 }}>
-        <h2 style={headingStyle}>13. יצירת קשר</h2>
-        <p style={textStyle}>
+      <LegalSection title="13. יצירת קשר">
+        <LegalText>
           לפניות פרטיות, שאלות או בקשות - השתמש/י באמצעי הקשר המופיעים בשירות.
-        </p>
-        <p style={textStyle}>
-          דוא&quot;ל: <a href="mailto:contact@eventa.productions" style={linkColor}>contact@eventa.productions</a>
-        </p>
-      </div>
+        </LegalText>
+        <LegalText>
+          דוא&quot;ל: <LegalLink href="mailto:contact@eventa.productions">contact@eventa.productions</LegalLink>
+        </LegalText>
+      </LegalSection>
     </>
   );
 }
