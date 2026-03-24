@@ -33,7 +33,7 @@ export default function CookiesContent() {
             <tr>
               <td className={tdCls}><code className="text-[var(--primary)]">ws_admin</code></td>
               <td className={tdCls}>גישה לממשק ניהול (אדמין)</td>
-              <td className={tdCls}>48 שעות</td>
+              <td className={tdCls}>24 שעות</td>
               <td className={tdCls}>חיונית / פונקציונלית</td>
             </tr>
           </tbody>

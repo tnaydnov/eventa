@@ -10,7 +10,7 @@ export const metadata = legalMetadata(
 
 export default function PrivacyPage() {
   return (
-    <SitePageLayout title="מדיניות פרטיות" updatedAt="פברואר 2026">
+    <SitePageLayout title="מדיניות פרטיות" updatedAt="מרץ 2026">
       <PrivacyContent />
     </SitePageLayout>
   );

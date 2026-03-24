@@ -10,7 +10,7 @@ export const metadata = legalMetadata(
 
 export default function AccessibilityPage() {
   return (
-    <SitePageLayout title="הצהרת נגישות" updatedAt="פברואר 2026">
+    <SitePageLayout title="הצהרת נגישות" updatedAt="מרץ 2026">
       <AccessibilityContent />
     </SitePageLayout>
   );

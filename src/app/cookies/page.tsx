@@ -10,7 +10,7 @@ export const metadata = legalMetadata(
 
 export default function CookiesPage() {
   return (
-    <SitePageLayout title="מדיניות עוגיות" updatedAt="פברואר 2026">
+    <SitePageLayout title="מדיניות עוגיות" updatedAt="מרץ 2026">
       <CookiesContent />
     </SitePageLayout>
   );

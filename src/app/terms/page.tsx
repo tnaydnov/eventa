@@ -10,7 +10,7 @@ export const metadata = legalMetadata(
 
 export default function TermsPage() {
   return (
-    <SitePageLayout title="תנאי שימוש" updatedAt="פברואר 2026">
+    <SitePageLayout title="תנאי שימוש" updatedAt="מרץ 2026">
       <TermsContent />
     </SitePageLayout>
   );
