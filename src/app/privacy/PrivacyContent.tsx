@@ -55,7 +55,7 @@ export default function PrivacyContent() {
 
         <LegalSubheading>ה. הסכמות והעדפות תקשורת</LegalSubheading>
         <LegalList>
-          <li>הסכמה לקבלת הודעות SMS / WhatsApp מהמערכת (אופציונלי, ניתן לשינוי בכל עת).</li>
+          <li>הסכמה לקבלת הודעות SMS מהמערכת (אופציונלי, ניתן לשינוי בכל עת).</li>
           <li>הודעת תזכורת לפני האירוע, הודעת ברוכים הבאים, והודעת פידבק לאחר האירוע — עשויות להישלח למשתתפים שנתנו הסכמה לקבלת הודעות.</li>
         </LegalList>
 
@@ -126,8 +126,7 @@ export default function PrivacyContent() {
         <LegalList>
           <li><strong>Supabase</strong> - מסד נתונים, אחסון קבצים, תקשורת בזמן אמת</li>
           <li><strong>Vercel</strong> - אירוח והפצת האתר (CDN / Serverless)</li>
-          <li><strong>ספק SMS (TextMe)</strong> - לצורך שליחת קוד אימות (OTP) והודעות לאורחים. מספר הטלפון מועבר לספק לצורך השליחה בלבד.</li>
-          <li><strong>WhatsApp Business API</strong> - לצורך שליחת הודעות תזכורת, ברוכים הבאים ופידבק לאורחים (ככל שמופעל באירוע).</li>
+          <li><strong>ספק SMS (TextMe)</strong> - לצורך שליחת קוד אימות (OTP), תזכורות לפני אירוע, הודעות ברוכים הבאים ופידבק לאורחים. מספר הטלפון מועבר לספק לצורך השליחה בלבד.</li>
           <li><strong>Invoice4U</strong> - לצורך עיבוד תשלומים, הפקת חשבוניות וסליקה. פרטי תשלום מועברים ישירות לספק ואינם נשמרים בשרתי השירות.</li>
           <li><strong>שרת SMTP</strong> - לצורך שליחת דוא&quot;ל הזמנות ותקשורת תפעולית.</li>
         </LegalList>
