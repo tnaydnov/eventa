@@ -13,7 +13,7 @@ import AppHeader from '@/components/AppHeader';
 import TabBar from '@/components/TabBar';
 import Toast from '@/components/Toast';
 import { LikesSkeleton } from '@/components/Skeletons';
-import { HeartIcon, HeartFilledIcon, UserIcon } from '@/components/Icons';
+import { HeartIcon, HeartFilledIcon, UserIcon, MatchHeartIcon } from '@/components/Icons';
 import Image from 'next/image';
 import type { PublicParticipant, ParticipantPhoto } from '@/lib/database.types';
 
@@ -201,7 +201,7 @@ export default function LikesPage({
                 {tab === 'matches' ? (
                   matches.length === 0 ? (
                     <div style={{ textAlign: 'center', color: 'var(--foreground)', padding: '40px' }}>
-                      <div style={{ marginBottom: '16px', opacity: 0.8, fontSize: '48px' }} aria-hidden="true">💞</div>
+                      <div style={{ marginBottom: '16px', opacity: 0.8 }}><MatchHeartIcon size={48} color="var(--primary)" /></div>
                       <p style={{ fontSize: '16px', fontWeight: 500 }}>עדיין אין התאמות</p>
                       <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '8px' }}>
                         כששני אנשים עושים לייק אחד לשני - זו התאמה!
