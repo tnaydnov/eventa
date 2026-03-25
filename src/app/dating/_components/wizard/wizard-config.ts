@@ -1,9 +1,21 @@
 /**
- * Wizard Configuration - Single source of truth for the order wizard.
+ * Wizard Configuration — primary configuration source for the order wizard.
  *
  * To add/remove an event type → add/remove one entry in WIZARD_TYPES.
- * Everything (labels, fields, templates, validation) cascades from here.
+ * Types, steps, fields, and template filtering are driven from here.
  */
+
+// ─── Literal Types ──────────────────────────────────────────
+
+export type EventTypeKey = 'wedding' | 'party' | 'meetup' | 'other';
+
+export type WizardIconName =
+  | 'rings' | 'glass' | 'people' | 'sparkle'
+  | 'grid' | 'calendar' | 'palette' | 'frame' | 'chat' | 'check'
+  | 'moon' | 'brush' | 'upload' | 'qr'
+  | 'x-circle' | 'phone' | 'link' | 'paperclip' | 'image' | 'lock';
+
+export type WizardStepId = 'type' | 'details' | 'background' | 'poster' | 'messages' | 'summary';
 
 // ─── Event Type Config ──────────────────────────────────────
 
@@ -20,11 +32,11 @@ export interface NameFieldConfig {
 
 export interface WizardTypeConfig {
   /** DB key - e.g. 'wedding' */
-  key: string;
+  key: EventTypeKey;
   /** Hebrew label - e.g. 'חתונה' */
   label: string;
   /** Icon for the type card */
-  icon: string;
+  icon: WizardIconName;
   /** Short description for the card */
   description: string;
   /** Name field configuration (dynamic per type) */
@@ -33,8 +45,6 @@ export interface WizardTypeConfig {
   posterCatalog: string;
   /** Default event duration in hours */
   defaultDurationHours: number;
-  /** Whether guest messaging is supported for this type */
-  supportsGuestMessages: boolean;
 }
 
 export const WIZARD_TYPES: WizardTypeConfig[] = [
@@ -51,7 +61,6 @@ export const WIZARD_TYPES: WizardTypeConfig[] = [
     },
     posterCatalog: 'wedding',
     defaultDurationHours: 6,
-    supportsGuestMessages: true,
   },
   {
     key: 'party',
@@ -66,7 +75,6 @@ export const WIZARD_TYPES: WizardTypeConfig[] = [
     },
     posterCatalog: 'party',
     defaultDurationHours: 5,
-    supportsGuestMessages: true,
   },
   {
     key: 'meetup',
@@ -81,7 +89,6 @@ export const WIZARD_TYPES: WizardTypeConfig[] = [
     },
     posterCatalog: 'meetup',
     defaultDurationHours: 3,
-    supportsGuestMessages: true,
   },
   {
     key: 'other',
@@ -96,21 +103,20 @@ export const WIZARD_TYPES: WizardTypeConfig[] = [
     },
     posterCatalog: 'other',
     defaultDurationHours: 4,
-    supportsGuestMessages: true,
   },
 ];
 
 /** Quick lookup map by key */
 export const WIZARD_TYPE_MAP = Object.fromEntries(
   WIZARD_TYPES.map(t => [t.key, t])
-) as Record<string, WizardTypeConfig>;
+) as Record<EventTypeKey, WizardTypeConfig>;
 
 // ─── Wizard Steps ───────────────────────────────────────────
 
 export interface WizardStepMeta {
-  id: string;
+  id: WizardStepId;
   label: string;
-  icon: string;
+  icon: WizardIconName;
 }
 
 export const WIZARD_STEPS: WizardStepMeta[] = [
@@ -126,7 +132,7 @@ export const WIZARD_STEPS: WizardStepMeta[] = [
 
 export interface WizardFormState {
   // Step 1 - Type
-  eventType: string;
+  eventType: EventTypeKey | '';
 
   // Step 2 - Details
   eventName: string;
@@ -141,6 +147,7 @@ export interface WizardFormState {
   // Step 4 - Poster
   posterChoice: 'template' | 'qr-only';
   selectedTemplateId: string | null;
+  selectedTemplateLabel: string | null;
   specialRequests: string;
 
   // Step 5 - Messages
@@ -163,6 +170,7 @@ export const INITIAL_WIZARD_STATE: WizardFormState = {
   backgroundBase64: null,
   posterChoice: 'qr-only',
   selectedTemplateId: null,
+  selectedTemplateLabel: null,
   specialRequests: '',
   wantsGuestMessages: true,
   contactPreference: 'call-me',
@@ -179,8 +187,7 @@ export interface PosterTemplate {
   label: string;
   /** Event types this template applies to. ['*'] = all types. */
   types: string[];
-  /** Whether the poster has a name slot (requires event name) */
-  hasNameSlot?: boolean;
+
 }
 
 export interface PosterManifest {

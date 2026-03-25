@@ -25,7 +25,7 @@ export default function BackgroundPreview({ backgroundPreview, wantsCustomBackgr
         {hasCustomBg && (
           <div className="bg-preview__custom-bg">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={backgroundPreview!} alt="" />
+            <img src={backgroundPreview ?? undefined} alt="" />
             <div className="bg-preview__custom-overlay" />
           </div>
         )}

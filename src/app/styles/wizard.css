@@ -623,6 +623,12 @@
   color: rgba(176, 176, 176, 0.5);
 }
 
+.wiz-upload__error {
+  font-size: 13px;
+  color: #ff6b6b;
+  margin-top: 8px;
+}
+
 /* Background preview */
 .wiz-upload__preview {
   position: relative;
@@ -1489,6 +1495,12 @@
   height: 1px;
   background: rgba(212, 165, 154, 0.15);
   margin: 8px 0;
+}
+
+.wiz-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 24px 0;
 }
 
 /* ═══ Navigation Buttons ═══ */

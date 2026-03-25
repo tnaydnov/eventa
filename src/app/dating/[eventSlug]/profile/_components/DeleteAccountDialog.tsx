@@ -5,19 +5,16 @@ import { AnimatedOverlay } from '@/components/Animations';
 import { TrashIcon } from '@/components/Icons';
 import { deleteAccount } from '@/lib/api';
 import { useToastStore } from '@/lib/store';
-import type { WeddingSession } from '@/lib/store';
 
 interface DeleteAccountDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  session: WeddingSession;
   onDeleted: () => void;
 }
 
 export default function DeleteAccountDialog({
   isOpen,
   onClose,
-  session,
   onDeleted,
 }: DeleteAccountDialogProps) {
   const [deleting, setDeleting] = useState(false);

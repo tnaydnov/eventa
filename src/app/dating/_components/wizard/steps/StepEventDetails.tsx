@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function StepEventDetails({ state, onChange }: Props) {
-  const typeConfig = WIZARD_TYPE_MAP[state.eventType];
+  const typeConfig = state.eventType ? WIZARD_TYPE_MAP[state.eventType] : undefined;
   const nameField = typeConfig?.nameField;
 
   // Minimum selectable datetime = now (rounded down to current minute)
@@ -59,15 +59,17 @@ export default function StepEventDetails({ state, onChange }: Props) {
             min={minDateTime}
             onChange={e => {
               const start = e.target.value;
-              onChange({ startsAt: start });
+              const patch: Partial<WizardFormState> = { startsAt: start };
 
               // Auto-set end time if empty
               if (start && !state.endsAt && typeConfig) {
                 const startDate = new Date(start);
                 startDate.setHours(startDate.getHours() + typeConfig.defaultDurationHours);
                 const end = `${startDate.getFullYear()}-${pad(startDate.getMonth() + 1)}-${pad(startDate.getDate())}T${pad(startDate.getHours())}:${pad(startDate.getMinutes())}`;
-                onChange({ startsAt: start, endsAt: end });
+                patch.endsAt = end;
               }
+
+              onChange(patch);
             }}
           />
         </div>

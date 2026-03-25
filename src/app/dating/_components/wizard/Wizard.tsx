@@ -53,14 +53,14 @@ function validateStep(step: number, state: WizardFormState): string | null {
       return null;
 
     case 1: {
-      const tc = WIZARD_TYPE_MAP[state.eventType];
+      const tc = state.eventType ? WIZARD_TYPE_MAP[state.eventType] : undefined;
       if (tc?.nameField.required && !state.eventName.trim()) {
         return `${tc.nameField.label.replace(' *', '')} הוא שדה חובה`;
       }
       if (!state.startsAt) return 'יש לבחור תאריך ושעת התחלה';
       if (!state.endsAt) return 'יש לבחור תאריך ושעת סיום';
       if (new Date(state.startsAt) < new Date()) return 'תאריך ההתחלה חייב להיות בעתיד';
-      if (state.endsAt <= state.startsAt) return 'שעת הסיום חייבת להיות אחרי ההתחלה';
+      if (new Date(state.endsAt) <= new Date(state.startsAt)) return 'שעת הסיום חייבת להיות אחרי ההתחלה';
       return null;
     }
 
@@ -194,7 +194,34 @@ export default function Wizard() {
             return; // User will be redirected back after payment
           }
         }
-        // Payment session failed - no order was created
+        // Payment session failed — save order with manual follow-up status
+        const fallbackRes = await fetch('/api/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventType: state.eventType,
+            eventDate: state.startsAt.split('T')[0] || state.startsAt,
+            contactName: state.contactName,
+            contactPhone: state.contactPhone,
+            contactEmail: state.contactEmail || '',
+            eventName: state.eventName,
+            startsAt: state.startsAt,
+            endsAt: state.endsAt,
+            wantsCustomBackground: state.wantsCustomBackground,
+            backgroundBase64: state.wantsCustomBackground ? state.backgroundBase64 : null,
+            posterChoice: state.posterChoice,
+            selectedTemplateId: state.selectedTemplateId,
+            specialRequests: state.specialRequests,
+            wantsGuestMessages: state.wantsGuestMessages,
+            contactPreference: 'call-me',
+            source: 'wizard-payment-fallback',
+          }),
+        });
+
+        if (!fallbackRes.ok) {
+          throw new Error('Payment and fallback order both failed');
+        }
+
         setPaymentSkipped(true);
         setSuccess(true);
         return;
@@ -292,9 +319,7 @@ export default function Wizard() {
               ? 'האירוע שלכם נוצר במערכת! שלחנו לכם מייל עם חשבונית/קבלה והסבר מפורט על השלבים הבאים. לכל שאלה אנחנו כאן בשבילכם.'
               : state.contactPreference === 'pay-now' && paymentSkipped
                 ? 'לא הצלחנו לפתוח את דף התשלום. ניצור איתכם קשר להשלמת ההזמנה.'
-                : state.contactPreference === 'call-me'
-                  ? 'קיבלנו את כל הפרטים ונחזור אליכם בהקדם. נפנה אליכם תוך 48 שעות.'
-                  : 'קיבלנו את כל הפרטים ונחזור אליכם בהקדם.'}
+                : 'קיבלנו את כל הפרטים ונחזור אליכם בהקדם. נפנה אליכם תוך 48 שעות.'}
           </p>
           <p className="wiz-success__contact">
             לכל שאלה או בקשה -{' '}

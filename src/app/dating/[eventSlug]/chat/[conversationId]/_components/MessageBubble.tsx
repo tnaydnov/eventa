@@ -80,23 +80,26 @@ function MessageBubbleInner({
         ) : (
           <>
             {msg.type === 'text' && msg.text}
-            {msg.type === 'image' && msg.media_path && (
-              <img
-                src={getPhotoUrl(msg.media_path)}
-                alt="תמונה"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onImageClick?.(getPhotoUrl(msg.media_path!));
-                }}
-                style={{
-                  maxWidth: '200px',
-                  borderRadius: '8px',
-                  display: 'block',
-                  cursor: 'pointer',
-                }}
-                loading="lazy"
-              />
-            )}
+            {msg.type === 'image' && msg.media_path && (() => {
+              const imgUrl = getPhotoUrl(msg.media_path!);
+              return (
+                <img
+                  src={imgUrl}
+                  alt="תמונה"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onImageClick?.(imgUrl);
+                  }}
+                  style={{
+                    maxWidth: '200px',
+                    borderRadius: '8px',
+                    display: 'block',
+                    cursor: 'pointer',
+                  }}
+                  loading="lazy"
+                />
+              );
+            })()}
           </>
         )}
       </div>

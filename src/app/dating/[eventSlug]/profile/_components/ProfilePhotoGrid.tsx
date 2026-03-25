@@ -96,6 +96,7 @@ export default function ProfilePhotoGrid({
   /* ─── Reorder logic ─── */
   const commitSwap = useCallback(async (fromIdx: number, toIdx: number) => {
     if (fromIdx === toIdx) return;
+    const previous = photos;
     const updated = [...photos];
     // Swap the two photos
     [updated[fromIdx], updated[toIdx]] = [updated[toIdx], updated[fromIdx]];
@@ -103,7 +104,11 @@ export default function ProfilePhotoGrid({
     onPhotosChange(reordered);
     const order = reordered.map((p) => ({ id: p.id, order_index: p.order_index }));
     const ok = await reorderPhotos(order);
-    if (!ok) toast('שגיאה בשינוי סדר התמונות');
+    if (!ok) {
+      // Rollback to previous order on failure
+      onPhotosChange(previous);
+      toast('שגיאה בשינוי סדר התמונות');
+    }
   }, [photos, onPhotosChange, toast]);
 
   /* ─── Tap-to-swap handler ─── */
@@ -159,7 +164,7 @@ export default function ProfilePhotoGrid({
         <div className="profile-edit-photos-header">
           <span className="profile-edit-section-icon"><CameraIcon size={18} /></span>
           <span>תמונות</span>
-          <span className="profile-edit-photo-count">{photos.length}/10</span>
+          <span className="profile-edit-photo-count">{photos.length}/{MAX_PHOTOS}</span>
         </div>
 
         {/* Selection hint banner */}
@@ -171,7 +176,7 @@ export default function ProfilePhotoGrid({
           </div>
         )}
 
-        <div className="profile-edit-photo-grid" ref={undefined}>
+        <div className="profile-edit-photo-grid">
           {photos.map((photo, idx) => (
             <div
               key={photo.id}
@@ -222,7 +227,7 @@ export default function ProfilePhotoGrid({
               <span className="profile-edit-photo-order">{idx + 1}</span>
             </div>
           ))}
-          {photos.length < 10 && (
+          {photos.length < MAX_PHOTOS && (
             <div
               className={`profile-edit-photo-item add${uploading ? ' photo-loading' : ''}`}
               role="button"

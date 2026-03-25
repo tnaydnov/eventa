@@ -1,22 +1,27 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
-type FormData = {
+type OrderLeadForm = {
   contactName: string;
   contactPhone: string;
   contactEmail: string;
 };
 
 export default function OrderForm() {
-  const [form, setForm] = useState<FormData>({
+  const [form, setForm] = useState<OrderLeadForm>({
     contactName: '', contactPhone: '', contactEmail: '',
   });
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const update = useCallback((field: keyof FormData, value: string) => {
+  useEffect(() => {
+    return () => { clearTimeout(resetTimerRef.current); };
+  }, []);
+
+  const update = useCallback((field: keyof OrderLeadForm, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
   }, []);
 
@@ -36,7 +41,7 @@ export default function OrderForm() {
 
       setSubmitted(true);
       setForm({ contactName: '', contactPhone: '', contactEmail: '' });
-      setTimeout(() => setSubmitted(false), 5000);
+      resetTimerRef.current = setTimeout(() => setSubmitted(false), 5000);
     } catch {
       setError('שגיאה בשליחה. נסו שוב או פנו אלינו ישירות.');
     } finally {
@@ -89,17 +94,15 @@ export default function OrderForm() {
       </div>
 
       <button
-        className="order-form__submit"
+        className={`order-form__submit${submitted ? ' order-form__submit--success' : ''}`}
         type="submit"
         disabled={submitted || sending}
-        style={submitted ? { background: '#22c55e', boxShadow: 'none' } : undefined}
-        aria-live="polite"
       >
         {submitted ? '✓ הפרטים נשלחו בהצלחה!' : sending ? 'שולח...' : 'שלחו פרטים'}
       </button>
 
       {error && (
-        <p id="order-form-error" role="alert" style={{ color: '#ef4444', fontSize: '14px', textAlign: 'center', marginTop: '12px' }}>
+        <p id="order-form-error" className="order-form__error" role="alert">
           {error}
         </p>
       )}

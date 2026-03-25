@@ -319,7 +319,6 @@ export default function ProfileEditPage({
         <DeleteAccountDialog
           isOpen={showDeleteConfirm}
           onClose={() => setShowDeleteConfirm(false)}
-          session={session}
           onDeleted={handleAccountDeleted}
         />
       )}

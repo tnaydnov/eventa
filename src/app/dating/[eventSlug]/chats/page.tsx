@@ -78,10 +78,15 @@ export default function ChatsPage({
   const loadChats = useCallback(async () => {
     const s = useSessionStore.getState().session;
     if (!s) return;
-    const data = await getConversations(s.eventId, s.participantId);
-    setConversations(data);
-    setLoading(false);
-    lastFetchRef.current = Date.now();
+    try {
+      const data = await getConversations(s.eventId, s.participantId);
+      setConversations(data);
+      lastFetchRef.current = Date.now();
+    } catch {
+      // Silently fail - stale data is better than a stuck spinner
+    } finally {
+      setLoading(false);
+    }
   }, [setConversations]);
 
   useEffect(() => {

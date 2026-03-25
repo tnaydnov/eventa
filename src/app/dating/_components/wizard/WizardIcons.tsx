@@ -10,8 +10,10 @@
  * via <WizardIcon name="your-key" />.
  */
 
+import type { WizardIconName } from './wizard-config';
+
 interface Props {
-  name: string;
+  name: WizardIconName;
   size?: number;
   className?: string;
 }
@@ -21,7 +23,7 @@ export default function WizardIcon({ name, size = 24, className }: Props) {
   const a11y = { 'aria-hidden': true as const, focusable: 'false' as const };
 
   switch (name) {
-    /* ג”€ג”€ Event Types ג”€ג”€ */
+    /* ── Event Types ── */
 
     case 'rings':
       // Two interlocking rings - wedding
@@ -66,7 +68,7 @@ export default function WizardIcon({ name, size = 24, className }: Props) {
         </svg>
       );
 
-    /* ג”€ג”€ Step Icons (progress rail) ג”€ג”€ */
+    /* ── Step Icons (progress rail) ── */
 
     case 'grid':
       // Grid/apps icon - type selection step
@@ -131,7 +133,7 @@ export default function WizardIcon({ name, size = 24, className }: Props) {
         </svg>
       );
 
-    /* ג”€ג”€ Toggle & Utility Icons ג”€ג”€ */
+    /* ── Toggle & Utility Icons ── */
 
     case 'moon':
       // Crescent moon - default background

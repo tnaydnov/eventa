@@ -1,75 +1,12 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import type { DemoUser, DemoMsg } from './demo-data';
+import { USERS, LIKED_BY, PRE_MATCHED, INITIAL_CONVOS, AUTO_REPLIES } from './demo-data';
+import { DemoIcons as I } from './DemoIcons';
 
-/* ═══════════════════════════════════════════
-   DATA
-   ═══════════════════════════════════════════ */
-
-type User = { name: string; age: number; city: string; bio: string; gender: string; seed: string; photo: string; lookingFor: string };
-type Msg = { id: number; text: string; type: 'text' | 'system'; sent: boolean; time: string };
 type Screen = 'grid' | 'swipe' | 'user' | 'chats' | 'chat' | 'likes' | 'profile';
 type LikesTab = 'matches' | 'received' | 'sent';
-
-const USERS: User[] = [
-  { name: 'נועה', age: 24, city: 'תל אביב', bio: 'אוהבת ריקודים, מוזיקה וערבי יין 🍷', gender: 'אישה', seed: 'Noa24f', lookingFor: 'קשר רציני', photo: '/demo/noa.jpg' },
-  { name: 'איתי', age: 27, city: 'הרצליה', bio: 'סרפר בשבתות, שף חובב בימי חול 🏄‍♂️', gender: 'גבר', seed: 'Itay27m', lookingFor: 'משהו קליל', photo: '/demo/itay.jpg' },
-  { name: 'מאיה', age: 25, city: 'רמת גן', bio: 'מעצבת גרפית, חולמת בגדול 🎨', gender: 'אישה', seed: 'Maya25f', lookingFor: 'חברים/ות', photo: '/demo/maya.jpg' },
-  { name: 'דניאל', age: 28, city: 'תל אביב', bio: 'מפתח תוכנה ואוהב טיולים בטבע 🌿', gender: 'גבר', seed: 'Daniel28m', lookingFor: 'קשר רציני', photo: '/demo/daniel.jpg' },
-  { name: 'שיר', age: 23, city: 'חיפה', bio: 'סטודנטית לפסיכולוגיה, אוהבת חתולים 🐱', gender: 'אישה', seed: 'Shir23f', lookingFor: 'עוד לא יודע/ת', photo: '/demo/shir.jpg' },
-  { name: 'עומר', age: 26, city: 'ראשון לציון', bio: 'מוזיקאי וצלם חובב 📸', gender: 'גבר', seed: 'Omer26m', lookingFor: 'משהו קליל', photo: '/demo/omer.jpg' },
-  { name: 'תמר', age: 25, city: 'תל אביב', bio: 'עורכת דין ביום, יוגיסטית בלילה 🧘‍♀️', gender: 'אישה', seed: 'Tamar25f', lookingFor: 'קשר רציני', photo: '/demo/tamar.jpg' },
-  { name: 'יונתן', age: 29, city: 'פתח תקווה', bio: 'מהנדס מזון, שוחרי אוכל טוב 🍕', gender: 'גבר', seed: 'Yonatan29m', lookingFor: 'חברים/ות', photo: '/demo/yonatan.jpg' },
-  { name: 'ליאור', age: 24, city: 'גבעתיים', bio: 'רקדנית היפ-הופ, חיוכים 24/7 💃', gender: 'אישה', seed: 'Lior24f', lookingFor: 'משהו קליל', photo: '/demo/lior.jpg' },
-  { name: 'רועי', age: 27, city: 'כפר סבא', bio: 'רואה חשבון עם תשוקה לקומדיות 😂', gender: 'גבר', seed: 'Roi27m', lookingFor: 'עוד לא יודע/ת', photo: '/demo/roi.jpg' },
-  { name: 'אגם', age: 22, city: 'הוד השרון', bio: 'סטודנטית לאומנות, צמחונית גאה 🌻', gender: 'אישה', seed: 'Agam22f', lookingFor: 'חברים/ות', photo: '/demo/agam.jpg' },
-  { name: 'אלון', age: 30, city: 'תל אביב', bio: 'יזם סטארטאפ עם חלום 🚀', gender: 'גבר', seed: 'Alon30m', lookingFor: 'קשר רציני', photo: '/demo/alon.jpg' },
-  { name: 'נועם', age: 26, city: 'באר שבע', bio: 'מדריכת כושר ואוהבת טבע 💪', gender: 'אישה', seed: 'Noam26f', lookingFor: 'משהו קליל', photo: '/demo/noam.jpg' },
-  { name: 'גיל', age: 25, city: 'נתניה', bio: 'דיג׳יי בסופשים ומתכנת בשאר הזמן 🎵', gender: 'גבר', seed: 'Gil25m', lookingFor: 'עוד לא יודע/ת', photo: '/demo/gil.jpg' },
-  { name: 'הילה', age: 23, city: 'רעננה', bio: 'אופטימיסטית מטבע, אוהבת ים 🌊', gender: 'אישה', seed: 'Hila23f', lookingFor: 'קשר רציני', photo: '/demo/hila.jpg' },
-  { name: 'תומר', age: 28, city: 'מודיעין', bio: 'רופא שיניים בהכשרה, חייכו! 😁', gender: 'גבר', seed: 'Tomer28m', lookingFor: 'משהו קליל', photo: '/demo/tomer.jpg' },
-  { name: 'רוני', age: 24, city: 'תל אביב', bio: 'בואו נהיה חברות קודם ☕', gender: 'אישה', seed: 'Roni24f', lookingFor: 'חברים/ות', photo: '/demo/roni.jpg' },
-  { name: 'עידו', age: 31, city: 'ירושלים', bio: 'עורך דין, ספרן מושבע, רץ מרתון 📚', gender: 'גבר', seed: 'Ido31m', lookingFor: 'קשר רציני', photo: '/demo/ido.jpg' },
-];
-
-const LIKED_BY = new Set(['Shir23f', 'Agam22f', 'Roni24f']);
-const PRE_MATCHED = new Set(['Tamar25f', 'Noa24f']);
-
-const INITIAL_CONVOS: Record<string, Msg[]> = {
-  Tamar25f: [
-    { id: 1, text: 'היי! 😊', type: 'text', sent: false, time: '20:14' },
-    { id: 2, text: 'היי תמר, מה קורה?', type: 'text', sent: true, time: '20:15' },
-    { id: 3, text: 'הכל טוב! אירוע מדהים, לא?', type: 'text', sent: false, time: '20:16' },
-    { id: 4, text: 'ממש! רוצה להיפגש?', type: 'text', sent: true, time: '20:18' },
-  ],
-  Noa24f: [
-    { id: 1, text: 'היי!', type: 'text', sent: true, time: '20:20' },
-    { id: 2, text: 'היי 🥰 נעים מאוד', type: 'text', sent: false, time: '20:21' },
-  ],
-};
-
-const AUTO_REPLIES = ['😊 נעים מאוד!', 'כן! אירוע מדהים', 'מסכים/ה לגמרי 😂', 'בוא/י נדבר אחרי?', 'תודה על הלייק 💕', 'איזה כיף!'];
-
-/* ═══════════════════════════════════════════
-   SVG ICONS - exact copies from real app
-   ═══════════════════════════════════════════ */
-
-const I = {
-  grid: (c = 'currentColor') => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
-  swipe: (c = 'currentColor') => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" aria-hidden="true" focusable="false"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 21h8"/></svg>,
-  chatTab: (c = 'currentColor') => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" aria-hidden="true" focusable="false"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>,
-  chatLg: (c = 'currentColor') => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" aria-hidden="true" focusable="false"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>,
-  heartTab: (c = 'currentColor') => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" aria-hidden="true" focusable="false"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>,
-  heartFill: (c = 'currentColor', s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill={c} stroke="none" aria-hidden="true" focusable="false"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>,
-  person: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
-  personSm: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
-  back: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false"><path d="M19 12H5M12 19l7-7-7-7"/></svg>,
-  close: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true" focusable="false"><path d="M18 6L6 18M6 6l12 12"/></svg>,
-  send: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>,
-  block: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>,
-  dots: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>,
-  camera: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>,
-};
 
 /* ═══════════════════════════════════════════
    COMPONENT
@@ -89,14 +26,14 @@ export default function DemoPhone() {
   const [viewMode, setViewMode] = useState<'grid' | 'swipe'>('grid');
   const [likesTab, setLikesTab] = useState<LikesTab>('matches');
 
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [chatUser, setChatUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<DemoUser | null>(null);
+  const [chatUser, setChatUser] = useState<DemoUser | null>(null);
   const [likedUsers, setLikedUsers] = useState<Set<string>>(new Set());
   const [sentLikes, setSentLikes] = useState<Set<string>>(new Set());
   const [matchedUsers, setMatchedUsers] = useState<Set<string>>(new Set(PRE_MATCHED));
   const [skippedUsers, setSkippedUsers] = useState<Set<string>>(new Set());
-  const [matchPopup, setMatchPopup] = useState<User | null>(null);
-  const [convos, setConvos] = useState<Record<string, Msg[]>>(() => JSON.parse(JSON.stringify(INITIAL_CONVOS)));
+  const [matchPopup, setMatchPopup] = useState<DemoUser | null>(null);
+  const [convos, setConvos] = useState<Record<string, DemoMsg[]>>(() => JSON.parse(JSON.stringify(INITIAL_CONVOS)));
   const [chatInput, setChatInput] = useState('');
   const [myName, setMyName] = useState('');
   const [myAge, setMyAge] = useState('');
@@ -126,7 +63,7 @@ export default function DemoPhone() {
 
   const toggleView = useCallback((mode: 'grid' | 'swipe') => { setViewMode(mode); setScreen(mode); }, []);
 
-  const doLike = useCallback((user: User) => {
+  const doLike = useCallback((user: DemoUser) => {
     setLikedUsers(p => { const n = new Set(p); n.add(user.seed); return n; });
     setSentLikes(p => { const n = new Set(p); n.add(user.seed); return n; });
     if (LIKED_BY.has(user.seed) && !matchedUsers.has(user.seed)) {
@@ -139,9 +76,9 @@ export default function DemoPhone() {
     }
   }, [matchedUsers]);
 
-  const doSkip = useCallback((user: User) => { setSkippedUsers(p => { const n = new Set(p); n.add(user.seed); return n; }); }, []);
-  const openUser = useCallback((user: User) => { setSelectedUser(user); setScreen('user'); }, []);
-  const openChat = useCallback((user: User) => { setChatUser(user); setScreen('chat'); setChatInput(''); }, []);
+  const doSkip = useCallback((user: DemoUser) => { setSkippedUsers(p => { const n = new Set(p); n.add(user.seed); return n; }); }, []);
+  const openUser = useCallback((user: DemoUser) => { setSelectedUser(user); setScreen('user'); }, []);
+  const openChat = useCallback((user: DemoUser) => { setChatUser(user); setScreen('chat'); setChatInput(''); }, []);
 
   const sendMessage = useCallback(() => {
     if (!chatInput.trim() || !chatUser) return;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import type { WizardFormState, PosterTemplate } from '../wizard-config';
@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function StepPoster({ state, onChange }: Props) {
-  const [templates, setTemplates] = useState<PosterTemplate[]>([]);
+  const [allTemplates, setAllTemplates] = useState<PosterTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
   const [previewLabel, setPreviewLabel] = useState('');
@@ -24,24 +24,30 @@ export default function StepPoster({ state, onChange }: Props) {
   }, []);
 
   const previewRef = useFocusTrap(!!previewSrc, closePreview);
-  // Load poster manifest
+  // Load poster manifest once
   useEffect(() => {
     fetch('/templates/manifest.json')
-      .then(r => r.json())
-      .then(data => {
-        const filtered = getTemplatesForType(data.templates || [], state.eventType);
-        setTemplates(filtered);
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
       })
-      .catch(() => setTemplates([]))
+      .then(data => setAllTemplates(data.templates || []))
+      .catch(() => setAllTemplates([]))
       .finally(() => setLoading(false));
-  }, [state.eventType]);
+  }, []);
 
-  const selectTemplate = (id: string) => {
-    onChange({ posterChoice: 'template', selectedTemplateId: id });
+  // Filter templates locally when event type changes
+  const templates = useMemo(
+    () => getTemplatesForType(allTemplates, state.eventType),
+    [allTemplates, state.eventType]
+  );
+
+  const selectTemplate = (id: string, label: string) => {
+    onChange({ posterChoice: 'template', selectedTemplateId: id, selectedTemplateLabel: label });
   };
 
   const selectQrOnly = () => {
-    onChange({ posterChoice: 'qr-only', selectedTemplateId: null });
+    onChange({ posterChoice: 'qr-only', selectedTemplateId: null, selectedTemplateLabel: null });
   };
 
   const openPreview = (src: string, label: string) => {
@@ -89,7 +95,7 @@ export default function StepPoster({ state, onChange }: Props) {
                   type="button"
                   aria-pressed={state.selectedTemplateId === t.id}
                   className={`wiz-poster${state.selectedTemplateId === t.id ? ' wiz-poster--selected' : ''}`}
-                  onClick={() => selectTemplate(t.id)}
+                  onClick={() => selectTemplate(t.id, t.label)}
                 >
                   <span className="wiz-poster__check" aria-hidden="true">
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">

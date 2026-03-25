@@ -18,15 +18,17 @@ export default function StepBackground({ state, onChange }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [cropFileName, setCropFileName] = useState('background.jpg');
+  const [fileError, setFileError] = useState<string | null>(null);
 
   const handleFile = useCallback(
     (file: File) => {
+      setFileError(null);
       if (file.size > MAX_BG_SIZE) {
-        alert('הקובץ גדול מדי. מקסימום 5MB.');
+        setFileError('הקובץ גדול מדי. מקסימום 5MB.');
         return;
       }
       if (!file.type.startsWith('image/')) {
-        alert('יש להעלות קובץ תמונה בלבד.');
+        setFileError('יש להעלות קובץ תמונה בלבד.');
         return;
       }
 
@@ -118,6 +120,7 @@ export default function StepBackground({ state, onChange }: Props) {
           <div className="wiz-upload__icon"><WizardIcon name="upload" size={36} /></div>
           <p className="wiz-upload__text">גררו תמונה לכאן או לחצו לבחירה</p>
           <p className="wiz-upload__hint">JPG, PNG, WebP - עד 5MB</p>
+          {fileError && <p className="wiz-upload__error" role="alert">{fileError}</p>}
           <input
             ref={fileRef}
             type="file"

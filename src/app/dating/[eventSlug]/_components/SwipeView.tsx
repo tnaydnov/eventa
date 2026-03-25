@@ -37,6 +37,7 @@ export default function SwipeView({ participants, eventSlug }: SwipeViewProps) {
   const likedIdsLoaded = useSwipeStore((s) => s.likedIdsLoaded);
   const dismiss = useSwipeStore((s) => s.dismiss);
   const addLiked = useSwipeStore((s) => s.addLiked);
+  const removeLiked = useSwipeStore((s) => s.removeLiked);
   const setLikedIds = useSwipeStore((s) => s.setLikedIds);
   const resetPool = useSwipeStore((s) => s.resetPool);
 
@@ -80,10 +81,12 @@ export default function SwipeView({ participants, eventSlug }: SwipeViewProps) {
           toast('💗 לייק נשלח!');
         }
       } else {
+        // Rollback optimistic like so the card reappears in the deck
+        removeLiked(id);
         toast('שגיאה בשליחת הלייק - נסו שוב');
       }
     },
-    [addLiked, toast, participants],
+    [addLiked, removeLiked, toast, participants],
   );
 
   const handleSwipeLeft = useCallback(

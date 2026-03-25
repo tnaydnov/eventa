@@ -1,17 +1,10 @@
-'use client';
-
-import { useEffect, useRef, useState } from 'react';
 import { BASE_PRICE } from '@/lib/config';
-import dynamic from 'next/dynamic';
 import Image from 'next/image';
-
-const DemoPhone = dynamic(() => import('./_components/DemoPhone'), { ssr: true });
-const OrderForm = dynamic(() => import('./_components/OrderForm'), { ssr: true });
-
-/* ── Smooth scroll helper ── */
-function scrollTo(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+import LandingNav from './_components/landing/LandingNav';
+import ScrollToButton from './_components/landing/ScrollToButton';
+import RevealSections from './_components/landing/RevealSections';
+import DemoPhone from './_components/demo/DemoPhone';
+import OrderForm from './_components/OrderForm';
 
 /* ── Feature data ── */
 const FEATURES = [
@@ -43,72 +36,10 @@ const FEATURES = [
 ];
 
 export default function LandingPage() {
-  const revealRef = useRef<HTMLDivElement>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  /* ── Scroll-reveal observer ── */
-  useEffect(() => {
-    const els = revealRef.current?.querySelectorAll('.reveal');
-    if (!els?.length) return;
-
-    const io = new IntersectionObserver(
-      (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
-      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
-    );
-    els.forEach(el => io.observe(el));
-    return () => io.disconnect();
-  }, []);
-
-  /* ── Escape key closes mobile menu ── */
-  useEffect(() => {
-    if (!menuOpen) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuOpen(false);
-    };
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
-  }, [menuOpen]);
-
   return (
-    <div className="landing" ref={revealRef}>
+    <div className="landing">
       {/* ═══ Nav ═══ */}
-      <nav className="landing-nav" aria-label="ניווט ראשי">
-        <div className="landing-nav__logo">
-          <Image
-            src="/icons/Eventa_Logo.png"
-            alt="Eventa"
-            width={110}
-            height={37}
-            style={{ objectFit: 'contain' }}
-            priority
-          />
-        </div>
-        <div className="landing-nav__links">
-          <a className="landing-nav__link" href="/how-it-works">איך זה עובד</a>
-          <a className="landing-nav__link" href="/faq">שאלות נפוצות</a>
-          <a className="landing-nav__link" href="/pricing">מחירון</a>
-        </div>
-        <a className="landing-nav__cta" href="/dating/order">הזמינו עכשיו</a>
-
-        {/* Mobile hamburger */}
-        <button
-          className={`landing-nav__burger${menuOpen ? ' open' : ''}`}
-          onClick={() => setMenuOpen(o => !o)}
-          aria-label="תפריט"
-          aria-expanded={menuOpen}
-        >
-          <span /><span /><span />
-        </button>
-
-        {menuOpen && (
-          <div className="landing-nav__mobile-menu" role="dialog" aria-label="תפריט ניווט">
-            <a href="/how-it-works" onClick={() => setMenuOpen(false)}>איך זה עובד</a>
-            <a href="/faq" onClick={() => setMenuOpen(false)}>שאלות נפוצות</a>
-            <a href="/pricing" onClick={() => setMenuOpen(false)}>מחירון</a>
-            <a href="/dating/order" className="landing-nav__mobile-cta" onClick={() => setMenuOpen(false)}>הזמינו עכשיו</a>
-          </div>
-        )}
-      </nav>
+      <LandingNav />
 
       <main id="main-content">
       {/* ═══ Hero ═══ */}
@@ -130,12 +61,7 @@ export default function LandingPage() {
                 <path d="M7 4l-6 6 6 6" />
               </svg>
             </a>
-            <button className="landing-btn landing-btn--ghost" onClick={() => scrollTo('demo')}>
-              ראו דמו חי
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
-                <polygon points="6,3 17,10 6,17" fill="currentColor" opacity="0.5"/>
-              </svg>
-            </button>
+            <ScrollToButton targetId="demo" />
           </div>
 
           <div className="landing-stats">
@@ -155,6 +81,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <RevealSections>
       <div className="landing-accent-line" />
 
       {/* ═══ Features ═══ */}
@@ -300,6 +227,7 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      </RevealSections>
 
       </main>
 

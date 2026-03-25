@@ -129,10 +129,15 @@ function EventPageContent({
   const loadGrid = useCallback(async () => {
     const s = useSessionStore.getState().session;
     if (!s) return;
-    const data = await getGridParticipants(s.eventId, s.participantId);
-    setParticipants(data);
-    setLoading(false);
-    lastFetchRef.current = Date.now();
+    try {
+      const data = await getGridParticipants(s.eventId, s.participantId);
+      setParticipants(data);
+      lastFetchRef.current = Date.now();
+    } catch {
+      // Silently fail - stale data is better than a stuck spinner
+    } finally {
+      setLoading(false);
+    }
   }, [setParticipants]);
 
   // QR redirect
@@ -292,6 +297,16 @@ function EventPageContent({
     return p.gender === genderFilterMap[filter];
   });
 
+  // Pre-compute highlight lookups as Sets for O(1) per card instead of O(n)
+  const likeHighlightIds = useMemo(
+    () => new Set(gridHighlights.filter((h) => h.type === 'like').map((h) => h.participantId)),
+    [gridHighlights],
+  );
+  const messageHighlightIds = useMemo(
+    () => new Set(gridHighlights.filter((h) => h.type === 'message').map((h) => h.participantId)),
+    [gridHighlights],
+  );
+
   // Virtualized grid: chunk participants into rows of 3
   const COLS = 3;
   const GAP = 8;
@@ -431,19 +446,15 @@ function EventPageContent({
                           height: virtualRow.size,
                         }}
                       >
-                        {rowParticipants.map((p) => {
-                          const hasLikeHighlight = gridHighlights.some((h) => h.participantId === p.id && h.type === 'like');
-                          const hasMessageHighlight = gridHighlights.some((h) => h.participantId === p.id && h.type === 'message');
-                          return (
+                        {rowParticipants.map((p) => (
                             <GridCard
                               key={p.id}
                               p={p}
-                              hasLikeHighlight={hasLikeHighlight}
-                              hasMessageHighlight={hasMessageHighlight}
+                              hasLikeHighlight={likeHighlightIds.has(p.id)}
+                              hasMessageHighlight={messageHighlightIds.has(p.id)}
                               onCardClick={handleCardClick}
                             />
-                          );
-                        })}
+                          ))}
                       </div>
                     );
                   })}

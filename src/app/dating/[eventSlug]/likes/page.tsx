@@ -68,16 +68,21 @@ export default function LikesPage({
   const loadLikes = useCallback(async () => {
     const s = useSessionStore.getState().session;
     if (!s) return;
-    const [received, sent, matchList] = await Promise.all([
-      getReceivedLikes(s.eventId, s.participantId),
-      getSentLikes(s.eventId, s.participantId),
-      getMatches(s.eventId, s.participantId),
-    ]);
-    setReceivedLikes(received);
-    setSentLikes(sent);
-    setMatches(matchList);
-    setLoading(false);
-    lastFetchRef.current = Date.now();
+    try {
+      const [received, sent, matchList] = await Promise.all([
+        getReceivedLikes(s.eventId, s.participantId),
+        getSentLikes(s.eventId, s.participantId),
+        getMatches(s.eventId, s.participantId),
+      ]);
+      setReceivedLikes(received);
+      setSentLikes(sent);
+      setMatches(matchList);
+      lastFetchRef.current = Date.now();
+    } catch {
+      // Silently fail - stale data is better than a stuck spinner
+    } finally {
+      setLoading(false);
+    }
   }, [setReceivedLikes, setSentLikes, setMatches]);
 
   useEffect(() => {

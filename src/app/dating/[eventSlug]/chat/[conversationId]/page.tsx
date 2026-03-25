@@ -65,27 +65,38 @@ export default function ChatRoomPage({
   const fullscreenCloseBtnRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // Clean up long-press timer on unmount
+  useEffect(() => {
+    return () => {
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    };
+  }, []);
 
   // ─── Load older messages (keyset pagination) ──────────────────
   const loadOlderMessages = async () => {
     if (loadingOlder || !hasOlderMessages || messages.length === 0) return;
     setLoadingOlder(true);
-    const oldestTimestamp = messages[0].created_at;
-    const container = messagesContainerRef.current;
-    const prevScrollHeight = container?.scrollHeight || 0;
-    const older = await getMessagesBefore(conversationId, oldestTimestamp, MESSAGE_PAGE_SIZE);
-    if (older.length === 0) {
-      setHasOlderMessages(false);
-    } else {
-      setMessages((prev) => [...older, ...prev]);
-      // Maintain scroll position after prepending
-      requestAnimationFrame(() => {
-        if (container) {
-          container.scrollTop = container.scrollHeight - prevScrollHeight;
-        }
-      });
+    try {
+      const oldestTimestamp = messages[0].created_at;
+      const container = messagesContainerRef.current;
+      const prevScrollHeight = container?.scrollHeight || 0;
+      const older = await getMessagesBefore(conversationId, oldestTimestamp, MESSAGE_PAGE_SIZE);
+      if (older.length === 0) {
+        setHasOlderMessages(false);
+      } else {
+        setMessages((prev) => [...older, ...prev]);
+        // Maintain scroll position after prepending
+        requestAnimationFrame(() => {
+          if (container) {
+            container.scrollTop = container.scrollHeight - prevScrollHeight;
+          }
+        });
+      }
+    } catch {
+      // Silently fail - user can retry via the button
+    } finally {
+      setLoadingOlder(false);
     }
-    setLoadingOlder(false);
   };
 
   // ─── Scroll to bottom only on NEW messages (not history load) ──

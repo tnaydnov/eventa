@@ -26,7 +26,7 @@ function formatDateTime(iso: string): string {
 }
 
 export default function StepSummary({ state, onChange, onGoToStep }: Props) {
-  const typeConfig = WIZARD_TYPE_MAP[state.eventType];
+  const typeConfig = state.eventType ? WIZARD_TYPE_MAP[state.eventType] : undefined;
 
   return (
     <div className="wiz-step">
@@ -85,7 +85,7 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
             <div className="wiz-summary__card-value">
               {state.posterChoice === 'qr-only'
                 ? <><WizardIcon name="qr" size={14} className="wiz-summary__inline-icon" /> QR בלבד</>
-                : <><WizardIcon name="image" size={14} className="wiz-summary__inline-icon" /> תבנית: {state.selectedTemplateId ?? ''}</>
+                : <><WizardIcon name="image" size={14} className="wiz-summary__inline-icon" /> תבנית: {state.selectedTemplateLabel ?? state.selectedTemplateId ?? ''}</>
               }
               {state.specialRequests && ' + בקשות מיוחדות'}
             </div>
@@ -129,7 +129,7 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
       </div>
 
       {/* Divider */}
-      <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '24px 0' }} />
+      <div className="wiz-divider" />
 
       {/* Contact preference */}
       <div className="wiz-field" style={{ marginBottom: 16 }}>
@@ -159,7 +159,7 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
       </div>
 
       {/* Divider */}
-      <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '24px 0' }} />
+      <div className="wiz-divider" />
 
       {/* Contact fields */}
       <div className="wiz-fields">

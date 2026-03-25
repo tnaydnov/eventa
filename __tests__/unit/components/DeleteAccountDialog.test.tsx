@@ -27,7 +27,6 @@ describe('DeleteAccountDialog', () => {
   const defaultProps = {
     isOpen: true,
     onClose: vi.fn(),
-    session: { sub: 'p1', eid: 'e1', esl: 'test', enm: 'Test' } as any,
     onDeleted: vi.fn(),
   };
 

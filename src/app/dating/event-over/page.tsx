@@ -17,7 +17,9 @@ const REDIRECT_SECONDS = 15;
 /** SVG ring circumference = 2 * π * radius(17) */
 const RING_CIRCUMFERENCE = 2 * Math.PI * 17;
 
-const REASON_COPY: Record<string, { line1: string; line2: string; sub: string }> = {
+type EventOverReason = 'ended' | 'paused' | 'archived';
+
+const REASON_COPY: Record<EventOverReason, { line1: string; line2: string; sub: string }> = {
   ended: {
     line1: 'הערב הזה',
     line2: 'כבר הפך לזיכרון',
@@ -68,8 +70,10 @@ export default function EventOverPage() {
 
 function EventOverContent() {
   const searchParams = useSearchParams();
-  const reason = searchParams.get('reason') ?? 'ended';
-  const copy = REASON_COPY[reason] ?? DEFAULT_COPY;
+  const rawReason = searchParams.get('reason') ?? 'ended';
+  const copy = (rawReason in REASON_COPY)
+    ? REASON_COPY[rawReason as EventOverReason]
+    : DEFAULT_COPY;
 
   const [countdown, setCountdown] = useState(REDIRECT_SECONDS);
   const [progress, setProgress] = useState(0);

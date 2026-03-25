@@ -57,11 +57,14 @@ function Counter({ value, delay = 0 }: { value: number; delay?: number }) {
   const mv = useMotionValue(0);
   const display = useTransform(mv, (v) => Math.round(v).toLocaleString());
   useEffect(() => {
+    let ctrl: ReturnType<typeof animate> | undefined;
     const t = setTimeout(() => {
-      const ctrl = animate(mv, value, { duration: 2.2, ease: [0.16, 1, 0.3, 1] });
-      return () => ctrl.stop();
+      ctrl = animate(mv, value, { duration: 2.2, ease: [0.16, 1, 0.3, 1] });
     }, delay);
-    return () => clearTimeout(t);
+    return () => {
+      clearTimeout(t);
+      ctrl?.stop();
+    };
   }, [mv, value, delay]);
   return <motion.span>{display}</motion.span>;
 }

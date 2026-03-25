@@ -1344,6 +1344,18 @@
   transform: scale(0.98);
 }
 
+.order-form__submit--success {
+  background: #22c55e;
+  box-shadow: none;
+}
+
+.order-form__error {
+  color: #ef4444;
+  font-size: 14px;
+  text-align: center;
+  margin-top: 12px;
+}
+
 /* ═══ Footer ═══ */
 .landing-footer {
   padding: 48px 24px;

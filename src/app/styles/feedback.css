@@ -278,10 +278,6 @@
   gap: 10px;
 }
 
-.rc-opts--3 {
-  /* keep stacked for 3 items too */
-}
-
 .rc-opt {
   display: flex;
   align-items: center;
