@@ -1,5 +1,5 @@
-/* ═══════════════════════════════════════════
-   How It Works — Story-style viewer
+﻿/* ═══════════════════════════════════════════
+   How It Works - Story-style viewer
    Phone stays fixed, content transitions
    ═══════════════════════════════════════════ */
 
@@ -343,7 +343,7 @@
 }
 
 /* ═══════════════════════════════════════════
-   Phone screen mockups — realistic app UI
+   Phone screen mockups - realistic app UI
    Matches DemoPhone.tsx & landing.css styles
    ═══════════════════════════════════════════ */
 
@@ -1177,7 +1177,7 @@
   color: #1a1a1a;
 }
 
-/* Real photo grid — matches .profile-grid */
+/* Real photo grid - matches .profile-grid */
 .hps__grid-real {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1381,7 +1381,7 @@
   max-width: none;
 }
 
-/* Input bar — matches real demo-input-bar */
+/* Input bar - matches real demo-input-bar */
 .hps__chat-inputbar {
   display: flex;
   align-items: center;
@@ -1489,7 +1489,7 @@
 }
 
 /* ═══════════════════════════════════════════
-   Responsive — Tablet
+   Responsive - Tablet
    ═══════════════════════════════════════════ */
 @media (max-width: 768px) {
   .hiw__stage {
@@ -1521,7 +1521,7 @@
 }
 
 /* ═══════════════════════════════════════════
-   Responsive — Mobile
+   Responsive - Mobile
    ═══════════════════════════════════════════ */
 @media (max-width: 600px) {
   .hiw__content {

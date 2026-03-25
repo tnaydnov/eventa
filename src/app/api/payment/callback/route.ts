@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { after } from 'next/server';
 import { logger } from '@/lib/logger';
 import { getServiceClient, generateJoinCode, generateShortCode } from '@/lib/supabase';
@@ -14,12 +14,12 @@ import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
  *
  * Invoice4U/Cardcom redirects here after the customer completes payment.
  *
- * Phase 1 (fast — before redirect):
+ * Phase 1 (fast - before redirect):
  *   1. Verify payment via GetClearingLogById
  *   2. Mark order as paid
  *   3. Auto-create event (slug, join_code, background, messaging, portal)
  *
- * Phase 2 (after() — runs after the response is sent):
+ * Phase 2 (after() - runs after the response is sent):
  *   4. Create itemised invoice-receipt via SOAP
  *   5. Fetch PDF receipt
  *   6. Send C4 approval email with receipt attached
@@ -279,7 +279,7 @@ async function sendDocumentAndEmails(ctx: {
       }
 
       if (pdfUrl) {
-        // Small delay — Invoice4U may need a moment to generate the PDF
+        // Small delay - Invoice4U may need a moment to generate the PDF
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         const pdfRes = await fetch(pdfUrl, { signal: AbortSignal.timeout(15_000) });

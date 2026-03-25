@@ -1,4 +1,4 @@
-/* ═══════════════════════════════════════════
+﻿/* ═══════════════════════════════════════════
    Components
    ═══════════════════════════════════════════ */
 
@@ -105,7 +105,7 @@
 }
 
 /* ── Select ── */
-/* NOTE: .select-group/.select-option removed — unused. Profile uses .profile-edit-pill instead. */
+/* NOTE: .select-group/.select-option removed - unused. Profile uses .profile-edit-pill instead. */
 
 /* ── Loading ── */
 .loading-spinner {
@@ -237,4 +237,4 @@
   color: var(--text-muted);
 }
 
-/* NOTE: .photo-upload-grid/.photo-upload-slot removed — unused. Profile uses .profile-edit-photo-grid instead. */
+/* NOTE: .photo-upload-grid/.photo-upload-slot removed - unused. Profile uses .profile-edit-photo-grid instead. */

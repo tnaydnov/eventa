@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
 import { signSessionToken, sessionCookieHeader, checkCsrf } from '@/lib/session';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
@@ -7,7 +7,7 @@ import { jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 
 // Fingerprint format: hex string or UUID-like, max 64 chars
-// NOTE: duplicated in /api/auth/verify-otp/route.ts — keep in sync until extracted to shared util.
+// NOTE: duplicated in /api/auth/verify-otp/route.ts - keep in sync until extracted to shared util.
 const FP_PATTERN = /^[a-f0-9-]+$/i;
 
 /**

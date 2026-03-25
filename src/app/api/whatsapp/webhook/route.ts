@@ -1,5 +1,5 @@
-/**
- * DEPRECATED — WhatsApp integration removed.
+﻿/**
+ * DEPRECATED - WhatsApp integration removed.
  * This file can be safely deleted.
  */
 import { NextResponse } from 'next/server';

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { jsonError } from '@/lib/route-helpers';
@@ -7,7 +7,7 @@ import { logger } from '@/lib/logger';
 /**
  * GET /api/events/[eventSlug]/stats
  * Returns public-facing event statistics for the feedback thank-you screen.
- * No auth required — data is aggregate only, no PII.
+ * No auth required - data is aggregate only, no PII.
  */
 export async function GET(
   req: NextRequest,

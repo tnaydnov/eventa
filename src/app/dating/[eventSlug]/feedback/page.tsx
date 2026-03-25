@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { use, useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
@@ -226,7 +226,7 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
             <motion.p className="rc-hero__sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.65 }}>
               כמה שאלות קצרות ואנונימיות.
               <br />
-              בסוף — המספרים מהאירוע.
+              בסוף - המספרים מהאירוע.
             </motion.p>
 
             <motion.div className="rc-tap" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}>
@@ -319,7 +319,7 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
         return (
           <div className="rc-slide">
             <motion.h2 className="rc-q" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
-              בינינו —
+              בינינו -
               <br />
               <span className="rc-q__big">מה היה יותר מביך?</span>
             </motion.h2>
@@ -458,12 +458,12 @@ export default function FeedbackPage({ params }: { params: Promise<{ eventSlug: 
           feat: { swipes: 'סווייפים', chat: 'צ׳אט', see_likes: 'לייקים', design: 'עיצוב', concept: 'רעיון', vibe: 'אווירה', nothing: 'כלום' } as Record<string, string>,
         };
         const rows = [
-          { k: 'חוויה', v: labels.enjoy[enjoyment] || '—' },
-          { k: 'קלות שימוש', v: labels.ease[easeOfUse] || '—' },
-          { k: 'שימוש', v: labels.usage[usageLevel] || '—' },
-          { k: 'קשר', v: labels.inter[interactionResult] || '—' },
-          { k: 'מה אהבת', v: favoriteFeatures.map((f) => labels.feat[f] || f).join(', ') || '—' },
-          { k: 'חיבור', v: labels.story[successStory] || '—' },
+          { k: 'חוויה', v: labels.enjoy[enjoyment] || '-' },
+          { k: 'קלות שימוש', v: labels.ease[easeOfUse] || '-' },
+          { k: 'שימוש', v: labels.usage[usageLevel] || '-' },
+          { k: 'קשר', v: labels.inter[interactionResult] || '-' },
+          { k: 'מה אהבת', v: favoriteFeatures.map((f) => labels.feat[f] || f).join(', ') || '-' },
+          { k: 'חיבור', v: labels.story[successStory] || '-' },
         ];
 
         return (

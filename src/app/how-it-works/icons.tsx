@@ -1,5 +1,5 @@
-/* ═══════════════════════════════════════════
-   How-It-Works — SVG icon helpers
+﻿/* ═══════════════════════════════════════════
+   How-It-Works - SVG icon helpers
    Exact copies from the real app tab bar
    ═══════════════════════════════════════════ */
 

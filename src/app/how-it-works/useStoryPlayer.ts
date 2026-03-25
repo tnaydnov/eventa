@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+﻿import { useState, useCallback, useEffect, useRef } from 'react';
 import { ORGANIZER_STEPS, GUEST_STEPS } from './data';
 import type { Journey, Step } from './data';
 
@@ -65,7 +65,7 @@ export function useStoryPlayer(): StoryPlayer {
 
   const togglePause = useCallback(() => setPaused((p) => !p), []);
 
-  /* Keyboard nav — ignore when focus is on interactive elements */
+  /* Keyboard nav - ignore when focus is on interactive elements */
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;

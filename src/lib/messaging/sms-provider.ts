@@ -1,4 +1,4 @@
-/**
+﻿/**
  * TextMe SMS provider for the Israeli market.
  *
  * API docs: https://docs.textme.co.il/sms/
@@ -8,7 +8,7 @@
  * OTP codes, pre-event reminders, welcome messages, and feedback.
  *
  * When SMS_PROVIDER_LIVE is false, the provider logs the message
- * and returns a stub success — no real SMS is sent.
+ * and returns a stub success - no real SMS is sent.
  */
 import { SMS_PROVIDER_LIVE } from '@/lib/config';
 import { logger } from '@/lib/logger';
@@ -53,7 +53,7 @@ const ERROR_CODES: Record<number, string> = {
 export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
   // ── Stub mode ──
   if (!SMS_PROVIDER_LIVE) {
-    logger.warn('[SMS_STUB] SMS_PROVIDER_LIVE is false — SMS NOT sent', {
+    logger.warn('[SMS_STUB] SMS_PROVIDER_LIVE is false - SMS NOT sent', {
       to: maskPhone(params.to),
       messageLength: params.message.length,
       hint: 'Set SMS_PROVIDER_LIVE=true in .env.local to send real SMS',
@@ -126,7 +126,7 @@ export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
       return {
         success: false,
         messageId: null,
-        error: `HTTP ${response.status}: Non-JSON response — ${responseText.slice(0, 200)}`,
+        error: `HTTP ${response.status}: Non-JSON response - ${responseText.slice(0, 200)}`,
       };
     }
 

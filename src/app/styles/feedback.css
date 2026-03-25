@@ -1,5 +1,5 @@
-/* ═══════════════════════════════════════════════════
-   Dating Recap — Spotify Wrapped / Instagram Stories
+﻿/* ═══════════════════════════════════════════════════
+   Dating Recap - Spotify Wrapped / Instagram Stories
    Full-viewport · Story-style · Bold typography
    Immersive dark · Warm rose-gold accents
    ═══════════════════════════════════════════════════ */
@@ -35,7 +35,7 @@
   transition: opacity 1s ease;
 }
 
-/* Per-slide gradient moods — subtle but alive */
+/* Per-slide gradient moods - subtle but alive */
 .recap[data-slide="0"] .recap__gradient {
   background:
     radial-gradient(ellipse 80% 60% at 50% 35%, rgba(212, 165, 154, 0.14) 0%, transparent 70%),
@@ -777,7 +777,7 @@
 }
 
 /* ══════════════════════════
-   RESPONSIVE — TABLET
+   RESPONSIVE - TABLET
    ══════════════════════════ */
 @media (min-width: 640px) {
   .recap__stage {
@@ -807,7 +807,7 @@
 }
 
 /* ══════════════════════════
-   RESPONSIVE — DESKTOP
+   RESPONSIVE - DESKTOP
    ══════════════════════════ */
 @media (min-width: 1024px) {
   .recap__step {
@@ -879,7 +879,7 @@
 }
 
 /* ══════════════════════════
-   RESPONSIVE — LARGE DESKTOP
+   RESPONSIVE - LARGE DESKTOP
    ══════════════════════════ */
 @media (min-width: 1440px) {
   .recap__step {

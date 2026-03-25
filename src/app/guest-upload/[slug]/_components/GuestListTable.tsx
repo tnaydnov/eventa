@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { type ChangeEvent, useState, useCallback, useRef, useEffect } from 'react';
 import type { PortalGuest } from '@/lib/api/guest-portal';
@@ -85,7 +85,7 @@ export default function GuestListTable({
         <span className="portal-list-count">{total} אורחים</span>
       </div>
 
-      {/* Search input — controlled */}
+      {/* Search input - controlled */}
       <div className="portal-search-wrapper">
         <input
           type="text"

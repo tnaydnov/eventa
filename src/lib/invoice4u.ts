@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Invoice4U API Client (JSON REST)
  * 
  * Communicates with Invoice4U's WCF service via JSON webHttpBinding endpoints
@@ -167,7 +167,7 @@ async function apiJsonCall<T>(method: string, body: Record<string, unknown>): Pr
   }
 
   const json = await res.json();
-  // WCF JSON responses are wrapped in {"d": {...}} — unwrap automatically
+  // WCF JSON responses are wrapped in {"d": {...}} - unwrap automatically
   return (json.d ?? json) as T;
 }
 
@@ -701,7 +701,7 @@ export interface ClearingLog {
 
 /* ── Generic JSON call helper ─────────────────────────── */
 
-// Reuses apiJsonCall — identical WCF webHttpBinding JSON pattern
+// Reuses apiJsonCall - identical WCF webHttpBinding JSON pattern
 const clearingJsonCall = apiJsonCall;
 
 /* ── Helper: extract values from OpenInfo array ───────── */

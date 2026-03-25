@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest, clearSessionCookieHeader, checkCsrf } from '@/lib/session';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
   }
 
   if (!participant) {
-    // Participant deleted (e.g. self-deletion) — clear stale session
+    // Participant deleted (e.g. self-deletion) - clear stale session
     const response = NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     response.headers.set('Set-Cookie', clearSessionCookieHeader());
     return response;

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getServiceClient } from '@/lib/supabase';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
@@ -28,7 +28,7 @@ const feedbackSchema = z.object({
 /**
  * POST /api/events/[eventSlug]/feedback
  * Submit anonymous feedback for an event.
- * No authentication required — survey is anonymous.
+ * No authentication required - survey is anonymous.
  */
 export async function POST(
   req: NextRequest,
@@ -59,7 +59,7 @@ export async function POST(
   try {
     const supabase = getServiceClient();
 
-    // Look up event by slug — must exist and not be draft
+    // Look up event by slug - must exist and not be draft
     const { data: event, error: eventErr } = await supabase
       .from('events')
       .select('id, status')

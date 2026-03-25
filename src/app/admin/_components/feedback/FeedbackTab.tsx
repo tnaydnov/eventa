@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import {
@@ -114,7 +114,7 @@ function ResponseCard({ response, index }: { response: FeedbackResponse; index: 
             </div>
             <div className="afb-response-field">
               <span className="afb-response-field__label">🌟 סיפור הצלחה</span>
-              <span className="afb-response-field__value">{response.successStory ? SUCCESS_STORY_LABELS[response.successStory] ?? response.successStory : '—'}</span>
+              <span className="afb-response-field__value">{response.successStory ? SUCCESS_STORY_LABELS[response.successStory] ?? response.successStory : '-'}</span>
             </div>
           </div>
 

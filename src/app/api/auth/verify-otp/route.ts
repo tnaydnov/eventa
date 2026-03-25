@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
 import { signSessionToken, sessionCookieHeader, checkCsrf } from '@/lib/session';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
@@ -11,7 +11,7 @@ import { sendWelcomeMessage } from '@/lib/messaging';
 import type { EventMessagingConfig } from '@/lib/messaging';
 
 /** Fingerprint hex/UUID pattern, max 64 chars for regular, 128 for hardware.
- *  NOTE: duplicated in /api/auth/join/route.ts — keep in sync until extracted to shared util. */
+ *  NOTE: duplicated in /api/auth/join/route.ts - keep in sync until extracted to shared util. */
 const FP_PATTERN = /^[a-f0-9-]+$/i;
 
 /**

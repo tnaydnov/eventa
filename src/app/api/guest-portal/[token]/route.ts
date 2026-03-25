@@ -196,7 +196,7 @@ export async function GET(
     } else if (eventStarted) {
       uploadStatus = 'started';
     } else if (portalLocked) {
-      uploadStatus = 'started'; // Reuse 'started' state — portal is locked for message preparation
+      uploadStatus = 'started'; // Reuse 'started' state - portal is locked for message preparation
     } else if (!event.guest_list_uploaded || total === 0) {
       uploadStatus = 'empty';
     } else {
@@ -314,7 +314,7 @@ async function handleFileUpload(
   }
 
   if (!isAllowedUploadFile(file.name)) {
-    return jsonError('׳”׳§׳•׳‘׳¥ ׳—׳™׳™׳‘ ׳׳”׳™׳•׳× ׳‘׳₪׳•׳¨׳׳˜ Excel (.xlsx) ׳׳• CSV (.csv)', 400);
+    return jsonError('׳”׳§׳•׳‘׳¥ ׳-׳™׳™׳‘ ׳׳”׳™׳•׳× ׳‘׳₪׳•׳¨׳׳˜ Excel (.xlsx) ׳׳• CSV (.csv)', 400);
   }
 
   // Check current count
@@ -325,7 +325,7 @@ async function handleFileUpload(
 
   if ((currentCount ?? 0) >= MAX_GUEST_PHONES_PER_EVENT) {
     return jsonError(
-      `׳”׳’׳¢׳×׳ ׳׳׳§׳¡׳™׳׳•׳ ${MAX_GUEST_PHONES_PER_EVENT} ׳׳•׳¨׳—׳™׳`,
+      `׳”׳’׳¢׳×׳ ׳׳׳§׳¡׳™׳׳•׳ ${MAX_GUEST_PHONES_PER_EVENT} ׳׳•׳¨׳-׳™׳`,
       400
     );
   }
@@ -420,7 +420,7 @@ async function handleSingleAdd(
 
   if ((currentCount ?? 0) >= MAX_GUEST_PHONES_PER_EVENT) {
     return jsonError(
-      `׳”׳’׳¢׳×׳ ׳׳׳§׳¡׳™׳׳•׳ ${MAX_GUEST_PHONES_PER_EVENT} ׳׳•׳¨׳—׳™׳`,
+      `׳”׳’׳¢׳×׳ ׳׳׳§׳¡׳™׳׳•׳ ${MAX_GUEST_PHONES_PER_EVENT} ׳׳•׳¨׳-׳™׳`,
       400
     );
   }
@@ -546,7 +546,7 @@ export async function DELETE(
 
     if (phone.wa_pre_event_sent) {
       return jsonError(
-        '׳׳ ׳ ׳™׳×׳ ׳׳”׳¡׳™׳¨ ׳׳¡׳₪׳¨ ׳©׳›׳‘׳¨ ׳ ׳©׳׳—׳” ׳׳׳™׳• ׳”׳•׳“׳¢׳”',
+        '׳׳ ׳ ׳™׳×׳ ׳׳”׳¡׳™׳¨ ׳׳¡׳₪׳¨ ׳©׳›׳‘׳¨ ׳ ׳©׳׳-׳” ׳׳׳™׳• ׳”׳•׳“׳¢׳”',
         400
       );
     }

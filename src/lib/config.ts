@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Application configuration - tunable runtime settings.
  *
  * Unlike constants.ts (which holds domain labels, enum arrays, and
@@ -25,7 +25,7 @@ export function getJwtSecret(): string {
   _jwtSecret = secret;
   return secret;
 }
-/** @deprecated Use getJwtSecret() — kept for backwards compat during migration */
+/** @deprecated Use getJwtSecret() - kept for backwards compat during migration */
 export const JWT_SECRET = '' as string;
 
 /** Whether the app is running in production mode. */
@@ -121,7 +121,7 @@ export const PAYMENT_PROVIDER_LIVE = process.env.PAYMENT_PROVIDER_LIVE === 'true
 /** Base event package price in shekels (includes all features). */
 export const BASE_PRICE = 300;
 
-/** Guest messaging add-on price in shekels (now included in base — kept for backward compat). */
+/** Guest messaging add-on price in shekels (now included in base - kept for backward compat). */
 export const MSG_ADDON = 0;
 
 /** Number of days a payment link stays valid before expiring. */

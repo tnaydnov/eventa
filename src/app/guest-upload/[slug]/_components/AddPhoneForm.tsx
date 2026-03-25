@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { type FormEvent, useState, useCallback } from 'react';
 import { normalizePhone } from '@/lib/messaging/phone-utils';
@@ -19,7 +19,7 @@ export default function AddPhoneForm({ onAdd, disabled }: AddPhoneFormProps) {
       e.preventDefault();
       const normalized = normalizePhone(phone);
       if (!normalized) {
-        setError('מספר לא תקין — הזינו סלולרי ישראלי (למשל 050-1234567 או +972501234567)');
+        setError('מספר לא תקין - הזינו סלולרי ישראלי (למשל 050-1234567 או +972501234567)');
         return;
       }
       setError('');

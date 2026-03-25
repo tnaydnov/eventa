@@ -1,4 +1,4 @@
-import { LegalSection, LegalSubheading, LegalText, LegalList, LegalLink } from '@/components/legal';
+﻿import { LegalSection, LegalSubheading, LegalText, LegalList, LegalLink } from '@/components/legal';
 
 export default function PrivacyContent() {
   return (
@@ -56,7 +56,7 @@ export default function PrivacyContent() {
         <LegalSubheading>ה. הסכמות והעדפות תקשורת</LegalSubheading>
         <LegalList>
           <li>הסכמה לקבלת הודעות SMS מהמערכת (אופציונלי, ניתן לשינוי בכל עת).</li>
-          <li>הודעת תזכורת לפני האירוע, הודעת ברוכים הבאים, והודעת פידבק לאחר האירוע — עשויות להישלח למשתתפים שנתנו הסכמה לקבלת הודעות.</li>
+          <li>הודעת תזכורת לפני האירוע, הודעת ברוכים הבאים, והודעת פידבק לאחר האירוע - עשויות להישלח למשתתפים שנתנו הסכמה לקבלת הודעות.</li>
         </LegalList>
 
         <LegalSubheading>ו. מזהים טכניים</LegalSubheading>

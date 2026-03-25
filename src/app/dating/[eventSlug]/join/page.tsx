@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Suspense, use, useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -160,7 +160,7 @@ function JoinPageContent({
         }
 
         if (data.status === 'error') {
-          // Server error — let user proceed but they'll hit the real
+          // Server error - let user proceed but they'll hit the real
           // validation at the send-otp / join step
           setStatusChecked(true);
           return;
@@ -172,7 +172,7 @@ function JoinPageContent({
           return;
         }
       } catch {
-        // Network failure — let them proceed; API calls later will catch it
+        // Network failure - let them proceed; API calls later will catch it
       }
       setStatusChecked(true);
     }

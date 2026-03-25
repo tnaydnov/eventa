@@ -1,5 +1,5 @@
-/* ═══════════════════════════════════════════
-   How-It-Works — Phone screen mockups
+﻿/* ═══════════════════════════════════════════
+   How-It-Works - Phone screen mockups
    Realistic UI that matches the actual
    Eventa app from DemoPhone
    ═══════════════════════════════════════════ */
@@ -11,7 +11,7 @@ import { HIcon } from './icons';
 
 /* ── Shared mini-components ── */
 
-/** Mini app header (Great Vibes event name + profile icon) — matches real AppHeader */
+/** Mini app header (Great Vibes event name + profile icon) - matches real AppHeader */
 function MiniHeader() {
   return (
     <div className="hps__app-header">
@@ -21,7 +21,7 @@ function MiniHeader() {
   );
 }
 
-/** Mini tab bar (grid / chats / likes) — matches real TabBar */
+/** Mini tab bar (grid / chats / likes) - matches real TabBar */
 function MiniTabBar({ active }: { active: 'grid' | 'chat' | 'likes' }) {
   return (
     <div className="hps__tabbar">
@@ -275,14 +275,14 @@ function GuestDiscoverScreen() {
   return (
     <div className="hps hps--discover">
       <MiniHeader />
-      {/* View toggle pill — matches real app */}
+      {/* View toggle pill - matches real app */}
       <div className="hps__view-toggle">
         <span className="hps__vt-btn hps__vt-btn--on">{HIcon.grid('#1a1a1a')}</span>
         <span className="hps__vt-btn">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="3" width="16" height="18" rx="3"/></svg>
         </span>
       </div>
-      {/* Real photo grid — 3 columns, actual /demo/ photos */}
+      {/* Real photo grid - 3 columns, actual /demo/ photos */}
       <div className="hps__grid-real">
         {GRID_USERS.map((u) => (
           <div key={u.name} className="hps__grid-card">
@@ -320,7 +320,7 @@ function GuestMatchScreen() {
 function GuestChatScreen() {
   return (
     <div className="hps hps--chat">
-      {/* Chat header with avatar — matches real demo-chat-hdr */}
+      {/* Chat header with avatar - matches real demo-chat-hdr */}
       <div className="hps__chat-header">
         <span className="hps__chat-back">{HIcon.back}</span>
         <img className="hps__chat-avatar" src="/demo/daniel.jpg" alt="דניאל" />
@@ -334,7 +334,7 @@ function GuestChatScreen() {
         <div className="hps__msg hps__msg--sent">ליד הבר 🍸 בואי!</div>
         <div className="hps__msg hps__msg--received">בדרך! 🏃‍♂️</div>
       </div>
-      {/* Input bar — camera + text field + send (matches real app) */}
+      {/* Input bar - camera + text field + send (matches real app) */}
       <div className="hps__chat-inputbar">
         <span className="hps__chat-cam">{HIcon.camera}</span>
         <div className="hps__chat-field">הקלידו הודעה...</div>

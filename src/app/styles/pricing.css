@@ -1,5 +1,5 @@
-/* ═══════════════════════════════════════════
-   Pricing — Hero-price with surrounding features
+﻿/* ═══════════════════════════════════════════
+   Pricing - Hero-price with surrounding features
    Inspired by: big central price + feature cards grid
    ═══════════════════════════════════════════ */
 
@@ -124,7 +124,7 @@
 }
 
 /* ═══════════════════════════════════════════
-   Center — HUGE price
+   Center - HUGE price
    ═══════════════════════════════════════════ */
 .pri__center {
   display: flex;
@@ -186,7 +186,7 @@
   margin: 0 0 32px;
 }
 
-/* ── CTA — elongated rose-gold pill ── */
+/* ── CTA - elongated rose-gold pill ── */
 .pri__cta {
   display: inline-block;
   padding: 18px clamp(28px, 5vw, 56px);
@@ -243,7 +243,7 @@
 }
 
 /* ═══════════════════════════════════════════
-   Responsive — Tablet (≤ 900px):
+   Responsive - Tablet (≤ 900px):
    Price on top, features in 2 columns below
    ═══════════════════════════════════════════ */
 @media (max-width: 900px) {
@@ -269,7 +269,7 @@
 }
 
 /* ═══════════════════════════════════════════
-   Responsive — Mobile (≤ 580px):
+   Responsive - Mobile (≤ 580px):
    Single column stack
    ═══════════════════════════════════════════ */
 @media (max-width: 580px) {

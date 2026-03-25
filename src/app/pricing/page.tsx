@@ -1,4 +1,4 @@
-import type { Metadata, Route } from 'next';
+﻿import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import SitePageLayout from '@/components/SitePageLayout';
 import { BASE_PRICE } from '@/lib/config';
@@ -105,14 +105,14 @@ export default function PricingPage() {
         {/* ── Feature grid surrounding the price ── */}
         <div className="pri__grid">
 
-          {/* LEFT column — first 3 features */}
+          {/* LEFT column - first 3 features */}
           <div className="pri__col pri__col--start">
             {leftFeatures.map((f) => (
               <FeatureCard key={f.title} {...f} />
             ))}
           </div>
 
-          {/* CENTER — hero price */}
+          {/* CENTER - hero price */}
           <div className="pri__center">
             <div className="pri__price">
               <span className="pri__currency">₪</span>
@@ -121,7 +121,7 @@ export default function PricingPage() {
             <p className="pri__tagline">פתרון אחד. מחיר אחד.<br/>אירוע מושלם.</p>
           </div>
 
-          {/* RIGHT column — last 3 features */}
+          {/* RIGHT column - last 3 features */}
           <div className="pri__col pri__col--end">
             {rightFeatures.map((f) => (
               <FeatureCard key={f.title} {...f} />

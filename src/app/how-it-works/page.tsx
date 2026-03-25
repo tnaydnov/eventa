@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import type { Route } from 'next';
 import Link from 'next/link';
@@ -24,7 +24,7 @@ export default function HowItWorksPage() {
         <div className="hiw__hero">
           <h1 className="hiw__title">איך Eventa עובדת?</h1>
           <p className="hiw__subtitle">
-            מהרגע שאתם מזמינים — ועד הרגע שהאורחים שלכם מוצאים את הלב.<br />
+            מהרגע שאתם מזמינים - ועד הרגע שהאורחים שלכם מוצאים את הלב.<br />
             צפו בחוויה דרך שני הצדדים.
           </p>
         </div>
@@ -90,7 +90,7 @@ export default function HowItWorksPage() {
               </div>
             </div>
 
-            {/* Phone side — decorative mockup, hidden from screen readers */}
+            {/* Phone side - decorative mockup, hidden from screen readers */}
             <div className="hiw__phone-wrap" aria-hidden="true">
               <div className="hiw__phone">
                 <div className="hiw__phone-notch" />
