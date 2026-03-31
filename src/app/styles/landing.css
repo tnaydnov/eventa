@@ -10,6 +10,9 @@
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-rubik, 'Rubik', sans-serif);
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
 }
 
 /* ═══ Shared ═══ */
@@ -27,10 +30,10 @@
 .landing-section:nth-child(even)::before {
   content: '';
   position: absolute;
-  inset: 0;
-  left: 50%;
-  width: 100vw;
-  transform: translateX(-50%);
+  top: 0;
+  bottom: 0;
+  left: calc(-50vw + 50%);
+  right: calc(-50vw + 50%);
   background: rgba(255, 255, 255, 0.02);
   pointer-events: none;
   z-index: -1;
