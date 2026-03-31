@@ -322,10 +322,15 @@ function EventPageContent({
   // On a 390px phone: (390 - 16 padding - 16 gap) / 3 ≈ 119px → 119 * 1.333 ≈ 159px + 8px gap ≈ 167px
   const estimateRowHeight = useCallback(() => {
     const container = gridScrollRef.current;
-    if (!container) return 167; // sensible default
-    const containerWidth = container.clientWidth - 16; // 8px padding each side
-    const cardWidth = (containerWidth - GAP * (COLS - 1)) / COLS;
-    return Math.ceil(cardWidth * (4 / 3)) + GAP;
+    if (!container) return 175;
+
+    const horizontalPadding = 16; // 8px each side
+    const totalGapWidth = GAP * (COLS - 1); // 16px
+    const availableWidth = container.clientWidth - horizontalPadding - totalGapWidth;
+    const cardWidth = availableWidth / COLS;
+    const cardHeight = cardWidth * (4 / 3);
+
+    return Math.ceil(cardHeight) + 8; // extra bottom spacing between rows
   }, []);
 
   const virtualizer = useVirtualizer({
@@ -443,6 +448,7 @@ function EventPageContent({
                         className="virtual-grid-row"
                         style={{
                           transform: `translateY(${virtualRow.start}px)`,
+                          height: `${virtualRow.size}px`,
                         }}
                       >
                         {rowParticipants.map((p) => (
