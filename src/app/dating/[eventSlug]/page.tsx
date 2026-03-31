@@ -62,7 +62,7 @@ const GridCard = memo(function GridCard({
         <div className="avatar-placeholder"><UserIcon size={32} /></div>
       )}
       <div className="card-overlay">
-        <div className="name">{p.display_name}</div>
+        <div className="name">{p.display_name}{p.age ? `, ${p.age}` : ''}</div>
       </div>
       {hasHighlight && (
         <div className="grid-card-badges">
