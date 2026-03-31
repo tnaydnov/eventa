@@ -443,7 +443,6 @@ function EventPageContent({
                         className="virtual-grid-row"
                         style={{
                           transform: `translateY(${virtualRow.start}px)`,
-                          height: virtualRow.size,
                         }}
                       >
                         {rowParticipants.map((p) => (
