@@ -330,7 +330,7 @@ function EventPageContent({
     const cardWidth = availableWidth / COLS;
     const cardHeight = cardWidth * (4 / 3);
 
-    return Math.ceil(cardHeight) + 8; // extra bottom spacing between rows
+    return Math.ceil(cardHeight) + 16; // extra bottom spacing between rows
   }, []);
 
   const virtualizer = useVirtualizer({
