@@ -337,6 +337,7 @@ function EventPageContent({
     count: rows.length,
     getScrollElement: () => gridScrollRef.current,
     estimateSize: estimateRowHeight,
+    measureElement: (el) => el.getBoundingClientRect().height,
     overscan: 3,
   });
 
@@ -445,10 +446,11 @@ function EventPageContent({
                     return (
                       <div
                         key={virtualRow.index}
+                        ref={virtualizer.measureElement}
+                        data-index={virtualRow.index}
                         className="virtual-grid-row"
                         style={{
                           transform: `translateY(${virtualRow.start}px)`,
-                          height: `${virtualRow.size}px`,
                         }}
                       >
                         {rowParticipants.map((p) => (
