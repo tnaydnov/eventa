@@ -7,7 +7,7 @@
 .landing {
   max-width: 100%;
   overflow-x: hidden;
-  background: #141212;
+  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-rubik, 'Rubik', sans-serif);
 }
