@@ -32,8 +32,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  padding: 0 8px;
-  align-items: start;
+  padding: 0 8px 8px;
 }
 
 .grid-card {
