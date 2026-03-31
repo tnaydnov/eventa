@@ -32,7 +32,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  padding: 0 8px 16px;
+  padding: 0 8px 8px;
   box-sizing: border-box;
 }
 
@@ -44,8 +44,6 @@
   cursor: pointer;
   transition: transform 0.2s ease;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  content-visibility: auto;
-  contain-intrinsic-size: auto 120px 160px;
 }
 
 .grid-card:active {
