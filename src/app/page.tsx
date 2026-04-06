@@ -102,7 +102,7 @@ export default function HomePage() {
       <section className="hp__bottom-cta">
         <Reveal>
           <h2 className="hp__bottom-title">
-            זה רק ההתחלה
+            זו רק ההתחלה
           </h2>
           <p className="hp__bottom-sub">
             אנחנו עובדים על עוד שירותים שישנו את חוויית האירועים שלכם. בינתיים, גלו את Eventa Dating.

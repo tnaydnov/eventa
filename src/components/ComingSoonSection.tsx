@@ -40,8 +40,9 @@ const SERVICES: ServiceDetail[] = [
         aria-hidden="true"
         focusable="false"
       >
-        <path d="M12 2l2.09 6.26L20.18 9l-5 4.27L16.82 20 12 16.77 7.18 20l1.64-6.73L3.82 9l6.09-.74L12 2z" />
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" opacity="0.4" />
+        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+        <path d="M12 8v0" opacity="0.4" />
+        <path d="M9.5 12.5l1.5 1.5 3.5-3.5" opacity="0.6" />
       </svg>
     ),
     badge: 'חדש ✨',
@@ -196,22 +197,13 @@ function ServiceModal({
 
         <p className="hp__soon-sheet-closing">{service.closingMessage}</p>
 
-        <div className="hp__soon-sheet-actions">
-          <button
-            type="button"
-            className="hp__soon-sheet-cta"
-            onClick={onClose}
-          >
-            זה מעניין אותי
-          </button>
-          <button
-            type="button"
-            className="hp__soon-sheet-close"
-            onClick={onClose}
-          >
-            סגירה
-          </button>
-        </div>
+        <button
+          type="button"
+          className="hp__soon-sheet-close"
+          onClick={onClose}
+        >
+          סגירה
+        </button>
       </motion.div>
     </motion.div>
   );
