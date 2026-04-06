@@ -331,6 +331,277 @@
   position: relative;
 }
 
+/* ── Interactive coming-soon card ── */
+.hp__card--soon-interactive {
+  position: relative;
+  padding: 28px 20px;
+  cursor: pointer;
+  opacity: 0.85;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  font-family: inherit;
+  text-align: center;
+  transition: opacity 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+.hp__card--soon-interactive:hover {
+  opacity: 1;
+  border-color: rgba(201, 165, 128, 0.25);
+  box-shadow:
+    0 0 30px rgba(201, 165, 128, 0.06),
+    0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.hp__card--soon-interactive:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Animated glow border on hover */
+.hp__soon-glow {
+  position: absolute;
+  inset: -1px;
+  border-radius: 20px;
+  background: linear-gradient(
+    135deg,
+    rgba(201, 165, 128, 0.2),
+    transparent 40%,
+    transparent 60%,
+    rgba(140, 110, 160, 0.15)
+  );
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.hp__card--soon-interactive:hover .hp__soon-glow {
+  opacity: 1;
+}
+
+/* In-progress variant (Wishes) */
+.hp__card--in-progress {
+  border-color: rgba(140, 110, 160, 0.2);
+  opacity: 0.9;
+}
+
+.hp__card--in-progress:hover {
+  border-color: rgba(140, 110, 160, 0.35);
+  box-shadow:
+    0 0 30px rgba(140, 110, 160, 0.08),
+    0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+/* Status badges */
+.hp__card-status--progress {
+  color: rgba(160, 130, 200, 0.85);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.hp__card-dot--purple {
+  background: rgba(160, 130, 200, 0.8);
+  animation: hp-pulse 2s ease-in-out infinite;
+}
+
+/* Icon for interactive cards */
+.hp__card-icon--soon-new {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  background: rgba(201, 165, 128, 0.06);
+  border: 1px solid rgba(201, 165, 128, 0.1);
+  color: rgba(201, 165, 128, 0.6);
+  position: relative;
+  z-index: 1;
+  transition: color 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+}
+
+.hp__card--soon-interactive:hover .hp__card-icon--soon-new {
+  color: rgba(201, 165, 128, 0.85);
+  background: rgba(201, 165, 128, 0.1);
+  border-color: rgba(201, 165, 128, 0.18);
+}
+
+.hp__card--in-progress .hp__card-icon--soon-new {
+  background: rgba(140, 110, 160, 0.06);
+  border-color: rgba(140, 110, 160, 0.1);
+  color: rgba(160, 130, 200, 0.6);
+}
+
+.hp__card--in-progress:hover .hp__card-icon--soon-new {
+  color: rgba(160, 130, 200, 0.85);
+  background: rgba(140, 110, 160, 0.1);
+  border-color: rgba(140, 110, 160, 0.18);
+}
+
+/* Subtitle */
+.hp__card-subtitle {
+  display: block;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(201, 165, 128, 0.55);
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.hp__card--in-progress .hp__card-subtitle {
+  color: rgba(160, 130, 200, 0.55);
+}
+
+/* Tap hint */
+.hp__soon-tap-hint {
+  display: block;
+  margin-top: 14px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: rgba(240, 237, 232, 0.2);
+  position: relative;
+  z-index: 1;
+  transition: color 0.3s ease;
+}
+
+.hp__card--soon-interactive:hover .hp__soon-tap-hint {
+  color: rgba(240, 237, 232, 0.4);
+}
+
+/* ── Bottom sheet modal ── */
+.hp__soon-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 200;
+  padding: 16px;
+}
+
+.hp__soon-sheet {
+  width: 100%;
+  max-width: 440px;
+  background: rgba(20, 20, 22, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px 24px 20px 20px;
+  padding: 20px 24px 28px;
+  text-align: center;
+  color: #f0ede8;
+}
+
+.hp__soon-sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 0 auto 20px;
+}
+
+.hp__soon-sheet-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+  background: rgba(201, 165, 128, 0.08);
+  border: 1px solid rgba(201, 165, 128, 0.12);
+  color: var(--accent-gold);
+}
+
+.hp__soon-sheet-title {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #f0ede8;
+}
+
+.hp__soon-sheet-subtitle {
+  margin: 0 0 18px;
+  font-size: 14px;
+  color: rgba(201, 165, 128, 0.7);
+  line-height: 1.6;
+}
+
+.hp__soon-sheet-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+  text-align: right;
+}
+
+.hp__soon-sheet-bullets li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: rgba(240, 237, 232, 0.75);
+  padding: 8px 0;
+  line-height: 1.5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.hp__soon-sheet-bullets li:last-child {
+  border-bottom: none;
+}
+
+.hp__soon-bullet-dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  opacity: 0.5;
+}
+
+.hp__soon-sheet-closing {
+  font-size: 13px;
+  color: rgba(201, 165, 128, 0.6);
+  margin: 0 0 18px;
+  font-weight: 500;
+}
+
+.hp__soon-sheet-close {
+  display: inline-block;
+  padding: 10px 36px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  color: rgba(240, 237, 232, 0.7);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.hp__soon-sheet-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f0ede8;
+}
+
+/* ── Desktop: center the modal ── */
+@media (min-width: 481px) {
+  .hp__soon-overlay {
+    align-items: center;
+  }
+
+  .hp__soon-sheet {
+    border-radius: 24px;
+  }
+}
+
 /* Mystery card */
 .hp__card--mystery {
   padding: 24px 16px;
@@ -469,6 +740,10 @@
 
   .hp__card--soon {
     padding: 20px 16px;
+  }
+
+  .hp__card--soon-interactive {
+    padding: 22px 16px;
   }
 
   .hp__bottom-cta {
