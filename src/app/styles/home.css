@@ -139,7 +139,7 @@
   align-items: center;
   text-align: center;
   padding: 32px 24px;
-  border-radius: 20px;
+  border-radius: 24px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
   text-decoration: none;
@@ -150,30 +150,91 @@
 /* ── Live card (Dating) ── */
 .hp__card--live {
   position: relative;
+  padding: 44px 28px 36px;
   border-color: rgba(212, 165, 154, 0.2);
-  background: rgba(212, 165, 154, 0.03);
+  background:
+    linear-gradient(170deg, rgba(212, 165, 154, 0.05) 0%, transparent 40%),
+    rgba(255, 255, 255, 0.02);
   cursor: pointer;
+  overflow: hidden;
 }
 
+/* Gradient border glow */
 .hp__card--live::before {
   content: '';
   position: absolute;
   inset: -1px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, rgba(212, 165, 154, 0.15), transparent 50%, rgba(201, 165, 128, 0.1));
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(212, 165, 154, 0.2), transparent 40%, transparent 60%, rgba(201, 165, 128, 0.12));
   z-index: -1;
   opacity: 0;
-  transition: opacity 0.35s ease;
+  transition: opacity 0.4s ease;
+}
+
+/* Shimmer sweep */
+.hp__card--live::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(212, 165, 154, 0.04) 45%,
+    rgba(212, 165, 154, 0.07) 50%,
+    rgba(212, 165, 154, 0.04) 55%,
+    transparent 60%
+  );
+  animation: hp-shimmer 7s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes hp-shimmer {
+  0% { transform: translateX(150%); }
+  35%, 100% { transform: translateX(-150%); }
 }
 
 .hp__card--live:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 40px rgba(212, 165, 154, 0.1);
-  border-color: rgba(212, 165, 154, 0.3);
+  transform: translateY(-5px);
+  box-shadow:
+    0 12px 48px rgba(212, 165, 154, 0.12),
+    0 0 80px rgba(212, 165, 154, 0.04);
+  border-color: rgba(212, 165, 154, 0.35);
 }
 
 .hp__card--live:hover::before {
   opacity: 1;
+}
+
+/* Feature pills */
+.hp__card-features {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 16px;
+  margin-bottom: 4px;
+  position: relative;
+  z-index: 1;
+}
+
+.hp__feature-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(212, 165, 154, 0.65);
+  background: rgba(212, 165, 154, 0.05);
+  border: 1px solid rgba(212, 165, 154, 0.08);
+  border-radius: 100px;
+  transition: color 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+}
+
+.hp__card--live:hover .hp__feature-pill {
+  color: rgba(212, 165, 154, 0.9);
+  background: rgba(212, 165, 154, 0.08);
+  border-color: rgba(212, 165, 154, 0.15);
 }
 
 /* Status badge */
@@ -203,16 +264,25 @@
 
 /* Icon circle */
 .hp__card-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
-  background: rgba(212, 165, 154, 0.08);
-  border: 1px solid rgba(212, 165, 154, 0.12);
+  margin-bottom: 20px;
+  background: rgba(212, 165, 154, 0.06);
+  border: 1px solid rgba(212, 165, 154, 0.1);
   color: var(--primary);
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 0 24px rgba(212, 165, 154, 0.06);
+  transition: box-shadow 0.35s ease, background 0.35s ease;
+}
+
+.hp__card--live:hover .hp__card-icon {
+  box-shadow: 0 0 36px rgba(212, 165, 154, 0.15);
+  background: rgba(212, 165, 154, 0.1);
 }
 
 .hp__card-icon--muted {
@@ -224,9 +294,11 @@
 /* Card text */
 .hp__card-title {
   margin: 0 0 8px;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   color: #f0ede8;
+  position: relative;
+  z-index: 1;
 }
 
 .hp__card-title--sm {
@@ -240,6 +312,8 @@
   line-height: 1.75;
   color: rgba(176, 176, 176, 0.7);
   max-width: 380px;
+  position: relative;
+  z-index: 1;
 }
 
 .hp__card-desc--sm {
@@ -251,16 +325,24 @@
 .hp__card-cta {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 16px;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 8px 20px;
   font-size: 14px;
   font-weight: 600;
   color: var(--primary);
-  transition: gap 0.25s ease;
+  background: rgba(212, 165, 154, 0.06);
+  border: 1px solid rgba(212, 165, 154, 0.1);
+  border-radius: 12px;
+  transition: gap 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .hp__card--live:hover .hp__card-cta {
-  gap: 10px;
+  gap: 12px;
+  background: rgba(212, 165, 154, 0.1);
+  border-color: rgba(212, 165, 154, 0.18);
 }
 
 /* ── Coming soon cards ── */
@@ -334,22 +416,45 @@
 /* ── Interactive coming-soon card ── */
 .hp__card--soon-interactive {
   position: relative;
-  padding: 28px 20px;
+  padding: 32px 22px 28px;
   cursor: pointer;
-  opacity: 0.85;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  opacity: 0.82;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
   overflow: hidden;
   font-family: inherit;
   text-align: center;
+  background:
+    linear-gradient(170deg, rgba(201, 165, 128, 0.03) 0%, transparent 50%),
+    rgba(255, 255, 255, 0.02);
   transition: opacity 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+/* Shimmer sweep on coming-soon cards */
+.hp__card--soon-interactive::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.02) 45%,
+    rgba(255, 255, 255, 0.04) 50%,
+    rgba(255, 255, 255, 0.02) 55%,
+    transparent 60%
+  );
+  animation: hp-shimmer 9s ease-in-out infinite;
+  animation-delay: 2s;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .hp__card--soon-interactive:hover {
   opacity: 1;
   border-color: rgba(201, 165, 128, 0.25);
   box-shadow:
-    0 0 30px rgba(201, 165, 128, 0.06),
-    0 8px 32px rgba(0, 0, 0, 0.25);
+    0 0 50px rgba(201, 165, 128, 0.06),
+    0 16px 48px rgba(0, 0, 0, 0.3);
 }
 
 .hp__card--soon-interactive:focus-visible {
@@ -407,37 +512,45 @@
 
 /* Icon for interactive cards */
 .hp__card-icon--soon-new {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   background: rgba(201, 165, 128, 0.06);
   border: 1px solid rgba(201, 165, 128, 0.1);
   color: rgba(201, 165, 128, 0.6);
   position: relative;
   z-index: 1;
-  transition: color 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+  box-shadow: 0 0 20px rgba(201, 165, 128, 0.04);
+  transition: color 0.3s ease, background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .hp__card--soon-interactive:hover .hp__card-icon--soon-new {
   color: rgba(201, 165, 128, 0.85);
   background: rgba(201, 165, 128, 0.1);
   border-color: rgba(201, 165, 128, 0.18);
+  box-shadow: 0 0 30px rgba(201, 165, 128, 0.1);
 }
 
 .hp__card--in-progress .hp__card-icon--soon-new {
   background: rgba(140, 110, 160, 0.06);
   border-color: rgba(140, 110, 160, 0.1);
   color: rgba(160, 130, 200, 0.6);
+  box-shadow: 0 0 20px rgba(140, 110, 160, 0.04);
 }
 
 .hp__card--in-progress:hover .hp__card-icon--soon-new {
   color: rgba(160, 130, 200, 0.85);
   background: rgba(140, 110, 160, 0.1);
   border-color: rgba(140, 110, 160, 0.18);
+  box-shadow: 0 0 30px rgba(140, 110, 160, 0.1);
+}
+
+.hp__card--in-progress::after {
+  animation-delay: 4s;
 }
 
 /* Subtitle */
@@ -457,19 +570,23 @@
 
 /* Tap hint */
 .hp__soon-tap-hint {
-  display: block;
-  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 16px;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.5px;
-  color: rgba(240, 237, 232, 0.2);
+  color: rgba(240, 237, 232, 0.18);
   position: relative;
   z-index: 1;
-  transition: color 0.3s ease;
+  transition: color 0.3s ease, gap 0.3s ease;
 }
 
 .hp__card--soon-interactive:hover .hp__soon-tap-hint {
-  color: rgba(240, 237, 232, 0.4);
+  color: rgba(240, 237, 232, 0.45);
+  gap: 6px;
 }
 
 /* ── Bottom sheet modal ── */
@@ -735,7 +852,7 @@
   }
 
   .hp__card--live {
-    padding: 28px 20px;
+    padding: 36px 20px 28px;
   }
 
   .hp__card--soon {

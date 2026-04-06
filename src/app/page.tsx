@@ -62,6 +62,12 @@ export default function HomePage() {
           <p className="hp__card-desc">
             שכבת היכרויות חכמה לכל אירוע. האורחים סורקים QR, בונים פרופיל, ומגלים אחד את השנייה עם לייקים, מאצ׳ים וצ׳אט - בזמן אמת.
           </p>
+          <div className="hp__card-features">
+            <span className="hp__feature-pill">לייקים בזמן אמת</span>
+            <span className="hp__feature-pill">מאצ׳ים חכמים</span>
+            <span className="hp__feature-pill">צ׳אט מובנה</span>
+            <span className="hp__feature-pill">ללא הורדה</span>
+          </div>
           <span className="hp__card-cta">
             <span>גלו עוד</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
