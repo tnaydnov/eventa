@@ -160,15 +160,7 @@ export default function ComingSoonSection() {
           <div className="hp__coming-line" />
         </div>
 
-        <motion.div
-          className="hp__coming-grid"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-40px' }}
-          variants={{
-            visible: { transition: { staggerChildren: 0.15 } },
-          }}
-        >
+        <div className="hp__coming-grid">
           {SERVICES.map((service) => (
             <ComingSoonCard
               key={service.id}
@@ -181,7 +173,7 @@ export default function ComingSoonSection() {
               onClick={() => setActiveService(service)}
             />
           ))}
-        </motion.div>
+        </div>
       </div>
 
       <AnimatePresence>
