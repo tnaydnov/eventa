@@ -9,12 +9,14 @@ interface ServiceDetail {
   id: string;
   title: string;
   subtitle: string;
+  valueLine: string;
   description: string;
   icon: React.ReactNode;
   badge: string;
   status: 'coming-soon' | 'in-progress';
   bullets: string[];
   closingMessage: string;
+  preview: React.ReactNode;
 }
 
 const SERVICES: ServiceDetail[] = [
@@ -22,6 +24,7 @@ const SERVICES: ServiceDetail[] = [
     id: 'wishes',
     title: 'Eventa Wishes',
     subtitle: 'ברכות אישיות מהאורחים - ישירות לזוג',
+    valueLine: 'הופכים את הברכות לזיכרון שלא הולך לאיבוד',
     description:
       'סרקו QR והשאירו הודעה, קול או וידאו - מזכרת מרגשת שנשארת אחרי האירוע.',
     icon: (
@@ -44,16 +47,35 @@ const SERVICES: ServiceDetail[] = [
     badge: 'חדש ✨',
     status: 'in-progress',
     bullets: [
-      'העלאת ברכות בוידאו/טקסט',
-      'סריקה פשוטה דרך QR',
-      'אלבום דיגיטלי לזוג אחרי האירוע',
+      'האורחים משאירים ברכות אישיות בקלות',
+      'סריקה מהירה דרך QR - בלי אפליקציה',
+      'כל הברכות נשמרות לאלבום דיגיטלי אחד',
     ],
-    closingMessage: 'השירות נמצא בפיתוח ויעלה בקרוב!',
+    closingMessage: 'זה הולך להיות אחד הרגעים הכי מרגשים באירוע שלך',
+    preview: (
+      <div className="hp__sheet-preview hp__sheet-preview--wishes">
+        <div className="hp__preview-phone">
+          <div className="hp__preview-screen">
+            <div className="hp__preview-rec" aria-hidden="true">
+              <span className="hp__preview-rec-dot" />
+              <span>מקליטים ברכה...</span>
+            </div>
+            <div className="hp__preview-wave" aria-hidden="true">
+              {[40, 65, 30, 80, 55, 70, 35, 60, 45, 75, 50, 68].map((h, i) => (
+                <span key={i} className="hp__preview-wave-bar" style={{ height: `${h}%`, animationDelay: `${i * 0.08}s` }} />
+              ))}
+            </div>
+            <div className="hp__preview-label">💛 ברכה מ-דנה ורונן</div>
+          </div>
+        </div>
+      </div>
+    ),
   },
   {
     id: 'rides',
     title: 'Eventa Rides',
     subtitle: 'מתחברים לנסיעות לאירוע ובחזרה',
+    valueLine: 'אף אורח לא נתקע בדרך - גם לא בחזרה',
     description:
       'נהגים ונוסעים נפגשים לפי אזור ושעה - כולל חזרה בטוחה אחרי האירוע.',
     icon: (
@@ -77,11 +99,37 @@ const SERVICES: ServiceDetail[] = [
     badge: '🚧 בפיתוח',
     status: 'coming-soon',
     bullets: [
-      'חיבור חכם לפי אזור וכיוון נסיעה',
-      'תיאום חזרה בטוחה מהאירוע',
-      'ניהול נסיעות פשוט דרך הדפדפן',
+      'חיבור חכם בין נהגים לנוסעים',
+      'תיאום נסיעות הלוך וחזור',
+      'חזרה בטוחה מהאירוע גם אחרי אלכוהול',
     ],
-    closingMessage: 'זה יעלה בקרוב - הישארו מעודכנים!',
+    closingMessage: 'בקרוב - הדרך לאירוע תהיה חלק מהחוויה',
+    preview: (
+      <div className="hp__sheet-preview hp__sheet-preview--rides">
+        <div className="hp__preview-route">
+          <div className="hp__preview-route-line" aria-hidden="true" />
+          <div className="hp__preview-stop">
+            <span className="hp__preview-stop-dot hp__preview-stop-dot--start" />
+            <span className="hp__preview-stop-text">
+              <span className="hp__preview-stop-label">איסוף</span>
+              <span className="hp__preview-stop-detail">תל אביב, 19:00</span>
+            </span>
+          </div>
+          <div className="hp__preview-riders" aria-hidden="true">
+            <span className="hp__preview-avatar">ד</span>
+            <span className="hp__preview-avatar">ש</span>
+            <span className="hp__preview-avatar">+2</span>
+          </div>
+          <div className="hp__preview-stop">
+            <span className="hp__preview-stop-dot hp__preview-stop-dot--end" />
+            <span className="hp__preview-stop-text">
+              <span className="hp__preview-stop-label">האירוע</span>
+              <span className="hp__preview-stop-detail">אולמי הגן, ראשל״צ</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    ),
   },
 ];
 
@@ -100,7 +148,7 @@ function ServiceModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.25 }}
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -109,38 +157,61 @@ function ServiceModal({
       <motion.div
         ref={focusTrapRef}
         className="hp__soon-sheet"
-        initial={{ opacity: 0, y: 60 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 40 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
+        initial={{ opacity: 0, y: 60, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 40, scale: 0.97 }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
         onClick={(e) => e.stopPropagation()}
         dir="rtl"
       >
         {/* Drag handle */}
         <div className="hp__soon-sheet-handle" aria-hidden="true" />
 
-        <div className="hp__soon-sheet-icon">{service.icon}</div>
+        <motion.div
+          className="hp__soon-sheet-icon"
+          animate={{ scale: [1, 1.08, 1] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          {service.icon}
+        </motion.div>
         <h3 className="hp__soon-sheet-title">{service.title}</h3>
-        <p className="hp__soon-sheet-subtitle">{service.subtitle}</p>
+        <p className="hp__soon-sheet-value">{service.valueLine}</p>
+
+        {/* Preview mock */}
+        {service.preview}
 
         <ul className="hp__soon-sheet-bullets">
-          {service.bullets.map((bullet) => (
-            <li key={bullet}>
+          {service.bullets.map((bullet, idx) => (
+            <motion.li
+              key={bullet}
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15 + idx * 0.08, duration: 0.3 }}
+            >
               <span className="hp__soon-bullet-dot" aria-hidden="true" />
               {bullet}
-            </li>
+            </motion.li>
           ))}
         </ul>
 
         <p className="hp__soon-sheet-closing">{service.closingMessage}</p>
 
-        <button
-          type="button"
-          className="hp__soon-sheet-close"
-          onClick={onClose}
-        >
-          סגירה
-        </button>
+        <div className="hp__soon-sheet-actions">
+          <button
+            type="button"
+            className="hp__soon-sheet-cta"
+            onClick={onClose}
+          >
+            זה מעניין אותי
+          </button>
+          <button
+            type="button"
+            className="hp__soon-sheet-close"
+            onClick={onClose}
+          >
+            סגירה
+          </button>
+        </div>
       </motion.div>
     </motion.div>
   );
