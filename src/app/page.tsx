@@ -7,7 +7,7 @@ import { Reveal, HeroReveal } from '@/components/HomeReveal';
 export const metadata: Metadata = {
   title: 'Eventa - הפכו כל אירוע לחוויה',
   description:
-    'Eventa מוסיפה שכבות חכמות לאירועים - היכרויות, נטוורקינג ועוד. הכל בדפדפן, בלי להוריד כלום.',
+    'Eventa מוסיפה שכבת חוויה חכמה לכל אירוע - חיבורים, אינטראקציות ורגעים שנשארים. הכל בדפדפן, בלי להוריד כלום.',
   alternates: { canonical: 'https://www.eventa.productions' },
 };
 
@@ -43,7 +43,7 @@ export default function HomePage() {
             <span className="hp__title-line2">חוויה אחרת.</span>
           </h1>
           <p className="hp__sub">
-            Eventa מוסיפה שכבות חכמות לכל אירוע - היכרויות, מעורבות קהל ועוד.
+            Eventa מוסיפה שכבת חוויה חכמה לכל אירוע - חיבורים, אינטראקציות ורגעים שנשארים.
             <br />
             הכל ישר מהדפדפן, בלי להוריד כלום.
           </p>
@@ -62,11 +62,12 @@ export default function HomePage() {
             <div className="hp__card-body">
               <div className="hp__card-status">
                 <span className="hp__card-dot" />
-                <span>זמין עכשיו</span>
+                <span>🔥 זמין עכשיו</span>
               </div>
               <h2 className="hp__card-title">Eventa Dating</h2>
               <p className="hp__card-desc">
-                שכבת היכרויות חכמה לכל אירוע. האורחים סורקים QR, בונים פרופיל, ומגלים אחד את השנייה עם לייקים, מאצ׳ים וצ׳אט - בזמן אמת.
+                שכבת היכרויות חכמה לאירועים.
+                האורחים סורקים QR, יוצרים פרופיל ומתחילים להתחבר בזמן אמת.
               </p>
               <div className="hp__card-features">
                 <span className="hp__feature-pill">לייקים בזמן אמת</span>

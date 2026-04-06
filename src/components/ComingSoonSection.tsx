@@ -23,7 +23,7 @@ const SERVICES: ServiceDetail[] = [
     title: 'Eventa Wishes',
     subtitle: 'ברכות אישיות מהאורחים - ישירות לזוג',
     description:
-      'האורחים סורקים QR באירוע, מקליטים ברכה, מצלמים סרטון או כותבים הודעה - והכל נשמר לזוג במקום אחד.',
+      'סרקו QR והשאירו הודעה, קול או וידאו - מזכרת מרגשת שנשארת אחרי האירוע.',
     icon: (
       <svg
         width="36"
@@ -53,9 +53,9 @@ const SERVICES: ServiceDetail[] = [
   {
     id: 'rides',
     title: 'Eventa Rides',
-    subtitle: 'מתחברים לנסיעות - הלוך וחזור',
+    subtitle: 'מתחברים לנסיעות לאירוע ובחזרה',
     description:
-      'חיבור בין נהגים לנוסעים לפי אזור, שעה וכיוון - כולל חזרה בטוחה מהאירוע אחרי אלכוהול.',
+      'נהגים ונוסעים נפגשים לפי אזור ושעה - כולל חזרה בטוחה אחרי האירוע.',
     icon: (
       <svg
         width="36"
@@ -74,7 +74,7 @@ const SERVICES: ServiceDetail[] = [
         <circle cx="17" cy="17" r="2" />
       </svg>
     ),
-    badge: 'בקרוב',
+    badge: '🚧 בפיתוח',
     status: 'coming-soon',
     bullets: [
       'חיבור חכם לפי אזור וכיוון נסיעה',
@@ -156,7 +156,7 @@ export default function ComingSoonSection() {
       <div className="hp__coming">
         <div className="hp__coming-header">
           <div className="hp__coming-line" />
-          <span className="hp__coming-tag">ויש עוד בדרך...</span>
+          <span className="hp__coming-tag">עוד חוויות בדרך - כל אחת משנה את האירוע</span>
           <div className="hp__coming-line" />
         </div>
 
