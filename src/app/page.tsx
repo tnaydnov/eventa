@@ -48,11 +48,6 @@ export default function HomePage() {
             הכל ישר מהדפדפן, בלי להוריד כלום.
           </p>
         </HeroReveal>
-        <div className="hp__scroll-cue" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-        </div>
       </header>
 
       {/* ── Services - wide layout ── */}
