@@ -39,6 +39,9 @@ export default function ComingSoonCard({
       {/* Glow border layer */}
       <span className="hp__soon-glow" aria-hidden="true" />
 
+      {/* Shimmer sweep */}
+      <span className="hp__soon-shimmer" aria-hidden="true" />
+
       <span
         className={`hp__card-status ${isInProgress ? 'hp__card-status--progress' : 'hp__card-status--soon'}`}
       >
@@ -50,11 +53,16 @@ export default function ComingSoonCard({
         {icon}
       </span>
 
-      <span className="hp__card-title">{title}</span>
+      <span className="hp__card-title hp__card-title--sm">{title}</span>
       <span className="hp__card-subtitle">{subtitle}</span>
       <span className="hp__card-desc hp__card-desc--sm">{description}</span>
 
-      <span className="hp__soon-tap-hint">לחצו לפרטים</span>
+      <span className="hp__soon-tap-hint">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+        לחצו לפרטים
+      </span>
     </motion.button>
   );
 }
