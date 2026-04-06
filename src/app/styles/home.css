@@ -806,6 +806,129 @@
   font-weight: 500;
 }
 
+/* Preview mode wrapper */
+.hp__preview-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-height: 100px;
+}
+
+/* Text mock */
+.hp__preview-text-mock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 8px;
+  height: 40px;
+  justify-content: center;
+}
+
+.hp__preview-text-line {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(201, 165, 128, 0.25);
+}
+
+.hp__preview-text-line--1 {
+  width: 85%;
+  animation: hp-text-write 2s ease-in-out infinite;
+}
+
+.hp__preview-text-line--2 {
+  width: 55%;
+  animation: hp-text-write 2s ease-in-out 0.3s infinite;
+}
+
+.hp__preview-text-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 14px;
+  background: rgba(201, 165, 128, 0.7);
+  border-radius: 1px;
+  animation: hp-cursor-blink 1s step-end infinite;
+  align-self: flex-end;
+}
+
+@keyframes hp-text-write {
+  0% { width: 0; }
+  60% { width: var(--target-w, 85%); }
+  100% { width: var(--target-w, 85%); }
+}
+
+.hp__preview-text-line--1 { --target-w: 85%; }
+.hp__preview-text-line--2 { --target-w: 55%; }
+
+@keyframes hp-cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Video mock */
+.hp__preview-video-mock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  justify-content: center;
+}
+
+.hp__preview-video-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid rgba(231, 76, 60, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: hp-video-pulse 2s ease-in-out infinite;
+}
+
+.hp__preview-video-rec {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #e74c3c;
+}
+
+.hp__preview-video-timer {
+  font-size: 10px;
+  font-family: monospace;
+  color: rgba(240, 237, 232, 0.4);
+  letter-spacing: 1px;
+}
+
+@keyframes hp-video-pulse {
+  0%, 100% { transform: scale(1); border-color: rgba(231, 76, 60, 0.5); }
+  50% { transform: scale(1.08); border-color: rgba(231, 76, 60, 0.8); }
+}
+
+/* Mode indicators (dots) */
+.hp__preview-indicators {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.hp__preview-ind {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(201, 165, 128, 0.15);
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.hp__preview-ind--active {
+  background: rgba(201, 165, 128, 0.7);
+  transform: scale(1.3);
+}
+
 /* Rides: route mock */
 .hp__preview-route {
   display: flex;

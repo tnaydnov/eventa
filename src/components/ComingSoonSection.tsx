@@ -1,9 +1,115 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import ComingSoonCard from './ComingSoonCard';
+
+const WISHES_MODES = [
+  {
+    key: 'audio',
+    label: 'מקליטים ברכה...',
+    emoji: '🎙️',
+    dotColor: '#e74c3c',
+    content: 'wave' as const,
+    from: '💛 ברכה מ-דנה ורונן',
+  },
+  {
+    key: 'text',
+    label: 'כותבים ברכה...',
+    emoji: '✍️',
+    dotColor: '#C9A580',
+    content: 'text' as const,
+    from: '💌 ברכה מ-יעל ואיתי',
+  },
+  {
+    key: 'video',
+    label: 'מצלמים סרטון...',
+    emoji: '🎬',
+    dotColor: '#e74c3c',
+    content: 'video' as const,
+    from: '🎥 סרטון מ-משפחת כהן',
+  },
+];
+
+function WishesPreview() {
+  const [modeIdx, setModeIdx] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setModeIdx((p) => (p + 1) % WISHES_MODES.length), 3000);
+    return () => clearInterval(id);
+  }, []);
+
+  const mode = WISHES_MODES[modeIdx];
+
+  return (
+    <div className="hp__sheet-preview hp__sheet-preview--wishes">
+      <div className="hp__preview-phone">
+        <div className="hp__preview-screen">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={mode.key}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.35 }}
+              className="hp__preview-mode"
+            >
+              <div className="hp__preview-rec" aria-hidden="true">
+                <span
+                  className="hp__preview-rec-dot"
+                  style={{ background: mode.dotColor }}
+                />
+                <span>{mode.label}</span>
+              </div>
+
+              {mode.content === 'wave' && (
+                <div className="hp__preview-wave" aria-hidden="true">
+                  {[40, 65, 30, 80, 55, 70, 35, 60, 45, 75, 50, 68].map((h, i) => (
+                    <span
+                      key={i}
+                      className="hp__preview-wave-bar"
+                      style={{ height: `${h}%`, animationDelay: `${i * 0.08}s` }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {mode.content === 'text' && (
+                <div className="hp__preview-text-mock" aria-hidden="true">
+                  <span className="hp__preview-text-line hp__preview-text-line--1" />
+                  <span className="hp__preview-text-line hp__preview-text-line--2" />
+                  <span className="hp__preview-text-cursor" />
+                </div>
+              )}
+
+              {mode.content === 'video' && (
+                <div className="hp__preview-video-mock" aria-hidden="true">
+                  <div className="hp__preview-video-circle">
+                    <span className="hp__preview-video-rec" />
+                  </div>
+                  <span className="hp__preview-video-timer">00:12</span>
+                </div>
+              )}
+
+              <div className="hp__preview-label">{mode.from}</div>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Mode indicators */}
+          <div className="hp__preview-indicators" aria-hidden="true">
+            {WISHES_MODES.map((m, i) => (
+              <span
+                key={m.key}
+                className={`hp__preview-ind ${i === modeIdx ? 'hp__preview-ind--active' : ''}`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface ServiceDetail {
   id: string;
@@ -53,24 +159,7 @@ const SERVICES: ServiceDetail[] = [
       'כל הברכות נשמרות לאלבום דיגיטלי אחד',
     ],
     closingMessage: 'זה הולך להיות אחד הרגעים הכי מרגשים באירוע שלך',
-    preview: (
-      <div className="hp__sheet-preview hp__sheet-preview--wishes">
-        <div className="hp__preview-phone">
-          <div className="hp__preview-screen">
-            <div className="hp__preview-rec" aria-hidden="true">
-              <span className="hp__preview-rec-dot" />
-              <span>מקליטים ברכה...</span>
-            </div>
-            <div className="hp__preview-wave" aria-hidden="true">
-              {[40, 65, 30, 80, 55, 70, 35, 60, 45, 75, 50, 68].map((h, i) => (
-                <span key={i} className="hp__preview-wave-bar" style={{ height: `${h}%`, animationDelay: `${i * 0.08}s` }} />
-              ))}
-            </div>
-            <div className="hp__preview-label">💛 ברכה מ-דנה ורונן</div>
-          </div>
-        </div>
-      </div>
-    ),
+    preview: <WishesPreview />,
   },
   {
     id: 'rides',
