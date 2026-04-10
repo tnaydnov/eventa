@@ -204,6 +204,9 @@ export default function TermsContent() {
         <LegalText>
           דוא&quot;ל: <LegalLink href="mailto:contact@eventa.productions">contact@eventa.productions</LegalLink>
         </LegalText>
+        <LegalText>
+          טלפון: <LegalLink href="tel:+972506449688">050-644-9688</LegalLink>
+        </LegalText>
       </LegalSection>
 
       <LegalSection title="19. הצהרת נגישות">

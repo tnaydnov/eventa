@@ -93,7 +93,10 @@ export default function RootLayout({
               url: 'https://www.eventa.productions',
               logo: 'https://www.eventa.productions/icons/icon-512x512.png',
               description: 'Eventa adds smart social layers to events - dating, networking, and audience engagement.',
-              sameAs: [],
+              sameAs: [
+                'https://www.instagram.com/eventa.productions',
+                'https://www.facebook.com/eventa',
+              ],
             }),
           }}
         />

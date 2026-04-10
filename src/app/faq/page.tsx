@@ -80,8 +80,8 @@ const categories: FaqCategory[] = [
       },
       {
         q: 'איך מזמינים?',
-        a: <>דרך טופס ההזמנה באתר - ממלאים פרטים, משלמים ומקבלים את הפוסטר. מעדיפים שניצור איתכם קשר? השאירו פרטים או שלחו מייל ל-<a href="mailto:contact@eventa.productions" style={{ color: 'var(--primary)', textDecoration: 'none' }}>contact@eventa.productions</a>.</>,
-        aText: 'דרך טופס ההזמנה באתר - ממלאים פרטים, משלמים ומקבלים את הפוסטר. מעדיפים שניצור איתכם קשר? השאירו פרטים או שלחו מייל ל-contact@eventa.productions.',
+        a: <>דרך טופס ההזמנה באתר - ממלאים פרטים, משלמים ומקבלים את הפוסטר. מעדיפים לדבר? שלחו לנו הודעה ב-<a href="https://wa.me/972506449688" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>WhatsApp</a>, התקשרו ל-<a href="tel:+972506449688" style={{ color: 'var(--primary)', textDecoration: 'none' }}>050-644-9688</a> או שלחו מייל ל-<a href="mailto:contact@eventa.productions" style={{ color: 'var(--primary)', textDecoration: 'none' }}>contact@eventa.productions</a>.</>,
+        aText: 'דרך טופס ההזמנה באתר - ממלאים פרטים, משלמים ומקבלים את הפוסטר. מעדיפים לדבר? שלחו לנו הודעה בWhatsApp, התקשרו ל-050-644-9688 או שלחו מייל ל-contact@eventa.productions.',
       },
     ],
   },
@@ -118,6 +118,19 @@ const categories: FaqCategory[] = [
       {
         q: 'האם זה בטוח לאורחים?',
         a: 'בהחלט. אימות טלפון עם קוד SMS, מערכת חסימות, כל המשתתפים מוגבלים רק לאירוע הספציפי, והמידע נמחק אוטומטית. אנחנו לא משתפים מידע עם צד שלישי.',
+      },
+    ],
+  },
+  {
+    title: 'צרו קשר',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+    ),
+    items: [
+      {
+        q: 'איך יוצרים איתכם קשר?',
+        a: <>אפשר ליצור איתנו קשר בכמה דרכים: <a href="https://wa.me/972506449688" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>WhatsApp</a> (הכי מהיר), טלפון <a href="tel:+972506449688" style={{ color: 'var(--primary)', textDecoration: 'none' }}>050-644-9688</a>, מייל <a href="mailto:contact@eventa.productions" style={{ color: 'var(--primary)', textDecoration: 'none' }}>contact@eventa.productions</a>, או דרך <a href="https://www.instagram.com/eventa.productions" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Instagram</a> ו-<a href="https://www.facebook.com/eventa" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Facebook</a>.</>,
+        aText: 'אפשר ליצור איתנו קשר בכמה דרכים: WhatsApp (הכי מהיר), טלפון 050-644-9688, מייל contact@eventa.productions, או דרך Instagram ו-Facebook.',
       },
     ],
   },
