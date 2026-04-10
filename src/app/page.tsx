@@ -154,7 +154,7 @@ export default function HomePage() {
             </svg>
           </a>
           <a
-            href="https://www.facebook.com/eventa"
+            href="https://www.facebook.com/share/1AvY7s8cge/?mibextid=wwXIfr"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Facebook"

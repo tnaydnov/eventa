@@ -95,7 +95,7 @@ export default function RootLayout({
               description: 'Eventa adds smart social layers to events - dating, networking, and audience engagement.',
               sameAs: [
                 'https://www.instagram.com/eventa.productions',
-                'https://www.facebook.com/eventa',
+                'https://www.facebook.com/share/1AvY7s8cge/?mibextid=wwXIfr',
               ],
             }),
           }}

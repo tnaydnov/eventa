@@ -124,11 +124,79 @@
   color: var(--primary, #D4A59A);
 }
 
+.site-page__footer-social {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.site-page__social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(176, 176, 176, 0.45);
+  transition: color 0.3s ease, background 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+}
+
+.site-page__social-link:hover {
+  color: #f0ede8;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+}
+
 .site-page__footer-copy {
   font-size: 12px;
   color: var(--text-muted, #999);
   opacity: 0.6;
   margin: 0;
+}
+
+.site-page__fab-wa {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #25D366;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.35), 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-decoration: none;
+}
+
+.site-page__fab-wa:hover {
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 6px 28px rgba(37, 211, 102, 0.45), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.site-page__fab-wa:active {
+  transform: scale(0.96);
+}
+
+@media (max-width: 480px) {
+  .site-page__fab-wa {
+    width: 50px;
+    height: 50px;
+    bottom: 20px;
+    left: 20px;
+  }
+
+  .site-page__fab-wa svg {
+    width: 24px;
+    height: 24px;
+  }
 }
 
 /* ═══ Legal Drawer ═══ */
