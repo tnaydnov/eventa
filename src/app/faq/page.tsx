@@ -80,8 +80,8 @@ const categories: FaqCategory[] = [
       },
       {
         q: 'איך מזמינים?',
-        a: <>דרך טופס ההזמנה באתר - ממלאים פרטים, משלמים ומקבלים את הפוסטר. מעדיפים לדבר? שלחו לנו הודעה ב-<a href="https://wa.me/972506449688" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>WhatsApp</a>, התקשרו ל-<a href="tel:+972506449688" style={{ color: 'var(--primary)', textDecoration: 'none' }}>050-644-9688</a> או שלחו מייל ל-<a href="mailto:contact@eventa.productions" style={{ color: 'var(--primary)', textDecoration: 'none' }}>contact@eventa.productions</a>.</>,
-        aText: 'דרך טופס ההזמנה באתר - ממלאים פרטים, משלמים ומקבלים את הפוסטר. מעדיפים לדבר? שלחו לנו הודעה בWhatsApp, התקשרו ל-050-644-9688 או שלחו מייל ל-contact@eventa.productions.',
+        a: <>דרך טופס ההזמנה באתר - ממלאים פרטים, משלמים ומקבלים את הפוסטר. מעדיפים לדבר? שלחו לנו הודעה ב-<a href="https://wa.me/972507165658" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>WhatsApp</a>, התקשרו ל-<a href="tel:+972507165658" style={{ color: 'var(--primary)', textDecoration: 'none' }}>050-716-5658</a> או שלחו מייל ל-<a href="mailto:contact@eventa.productions" style={{ color: 'var(--primary)', textDecoration: 'none' }}>contact@eventa.productions</a>.</>,
+        aText: 'דרך טופס ההזמנה באתר - ממלאים פרטים, משלמים ומקבלים את הפוסטר. מעדיפים לדבר? שלחו לנו הודעה בWhatsApp, התקשרו ל-050-716-5658 או שלחו מייל ל-contact@eventa.productions.',
       },
     ],
   },
@@ -129,8 +129,8 @@ const categories: FaqCategory[] = [
     items: [
       {
         q: 'איך יוצרים איתכם קשר?',
-        a: <>אפשר ליצור איתנו קשר בכמה דרכים: <a href="https://wa.me/972506449688" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>WhatsApp</a> (הכי מהיר), טלפון <a href="tel:+972506449688" style={{ color: 'var(--primary)', textDecoration: 'none' }}>050-644-9688</a>, מייל <a href="mailto:contact@eventa.productions" style={{ color: 'var(--primary)', textDecoration: 'none' }}>contact@eventa.productions</a>, או דרך <a href="https://www.instagram.com/eventa.productions" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Instagram</a> ו-<a href="https://www.facebook.com/share/1AvY7s8cge/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Facebook</a>.</>,
-        aText: 'אפשר ליצור איתנו קשר בכמה דרכים: WhatsApp (הכי מהיר), טלפון 050-644-9688, מייל contact@eventa.productions, או דרך Instagram ו-Facebook.',
+        a: <>אפשר ליצור איתנו קשר בכמה דרכים: <a href="https://wa.me/972507165658" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>WhatsApp</a> (הכי מהיר), טלפון <a href="tel:+972507165658" style={{ color: 'var(--primary)', textDecoration: 'none' }}>050-716-5658</a>, מייל <a href="mailto:contact@eventa.productions" style={{ color: 'var(--primary)', textDecoration: 'none' }}>contact@eventa.productions</a>, או דרך <a href="https://www.instagram.com/eventa.productions" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Instagram</a> ו-<a href="https://www.facebook.com/share/1AvY7s8cge/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Facebook</a>.</>,
+        aText: 'אפשר ליצור איתנו קשר בכמה דרכים: WhatsApp (הכי מהיר), טלפון 050-716-5658, מייל contact@eventa.productions, או דרך Instagram ו-Facebook.',
       },
     ],
   },

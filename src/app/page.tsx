@@ -132,7 +132,7 @@ export default function HomePage() {
         {/* Social links */}
         <div className="hp__footer-social">
           <a
-            href="https://wa.me/972506449688"
+            href="https://wa.me/972507165658"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="WhatsApp"
@@ -179,7 +179,7 @@ export default function HomePage() {
 
       {/* Floating WhatsApp button */}
       <a
-        href="https://wa.me/972506449688"
+        href="https://wa.me/972507165658"
         target="_blank"
         rel="noopener noreferrer"
         className="hp__fab-wa"
