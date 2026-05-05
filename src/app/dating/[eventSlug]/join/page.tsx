@@ -506,7 +506,7 @@ function JoinPageContent({
           <>
             <h1 className="pj-title">ברוכים הבאים ל-Eventa</h1>
             <p className="pj-subtitle">
-              האנשים באירוע כבר כאן. עכשיו רק נשאר לגלות מי זורם איתך.
+             הרווקים והרווקות של האירוע כבר כאן. עכשיו נשאר רק לגלות מי יכול/ה להתאים לך.
             </p>
 
             <div className="pj-vibes" aria-hidden="false">
