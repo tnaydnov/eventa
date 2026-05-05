@@ -1,41 +1,56 @@
 'use client';
 
-import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion';
+import {
+  AnimatePresence,
+  LayoutGroup,
+  motion,
+  useReducedMotion,
+  type Transition,
+  type Variants,
+} from 'framer-motion';
 import type { ReactNode } from 'react';
 
 interface PremiumJoinShellProps {
-  /** Stable key for the active step - drives AnimatePresence transitions. */
+  /** Stable key for the active step — drives AnimatePresence transitions. */
   stepKey: string;
   /** Optional notice rendered above the card (e.g. in-app browser warning). */
   notice?: ReactNode;
-  /** Step content rendered inside the glass card. */
+  /** Step content rendered inside the card. */
   children: ReactNode;
 }
 
-/**
- * Content variants — animate only the inner content, not the card shell.
- * mode="popLayout": exiting content is pulled from flow so the card height
- * morphs smoothly while the new content fades in simultaneously.
- */
-const contentVariants: Variants = {
-  initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] } },
-  exit:    { opacity: 0, y: -5, transition: { duration: 0.16, ease: 'easeIn' } },
+const transition: Transition = {
+  duration: 0.42,
+  ease: [0.22, 1, 0.36, 1],
+};
+
+const stepVariants: Variants = {
+  initial: { opacity: 0, y: 18, scale: 0.985 },
+  animate: { opacity: 1, y: 0,  scale: 1,     transition },
+  exit:    { opacity: 0, y: -10, scale: 0.99, transition: { ...transition, duration: 0.22 } },
 };
 
 const reducedVariants: Variants = {
   initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.2 } },
-  exit:    { opacity: 0, transition: { duration: 0.15 } },
+  animate: { opacity: 1, transition: { duration: 0.18 } },
+  exit:    { opacity: 0, transition: { duration: 0.14 } },
 };
 
+/**
+ * PremiumJoinShell
+ * ────────────────
+ * Stable shell for every interactive step (welcome / phone / OTP / error).
+ * The background, header and card frame never remount — only the inner
+ * content fades + lifts between steps, and the card height morphs smoothly
+ * via Framer's layout animations.
+ */
 export default function PremiumJoinShell({
   stepKey,
   notice,
   children,
 }: PremiumJoinShellProps) {
-  const shouldReduceMotion = useReducedMotion();
-  const variants = shouldReduceMotion ? reducedVariants : contentVariants;
+  const reduce = useReducedMotion();
+  const variants = reduce ? reducedVariants : stepVariants;
 
   return (
     <div className="pj-bg" dir="rtl">
@@ -46,8 +61,6 @@ export default function PremiumJoinShell({
             src="/icons/Eventa_Logo.png"
             alt="Eventa"
             className="pj-shell-logo"
-            width={96}
-            height={96}
             draggable={false}
             decoding="async"
           />
@@ -55,24 +68,26 @@ export default function PremiumJoinShell({
 
         {notice}
 
-        {/* Card stays stable; only the inner content crossfades between steps */}
-        <motion.div
-          className="pj-card"
-          layout
-          transition={{ layout: { duration: 0.32, ease: [0.25, 0.46, 0.45, 0.94] } }}
-        >
-          <AnimatePresence mode="popLayout" initial={false}>
-            <motion.div
-              key={stepKey}
-              variants={variants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
-        </motion.div>
+        <LayoutGroup>
+          <motion.div
+            className="pj-card"
+            layout
+            transition={reduce ? { duration: 0 } : { layout: transition }}
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={stepKey}
+                className="pj-card-inner"
+                variants={variants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
+        </LayoutGroup>
       </div>
     </div>
   );

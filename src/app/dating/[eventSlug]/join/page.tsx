@@ -47,8 +47,11 @@ function isInAppBrowser(): boolean {
 /** Min local digits for a valid Israeli mobile number (e.g. "501234567") */
 const VALID_LOCAL_DIGITS = 9;
 
+/** Minimum time the splash stays visible on a fresh boot before showing UI. */
+const MIN_SPLASH_MS = 1200;
+
 /** Minimum time the splash stays visible when redirecting a returning user. */
-const RETURNING_USER_MIN_SPLASH_MS = 600;
+const RETURNING_USER_MIN_SPLASH_MS = 800;
 
 type JoinStep = 'welcome' | 'phone' | 'otp' | 'onboarding';
 type Phase =
@@ -143,8 +146,23 @@ function JoinPageContent({
   useEffect(() => {
     let cancelled = false;
     let returningTimer: ReturnType<typeof setTimeout> | null = null;
+    let settleTimer: ReturnType<typeof setTimeout> | null = null;
 
     async function boot() {
+      const bootStart = Date.now();
+
+      /** Defer a phase change until the minimum splash time has elapsed. */
+      const settle = (fn: () => void) => {
+        const remaining = MIN_SPLASH_MS - (Date.now() - bootStart);
+        if (remaining <= 0) {
+          if (!cancelled) fn();
+          return;
+        }
+        settleTimer = setTimeout(() => {
+          if (!cancelled) fn();
+        }, remaining);
+      };
+
       // 1) Returning-user fast path
       const stored = localStorage.getItem(SESSION_STORAGE_KEY);
       if (stored) {
@@ -174,12 +192,12 @@ function JoinPageContent({
         if (cancelled) return;
 
         if (data.status === 'not_found') {
-          setPhase('event_not_found');
+          settle(() => setPhase('event_not_found'));
           return;
         }
 
         if (data.status === 'ended' || data.status === 'archived') {
-          setPhase('event_ended');
+          settle(() => setPhase('event_ended'));
           return;
         }
 
@@ -190,23 +208,24 @@ function JoinPageContent({
           data.status !== 'error'
         ) {
           // Unknown non-active state - treat as inactive
-          setPhase('event_inactive');
+          settle(() => setPhase('event_inactive'));
           return;
         }
       } catch {
         // Network failure - allow user to proceed; later API calls will catch real issues
       }
 
-      if (!cancelled) {
+      settle(() => {
         setPhase('interactive');
         setStep('welcome');
-      }
+      });
     }
 
     boot();
     return () => {
       cancelled = true;
       if (returningTimer) clearTimeout(returningTimer);
+      if (settleTimer) clearTimeout(settleTimer);
     };
   }, [eventSlug, router, setSession]);
 
@@ -433,19 +452,16 @@ function JoinPageContent({
       <div className="pj-iab-row">
         <div className="pj-iab-icon" aria-hidden="true">!</div>
         <div className="pj-iab-text">
-          פתחתם את Eventa מתוך אפליקציה חיצונית. לחוויה יציבה יותר, מומלץ לפתוח ב-Safari או Chrome.
+          {linkCopied
+            ? 'הקישור הועתק — פתחו Safari או Chrome והדביקו אותו שם.'
+            : 'נראה שפתחתם את Eventa מתוך אפליקציה חיצונית. לחוויה חלקה, פתחו את הקישור ב-Safari או Chrome.'}
         </div>
       </div>
       <button type="button" className="pj-iab-btn" onClick={handleCopyLink}>
         <span role="status" aria-live="polite">
-          {linkCopied ? 'הקישור הועתק' : 'העתקת קישור'}
+          {linkCopied ? 'הקישור הועתק' : 'העתקת הקישור'}
         </span>
       </button>
-      <p className="pj-iab-hint">
-        {linkCopied
-          ? 'פתחו Safari או Chrome והדביקו את הקישור שם.'
-          : 'העתיקו את הקישור ופתחו אותו בדפדפן.'}
-      </p>
     </div>
   ) : null;
 
@@ -466,7 +482,7 @@ function JoinPageContent({
                 <div className="pj-shell-stage">
                   <div className="pj-shell-header">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/icons/Eventa_Logo.png" alt="Eventa" className="pj-shell-logo" width={96} height={96} draggable={false} decoding="async" />
+                    <img src="/icons/Eventa_Logo.png" alt="Eventa" className="pj-shell-logo" draggable={false} decoding="async" />
                   </div>
                   <div className="pj-card" role="alert">
                     <h1 className="pj-title">{errorMsg.title}</h1>
@@ -488,25 +504,29 @@ function JoinPageContent({
               <PremiumJoinShell stepKey={step} notice={iabNotice}>
         {step === 'welcome' && (
           <>
-            <h1 className="pj-title">ברוכים הבאים ל-Eventa</h1>
+            <h1 className="pj-title">ברוכים הבאים ל־Eventa</h1>
             <p className="pj-subtitle">
-              הדרך הכי קלילה להכיר אנשים באירוע.
+              האנשים באירוע כבר כאן. עכשיו רק נשאר לגלות מי זורם איתך.
             </p>
 
-            <div className="pj-badges" aria-hidden="false">
-              <div className="pj-badge">
-                <span className="pj-badge-icon" aria-hidden="true">⏱</span>
-                נמחק אחרי 7 ימים
+            <div className="pj-vibes" aria-hidden="false">
+              <div className="pj-vibe">
+                <span className="pj-vibe-icon" aria-hidden="true">✨</span>
+                מגלים מי פה
               </div>
-              <div className="pj-badge">
-                <span className="pj-badge-icon" aria-hidden="true">🔒</span>
-                פרטי ומאובטח
+              <div className="pj-vibe">
+                <span className="pj-vibe-icon" aria-hidden="true">💌</span>
+                שולחים לייק
               </div>
-              <div className="pj-badge">
-                <span className="pj-badge-icon" aria-hidden="true">📱</span>
-                בלי הורדת אפליקציה
+              <div className="pj-vibe">
+                <span className="pj-vibe-icon" aria-hidden="true">🔥</span>
+                מתחילים שיחה
               </div>
             </div>
+
+            <p className="pj-blurb">
+              Eventa פתוחה רק למשתתפי האירוע הזה. הכניסה דרך אימות קצר במספר טלפון — בלי הורדות, בלי הרשמות.
+            </p>
 
             <ConsentRow
               checked={agreed}
@@ -515,11 +535,11 @@ function JoinPageContent({
             >
               אני מאשר/ת את{' '}
               <button type="button" className="pj-link-btn" onClick={(e) => { e.stopPropagation(); setLegalPage('terms'); }}>תנאי השימוש</button>
-              {' '}ו
+              ,{' '}
               <button type="button" className="pj-link-btn" onClick={(e) => { e.stopPropagation(); setLegalPage('privacy'); }}>מדיניות הפרטיות</button>
               {' '}ו
               <button type="button" className="pj-link-btn" onClick={(e) => { e.stopPropagation(); setLegalPage('cookies'); }}>מדיניות העוגיות</button>
-              , ומבין/ה כי באירועים מסוימים ייתכן ש-Eventa תצלם תכני אווירה ותיעוד של השימוש בשירות לצורכי שיווק ופרסום, כמפורט בתנאי השימוש.
+              , ומבין/ה שבאירועים מסוימים Eventa עשויה לצלם תכני אווירה לצורכי שיווק, כמפורט בתנאי השימוש.
             </ConsentRow>
 
             {error && <p className="pj-error" role="alert">{error}</p>}
@@ -532,22 +552,27 @@ function JoinPageContent({
             >
               המשך
             </button>
+
+            <p className="pj-microcopy">הכול נמחק אוטומטית אחרי האירוע.</p>
           </>
         )}
 
         {step === 'phone' && (
           <>
-            <h1 className="pj-title">אימות קצר ונכנסים</h1>
+            <h1 className="pj-title">רגע קטן ונכנסים</h1>
             <p className="pj-subtitle">
-              נשלח קוד חד־פעמי כדי לוודא שהכניסה שייכת למשתתף/ת באירוע.
+              נשלח קוד חד־פעמי לטלפון שלך כדי לוודא שאתה באירוע.
             </p>
 
-            <PhoneInput
-              value={phone}
-              onChange={(v) => { setPhone(v); setError(''); }}
-              disabled={false}
-              error={undefined}
-            />
+            <div className="pj-field">
+              <span className="pj-field-label">מספר טלפון</span>
+              <PhoneInput
+                value={phone}
+                onChange={(v) => { setPhone(v); setError(''); }}
+                disabled={false}
+                error={undefined}
+              />
+            </div>
 
             <ConsentRow
               checked={smsConsent}
@@ -565,7 +590,7 @@ function JoinPageContent({
               disabled={phone.length !== VALID_LOCAL_DIGITS}
               onClick={handleSendOtp}
             >
-              שלחו קוד
+              שלחו לי קוד
             </button>
 
             <button
@@ -580,12 +605,12 @@ function JoinPageContent({
 
         {step === 'otp' && (
           <>
-            <h1 className="pj-title">הזינו את הקוד</h1>
+            <h1 className="pj-title">הקוד אצלך?</h1>
             <p className="pj-subtitle">
               {maskedPhone ? (
-                <>שלחנו קוד למספר <span dir="ltr" style={{ unicodeBidi: 'embed' }}>{maskedPhone}</span></>
+                <>הזינו את 6 הספרות ששלחנו ל־<span dir="ltr" style={{ unicodeBidi: 'embed' }}>{maskedPhone}</span></>
               ) : (
-                'שלחנו קוד SMS לנייד שלכם'
+                'הזינו את 6 הספרות ששלחנו אליכם ב-SMS'
               )}
             </p>
 
@@ -605,7 +630,9 @@ function JoinPageContent({
               disabled={resendTimer > 0}
               onClick={handleResendOtp}
             >
-              {resendTimer > 0 ? `שלחו שוב (${resendTimer}s)` : 'שלחו שוב'}
+              {resendTimer > 0
+                ? `אפשר לשלוח שוב בעוד ${resendTimer} שניות`
+                : 'שלחו קוד חדש'}
             </button>
 
             <button
@@ -613,7 +640,7 @@ function JoinPageContent({
               className="pj-link"
               onClick={() => { setStep('phone'); setError(''); setOtpValue(''); }}
             >
-              שנו מספר טלפון
+              חזרה לעריכת מספר
             </button>
           </>
         )}

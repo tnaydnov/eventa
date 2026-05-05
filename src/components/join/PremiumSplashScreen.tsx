@@ -14,9 +14,8 @@ interface PremiumSplashScreenProps {
 /**
  * PremiumSplashScreen
  * ───────────────────
- * Branded, full-screen Eventa splash used during every loading / checking /
- * redirecting / verifying state in the join flow. CSS-only animations so it
- * is safe in server components (e.g. Next.js loading.tsx).
+ * Branded full-screen Eventa splash. CSS-only animations so it is safe
+ * inside Next.js server components (loading.tsx).
  */
 export default function PremiumSplashScreen({
   subtitle = 'טוענים את חוויית האירוע...',
@@ -39,8 +38,6 @@ export default function PremiumSplashScreen({
             src="/icons/Eventa_Logo.png"
             alt="Eventa"
             className="pj-splash-logo"
-            width={148}
-            height={148}
             draggable={false}
             decoding="async"
             {...({ fetchpriority: 'high' } as Record<string, string>)}
