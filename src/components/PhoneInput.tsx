@@ -87,7 +87,7 @@ export default function PhoneInput({ value, onChange, disabled, error }: PhoneIn
   const displayError = error || validationError;
 
   return (
-    <div style={{ width: '100%', maxWidth: 320 }}>
+    <div style={{ width: '100%' }}>
       <label
         htmlFor="phone-input"
         style={{
