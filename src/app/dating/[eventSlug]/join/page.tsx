@@ -453,7 +453,7 @@ function JoinPageContent({
         <div className="pj-iab-icon" aria-hidden="true">!</div>
         <div className="pj-iab-text">
           {linkCopied
-            ? 'הקישור הועתק — פתחו Safari או Chrome והדביקו אותו שם.'
+            ? 'הקישור הועתק - פתחו Safari או Chrome והדביקו אותו שם.'
             : 'נראה שפתחתם את Eventa מתוך אפליקציה חיצונית. לחוויה חלקה, פתחו את הקישור ב-Safari או Chrome.'}
         </div>
       </div>
@@ -504,28 +504,34 @@ function JoinPageContent({
               <PremiumJoinShell stepKey={step} notice={iabNotice}>
         {step === 'welcome' && (
           <>
-            <h1 className="pj-title">ברוכים הבאים ל־Eventa</h1>
+            <h1 className="pj-title">ברוכים הבאים ל-Eventa</h1>
             <p className="pj-subtitle">
               האנשים באירוע כבר כאן. עכשיו רק נשאר לגלות מי זורם איתך.
             </p>
 
             <div className="pj-vibes" aria-hidden="false">
               <div className="pj-vibe">
-                <span className="pj-vibe-icon" aria-hidden="true">✨</span>
+                <span className="pj-vibe-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </span>
                 מגלים מי פה
               </div>
               <div className="pj-vibe">
-                <span className="pj-vibe-icon" aria-hidden="true">💌</span>
+                <span className="pj-vibe-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </span>
                 שולחים לייק
               </div>
               <div className="pj-vibe">
-                <span className="pj-vibe-icon" aria-hidden="true">🔥</span>
+                <span className="pj-vibe-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </span>
                 מתחילים שיחה
               </div>
             </div>
 
             <p className="pj-blurb">
-              Eventa פתוחה רק למשתתפי האירוע הזה. הכניסה דרך אימות קצר במספר טלפון — בלי הורדות, בלי הרשמות.
+              Eventa פתוחה רק למשתתפי האירוע הזה. הכניסה דרך אימות קצר במספר טלפון - בלי הורדות, בלי הרשמות.
             </p>
 
             <ConsentRow
@@ -561,18 +567,15 @@ function JoinPageContent({
           <>
             <h1 className="pj-title">רגע קטן ונכנסים</h1>
             <p className="pj-subtitle">
-              נשלח קוד חד־פעמי לטלפון שלך כדי לוודא שאתה באירוע.
+              נשלח קוד חד-פעמי לטלפון שלך כדי לוודא שאתה באירוע.
             </p>
 
-            <div className="pj-field">
-              <span className="pj-field-label">מספר טלפון</span>
-              <PhoneInput
-                value={phone}
-                onChange={(v) => { setPhone(v); setError(''); }}
-                disabled={false}
-                error={undefined}
-              />
-            </div>
+            <PhoneInput
+              value={phone}
+              onChange={(v) => { setPhone(v); setError(''); }}
+              disabled={false}
+              error={undefined}
+            />
 
             <ConsentRow
               checked={smsConsent}
@@ -608,7 +611,7 @@ function JoinPageContent({
             <h1 className="pj-title">הקוד אצלך?</h1>
             <p className="pj-subtitle">
               {maskedPhone ? (
-                <>הזינו את 6 הספרות ששלחנו ל־<span dir="ltr" style={{ unicodeBidi: 'embed' }}>{maskedPhone}</span></>
+                <>הזינו את 6 הספרות ששלחנו ל-<span dir="ltr" style={{ unicodeBidi: 'embed' }}>{maskedPhone}</span></>
               ) : (
                 'הזינו את 6 הספרות ששלחנו אליכם ב-SMS'
               )}
