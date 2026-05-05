@@ -82,6 +82,34 @@ body::before {
   75% { transform: translate(-8px, -18px) scale(1.02); }
 }
 
+/* ── iOS interaction fixes (global) ─────────────────────────────
+ * iOS Safari auto-zooms any focused <input> with font-size < 16px.
+ * We enforce 16px minimum here. Visual size is controlled by padding
+ * and container width, not font-size, so nothing changes visually.
+ * touch-action:manipulation suppresses the 300ms double-tap delay.
+ * ─────────────────────────────────────────────────────────────── */
+input,
+select,
+textarea {
+  font-size: max(16px, 1em);
+}
+
+button,
+input,
+a,
+label,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+html,
+body {
+  -webkit-tap-highlight-color: transparent;
+  /* Prevent body from scrolling sideways or zooming on content-overflow */
+  overflow-x: hidden;
+  overscroll-behavior: none;
+}
+
 /* ── Skip to content (a11y) ── */
 .skip-to-content {
   position: absolute;

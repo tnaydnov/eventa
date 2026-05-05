@@ -150,7 +150,7 @@ export default function PhoneInput({ value, onChange, disabled, error }: PhoneIn
             border: 'none',
             outline: 'none',
             color: 'var(--foreground)',
-            fontSize: 15,
+            fontSize: 16,
             letterSpacing: 1,
             width: '100%',
             minWidth: 0,

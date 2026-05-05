@@ -585,26 +585,6 @@
  * This eliminates the zoom-on-focus behaviour without restricting
  * user-initiated pinch zoom (which would harm accessibility).
  */
-.pj-bg input,
-.pj-bg select,
-.pj-bg textarea {
-  font-size: max(16px, 1rem);
-}
-
-/* Suppress the 300ms double-tap zoom on tappable elements */
-.pj-bg button,
-.pj-bg input,
-.pj-bg a,
-.pj-bg label {
-  touch-action: manipulation;
-}
-
-/* Remove tap highlight flash on iOS */
-.pj-page-root,
-.pj-bg {
-  -webkit-tap-highlight-color: transparent;
-}
-
 /* ── Reduced motion ───────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .pj-bg::before,

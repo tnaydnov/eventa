@@ -7,21 +7,18 @@ import { useFocusTrap } from '@/hooks/useFocusTrap';
 const pageVariants: Variants = {
   initial: {
     opacity: 0,
-    y: 20,
   },
   animate: {
     opacity: 1,
-    y: 0,
     transition: {
-      duration: 0.3,
+      duration: 0.18,
       ease: 'easeOut',
     },
   },
   exit: {
     opacity: 0,
-    y: -10,
     transition: {
-      duration: 0.2,
+      duration: 0.12,
       ease: 'easeIn',
     },
   },
@@ -48,17 +45,16 @@ export function PageTransition({ children, className }: { children: ReactNode; c
 const staggerContainer: Variants = {
   animate: {
     transition: {
-      staggerChildren: 0.05,
+      staggerChildren: 0.02,
     },
   },
 };
 
 const staggerItem: Variants = {
-  initial: { opacity: 0, y: 16 },
+  initial: { opacity: 0 },
   animate: {
     opacity: 1,
-    y: 0,
-    transition: { duration: 0.25, ease: 'easeOut' },
+    transition: { duration: 0.15, ease: 'easeOut' },
   },
 };
 
