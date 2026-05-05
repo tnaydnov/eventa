@@ -160,7 +160,7 @@
   border: 1px solid var(--glass-border);
   border-radius: 20px;
   color: var(--foreground);
-  font-size: 15px;
+  font-size: max(16px, 1em);
   outline: none;
   direction: rtl;
 }

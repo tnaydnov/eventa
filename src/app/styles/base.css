@@ -46,9 +46,8 @@ body {
   font-family: var(--font-rubik, 'Rubik', 'Segoe UI', Tahoma, Arial, sans-serif);
   margin: 0;
   padding: 0;
+  min-height: 100vh;
   min-height: 100dvh;
-  overflow-x: hidden;
-  overscroll-behavior-y: contain;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -102,12 +101,16 @@ label,
   touch-action: manipulation;
 }
 
-html,
-body {
+html {
   -webkit-tap-highlight-color: transparent;
-  /* Prevent body from scrolling sideways or zooming on content-overflow */
   overflow-x: hidden;
-  overscroll-behavior: none;
+}
+
+body {
+  /* overscroll-behavior-y:contain keeps iOS elastic scroll alive inside
+   * scroll containers (lists, chat, grid) while stopping the page itself
+   * from scrolling past its bounds. 'none' would kill the premium bounce. */
+  overscroll-behavior-y: contain;
 }
 
 /* ── Skip to content (a11y) ── */

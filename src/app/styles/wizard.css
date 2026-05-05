@@ -453,7 +453,7 @@
   background: rgba(255, 255, 255, 0.04);
   color: var(--foreground);
   font-family: inherit;
-  font-size: 15px;
+  font-size: max(16px, 1em);
   transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
   outline: none;
   -webkit-appearance: none;

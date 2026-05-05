@@ -12,6 +12,8 @@
 /* ── Virtualized grid (main event page) ── */
 .virtual-grid-scroll {
   /* Fill remaining viewport height below header + toggle bar, above tab bar */
+  /* 100vh fallback for browsers without dvh support (Safari < 15.4) */
+  height: calc(100vh - (69px + env(safe-area-inset-top)) - (64px + env(safe-area-inset-bottom)) - 48px);
   height: calc(100dvh - (69px + env(safe-area-inset-top)) - (64px + env(safe-area-inset-bottom)) - 48px);
   overflow-y: auto;
   overflow-x: hidden;

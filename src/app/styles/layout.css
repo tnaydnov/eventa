@@ -109,6 +109,7 @@
 .main-content {
   padding-top: calc(69px + env(safe-area-inset-top));
   padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  min-height: 100vh;
   min-height: 100dvh;
 }
 

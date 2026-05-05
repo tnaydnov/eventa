@@ -268,6 +268,7 @@
   flex-direction: column;
   gap: 18px;
   /* If content overflows, scroll inside the card only — never the page */
+  max-height: calc(100vh - 220px);
   max-height: calc(100dvh - 220px);
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -276,10 +277,10 @@
 }
 
 @media (max-height: 720px) {
-  .pj-card { max-height: calc(100dvh - 180px); }
+  .pj-card { max-height: calc(100vh - 180px); max-height: calc(100dvh - 180px); }
 }
 @media (max-height: 600px) {
-  .pj-card { max-height: calc(100dvh - 40px); }
+  .pj-card { max-height: calc(100vh - 40px); max-height: calc(100dvh - 40px); }
 }
 
 /* Inner motion wrapper for step content (no double box) */

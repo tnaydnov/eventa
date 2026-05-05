@@ -83,7 +83,10 @@
   border: 1px solid var(--glass-border);
   border-radius: 10px;
   color: var(--foreground);
-  font-size: 15px;
+  /* max(16px,1em) prevents iOS Safari auto-zoom on focus.
+   * Specified here with higher specificity than the element rule in base.css
+   * so it must explicitly use the same fix. */
+  font-size: max(16px, 1em);
   outline: none;
   transition: border-color 0.25s ease;
   direction: rtl;
