@@ -2,19 +2,22 @@
 
 import { Suspense, use, useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useSessionStore } from '@/lib/store';
-import { joinEvent, sendOtp, verifyOtp } from '@/lib/api';
+import { sendOtp, verifyOtp } from '@/lib/api';
 import { getDeviceIdentifiers } from '@/lib/device-fingerprint';
 import { OTP_RESEND_COOLDOWN_S } from '@/lib/config';
-import { PHONE_VERIFICATION_ENABLED } from '@/lib/config';
-import { PageTransition } from '@/components/Animations';
 import MobileGuard from '@/components/MobileGuard';
 import LegalDrawer from '@/components/LegalDrawer';
 import PhoneInput from '@/components/PhoneInput';
 import OtpInput from '@/components/OtpInput';
 import OnboardingSlides from '@/components/OnboardingSlides';
-import { SESSION_STORAGE_KEY, PROFILE_SETUP_KEY_PREFIX, ONBOARDING_SEEN_KEY_PREFIX } from '@/lib/constants';
+import PremiumSplashScreen from '@/components/join/PremiumSplashScreen';
+import PremiumJoinShell from '@/components/join/PremiumJoinShell';
+import {
+  SESSION_STORAGE_KEY,
+  PROFILE_SETUP_KEY_PREFIX,
+  ONBOARDING_SEEN_KEY_PREFIX,
+} from '@/lib/constants';
 
 /** Detect in-app browsers / QR scanner WebViews that don't persist cookies */
 function isInAppBrowser(): boolean {
@@ -43,59 +46,52 @@ function isInAppBrowser(): boolean {
 /** Min local digits for a valid Israeli mobile number (e.g. "501234567") */
 const VALID_LOCAL_DIGITS = 9;
 
-/** Step transition animation variants */
-const stepVariants = {
-  initial: { opacity: 0, x: 40 },
-  animate: { opacity: 1, x: 0, transition: { duration: 0.25, ease: 'easeOut' as const } },
-  exit: { opacity: 0, x: -40, transition: { duration: 0.15, ease: 'easeIn' as const } },
-};
+/** Minimum time the splash stays visible when redirecting a returning user. */
+const RETURNING_USER_MIN_SPLASH_MS = 600;
 
-type JoinStep = 'terms' | 'phone' | 'otp' | 'onboarding';
+type JoinStep = 'welcome' | 'phone' | 'otp' | 'onboarding';
+type Phase =
+  | 'booting'
+  | 'returning_user'
+  | 'event_not_found'
+  | 'event_inactive'
+  | 'event_ended'
+  | 'access_blocked'
+  | 'fatal_error'
+  | 'verifying_otp'
+  | 'completing_join'
+  | 'interactive';
 
-/** Styled checkbox used in the join flow (consent & SMS opt-in). */
-function Checkbox({ checked, onChange: onToggle, children }: { checked: boolean; onChange: () => void; children: React.ReactNode }) {
+interface ConsentRowProps {
+  checked: boolean;
+  onToggle: () => void;
+  ariaLabel: string;
+  children: React.ReactNode;
+}
+
+/**
+ * Premium consent row using a real native <input type="checkbox"> wrapped in a
+ * <label>. Keeps full keyboard / screen-reader / autofill semantics.
+ */
+function ConsentRow({ checked, onToggle, ariaLabel, children }: ConsentRowProps) {
   return (
-    <div
-      role="checkbox"
-      aria-checked={checked}
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onToggle(); } }}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: 16,
-        background: 'var(--surface)',
-        borderRadius: 12,
-        width: '100%',
-        maxWidth: 320,
-        cursor: 'pointer',
-      }}
-      onClick={onToggle}
-    >
-      <div
-        style={{
-          width: 24,
-          height: 24,
-          borderRadius: 6,
-          border: `2px solid ${checked ? 'var(--primary)' : 'var(--card-border)'}`,
-          background: checked ? 'var(--primary)' : 'transparent',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          transition: 'background 0.2s, border-color 0.2s',
-        }}
-        aria-hidden="true"
-      >
+    <label className="pj-consent" data-checked={checked ? 'true' : 'false'}>
+      <input
+        type="checkbox"
+        className="pj-consent-input"
+        checked={checked}
+        onChange={onToggle}
+        aria-label={ariaLabel}
+      />
+      <span className="pj-consent-box" aria-hidden="true">
         {checked && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" aria-hidden="true" focusable="false">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="3" focusable="false">
             <polyline points="20 6 9 17 4 12" />
           </svg>
         )}
-      </div>
-      <span style={{ fontSize: 14, textAlign: 'start' }}>{children}</span>
-    </div>
+      </span>
+      <span className="pj-consent-text">{children}</span>
+    </label>
   );
 }
 
@@ -105,7 +101,7 @@ export default function JoinPage({
   params: Promise<{ eventSlug: string }>;
 }) {
   return (
-    <Suspense fallback={<div className="app-container" />}>
+    <Suspense fallback={<PremiumSplashScreen subtitle="טוענים את חוויית האירוע..." />}>
       <JoinPageContent params={params} />
     </Suspense>
   );
@@ -122,16 +118,14 @@ function JoinPageContent({
   const setSession = useSessionStore((s) => s.setSession);
   const setParticipant = useSessionStore((s) => s.setParticipant);
 
-  // ─── Shared state ─────────────────────────────────────────
-  const [step, setStep] = useState<JoinStep>('terms');
+  // ─── Phase machine + step ─────────────────────────────────
+  const [phase, setPhase] = useState<Phase>('booting');
+  const [step, setStep] = useState<JoinStep>('welcome');
   const [agreed, setAgreed] = useState(false);
   const [legalPage, setLegalPage] = useState<'terms' | 'privacy' | 'cookies' | null>(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [inAppBrowser, setInAppBrowser] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
-  const [statusChecked, setStatusChecked] = useState(false);
-  const [eventNotFound, setEventNotFound] = useState(false);
 
   // ─── Phone verification state ─────────────────────────────
   const [phone, setPhone] = useState('');
@@ -141,69 +135,84 @@ function JoinPageContent({
   const [resendTimer, setResendTimer] = useState(0);
   const resendTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ─── Onboarding state ─────────────────────────────────────
+  // ─── Onboarding navigation target ─────────────────────────
   const pendingNav = useRef<string | null>(null);
 
-  // ─── Lifecycle effects ────────────────────────────────────
-
-  // Check event status BEFORE showing terms - redirect if not active
+  // ─── Boot: combined session check + event status ──────────
   useEffect(() => {
-    async function checkEventStatus() {
+    let cancelled = false;
+    let returningTimer: ReturnType<typeof setTimeout> | null = null;
+
+    async function boot() {
+      // 1) Returning-user fast path
+      const stored = localStorage.getItem(SESSION_STORAGE_KEY);
+      if (stored) {
+        try {
+          const session = JSON.parse(stored);
+          if (session && session.eventSlug === eventSlug) {
+            setSession(session);
+            const dest = localStorage.getItem(`${PROFILE_SETUP_KEY_PREFIX}${session.participantId}`)
+              ? `/dating/${eventSlug}`
+              : `/dating/${eventSlug}/setup`;
+            if (cancelled) return;
+            setPhase('returning_user');
+            returningTimer = setTimeout(() => {
+              if (!cancelled) router.replace(dest);
+            }, RETURNING_USER_MIN_SPLASH_MS);
+            return;
+          }
+        } catch {
+          // fall through to fresh boot
+        }
+      }
+
+      // 2) Validate event status before showing the welcome card
       try {
         const res = await fetch(`/api/auth/event-status?slug=${encodeURIComponent(eventSlug)}`);
         const data = await res.json();
+        if (cancelled) return;
 
         if (data.status === 'not_found') {
-          setEventNotFound(true);
-          setStatusChecked(true);
+          setPhase('event_not_found');
           return;
         }
 
-        if (data.status === 'error') {
-          // Server error - let user proceed but they'll hit the real
-          // validation at the send-otp / join step
-          setStatusChecked(true);
+        if (data.status === 'ended' || data.status === 'archived') {
+          setPhase('event_ended');
           return;
         }
 
-        if (data.status && data.status !== 'active' && data.status !== 'draft') {
-          const reason = data.status === 'ended' || data.status === 'archived' ? data.status : 'ended';
-          router.replace(`/dating/event-over?reason=${reason}`);
+        if (
+          data.status &&
+          data.status !== 'active' &&
+          data.status !== 'draft' &&
+          data.status !== 'error'
+        ) {
+          // Unknown non-active state - treat as inactive
+          setPhase('event_inactive');
           return;
         }
       } catch {
-        // Network failure - let them proceed; API calls later will catch it
+        // Network failure - allow user to proceed; later API calls will catch real issues
       }
-      setStatusChecked(true);
+
+      if (!cancelled) {
+        setPhase('interactive');
+        setStep('welcome');
+      }
     }
-    checkEventStatus();
-  }, [eventSlug, router]);
+
+    boot();
+    return () => {
+      cancelled = true;
+      if (returningTimer) clearTimeout(returningTimer);
+    };
+  }, [eventSlug, router, setSession]);
 
   // Detect in-app browser on mount
   useEffect(() => {
     setInAppBrowser(isInAppBrowser());
   }, []);
-
-  // Check for existing session
-  useEffect(() => {
-    const stored = localStorage.getItem(SESSION_STORAGE_KEY);
-    if (stored) {
-      try {
-        const session = JSON.parse(stored);
-        if (session.eventSlug === eventSlug) {
-          setSession(session);
-          const hasProfile = localStorage.getItem(`${PROFILE_SETUP_KEY_PREFIX}${session.participantId}`);
-          if (hasProfile) {
-            router.replace(`/dating/${eventSlug}`);
-          } else {
-            router.replace(`/dating/${eventSlug}/setup`);
-          }
-        }
-      } catch {
-        // ignore
-      }
-    }
-  }, [eventSlug, router, setSession]);
 
   // Cleanup resend timer on unmount
   useEffect(() => {
@@ -214,7 +223,6 @@ function JoinPageContent({
 
   // ─── Helpers ──────────────────────────────────────────────
 
-  /** Get join code from URL or set error */
   const getJoinCode = useCallback((): string | null => {
     const code = searchParams.get('k');
     if (!code) {
@@ -224,9 +232,14 @@ function JoinPageContent({
     return code;
   }, [searchParams]);
 
-  /** Navigate to the correct page after successful join */
   const completeJoin = useCallback(
-    (result: { eventId: string; eventName: string; backgroundImage: string | null; participantId: string; participant: { display_name?: string | null } | null }) => {
+    (result: {
+      eventId: string;
+      eventName: string;
+      backgroundImage: string | null;
+      participantId: string;
+      participant: { display_name?: string | null } | null;
+    }) => {
       const session = {
         eventId: result.eventId,
         eventSlug,
@@ -240,32 +253,34 @@ function JoinPageContent({
         // Returning user - skip onboarding
         setParticipant(result.participant as Parameters<typeof setParticipant>[0]);
         localStorage.setItem(`${PROFILE_SETUP_KEY_PREFIX}${result.participantId}`, 'true');
+        setPhase('completing_join');
         router.replace(`/dating/${eventSlug}`);
       } else {
-        // New user - show onboarding slides first, then go to setup
+        // New user - onboarding gate, then setup
         const onboardingKey = `${ONBOARDING_SEEN_KEY_PREFIX}${result.participantId}`;
         if (localStorage.getItem(onboardingKey)) {
+          setPhase('completing_join');
           router.replace(`/dating/${eventSlug}/setup`);
         } else {
           pendingNav.current = `/dating/${eventSlug}/setup`;
           setStep('onboarding');
+          setPhase('interactive');
         }
       }
     },
     [eventSlug, router, setSession, setParticipant],
   );
 
-  /** Called when onboarding slides are completed */
   const handleOnboardingComplete = useCallback(() => {
     const session = useSessionStore.getState().session;
     if (session?.participantId) {
       localStorage.setItem(`${ONBOARDING_SEEN_KEY_PREFIX}${session.participantId}`, 'true');
     }
     const nav = pendingNav.current || `/dating/${eventSlug}/setup`;
+    setPhase('completing_join');
     router.replace(nav);
   }, [eventSlug, router]);
 
-  /** Start the resend cooldown timer */
   const startResendTimer = useCallback(() => {
     setResendTimer(OTP_RESEND_COOLDOWN_S);
     if (resendTimerRef.current) clearInterval(resendTimerRef.current);
@@ -282,41 +297,14 @@ function JoinPageContent({
 
   // ─── Handlers ─────────────────────────────────────────────
 
-  /** Step 1 → Step 2 (or direct join if phone verification disabled) */
-  const handleTermsAccepted = useCallback(async () => {
-    const joinCode = getJoinCode();
-    if (!joinCode) return;
-
-    if (!PHONE_VERIFICATION_ENABLED) {
-      // Bypass phone verification - use fingerprint join
-      setLoading(true);
-      setError('');
-      try {
-        const { localId, hardwareFingerprint } = await getDeviceIdentifiers();
-        const result = await joinEvent(eventSlug, joinCode, localId, hardwareFingerprint);
-        if (!result) {
-          setError('קוד כניסה לא תקין או שהאירוע לא פעיל');
-          setLoading(false);
-          return;
-        }
-        completeJoin(result);
-      } catch (err) {
-        if (err instanceof Error && err.message === 'DEVICE_BANNED') {
-          setError('המכשיר הזה חסום מלהיכנס לאירוע זה');
-        } else {
-          setError('שגיאה בהתחברות - נסו שוב');
-        }
-      }
-      setLoading(false);
-      return;
-    }
-
-    // Phone verification enabled – go to phone step
+  /** Welcome → Phone (phone verification is always required). */
+  const handleTermsAccepted = useCallback(() => {
+    if (!agreed) return;
+    if (!getJoinCode()) return;
     setError('');
     setStep('phone');
-  }, [getJoinCode, eventSlug, completeJoin]);
+  }, [agreed, getJoinCode]);
 
-  /** Step 2: Send OTP → move to Step 3 */
   const handleSendOtp = useCallback(async () => {
     const joinCode = getJoinCode();
     if (!joinCode) return;
@@ -325,16 +313,15 @@ function JoinPageContent({
       return;
     }
 
-    setLoading(true);
+    setPhase('verifying_otp');
     setError('');
 
-    // Prepend "0" to local digits for normalisation (e.g. "501234567" → "0501234567")
     const fullPhone = `0${phone}`;
     const result = await sendOtp({ phone: fullPhone, eventSlug, joinCode });
 
     if (!result.success) {
       setError(result.error || 'שגיאה בשליחת הקוד - נסו שוב');
-      setLoading(false);
+      setPhase('interactive');
       return;
     }
 
@@ -342,16 +329,15 @@ function JoinPageContent({
     setOtpValue('');
     setStep('otp');
     startResendTimer();
-    setLoading(false);
+    setPhase('interactive');
   }, [phone, eventSlug, getJoinCode, startResendTimer]);
 
-  /** Step 3: Verify OTP */
   const handleVerifyOtp = useCallback(
     async (code: string) => {
       const joinCode = getJoinCode();
       if (!joinCode) return;
 
-      setLoading(true);
+      setPhase('verifying_otp');
       setError('');
 
       try {
@@ -369,17 +355,16 @@ function JoinPageContent({
         completeJoin(result);
       } catch (err) {
         if (err instanceof Error && err.message === 'DEVICE_BANNED') {
-          setError('המכשיר הזה חסום מלהיכנס לאירוע זה');
-        } else {
-          setError(err instanceof Error ? err.message : 'אימות הקוד נכשל - נסו שוב');
+          setPhase('access_blocked');
+          return;
         }
+        setError(err instanceof Error ? err.message : 'אימות הקוד נכשל - נסו שוב');
+        setPhase('interactive');
       }
-      setLoading(false);
     },
     [phone, eventSlug, smsConsent, getJoinCode, completeJoin],
   );
 
-  /** Resend OTP (same as handleSendOtp but resets timer) */
   const handleResendOtp = useCallback(async () => {
     if (resendTimer > 0) return;
     setOtpValue('');
@@ -387,292 +372,268 @@ function JoinPageContent({
     await handleSendOtp();
   }, [resendTimer, handleSendOtp]);
 
+  const handleCopyLink = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setLinkCopied(true);
+    } catch {
+      const input = document.createElement('input');
+      input.value = window.location.href;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      setLinkCopied(true);
+    }
+  }, []);
+
   // ─── Render ───────────────────────────────────────────────
+
+  // Splash phases (boot, returning user, verifying, completing)
+  if (phase === 'booting') {
+    return (
+      <MobileGuard>
+        <PremiumSplashScreen subtitle="טוענים את חוויית האירוע..." />
+      </MobileGuard>
+    );
+  }
+  if (phase === 'returning_user') {
+    return (
+      <MobileGuard>
+        <PremiumSplashScreen subtitle="מחזירים אותך לאירוע..." />
+      </MobileGuard>
+    );
+  }
+  if (phase === 'completing_join') {
+    return (
+      <MobileGuard>
+        <PremiumSplashScreen subtitle="כבר נכנסים לאירוע..." />
+      </MobileGuard>
+    );
+  }
+  if (phase === 'event_not_found' || phase === 'event_inactive' || phase === 'event_ended' || phase === 'access_blocked' || phase === 'fatal_error') {
+    const messages: Record<typeof phase, { title: string; body: React.ReactNode }> = {
+      event_not_found: {
+        title: 'האירוע לא נמצא',
+        body: <>הקישור שקיבלתם לא מוביל לאירוע פעיל.<br />ודאו שהקישור תקין או פנו למארגן האירוע.</>,
+      },
+      event_inactive: {
+        title: 'האירוע עדיין לא פעיל',
+        body: <>האירוע הזה טרם התחיל.<br />נסו שוב סמוך למועד האירוע.</>,
+      },
+      event_ended: {
+        title: 'האירוע הסתיים',
+        body: <>תקופת ההיכרויות באירוע הזה הסתיימה.<br />תודה שהשתתפתם!</>,
+      },
+      access_blocked: {
+        title: 'הגישה נחסמה',
+        body: <>המכשיר הזה אינו יכול להיכנס לאירוע.<br />אם נראה לכם שזו טעות, פנו למארגן האירוע.</>,
+      },
+      fatal_error: {
+        title: 'משהו השתבש',
+        body: <>לא הצלחנו לטעון את האירוע כרגע.<br />נסו לרענן את הדף בעוד רגע.</>,
+      },
+    } as const;
+    const m = messages[phase];
+    return (
+      <MobileGuard>
+        <div className="pj-bg" dir="rtl">
+          <div className="pj-shell-stage">
+            <div className="pj-shell-header">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/icons/Eventa_Logo.png" alt="Eventa" className="pj-shell-logo" width={76} height={76} draggable={false} decoding="async" />
+              <h2 className="pj-shell-brand">Eventa</h2>
+            </div>
+            <div className="pj-card" role="alert">
+              <h1 className="pj-title">{m.title}</h1>
+              <p className="pj-subtitle">{m.body}</p>
+            </div>
+          </div>
+        </div>
+      </MobileGuard>
+    );
+  }
+
+  // Onboarding (full-screen overlay component, keeps its own visuals)
+  if (step === 'onboarding') {
+    return (
+      <MobileGuard>
+        <OnboardingSlides onComplete={handleOnboardingComplete} />
+      </MobileGuard>
+    );
+  }
+
+  // Verifying OTP / sending OTP - keep splash for clear feedback
+  if (phase === 'verifying_otp') {
+    return (
+      <MobileGuard>
+        <PremiumSplashScreen
+          subtitle={step === 'otp' ? 'מאמתים את הקוד...' : 'שולחים קוד אימות...'}
+        />
+      </MobileGuard>
+    );
+  }
+
+  // ─── Interactive: welcome / phone / otp inside the premium shell ─
+
+  const iabNotice = inAppBrowser ? (
+    <div className="pj-iab" role="note">
+      <div className="pj-iab-row">
+        <div className="pj-iab-icon" aria-hidden="true">!</div>
+        <div className="pj-iab-text">
+          פתחתם את Eventa מתוך אפליקציה חיצונית. לחוויה יציבה יותר, מומלץ לפתוח ב-Safari או Chrome.
+        </div>
+      </div>
+      <button type="button" className="pj-iab-btn" onClick={handleCopyLink}>
+        <span role="status" aria-live="polite">
+          {linkCopied ? 'הקישור הועתק' : 'העתקת קישור'}
+        </span>
+      </button>
+      <p className="pj-iab-hint">
+        {linkCopied
+          ? 'פתחו Safari או Chrome והדביקו את הקישור שם.'
+          : 'העתיקו את הקישור ופתחו אותו בדפדפן.'}
+      </p>
+    </div>
+  ) : null;
 
   return (
     <MobileGuard>
-      <PageTransition>
-        {!statusChecked ? (
-          <div
-            className="app-container"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '100dvh',
-            }}
-          >
-            <img src="/icons/Eventa_Logo.png" alt="Eventa" width={100} height={100} style={{ objectFit: 'contain', opacity: 0.6, animation: 'eo-pulse 1.5s ease-in-out infinite' }} />
-          </div>
-        ) : eventNotFound ? (
-          <div
-            className="app-container"
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '100dvh',
-              padding: 32,
-              textAlign: 'center',
-              gap: 20,
-            }}
-          >
-            <img src="/icons/Eventa_Logo.png" alt="Eventa" width={100} height={100} style={{ objectFit: 'contain', opacity: 0.5 }} />
-            <h1 style={{ fontSize: 24, color: 'var(--primary)', margin: 0 }}>האירוע לא נמצא</h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.6, maxWidth: 300 }}>
-              הקישור שקיבלתם לא מוביל לאירוע פעיל.
-              <br />
-              ודאו שהקישור תקין או פנו למארגן האירוע.
+      <PremiumJoinShell stepKey={step} notice={iabNotice}>
+        {step === 'welcome' && (
+          <>
+            <h1 className="pj-title">ברוכים הבאים ל-Eventa</h1>
+            <p className="pj-subtitle">
+              הדרך הכי קלילה להכיר אנשים באירוע.
             </p>
-          </div>
-        ) : (
-          <div
-            className="app-container"
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '100dvh',
-              padding: 32,
-              textAlign: 'center',
-              gap: 24,
-            }}
-          >
-            <img src="/icons/Eventa_Logo.png" alt="Eventa" width={140} height={140} style={{ objectFit: 'contain' }} />
 
-            {inAppBrowser && (
-              <div
-                style={{
-                  background: 'rgba(255, 180, 50, 0.12)',
-                  border: '1px solid rgba(255, 180, 50, 0.3)',
-                  borderRadius: 12,
-                  padding: '14px 18px',
-                  maxWidth: 320,
-                  width: '100%',
-                  fontSize: 14,
-                  lineHeight: 1.6,
-                  color: '#ffb432',
-                }}
-              >
-                <strong><span aria-hidden="true">⚠️</span> שימו לב</strong>
-                <br />
-                אתם גולשים מתוך אפליקציה חיצונית. כדי שהחיבור שלכם יישמר,
-                פתחו את הקישור ב-
-                <strong>Safari</strong> או <strong>Chrome</strong>.
-                <button
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(window.location.href);
-                      setLinkCopied(true);
-                    } catch {
-                      const input = document.createElement('input');
-                      input.value = window.location.href;
-                      document.body.appendChild(input);
-                      input.select();
-                      document.execCommand('copy');
-                      document.body.removeChild(input);
-                      setLinkCopied(true);
-                    }
-                  }}
-                  style={{
-                    display: 'block',
-                    margin: '10px auto 0',
-                    padding: '8px 20px',
-                    background: 'rgba(255, 180, 50, 0.2)',
-                    border: '1px solid rgba(255, 180, 50, 0.4)',
-                    borderRadius: 8,
-                    color: '#ffb432',
-                    fontWeight: 600,
-                    fontSize: 13,
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                  }}
-                >
-                  <span role="status" aria-live="polite">{linkCopied ? <><span aria-hidden="true">✅</span> הקישור הועתק!</> : <><span aria-hidden="true">📋</span> העתק קישור</>}</span>
-                </button>
+            <div className="pj-badges" aria-hidden="false">
+              <div className="pj-badge">
+                <span className="pj-badge-icon" aria-hidden="true">⏱</span>
+                נמחק אחרי 7 ימים
               </div>
-            )}
+              <div className="pj-badge">
+                <span className="pj-badge-icon" aria-hidden="true">🔒</span>
+                פרטי ומאובטח
+              </div>
+              <div className="pj-badge">
+                <span className="pj-badge-icon" aria-hidden="true">📱</span>
+                בלי הורדת אפליקציה
+              </div>
+            </div>
 
-            <AnimatePresence mode="wait">
-              {/* ─── Step 1: Terms ─── */}
-              {step === 'terms' && (
-                <motion.div
-                  key="terms"
-                  variants={stepVariants}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, width: '100%' }}
-                >
-                  <h1 style={{ fontSize: 28, color: 'var(--primary)', margin: 0 }}>
-                    ברוכים הבאים!
-                  </h1>
-                  <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.6 }}>
-                    האפליקציה מאפשרת לכם ליצור קשר עם רווקים ורווקות באירוע.
-                    <br />
-                    כל המידע נמחק אוטומטית לאחר 7 ימים.
-                  </p>
+            <ConsentRow
+              checked={agreed}
+              onToggle={() => setAgreed(!agreed)}
+              ariaLabel="אני מאשר/ת את תנאי השימוש, מדיניות הפרטיות ומדיניות העוגיות"
+            >
+              אני מאשר/ת את{' '}
+              <button type="button" className="pj-link-btn" onClick={(e) => { e.stopPropagation(); setLegalPage('terms'); }}>תנאי השימוש</button>
+              {' '}ו
+              <button type="button" className="pj-link-btn" onClick={(e) => { e.stopPropagation(); setLegalPage('privacy'); }}>מדיניות הפרטיות</button>
+              {' '}ו
+              <button type="button" className="pj-link-btn" onClick={(e) => { e.stopPropagation(); setLegalPage('cookies'); }}>מדיניות העוגיות</button>
+              , ומבין/ה כי באירועים מסוימים ייתכן ש-Eventa תצלם תכני אווירה ותיעוד של השימוש בשירות לצורכי שיווק ופרסום, כמפורט בתנאי השימוש.
+            </ConsentRow>
 
-                  <Checkbox checked={agreed} onChange={() => setAgreed(!agreed)}>
-                    אני מסכים/ה ל<button type="button" style={{ color: 'var(--primary)', textDecoration: 'underline', background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); setLegalPage('terms'); }}>תנאי השימוש</button>, <button type="button" style={{ color: 'var(--primary)', textDecoration: 'underline', background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); setLegalPage('privacy'); }}>מדיניות הפרטיות</button> ו<button type="button" style={{ color: 'var(--primary)', textDecoration: 'underline', background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); setLegalPage('cookies'); }}>מדיניות העוגיות</button>
-                  </Checkbox>
+            {error && <p className="pj-error" role="alert">{error}</p>}
 
-                  {error && (
-                    <p role="alert" style={{ color: 'var(--danger)', fontSize: 14 }}>{error}</p>
-                  )}
-
-                  <button
-                    className="btn btn-primary"
-                    style={{ maxWidth: 320 }}
-                    disabled={!agreed || loading}
-                    onClick={handleTermsAccepted}
-                  >
-                    {loading ? 'מתחבר...' : 'המשך'}
-                  </button>
-                </motion.div>
-              )}
-
-              {/* ─── Step 2: Phone ─── */}
-              {step === 'phone' && (
-                <motion.div
-                  key="phone"
-                  variants={stepVariants}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, width: '100%' }}
-                >
-                  <h1 style={{ fontSize: 24, color: 'var(--primary)', margin: 0 }}>
-                    הזינו מספר טלפון
-                  </h1>
-                  <p style={{ color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.6 }}>
-                    נשלח קוד אימות ב-SMS לנייד שלכם
-                  </p>
-
-                  <PhoneInput
-                    value={phone}
-                    onChange={(v) => { setPhone(v); setError(''); }}
-                    disabled={loading}
-                    error={undefined}
-                  />
-
-                  <Checkbox checked={smsConsent} onChange={() => setSmsConsent(!smsConsent)}>
-                    אני מאשר/ת קבלת הודעות SMS הקשורות לשימוש בשירות Eventa, כולל קודי אימות ועדכונים.
-                  </Checkbox>
-
-                  {error && (
-                    <p role="alert" style={{ color: 'var(--danger)', fontSize: 14 }}>{error}</p>
-                  )}
-
-                  <button
-                    className="btn btn-primary"
-                    style={{ maxWidth: 320 }}
-                    disabled={phone.length !== VALID_LOCAL_DIGITS || loading}
-                    onClick={handleSendOtp}
-                  >
-                    {loading ? 'שולח קוד...' : 'שלחו קוד'}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => { setStep('terms'); setError(''); }}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--text-muted)',
-                      fontSize: 13,
-                      cursor: 'pointer',
-                      textDecoration: 'underline',
-                      fontFamily: 'inherit',
-                    }}
-                  >
-                    חזרה
-                  </button>
-                </motion.div>
-              )}
-
-              {/* ─── Step 3: OTP ─── */}
-              {step === 'otp' && (
-                <motion.div
-                  key="otp"
-                  variants={stepVariants}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, width: '100%' }}
-                >
-                  <h1 style={{ fontSize: 24, color: 'var(--primary)', margin: 0 }}>
-                    הזינו את הקוד
-                  </h1>
-                  <p style={{ color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.6 }}>
-                    {maskedPhone
-                      ? <>שלחנו קוד ל-<span dir="ltr" style={{ unicodeBidi: 'embed' }}>{maskedPhone}</span></>
-                      : 'שלחנו קוד SMS לנייד שלכם'}
-                  </p>
-
-                  <OtpInput
-                    value={otpValue}
-                    onChange={setOtpValue}
-                    onComplete={handleVerifyOtp}
-                    disabled={loading}
-                    error={error || undefined}
-                  />
-
-                  {error && (
-                    <p role="alert" style={{ color: 'var(--danger)', fontSize: 14 }}>{error}</p>
-                  )}
-
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                    <button
-                      type="button"
-                      disabled={resendTimer > 0 || loading}
-                      onClick={handleResendOtp}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: resendTimer > 0 ? 'var(--text-muted)' : 'var(--primary)',
-                        fontSize: 14,
-                        cursor: resendTimer > 0 ? 'default' : 'pointer',
-                        fontFamily: 'inherit',
-                        textDecoration: resendTimer > 0 ? 'none' : 'underline',
-                      }}
-                    >
-                      {resendTimer > 0
-                        ? `שלחו שוב (${resendTimer}s)`
-                        : 'שלחו שוב'}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { setStep('phone'); setError(''); setOtpValue(''); }}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--text-muted)',
-                        fontSize: 13,
-                        cursor: 'pointer',
-                        textDecoration: 'underline',
-                        fontFamily: 'inherit',
-                      }}
-                    >
-                      שנו מספר טלפון
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+            <button
+              className="pj-cta"
+              type="button"
+              disabled={!agreed}
+              onClick={handleTermsAccepted}
+            >
+              המשך
+            </button>
+          </>
         )}
-      </PageTransition>
+
+        {step === 'phone' && (
+          <>
+            <h1 className="pj-title">אימות קצר ונכנסים</h1>
+            <p className="pj-subtitle">
+              נשלח קוד חד־פעמי כדי לוודא שהכניסה שייכת למשתתף/ת באירוע.
+            </p>
+
+            <PhoneInput
+              value={phone}
+              onChange={(v) => { setPhone(v); setError(''); }}
+              disabled={false}
+              error={undefined}
+            />
+
+            <ConsentRow
+              checked={smsConsent}
+              onToggle={() => setSmsConsent(!smsConsent)}
+              ariaLabel="אני מאשר/ת קבלת קוד אימות ב-SMS"
+            >
+              אני מאשר/ת קבלת קוד אימות ב-SMS לצורך כניסה לשירות.
+            </ConsentRow>
+
+            {error && <p className="pj-error" role="alert">{error}</p>}
+
+            <button
+              className="pj-cta"
+              type="button"
+              disabled={phone.length !== VALID_LOCAL_DIGITS}
+              onClick={handleSendOtp}
+            >
+              שלחו קוד
+            </button>
+
+            <button
+              type="button"
+              className="pj-link"
+              onClick={() => { setStep('welcome'); setError(''); }}
+            >
+              חזרה
+            </button>
+          </>
+        )}
+
+        {step === 'otp' && (
+          <>
+            <h1 className="pj-title">הזינו את הקוד</h1>
+            <p className="pj-subtitle">
+              {maskedPhone ? (
+                <>שלחנו קוד למספר <span dir="ltr" style={{ unicodeBidi: 'embed' }}>{maskedPhone}</span></>
+              ) : (
+                'שלחנו קוד SMS לנייד שלכם'
+              )}
+            </p>
+
+            <OtpInput
+              value={otpValue}
+              onChange={setOtpValue}
+              onComplete={handleVerifyOtp}
+              disabled={false}
+              error={error || undefined}
+            />
+
+            {error && <p className="pj-error" role="alert">{error}</p>}
+
+            <button
+              type="button"
+              className={`pj-link${resendTimer > 0 ? '' : ' is-primary'}`}
+              disabled={resendTimer > 0}
+              onClick={handleResendOtp}
+            >
+              {resendTimer > 0 ? `שלחו שוב (${resendTimer}s)` : 'שלחו שוב'}
+            </button>
+
+            <button
+              type="button"
+              className="pj-link"
+              onClick={() => { setStep('phone'); setError(''); setOtpValue(''); }}
+            >
+              שנו מספר טלפון
+            </button>
+          </>
+        )}
+      </PremiumJoinShell>
 
       <LegalDrawer page={legalPage} onClose={() => setLegalPage(null)} />
-
-      {/* Onboarding slides overlay for new users */}
-      {step === 'onboarding' && (
-        <OnboardingSlides onComplete={handleOnboardingComplete} />
-      )}
     </MobileGuard>
   );
 }

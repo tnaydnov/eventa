@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
+import PremiumSplashScreen from '@/components/join/PremiumSplashScreen';
 
 export default function MobileGuard({ children }: { children: ReactNode }) {
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
@@ -30,14 +31,35 @@ export default function MobileGuard({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  if (isMobile === null) return null;
+  // While detecting, render the branded splash instead of a blank flash.
+  if (isMobile === null) {
+    return <PremiumSplashScreen subtitle="טוענים את חוויית האירוע..." />;
+  }
 
   if (!isMobile) {
     return (
-      <div className="desktop-block">
-        <div style={{ fontSize: '72px' }} aria-hidden="true">📱</div>
-        <h1>האפליקציה זמינה לנייד בלבד</h1>
-        <p>סרקו את קוד ה-QR מהטלפון הנייד שלכם כדי להיכנס</p>
+      <div className="pj-bg" dir="rtl">
+        <div className="pj-stage">
+          <div className="pj-shell-header" style={{ marginTop: 0 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/icons/Eventa_Logo.png"
+              alt="Eventa"
+              className="pj-shell-logo"
+              width={92}
+              height={92}
+              draggable={false}
+            />
+            <h2 className="pj-shell-brand" style={{ fontSize: 32 }}>Eventa</h2>
+          </div>
+          <div className="pj-desktop">
+            <div className="pj-desktop-icon" aria-hidden="true">📱</div>
+            <h1 className="pj-title">Eventa זמינה לנייד בלבד</h1>
+            <p className="pj-subtitle">
+              כדי להצטרף לחוויית האירוע, סרקו את הקוד דרך הטלפון הנייד.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
