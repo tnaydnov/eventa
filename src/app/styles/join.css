@@ -8,6 +8,22 @@
  * Mobile-first, RTL-safe, no heavy animation.
  * ─────────────────────────────────────────────────────────────── */
 
+/* ── Page-level crossfade wrapper ────────────────────────────── */
+.pj-page-root {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+}
+.pj-page-layer {
+  position: absolute;
+  inset: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+}
+
 /* ── Luxury background canvas ─────────────────────────────────── */
 .pj-bg {
   position: relative;
@@ -97,8 +113,8 @@
 /* ── Splash screen styles ──────────────────────────────────────── */
 .pj-splash-logo-wrap {
   position: relative;
-  width: 132px;
-  height: 132px;
+  width: 148px;
+  height: 148px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -207,17 +223,10 @@
   }
 }
 .pj-shell-logo {
-  width: 76px;
-  height: 76px;
+  width: 96px;
+  height: 96px;
   object-fit: contain;
-  filter: drop-shadow(0 4px 18px rgba(212, 165, 154, 0.18));
-}
-.pj-shell-brand {
-  font-family: var(--font-script, 'Great Vibes', cursive);
-  font-size: 26px;
-  line-height: 1;
-  color: var(--primary, #D4A59A);
-  margin: 0;
+  filter: drop-shadow(0 4px 22px rgba(212, 165, 154, 0.22));
 }
 
 .pj-card {
@@ -249,7 +258,7 @@
   .pj-subtitle { font-size: 13px; }
   .pj-badge { font-size: 10px; min-height: 58px; padding: 8px 4px; }
   .pj-badge-icon { font-size: 16px; }
-  .pj-splash-logo-wrap { width: 112px; height: 112px; }
+  .pj-splash-logo-wrap { width: 126px; height: 126px; }
   .pj-splash-name { font-size: 34px; }
 }
 

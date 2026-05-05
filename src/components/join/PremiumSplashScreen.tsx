@@ -39,15 +39,13 @@ export default function PremiumSplashScreen({
             src="/icons/Eventa_Logo.png"
             alt="Eventa"
             className="pj-splash-logo"
-            width={132}
-            height={132}
+            width={148}
+            height={148}
             draggable={false}
             decoding="async"
             {...({ fetchpriority: 'high' } as Record<string, string>)}
           />
         </div>
-
-        <h1 className="pj-splash-name">Eventa</h1>
 
         {subtitle && <p className="pj-splash-sub">{subtitle}</p>}
 

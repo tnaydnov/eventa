@@ -12,36 +12,30 @@ interface PremiumJoinShellProps {
   children: ReactNode;
 }
 
-const cardVariants: Variants = {
-  initial: { opacity: 0, y: 14 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.28, ease: 'easeOut' } },
-  exit:    { opacity: 0, y: -8, transition: { duration: 0.18, ease: 'easeIn' } },
+/**
+ * Content variants — animate only the inner content, not the card shell.
+ * mode="popLayout": exiting content is pulled from flow so the card height
+ * morphs smoothly while the new content fades in simultaneously.
+ */
+const contentVariants: Variants = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] } },
+  exit:    { opacity: 0, y: -5, transition: { duration: 0.16, ease: 'easeIn' } },
 };
 
 const reducedVariants: Variants = {
-  initial: { opacity: 1, y: 0 },
-  animate: { opacity: 1, y: 0 },
-  exit:    { opacity: 1, y: 0 },
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.2 } },
+  exit:    { opacity: 0, transition: { duration: 0.15 } },
 };
 
-/**
- * PremiumJoinShell
- * ────────────────
- * Shared luxury shell for every interactive step of the QR-join flow
- * (welcome, phone, OTP). Provides:
- *   - the same dark radial-glow background as the splash
- *   - safe-area-aware mobile padding
- *   - consistent Eventa header (logo + script wordmark)
- *   - a glass card frame
- *   - motion-driven step transitions via AnimatePresence (respects reduced motion)
- */
 export default function PremiumJoinShell({
   stepKey,
   notice,
   children,
 }: PremiumJoinShellProps) {
   const shouldReduceMotion = useReducedMotion();
-  const variants = shouldReduceMotion ? reducedVariants : cardVariants;
+  const variants = shouldReduceMotion ? reducedVariants : contentVariants;
 
   return (
     <div className="pj-bg" dir="rtl">
@@ -52,28 +46,33 @@ export default function PremiumJoinShell({
             src="/icons/Eventa_Logo.png"
             alt="Eventa"
             className="pj-shell-logo"
-            width={76}
-            height={76}
+            width={96}
+            height={96}
             draggable={false}
             decoding="async"
           />
-          <h2 className="pj-shell-brand">Eventa</h2>
         </div>
 
         {notice}
 
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={stepKey}
-            className="pj-card"
-            variants={variants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
+        {/* Card stays stable; only the inner content crossfades between steps */}
+        <motion.div
+          className="pj-card"
+          layout
+          transition={{ layout: { duration: 0.32, ease: [0.25, 0.46, 0.45, 0.94] } }}
+        >
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.div
+              key={stepKey}
+              variants={variants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
       </div>
     </div>
   );

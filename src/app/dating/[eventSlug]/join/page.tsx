@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { Suspense, use, useCallback, useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSessionStore } from '@/lib/store';
 import { sendOtp, verifyOtp } from '@/lib/api';
@@ -389,92 +390,43 @@ function JoinPageContent({
 
   // ─── Render ───────────────────────────────────────────────
 
-  // Splash phases (boot, returning user, verifying, completing)
-  if (phase === 'booting') {
-    return (
-      <MobileGuard>
-        <PremiumSplashScreen subtitle="טוענים את חוויית האירוע..." />
-      </MobileGuard>
-    );
-  }
-  if (phase === 'returning_user') {
-    return (
-      <MobileGuard>
-        <PremiumSplashScreen subtitle="מחזירים אותך לאירוע..." />
-      </MobileGuard>
-    );
-  }
-  if (phase === 'completing_join') {
-    return (
-      <MobileGuard>
-        <PremiumSplashScreen subtitle="כבר נכנסים לאירוע..." />
-      </MobileGuard>
-    );
-  }
-  if (phase === 'event_not_found' || phase === 'event_inactive' || phase === 'event_ended' || phase === 'access_blocked' || phase === 'fatal_error') {
-    const messages: Record<typeof phase, { title: string; body: React.ReactNode }> = {
-      event_not_found: {
-        title: 'האירוע לא נמצא',
-        body: <>הקישור שקיבלתם לא מוביל לאירוע פעיל.<br />ודאו שהקישור תקין או פנו למארגן האירוע.</>,
-      },
-      event_inactive: {
-        title: 'האירוע עדיין לא פעיל',
-        body: <>האירוע הזה טרם התחיל.<br />נסו שוב סמוך למועד האירוע.</>,
-      },
-      event_ended: {
-        title: 'האירוע הסתיים',
-        body: <>תקופת ההיכרויות באירוע הזה הסתיימה.<br />תודה שהשתתפתם!</>,
-      },
-      access_blocked: {
-        title: 'הגישה נחסמה',
-        body: <>המכשיר הזה אינו יכול להיכנס לאירוע.<br />אם נראה לכם שזו טעות, פנו למארגן האירוע.</>,
-      },
-      fatal_error: {
-        title: 'משהו השתבש',
-        body: <>לא הצלחנו לטעון את האירוע כרגע.<br />נסו לרענן את הדף בעוד רגע.</>,
-      },
-    } as const;
-    const m = messages[phase];
-    return (
-      <MobileGuard>
-        <div className="pj-bg" dir="rtl">
-          <div className="pj-shell-stage">
-            <div className="pj-shell-header">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/icons/Eventa_Logo.png" alt="Eventa" className="pj-shell-logo" width={76} height={76} draggable={false} decoding="async" />
-              <h2 className="pj-shell-brand">Eventa</h2>
-            </div>
-            <div className="pj-card" role="alert">
-              <h1 className="pj-title">{m.title}</h1>
-              <p className="pj-subtitle">{m.body}</p>
-            </div>
-          </div>
-        </div>
-      </MobileGuard>
-    );
-  }
+  // Compute which full-screen view to show
+  const splashSubtitle: string | null =
+    phase === 'booting'         ? 'טוענים את חוויית האירוע...' :
+    phase === 'returning_user'  ? 'מחזירים אותך לאירוע...' :
+    phase === 'completing_join' ? 'כבר נכנסים לאירוע...' :
+    phase === 'verifying_otp'   ? (step === 'otp' ? 'מאמתים את הקוד...' : 'שולחים קוד אימות...') :
+    null;
 
-  // Onboarding (full-screen overlay component, keeps its own visuals)
-  if (step === 'onboarding') {
-    return (
-      <MobileGuard>
-        <OnboardingSlides onComplete={handleOnboardingComplete} />
-      </MobileGuard>
-    );
-  }
+  const isErrorPhase = (
+    phase === 'event_not_found' ||
+    phase === 'event_inactive'  ||
+    phase === 'event_ended'     ||
+    phase === 'access_blocked'  ||
+    phase === 'fatal_error'
+  );
 
-  // Verifying OTP / sending OTP - keep splash for clear feedback
-  if (phase === 'verifying_otp') {
-    return (
-      <MobileGuard>
-        <PremiumSplashScreen
-          subtitle={step === 'otp' ? 'מאמתים את הקוד...' : 'שולחים קוד אימות...'}
-        />
-      </MobileGuard>
-    );
-  }
+  const errorMessages = {
+    event_not_found: { title: 'האירוע לא נמצא',         body: <>הקישור שקיבלתם לא מוביל לאירוע פעיל.<br />ודאו שהקישור תקין או פנו למארגן האירוע.</> },
+    event_inactive:  { title: 'האירוע עדיין לא פעיל',   body: <>האירוע הזה טרם התחיל.<br />נסו שוב סמוך למועד האירוע.</> },
+    event_ended:     { title: 'האירוע הסתיים',           body: <>תקופת ההיכרויות באירוע הזה הסתיימה.<br />תודה שהשתתפתם!</> },
+    access_blocked:  { title: 'הגישה נחסמה',             body: <>המכשיר הזה אינו יכול להיכנס לאירוע.<br />אם נראה לכם שזו טעות, פנו למארגן האירוע.</> },
+    fatal_error:     { title: 'משהו השתבש',              body: <>לא הצלחנו לטעון את האירוע כרגע.<br />נסו לרענן את הדף בעוד רגע.</> },
+  } as const;
 
-  // ─── Interactive: welcome / phone / otp inside the premium shell ─
+  const errorMsg = isErrorPhase
+    ? errorMessages[phase as keyof typeof errorMessages]
+    : null;
+
+  const isOnboarding  = phase === 'interactive' && step === 'onboarding';
+  const isInteractive = phase === 'interactive' && step !== 'onboarding';
+
+  const pageVariants: Variants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1, transition: { duration: 0.38, ease: 'easeOut' } },
+    exit:    { opacity: 0, transition: { duration: 0.22, ease: 'easeIn' } },
+  };
+  // ─── iabNotice (needed inside the interactive shell) ─
 
   const iabNotice = inAppBrowser ? (
     <div className="pj-iab" role="note">
@@ -499,7 +451,41 @@ function JoinPageContent({
 
   return (
     <MobileGuard>
-      <PremiumJoinShell stepKey={step} notice={iabNotice}>
+      <div className="pj-page-root">
+        <AnimatePresence mode="sync" initial={false}>
+
+          {splashSubtitle !== null && (
+            <motion.div key="splash" className="pj-page-layer" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+              <PremiumSplashScreen subtitle={splashSubtitle} />
+            </motion.div>
+          )}
+
+          {isErrorPhase && errorMsg && (
+            <motion.div key="error" className="pj-page-layer" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+              <div className="pj-bg" dir="rtl">
+                <div className="pj-shell-stage">
+                  <div className="pj-shell-header">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/icons/Eventa_Logo.png" alt="Eventa" className="pj-shell-logo" width={96} height={96} draggable={false} decoding="async" />
+                  </div>
+                  <div className="pj-card" role="alert">
+                    <h1 className="pj-title">{errorMsg.title}</h1>
+                    <p className="pj-subtitle">{errorMsg.body}</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {isOnboarding && (
+            <motion.div key="onboarding" className="pj-page-layer" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+              <OnboardingSlides onComplete={handleOnboardingComplete} />
+            </motion.div>
+          )}
+
+          {isInteractive && (
+            <motion.div key="interactive" className="pj-page-layer" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+              <PremiumJoinShell stepKey={step} notice={iabNotice}>
         {step === 'welcome' && (
           <>
             <h1 className="pj-title">ברוכים הבאים ל-Eventa</h1>
@@ -631,9 +617,14 @@ function JoinPageContent({
             </button>
           </>
         )}
-      </PremiumJoinShell>
+              </PremiumJoinShell>
+            </motion.div>
+          )}
 
-      <LegalDrawer page={legalPage} onClose={() => setLegalPage(null)} />
+        </AnimatePresence>
+
+        <LegalDrawer page={legalPage} onClose={() => setLegalPage(null)} />
+      </div>
     </MobileGuard>
   );
 }
