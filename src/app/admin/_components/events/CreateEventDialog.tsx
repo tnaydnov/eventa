@@ -87,7 +87,7 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
     if (!startsAt || !endsAt) return false;
     if (new Date(endsAt) <= new Date(startsAt)) return false;
     if (!clientName.trim()) return false;
-    if (!clientEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail.trim())) return false;
+    if (!clientEmail.trim() || !/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(clientEmail.trim())) return false;
     return true;
   }, [name, startsAt, endsAt, clientName, clientEmail]);
 
