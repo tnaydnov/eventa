@@ -183,6 +183,10 @@ export const adminLoginSchema = z.object({
 });
 
 /* ---- Admin create event schema ---- */
+/** Normalise an optional string field: treat blank/empty string as undefined. */
+const optionalStr = (schema: z.ZodString) =>
+  z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), schema.optional());
+
 export const createEventSchema = z.object({
   name: z.string().min(1, 'שם אירוע נדרש').max(100),
   slug: z
@@ -195,9 +199,9 @@ export const createEventSchema = z.object({
   starts_at: z.string().datetime().optional(),
   ends_at: z.string().datetime().optional(),
   wa_messages_enabled: z.boolean().optional(),
-  client_name: z.string().max(100).optional(),
-  client_email: z.string().email().max(200).optional(),
-  client_phone: z.string().max(20).optional(),
+  client_name: optionalStr(z.string().max(100)),
+  client_email: optionalStr(z.string().email('כתובת אימייל לא תקינה').max(200)),
+  client_phone: optionalStr(z.string().max(20)),
   communication_preference: z.enum(['email', 'phone', 'whatsapp', 'call-me']).optional(),
 });
 
@@ -212,9 +216,9 @@ export const updateEventSchema = z.object({
   status: z.enum(updateableStatusValues).optional(),
   description: z.string().max(500).nullable().optional(),
   background_image: z.string().url().max(500).nullable().optional(),
-  client_name: z.string().max(100).nullable().optional(),
-  client_email: z.string().email().max(200).nullable().optional(),
-  client_phone: z.string().max(20).nullable().optional(),
+  client_name: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? null : v), z.string().max(100).nullable().optional()),
+  client_email: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? null : v), z.string().email('כתובת אימייל לא תקינה').max(200).nullable().optional()),
+  client_phone: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? null : v), z.string().max(20).nullable().optional()),
   communication_preference: z.enum(['email', 'phone', 'whatsapp', 'call-me']).nullable().optional(),
   payment_status: z.enum(['unpaid', 'paid', 'waived']).optional(),
   starts_at: z.string().datetime().optional(),

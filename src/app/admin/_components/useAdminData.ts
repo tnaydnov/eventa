@@ -102,6 +102,10 @@ export function useAdminData() {
     starts_at?: string;
     ends_at?: string;
     wa_messages_enabled?: boolean;
+    client_name?: string;
+    client_email?: string;
+    client_phone?: string;
+    communication_preference?: string;
   }): Promise<{ ok: boolean; error?: string }> => {
     const res = await authedFetch('/api/admin/events', {
       method: 'POST',
@@ -112,6 +116,25 @@ export function useAdminData() {
       return { ok: true };
     }
     const err = await res.json().catch(() => ({}));
+    // Surface per-field Zod validation errors so the admin can see exactly what failed
+    if (err.details && typeof err.details === 'object') {
+      const fieldLabels: Record<string, string> = {
+        name: 'שם אירוע',
+        slug: 'כתובת',
+        event_type: 'סוג אירוע',
+        starts_at: 'תחילת אירוע',
+        ends_at: 'סיום אירוע',
+        client_name: 'שם לקוח',
+        client_email: 'אימייל',
+        client_phone: 'טלפון',
+        communication_preference: 'העדפת תקשורת',
+      };
+      const messages = Object.entries(err.details as Record<string, string[]>)
+        .filter(([, msgs]) => msgs?.length)
+        .map(([field, msgs]) => `${fieldLabels[field] ?? field}: ${msgs[0]}`)
+        .join(' | ');
+      if (messages) return { ok: false, error: messages };
+    }
     return { ok: false, error: err.error || 'שגיאה ביצירת אירוע' };
   };
 

@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
         .toLowerCase()
         .replace(/[^a-z0-9\u0590-\u05ff]+/g, '-')
         .replace(/[\u0590-\u05ff]+/g, '')  // strip Hebrew chars from slug
-        .replace(/(^-|-$)/g, '')
+        .replace(/^-+|-+$/g, '')           // strip all leading/trailing hyphens
         .replace(/-{2,}/g, '-');
       body.slug = `${base || 'event'}-${randomSuffix()}`;
     }
@@ -112,8 +112,26 @@ export async function POST(req: NextRequest) {
     const parsed = createEventSchema.safeParse(body);
 
     if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      // Build a human-readable summary of which fields failed
+      const fieldLabels: Record<string, string> = {
+        name: 'שם אירוע',
+        slug: 'כתובת',
+        event_type: 'סוג אירוע',
+        starts_at: 'תחילת אירוע',
+        ends_at: 'סיום אירוע',
+        client_name: 'שם לקוח',
+        client_email: 'אימייל',
+        client_phone: 'טלפון',
+        communication_preference: 'העדפת תקשורת',
+      };
+      const summary = Object.entries(fieldErrors)
+        .filter(([, msgs]) => msgs?.length)
+        .map(([f, msgs]) => `${fieldLabels[f] ?? f}: ${msgs![0]}`)
+        .join('; ');
+      logger.warn('[ADMIN_EVENTS_POST] Validation failed', { fields: Object.keys(fieldErrors) });
       return NextResponse.json(
-        { error: 'Invalid input', details: parsed.error.flatten().fieldErrors },
+        { error: summary || 'Invalid input', details: fieldErrors },
         { status: 400 }
       );
     }
