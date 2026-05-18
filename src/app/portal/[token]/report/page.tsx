@@ -103,6 +103,16 @@ export default function PortalReportPage() {
   const peakHour = time_dynamics?.peak_hour;
   const topDropOff = funnel?.top_drop_off;
 
+  // Normalise hourly_activity: support new {timestamp} format and legacy {hour} format
+  const hourlyItems = (time_dynamics?.hourly_activity ?? []).map((h) => {
+    const entry = h as { timestamp?: string; hour?: number; count: number };
+    const label = entry.timestamp
+      ? new Date(entry.timestamp).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
+      : `${String(entry.hour ?? 0).padStart(2, '0')}:00`;
+    const utcHour = entry.timestamp ? new Date(entry.timestamp).getUTCHours() : (entry.hour ?? 0);
+    return { label, count: h.count, utcHour };
+  });
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white" dir="rtl">
       {/* Header */}
@@ -187,7 +197,7 @@ export default function PortalReportPage() {
         )}
 
         {/* Hourly activity */}
-        {time_dynamics?.hourly_activity && time_dynamics.hourly_activity.length > 0 && (
+        {hourlyItems.length > 0 && (
           <section>
             <h2 className="text-base font-semibold text-white/80 mb-3">
               פעילות לפי שעה
@@ -199,16 +209,16 @@ export default function PortalReportPage() {
             </h2>
             <div className="bg-white/5 rounded-2xl p-4">
               <div className="flex items-end gap-1 h-20">
-                {time_dynamics.hourly_activity.map((item) => {
-                  const maxCount = Math.max(...time_dynamics.hourly_activity.map((h) => h.count));
+                {hourlyItems.map((item) => {
+                  const maxCount = Math.max(...hourlyItems.map((h) => h.count));
                   const heightPct = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
                   return (
-                    <div key={item.hour} className="flex-1 flex flex-col items-center gap-1">
+                    <div key={item.label} className="flex-1 flex flex-col items-center gap-1">
                       <div
                         className="w-full rounded-sm"
                         style={{
                           height: `${Math.max(heightPct, 4)}%`,
-                          background: item.hour === peakHour ? '#D4A59A' : 'rgba(255,255,255,0.2)',
+                          background: item.utcHour === peakHour ? '#D4A59A' : 'rgba(255,255,255,0.2)',
                           transition: 'height 0.3s ease',
                         }}
                       />
@@ -217,10 +227,8 @@ export default function PortalReportPage() {
                 })}
               </div>
               <div className="flex justify-between mt-2">
-                <span className="text-xs text-white/30">{time_dynamics.hourly_activity[0]?.hour}:00</span>
-                <span className="text-xs text-white/30">
-                  {time_dynamics.hourly_activity[time_dynamics.hourly_activity.length - 1]?.hour}:00
-                </span>
+                <span className="text-xs text-white/30">{hourlyItems[0]?.label}</span>
+                <span className="text-xs text-white/30">{hourlyItems[hourlyItems.length - 1]?.label}</span>
               </div>
             </div>
           </section>
