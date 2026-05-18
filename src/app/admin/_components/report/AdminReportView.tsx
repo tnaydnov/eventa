@@ -552,7 +552,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
                         dataKey="value"
                         paddingAngle={4}
                         labelLine
-                        label={(props: Record<string, number & string>) => <PieLabel {...props} />}
+                        label={(props) => <PieLabel {...(props as Parameters<typeof PieLabel>[0])} />}
                       >
                         {genderData.map((g, i) => <Cell key={i} fill={g.color} />)}
                       </Pie>
