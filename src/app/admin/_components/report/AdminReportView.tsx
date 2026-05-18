@@ -111,7 +111,7 @@ function Card({ title, children, style }: {
       background: 'rgba(255,255,255,0.04)',
       border: '1px solid rgba(255,255,255,0.1)',
       borderRadius: '12px',
-      padding: '17px',
+      padding: '14px',
       ...style,
     }}>
       {title && (
@@ -287,62 +287,24 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
     if (!reportRef.current) return;
     setExportingPdf(true);
     try {
-      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+      const [{ default: html2canvas }, { default: jsPDF }, { calcPdfLayout }] = await Promise.all([
         import('html2canvas'),
         import('jspdf'),
+        import('@/lib/report/pdf-layout'),
       ]);
-      const scale = 2;
       const canvas = await html2canvas(reportRef.current, {
-        scale,
+        scale: 2,
         backgroundColor: '#0e0d18',
         logging: false,
         useCORS: true,
         allowTaint: true,
       });
-      const pdf  = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const pdfW = 210;
-      const pdfH = 297;
-      const pxPerMm      = canvas.width / pdfW;
-      const pageHeightPx = Math.round(pdfH * pxPerMm);
 
-      // Collect natural break points (bottom edges of top-level children)
-      // so we never slice through a card in the middle.
-      const container    = reportRef.current;
-      const containerTop = container.getBoundingClientRect().top;
-      const children     = Array.from(container.querySelectorAll(':scope > *')) as HTMLElement[];
-      const naturalBreaks = children
-        .map(el => Math.round((el.getBoundingClientRect().bottom - containerTop) * scale))
-        .filter(y => y > 0 && y < canvas.height);
-
-      // Build page ranges using the nearest natural break before each ideal cut
-      const pages: Array<[number, number]> = [];
-      let pageStart = 0;
-      while (pageStart < canvas.height) {
-        const idealEnd = pageStart + pageHeightPx;
-        if (idealEnd >= canvas.height) {
-          pages.push([pageStart, canvas.height]);
-          break;
-        }
-        // Use the largest natural break that fits within this page
-        let bestBreak = idealEnd; // fallback: hard cut
-        for (const y of naturalBreaks) {
-          if (y > pageStart && y <= idealEnd) bestBreak = y;
-        }
-        pages.push([pageStart, bestBreak]);
-        pageStart = bestBreak;
-      }
-
-      pages.forEach(([yStart, yEnd], idx) => {
-        if (idx > 0) pdf.addPage();
-        const chunkH = yEnd - yStart;
-        const slice  = document.createElement('canvas');
-        slice.width  = canvas.width;
-        slice.height = chunkH;
-        const ctx = slice.getContext('2d');
-        if (ctx) ctx.drawImage(canvas, 0, yStart, canvas.width, chunkH, 0, 0, canvas.width, chunkH);
-        const imgH = chunkH / pxPerMm;
-        pdf.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, pdfW, Math.min(imgH, pdfH));
-      });
+      // calcPdfLayout guarantees imgW ≤ 210mm and imgH ≤ 297mm for ANY canvas size,
+      // so pdf.addImage() is called exactly once → always exactly 1 page.
+      const { imgW, imgH, xOffset } = calcPdfLayout(canvas.width, canvas.height);
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', xOffset, 0, imgW, imgH);
 
       const eventName = events.find(e => e.id === selectedEventId)?.name ?? 'event';
       pdf.save(`דוח-${eventName}.pdf`);
@@ -544,7 +506,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
             </div>
 
             {/* KPI ROW 1 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '10px' }}>
               <BigKpi label="משתתפים"           value={N}                                 color={P.rose} />
               <BigKpi label="לייקים שנשלחו"     value={d.engagement.total_likes}          color={P.fuchsia} />
               <BigKpi
@@ -557,7 +519,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
             </div>
 
             {/* KPI ROW 2 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '10px' }}>
               <BigKpi label="הודעות"            value={d.engagement.total_messages}                        color={P.orange} />
               <BigKpi label="ממוצע הודעות לשיחה" value={d.engagement.avg_messages_per_conversation}       color={P.amber} />
               <BigKpi
@@ -576,7 +538,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
 
             {/* GENDER + AGE side by side */}
             {(genderData.length > 0 || ageData.length > 0) && (
-              <div style={{ display: 'grid', gridTemplateColumns: genderData.length > 0 && ageData.length > 0 ? '1fr 1fr' : '1fr', gap: '14px', marginBottom: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: genderData.length > 0 && ageData.length > 0 ? '1fr 1fr' : '1fr', gap: '10px', marginBottom: '10px' }}>
                 {genderData.length > 0 && (
                   <Card title="חלוקה מגדרית">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -637,7 +599,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
 
             {/* HOURLY ACTIVITY */}
             {hourlyData.length > 1 && (
-              <Card title="פעילות לאורך האירוע" style={{ marginBottom: '16px' }}>
+              <Card title="פעילות לאורך האירוע" style={{ marginBottom: '12px' }}>
                 {peakHourStr && (
                   <div style={{ fontSize: '11px', color: P.amber, marginBottom: '8px', fontWeight: 600 }}>
                     שיא פעילות: {peakHourStr}
@@ -684,7 +646,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
             )}
 
             {/* CONVERSATIONS + NETWORK */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
               <Card title="שיחות ומעורבות">
                 <StatLine label="סה״כ שיחות"              value={d.engagement.total_conversations}                    valueColor={P.violet} />
                 <StatLine label="שיחות קצרות (1–2 הודעות)"  value={shallowConvs}                                       valueColor="#94a3b8" />
@@ -720,7 +682,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
 
 
             {/* GENDER INITIATIVE — who opened first + ghosting */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '10px' }}>
               <Card title="מי פתח שיחה ראשון">
                 <StatLine label="גברים" value={d.engagement.first_message_by_men   ?? 0} valueColor={P.blue}   />
                 <StatLine label="נשים"  value={d.engagement.first_message_by_women ?? 0} valueColor={P.rose}   />
