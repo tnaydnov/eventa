@@ -499,9 +499,6 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
                   alt="Eventa"
                   style={{ height: '34px', width: 'auto', display: 'block' }}
                 />
-                <div style={{ color: '#475569', fontSize: '10px', marginTop: '3px', textAlign: 'right' }}>
-                  {new Date(report.generated_at).toLocaleDateString('he-IL')}
-                </div>
               </div>
             </div>
 
@@ -704,9 +701,6 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
               justifyContent: 'space-between',
               alignItems: 'center',
             }}>
-              <div style={{ fontSize: '11px', color: '#475569' }}>
-                הופק: {new Date(report.generated_at).toLocaleString('he-IL')}
-              </div>
               <div style={{ fontSize: '11px', color: '#475569', direction: 'ltr' }}>
                 © Eventa {new Date().getFullYear()} · כל הזכויות שמורות
               </div>
