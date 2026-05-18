@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
@@ -19,16 +19,13 @@ interface EventRowProps {
   onDelete: (id: string) => void;
 }
 
-const statusBadgeClass = (status: string): string => {
-  const map: Record<string, string> = {
-    active: 'admin-badge--active',
-    draft: 'admin-badge--draft',
-    paused: 'admin-badge--paused',
-    ended: 'admin-badge--ended',
-    archived: 'admin-badge--archived',
-  };
-  return map[status] || 'admin-badge--draft';
-};
+const statusBadgeClass = (status: string): string => ({
+  active: 'admin-badge--active',
+  draft: 'admin-badge--draft',
+  paused: 'admin-badge--paused',
+  ended: 'admin-badge--ended',
+  archived: 'admin-badge--archived',
+}[status] || 'admin-badge--draft');
 
 const shortDate = (iso: string) => {
   try {
@@ -45,174 +42,185 @@ export default function EventRow({
   const btnRef = useRef<HTMLButtonElement>(null);
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
 
-  const typeIcon = EVENT_TYPE_ICONS[event.event_type] || '📌';
-  const statusLabel = EVENT_STATUS_LABELS[event.status] || event.status;
   const isArchived = event.status === 'archived';
+  const typeIcon = EVENT_TYPE_ICONS[event.event_type] || '?';
 
   const updatePosition = useCallback(() => {
     if (!btnRef.current) return;
     const rect = btnRef.current.getBoundingClientRect();
-    // Default: open below the button
+    const estimatedH = 340;
     let top = rect.bottom + 4;
-    const left = rect.left;
-    // If the menu would overflow the viewport bottom, open above instead
-    // Estimate menu height (~320px) - will be corrected after mount
-    const estimatedHeight = 320;
-    if (top + estimatedHeight > window.innerHeight) {
-      top = rect.top - estimatedHeight - 4;
-      if (top < 8) top = 8; // don't go above viewport
-    }
+    if (top + estimatedH > window.innerHeight) top = Math.max(8, rect.top - estimatedH - 4);
+    let left = rect.left;
+    if (left + 220 > window.innerWidth) left = Math.max(8, window.innerWidth - 220 - 8);
     setMenuPos({ top, left });
   }, []);
 
-  // After the dropdown renders, adjust position if it overflows
   useEffect(() => {
     if (!menuOpen || !menuRef.current || !menuPos) return;
-    const menuRect = menuRef.current.getBoundingClientRect();
-    const viewportH = window.innerHeight;
-    if (menuRect.bottom > viewportH - 8) {
-      // Flip above the button
-      const btnRect = btnRef.current?.getBoundingClientRect();
-      if (btnRect) {
-        const newTop = btnRect.top - menuRect.height - 4;
-        setMenuPos(prev => prev ? { ...prev, top: Math.max(8, newTop) } : prev);
-      }
+    const mRect = menuRef.current.getBoundingClientRect();
+    if (mRect.bottom > window.innerHeight - 8) {
+      const bRect = btnRef.current?.getBoundingClientRect();
+      if (bRect) setMenuPos(prev => prev ? { ...prev, top: Math.max(8, bRect.top - mRect.height - 4) } : prev);
     }
   }, [menuOpen, menuPos]);
 
   useEffect(() => {
     if (!menuOpen) return;
     updatePosition();
-    const handler = (e: MouseEvent) => {
+    const onClick = (e: MouseEvent) => {
       if (
         menuRef.current && !menuRef.current.contains(e.target as Node) &&
         btnRef.current && !btnRef.current.contains(e.target as Node)
-      ) {
-        setMenuOpen(false);
-      }
+      ) setMenuOpen(false);
     };
-    const onScroll = () => setMenuOpen(false);
-    document.addEventListener('mousedown', handler);
-    window.addEventListener('scroll', onScroll, true);
+    document.addEventListener('mousedown', onClick);
+    window.addEventListener('scroll', () => setMenuOpen(false), true);
     return () => {
-      document.removeEventListener('mousedown', handler);
-      window.removeEventListener('scroll', onScroll, true);
+      document.removeEventListener('mousedown', onClick);
     };
   }, [menuOpen, updatePosition]);
 
-  const act = (fn: () => void) => {
-    setMenuOpen(false);
-    fn();
-  };
+  const act = (fn: () => void) => { setMenuOpen(false); fn(); };
 
   return (
-    <tr className="et-row" onClick={() => onViewDetails(event)} tabIndex={0} role="link" onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onViewDetails(event); } }}>
-      <td className="et-td">
-        <span className="et-type-icon">{typeIcon}</span>
-      </td>
-      <td className="et-td et-td--name">
-        <div className="et-name">
+    <div
+      className={`ev-row ev-row--${event.status}`}
+      onClick={() => onViewDetails(event)}
+      tabIndex={0}
+      role="button"
+      aria-label={`פרטי אירוע ${event.name}`}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onViewDetails(event); } }}
+    >
+      {/* Type icon */}
+      <div className="ev-row__type" aria-hidden="true">{typeIcon}</div>
+
+      {/* Info */}
+      <div className="ev-row__info">
+        <div className="ev-row__name">
           {event.name}
           <span
-            className={`et-msg-badge ${event.payment_status === 'paid' ? 'et-msg-badge--ok' : event.payment_status === 'waived' ? 'et-msg-badge--ok' : 'et-msg-badge--pending'}`}
-            title={event.payment_status === 'paid' ? 'שולם ✅' : event.payment_status === 'waived' ? 'הנחה/ביטול 🎁' : 'לא שולם'}
+            className={`ev-row__pip ${event.payment_status === 'paid' ? 'ev-row__pip--ok' : event.payment_status === 'waived' ? 'ev-row__pip--info' : 'ev-row__pip--warn'}`}
+            title={event.payment_status === 'paid' ? 'שולם' : event.payment_status === 'waived' ? 'הנחה' : 'לא שולם'}
           >
-            {event.payment_status === 'paid' ? '✅' : event.payment_status === 'waived' ? '🎁' : '⏳'} ₪
+            {event.payment_status === 'paid' ? 'V' : event.payment_status === 'waived' ? 'G' : '?'} 
           </span>
           {event.wa_messages_enabled && (
-            <span className={`et-msg-badge ${event.guest_list_uploaded ? 'et-msg-badge--ok' : 'et-msg-badge--pending'}`}
-              title={event.guest_list_uploaded ? `📱 הודעות - ${event.guest_list_count} מספרים` : '📱 הודעות - ממתין להעלאת רשימה'}
+            <span
+              className={`ev-row__pip ${event.guest_list_uploaded ? 'ev-row__pip--ok' : 'ev-row__pip--warn'}`}
+              title={event.guest_list_uploaded ? `הודעות פעיל - ${event.guest_list_count} מספרים` : 'ממתין להעלאת רשימה'}
             >
-              📱 {event.guest_list_uploaded ? event.guest_list_count : '!'}
+              WA {event.guest_list_uploaded ? (event.guest_list_count ?? '') : '!'}
             </span>
           )}
           <span
-            className={`et-msg-badge ${event.qr_page_sent ? 'et-msg-badge--ok' : 'et-msg-badge--pending'}`}
-            title={event.qr_page_sent ? 'דף QR נשלח ✅' : 'דף QR טרם נשלח'}
+            className={`ev-row__pip ${event.qr_page_sent ? 'ev-row__pip--ok' : 'ev-row__pip--warn'}`}
+            title={event.qr_page_sent ? 'QR נשלח' : 'QR טרם נשלח'}
           >
-            {event.qr_page_sent ? '✅' : '⏳'} QR
+            {event.qr_page_sent ? 'V' : '?'} QR
           </span>
         </div>
-        <div className="et-slug">/{event.slug}</div>
-      </td>
-      <td className="et-td">
-        <span className={`admin-badge ${statusBadgeClass(event.status)}`}>
-          {statusLabel}
-        </span>
-      </td>
-      <td className="et-td et-td--date et-td--hide-mobile">
-        {shortDate(event.starts_at)} - {shortDate(event.ends_at)}
-      </td>
-      <td className="et-td et-td--actions" onClick={e => e.stopPropagation()}>
-        <div className="et-actions-wrap">
-          <button className="et-menu-btn" ref={btnRef} onClick={() => setMenuOpen(!menuOpen)} aria-label="פעולות אירוע" aria-haspopup="menu" aria-expanded={menuOpen}>⋮</button>
-          {menuOpen && menuPos && createPortal(
-            <div className="et-dropdown" ref={menuRef} role="menu" style={{ position: 'fixed', top: menuPos.top, left: menuPos.left }}>
-              <button className="et-dropdown__item" onClick={() => act(() => onViewDetails(event))}>
-                📊 פרטים ואנליטיקס
-              </button>
-              {!isArchived && (
-                <>
-                  <button className="et-dropdown__item" onClick={() => act(() => onGenerateQR(event))}>
-                    📱 QR קוד
-                  </button>
-                  <button className="et-dropdown__item" onClick={() => act(() => onCopyUrl(event))}>
-                    📋 העתק קישור
-                  </button>
-                  <button className="et-dropdown__item" onClick={() => act(() => onRotate(event.id))}>
-                    🔄 החלף קוד כניסה
-                  </button>
-                  <button className="et-dropdown__item" onClick={() => act(() => onUploadBg(event.id))}>
-                    🖼 העלה רקע
-                  </button>
-                  {event.background_image && (
-                    <button className="et-dropdown__item" onClick={() => act(() => onRemoveBg(event.id))}>
-                      ✖ הסר רקע
-                    </button>
-                  )}
-                  <button
-                    className="et-dropdown__item"
-                    onClick={() => act(() => onToggleQrSent(event.id, !event.qr_page_sent))}
-                  >
-                    {event.qr_page_sent ? '↩ סמן QR כלא נשלח' : '✅ סמן QR כנשלח'}
-                  </button>
-                  <div className="et-dropdown__divider" />
-                  {event.payment_status !== 'paid' && (
-                    <button className="et-dropdown__item et-dropdown__item--success" onClick={() => act(() => onTogglePayment(event.id, 'paid'))}>
-                      💰 סמן כשולם
-                    </button>
-                  )}
-                  {event.payment_status !== 'waived' && (
-                    <button className="et-dropdown__item" onClick={() => act(() => onTogglePayment(event.id, 'waived'))}>
-                      🎁 סמן כהנחה/ביטול
-                    </button>
-                  )}
-                  {event.payment_status !== 'unpaid' && (
-                    <button className="et-dropdown__item et-dropdown__item--warning" onClick={() => act(() => onTogglePayment(event.id, 'unpaid'))}>
-                      ↩ סמן כלא שולם
-                    </button>
-                  )}
-                  <div className="et-dropdown__divider" />
-                  {event.status === 'active' ? (
-                    <button className="et-dropdown__item et-dropdown__item--warning" onClick={() => act(() => onUpdateStatus(event.id, 'paused'))}>
-                      ⏸ השהה
-                    </button>
-                  ) : (event.status === 'paused' || event.status === 'draft') ? (
-                    <button className="et-dropdown__item et-dropdown__item--success" onClick={() => act(() => onUpdateStatus(event.id, 'active'))}>
-                      ▶ הפעל
-                    </button>
-                  ) : null}
-                </>
-              )}
-              <div className="et-dropdown__divider" />
-              <button className="et-dropdown__item et-dropdown__item--danger" onClick={() => act(() => onDelete(event.id))}>
-                🗑 מחק
-              </button>
-            </div>,
-            document.body
-          )}
+        <div className="ev-row__meta">
+          <span className="ev-row__slug">/{event.slug}</span>
+          <span className="ev-row__date">{shortDate(event.starts_at)} - {shortDate(event.ends_at)}</span>
         </div>
-      </td>
-    </tr>
+      </div>
+
+      {/* Right side */}
+      <div className="ev-row__right" onClick={e => e.stopPropagation()}>
+        <span className={`admin-badge ${statusBadgeClass(event.status)}`}>
+          {EVENT_STATUS_LABELS[event.status] || event.status}
+        </span>
+
+        <button
+          ref={btnRef}
+          className="ev-menu-btn"
+          onClick={e => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
+          aria-label="תפריט פעולות"
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
+        >
+          ...
+        </button>
+
+        {menuOpen && menuPos && createPortal(
+          <div
+            ref={menuRef}
+            className="ev-dropdown"
+            role="menu"
+            style={{ position: 'fixed', top: menuPos.top, left: menuPos.left }}
+          >
+            <button className="ev-dropdown__item" role="menuitem" onClick={() => act(() => onViewDetails(event))}>
+              פרטים ואנליטיקס
+            </button>
+
+            {!isArchived && (
+              <>
+                <button className="ev-dropdown__item" role="menuitem" onClick={() => act(() => onGenerateQR(event))}>
+                  QR קוד
+                </button>
+                <button className="ev-dropdown__item" role="menuitem" onClick={() => act(() => onCopyUrl(event))}>
+                  העתק קישור
+                </button>
+                <button className="ev-dropdown__item" role="menuitem" onClick={() => act(() => onRotate(event.id))}>
+                  החלף קוד כניסה
+                </button>
+                <button className="ev-dropdown__item" role="menuitem" onClick={() => act(() => onUploadBg(event.id))}>
+                  העלה רקע
+                </button>
+                {event.background_image && (
+                  <button className="ev-dropdown__item" role="menuitem" onClick={() => act(() => onRemoveBg(event.id))}>
+                    הסר רקע
+                  </button>
+                )}
+                <button
+                  className="ev-dropdown__item"
+                  role="menuitem"
+                  onClick={() => act(() => onToggleQrSent(event.id, !event.qr_page_sent))}
+                >
+                  {event.qr_page_sent ? 'סמן QR כלא נשלח' : 'סמן QR כנשלח'}
+                </button>
+
+                <div className="ev-dropdown__divider" />
+
+                {event.payment_status !== 'paid' && (
+                  <button className="ev-dropdown__item ev-dropdown__item--success" role="menuitem" onClick={() => act(() => onTogglePayment(event.id, 'paid'))}>
+                    סמן כשולם
+                  </button>
+                )}
+                {event.payment_status !== 'waived' && (
+                  <button className="ev-dropdown__item" role="menuitem" onClick={() => act(() => onTogglePayment(event.id, 'waived'))}>
+                    סמן כהנחה/ביטול
+                  </button>
+                )}
+                {event.payment_status !== 'unpaid' && (
+                  <button className="ev-dropdown__item ev-dropdown__item--warning" role="menuitem" onClick={() => act(() => onTogglePayment(event.id, 'unpaid'))}>
+                    סמן כלא שולם
+                  </button>
+                )}
+
+                <div className="ev-dropdown__divider" />
+
+                {event.status === 'active' ? (
+                  <button className="ev-dropdown__item ev-dropdown__item--warning" role="menuitem" onClick={() => act(() => onUpdateStatus(event.id, 'paused'))}>
+                    השהה
+                  </button>
+                ) : (event.status === 'paused' || event.status === 'draft') ? (
+                  <button className="ev-dropdown__item ev-dropdown__item--success" role="menuitem" onClick={() => act(() => onUpdateStatus(event.id, 'active'))}>
+                    הפעל
+                  </button>
+                ) : null}
+              </>
+            )}
+
+            <div className="ev-dropdown__divider" />
+            <button className="ev-dropdown__item ev-dropdown__item--danger" role="menuitem" onClick={() => act(() => onDelete(event.id))}>
+              מחק
+            </button>
+          </div>,
+          document.body
+        )}
+      </div>
+    </div>
   );
 }

@@ -12,12 +12,10 @@ import CreateEventDialog, { type CreateEventData } from './_components/events/Cr
 import EventAnalyticsView from './_components/analytics/EventAnalyticsView';
 import GlobalAnalyticsView from './_components/analytics/GlobalAnalyticsView';
 import RequestsView from './_components/requests/RequestsView';
-import CalendarView from './_components/calendar/CalendarView';
 import QRDialog from './_components/QRDialog';
 import ParticipantsDialog from './_components/ParticipantsDialog';
-import AdminReportView from './_components/report/AdminReportView';
 import AdminModerationQueue from './_components/moderation/AdminModerationQueue';
-import AdminReliabilityView from './_components/analytics/AdminReliabilityView';
+import DashboardView from './_components/dashboard/DashboardView';
 
 /** Delay (ms) before re-reading event status after an update */
 const STATUS_REFRESH_DELAY_MS = 500;
@@ -26,7 +24,7 @@ export default function AdminPage() {
   const admin = useAdminData();
 
   /* ─── View state ─── */
-  const [activeView, setActiveView] = useState<AdminView>('events');
+  const [activeView, setActiveView] = useState<AdminView>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleNavigate = (view: AdminView) => {
@@ -48,15 +46,6 @@ export default function AdminPage() {
 
   /* ─── Event detail view state ─── */
   const [detailEvent, setDetailEvent] = useState<Event | null>(null);
-
-  /* ─── Status counts for sidebar ─── */
-  const statusCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const e of admin.events) {
-      counts[e.status] = (counts[e.status] || 0) + 1;
-    }
-    return counts;
-  }, [admin.events]);
 
   const pendingRequestsCount = useMemo(
     () => admin.requests.filter(r => r.status === 'pending').length,
@@ -130,6 +119,7 @@ export default function AdminPage() {
   /* ─── View event details (analytics page) ─── */
   const handleViewDetails = (event: Event) => {
     setDetailEvent(event);
+    setActiveView('events');
   };
 
   const handleBackFromDetails = () => {
@@ -170,7 +160,6 @@ export default function AdminPage() {
         <Sidebar
           activeView={activeView}
           onNavigate={handleNavigate}
-          eventCounts={statusCounts}
           totalEvents={admin.events.length}
           pendingRequestsCount={pendingRequestsCount}
           onLogout={admin.logout}
@@ -182,6 +171,17 @@ export default function AdminPage() {
         <main id="main-content" className="admin-main">
           <h1 className="sr-only">לוח בקרה - אדמין</h1>
           <div className="admin-main__content">
+            {activeView === 'dashboard' && (
+              <DashboardView
+                events={admin.events}
+                requests={admin.requests}
+                onNavigate={handleNavigate}
+                onViewEvent={handleViewDetails}
+                onApprove={admin.approveRequest}
+                onDeny={admin.denyRequest}
+              />
+            )}
+
             {activeView === 'events' && !detailEvent && (
               <EventsView
                 events={admin.events}
@@ -243,17 +243,7 @@ export default function AdminPage() {
               />
             )}
 
-            {activeView === 'calendar' && (
-              <CalendarView
-                events={admin.events}
-                onViewEvent={(ev) => {
-                  setActiveView('events');
-                  setDetailEvent(ev);
-                }}
-              />
-            )}
-
-            {activeView === 'global-analytics' && (
+            {activeView === 'analytics' && (
               <GlobalAnalyticsView />
             )}
 
@@ -268,16 +258,8 @@ export default function AdminPage() {
               />
             )}
 
-            {activeView === 'reports' && (
-              <AdminReportView events={admin.events} />
-            )}
-
             {activeView === 'moderation' && (
               <AdminModerationQueue />
-            )}
-
-            {activeView === 'reliability' && (
-              <AdminReliabilityView />
             )}
 
           </div>

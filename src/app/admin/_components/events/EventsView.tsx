@@ -89,38 +89,25 @@ export default function EventsView({
         </div>
       )}
 
-      {/* Events table */}
+      {/* Events list (card rows) */}
       {filtered.length > 0 && (
-        <div className="et-wrap admin-animate-in">
-          <table className="et-table">
-            <thead>
-              <tr>
-                <th className="et-th" style={{ width: 48 }}><span className="sr-only">סוג אירוע</span></th>
-                <th className="et-th" scope="col">שם</th>
-                <th className="et-th" scope="col">סטטוס</th>
-                <th className="et-th et-th--hide-mobile" scope="col">תאריכים</th>
-                <th className="et-th" style={{ width: 48 }}><span className="sr-only">פעולות</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(event => (
-                <EventRow
-                  key={event.id}
-                  event={event}
-                  onViewDetails={onViewDetails}
-                  onGenerateQR={onGenerateQR}
-                  onCopyUrl={onCopyUrl}
-                  onUploadBg={onUploadBg}
-                  onRemoveBg={onRemoveBg}
-                  onRotate={onRotate}
-                  onUpdateStatus={onUpdateStatus}
-                  onToggleQrSent={onToggleQrSent}
-                  onTogglePayment={onTogglePayment}
-                  onDelete={onDelete}
-                />
-              ))}
-            </tbody>
-          </table>
+        <div className="ev-list admin-animate-in">
+          {filtered.map(event => (
+            <EventRow
+              key={event.id}
+              event={event}
+              onViewDetails={onViewDetails}
+              onGenerateQR={onGenerateQR}
+              onCopyUrl={onCopyUrl}
+              onUploadBg={onUploadBg}
+              onRemoveBg={onRemoveBg}
+              onRotate={onRotate}
+              onUpdateStatus={onUpdateStatus}
+              onToggleQrSent={onToggleQrSent}
+              onTogglePayment={onTogglePayment}
+              onDelete={onDelete}
+            />
+          ))}
         </div>
       )}
 

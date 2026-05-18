@@ -8,29 +8,109 @@ interface AdminLoginProps {
 
 export default function AdminLogin({ onLogin }: AdminLoginProps) {
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
     const result = await onLogin(password);
-    if (!result.ok) alert(result.error);
+    setLoading(false);
+    if (!result.ok) setError(result.error || 'סיסמה שגויה');
   };
 
   return (
-    <div className="admin-root" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-      <form className="admin-card" style={{ maxWidth: '380px', width: '100%', textAlign: 'center', padding: '32px' }} onSubmit={e => { e.preventDefault(); handleSubmit(); }} aria-label="כניסת אדמין">
-        <div style={{ fontSize: '48px', marginBottom: '16px' }} aria-hidden="true">🔐</div>
-        <h1 style={{ color: 'var(--admin-accent)', marginTop: 0, marginBottom: '24px', fontSize: '22px' }}>ניהול Eventa</h1>
-        <label htmlFor="admin-password" className="sr-only">סיסמת אדמין</label>
-        <input
-          id="admin-password"
-          type="password"
-          placeholder="סיסמת אדמין"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          className="admin-input"
-          style={{ marginBottom: '16px' }}
-        />
-        <button type="submit" className="admin-btn admin-btn--primary" style={{ width: '100%', padding: '12px' }}>
-          כניסה
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      padding: 20,
+    }}>
+      <form
+        onSubmit={handleSubmit}
+        aria-label="כניסת אדמין"
+        style={{
+          width: '100%',
+          maxWidth: 360,
+          background: 'var(--admin-surface)',
+          border: '1px solid var(--admin-border)',
+          borderRadius: 'var(--admin-radius)',
+          padding: '36px 32px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+        }}
+      >
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: 8 }}>
+          <div style={{
+            width: 52,
+            height: 52,
+            background: 'var(--admin-accent-dim)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 24,
+            margin: '0 auto 14px',
+            border: '1px solid rgba(99,102,241,0.3)',
+          }} aria-hidden="true">🔐</div>
+          <h1 style={{
+            fontSize: 20,
+            fontWeight: 700,
+            color: 'var(--admin-text)',
+            margin: '0 0 4px',
+            letterSpacing: '-0.3px',
+          }}>Eventa Admin</h1>
+          <p style={{ fontSize: 13, color: 'var(--admin-text-muted)', margin: 0 }}>
+            מערכת ניהול פנימית
+          </p>
+        </div>
+
+        {/* Password field */}
+        <div>
+          <label
+            htmlFor="admin-password"
+            style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--admin-text-dim)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.4px' }}
+          >
+            סיסמה
+          </label>
+          <input
+            id="admin-password"
+            type="password"
+            placeholder="הזינו סיסמת אדמין"
+            value={password}
+            onChange={e => { setPassword(e.target.value); setError(''); }}
+            className="admin-input"
+            autoComplete="current-password"
+            autoFocus
+          />
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div style={{
+            background: 'var(--admin-red-dim)',
+            border: '1px solid rgba(239,68,68,0.3)',
+            borderRadius: 'var(--admin-radius-xs)',
+            padding: '8px 12px',
+            fontSize: 13,
+            color: 'var(--admin-red)',
+          }} role="alert">
+            {error}
+          </div>
+        )}
+
+        {/* Submit */}
+        <button
+          type="submit"
+          className="admin-btn admin-btn--primary"
+          disabled={loading || !password}
+          style={{ width: '100%', justifyContent: 'center', padding: '11px 16px', fontSize: 14 }}
+        >
+          {loading ? 'כניסה...' : 'כניסה למערכת'}
         </button>
       </form>
     </div>

@@ -52,18 +52,16 @@ export default function EventFilters({
       </div>
 
       {/* Search + type filter */}
-      <div className="admin-filters">
-        <div className="admin-filters__search">
-          <input
-            className="admin-input"
-            placeholder="🔍 חיפוש לפי שם או slug..."
-            value={search}
-            onChange={e => onSearchChange(e.target.value)}
-            aria-label="חיפוש אירועים"
-          />
-        </div>
+      <div className="ev-filters">
+        <input
+          className="ev-search"
+          placeholder="🔍 חיפוש לפי שם או slug..."
+          value={search}
+          onChange={e => onSearchChange(e.target.value)}
+          aria-label="חיפוש אירועים"
+        />
         <select
-          className="admin-select"
+          className="ev-type-select"
           value={typeFilter}
           onChange={e => onTypeFilterChange(e.target.value)}
           aria-label="סינון לפי סוג אירוע"

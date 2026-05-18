@@ -1,15 +1,11 @@
 'use client';
 
-import { EVENT_STATUS_LABELS } from '@/lib/constants';
-import type { EventStatus } from '@/lib/database.types';
-
 /** Navigation view the sidebar can switch between. */
-export type AdminView = 'events' | 'calendar' | 'global-analytics' | 'requests' | 'reports' | 'moderation' | 'reliability';
+export type AdminView = 'dashboard' | 'events' | 'requests' | 'moderation' | 'analytics';
 
 interface SidebarProps {
   activeView: AdminView;
   onNavigate: (view: AdminView) => void;
-  eventCounts: Record<string, number>;
   totalEvents: number;
   pendingRequestsCount: number;
   onLogout: () => void;
@@ -17,18 +13,16 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-/** Status tabs shown in sidebar with counts. */
-const STATUS_NAV: { key: string; icon: string; label: string }[] = [
-  { key: 'all',      icon: '📋', label: 'כל האירועים' },
-  { key: 'active',   icon: '🟢', label: EVENT_STATUS_LABELS.active },
-  { key: 'draft',    icon: '📝', label: EVENT_STATUS_LABELS.draft },
-  { key: 'paused',   icon: '⏸️', label: EVENT_STATUS_LABELS.paused },
-  { key: 'ended',    icon: '🏁', label: EVENT_STATUS_LABELS.ended },
-  { key: 'archived', icon: '🗄️', label: EVENT_STATUS_LABELS.archived },
+const NAV_ITEMS: { key: AdminView; icon: string; label: string }[] = [
+  { key: 'dashboard',  icon: '🏠', label: 'לוח בקרה' },
+  { key: 'events',     icon: '🎉', label: 'אירועים' },
+  { key: 'requests',   icon: '📩', label: 'בקשות' },
+  { key: 'moderation', icon: '🛡️', label: 'מתינות' },
+  { key: 'analytics',  icon: '📊', label: 'אנליטיקס' },
 ];
 
 export default function Sidebar({
-  activeView, onNavigate, eventCounts, totalEvents, pendingRequestsCount, onLogout, isOpen, onClose,
+  activeView, onNavigate, totalEvents, pendingRequestsCount, onLogout, isOpen, onClose,
 }: SidebarProps) {
   return (
     <>
@@ -40,94 +34,43 @@ export default function Sidebar({
       />
 
       <aside className={`admin-sidebar ${isOpen ? 'admin-sidebar--open' : ''}`}>
-        {/* Brand */}
-        <div className="admin-sidebar__brand">
-          <div>
-            <div className="admin-sidebar__brand-text"><span aria-hidden="true">🎉</span> Eventa</div>
-            <div className="admin-sidebar__brand-sub">ניהול אירועים</div>
-          </div>
+        {/* Logo */}
+        <div className="admin-sidebar__logo">
+          <div className="admin-sidebar__logo-name">Eventa Admin</div>
+          <div className="admin-sidebar__logo-sub">מערכת ניהול אירועים</div>
         </div>
 
         {/* Navigation */}
-        <nav className="admin-sidebar__nav">
-          <button
-            className={`admin-sidebar__nav-item ${activeView === 'events' ? 'admin-sidebar__nav-item--active' : ''}`}
-            onClick={() => { onNavigate('events'); onClose(); }}
-          >
-            <span className="admin-sidebar__nav-icon" aria-hidden="true">📋</span>
-            אירועים
-            <span style={{ marginRight: 'auto', fontSize: '12px', opacity: 0.7 }}>{totalEvents}</span>
-          </button>
+        <nav className="admin-sidebar__nav" aria-label="ניווט ראשי">
+          {NAV_ITEMS.map(item => (
+            <button
+              key={item.key}
+              className={`admin-sidebar__nav-item ${activeView === item.key ? 'admin-sidebar__nav-item--active' : ''}`}
+              onClick={() => { onNavigate(item.key); onClose(); }}
+              aria-current={activeView === item.key ? 'page' : undefined}
+            >
+              <span className="admin-sidebar__nav-icon" aria-hidden="true">{item.icon}</span>
+              {item.label}
 
-          <button
-            className={`admin-sidebar__nav-item ${activeView === 'calendar' ? 'admin-sidebar__nav-item--active' : ''}`}
-            onClick={() => { onNavigate('calendar'); onClose(); }}
-          >
-            <span className="admin-sidebar__nav-icon" aria-hidden="true">📅</span>
-            לוח שנה
-          </button>
-
-          <button
-            className={`admin-sidebar__nav-item ${activeView === 'requests' ? 'admin-sidebar__nav-item--active' : ''}`}
-            onClick={() => { onNavigate('requests'); onClose(); }}
-          >
-            <span className="admin-sidebar__nav-icon" aria-hidden="true">📩</span>
-            בקשות
-            {pendingRequestsCount > 0 && (
-              <span className="admin-sidebar__badge">{pendingRequestsCount}</span>
-            )}
-          </button>
-
-          <button
-            className={`admin-sidebar__nav-item ${activeView === 'global-analytics' ? 'admin-sidebar__nav-item--active' : ''}`}
-            onClick={() => { onNavigate('global-analytics'); onClose(); }}
-          >
-            <span className="admin-sidebar__nav-icon" aria-hidden="true">📊</span>
-            אנליטיקס כללי
-          </button>
-
-          <button
-            className={`admin-sidebar__nav-item ${activeView === 'reports' ? 'admin-sidebar__nav-item--active' : ''}`}
-            onClick={() => { onNavigate('reports'); onClose(); }}
-          >
-            <span className="admin-sidebar__nav-icon" aria-hidden="true">📄</span>
-            דוחות
-          </button>
-
-          <button
-            className={`admin-sidebar__nav-item ${activeView === 'moderation' ? 'admin-sidebar__nav-item--active' : ''}`}
-            onClick={() => { onNavigate('moderation'); onClose(); }}
-          >
-            <span className="admin-sidebar__nav-icon" aria-hidden="true">🛡️</span>
-            מודרציה
-          </button>
-
-          <button
-            className={`admin-sidebar__nav-item ${activeView === 'reliability' ? 'admin-sidebar__nav-item--active' : ''}`}
-            onClick={() => { onNavigate('reliability'); onClose(); }}
-          >
-            <span className="admin-sidebar__nav-icon" aria-hidden="true">📡</span>
-            אמינות
-          </button>
+              {/* Counts / badges */}
+              {item.key === 'events' && (
+                <span className="admin-sidebar__nav-count">{totalEvents}</span>
+              )}
+              {item.key === 'requests' && pendingRequestsCount > 0 && (
+                <span className="admin-sidebar__badge">{pendingRequestsCount}</span>
+              )}
+            </button>
+          ))}
         </nav>
-
-        {/* Quick stats */}
-        <div className="admin-sidebar__stats">
-          {STATUS_NAV.map(s => {
-            const count = s.key === 'all' ? totalEvents : (eventCounts[s.key] || 0);
-            if (s.key !== 'all' && count === 0) return null;
-            return (
-              <div key={s.key} className="admin-sidebar__stat-row">
-                <span className="admin-sidebar__stat-label">{s.icon} {s.label}</span>
-                <span className="admin-sidebar__stat-value">{count}</span>
-              </div>
-            );
-          })}
-        </div>
 
         {/* Footer */}
         <div className="admin-sidebar__footer">
-          <button className="admin-btn admin-btn--ghost" style={{ width: '100%' }} onClick={onLogout}>
+          <button
+            className="admin-btn admin-btn--ghost"
+            style={{ width: '100%', justifyContent: 'center' }}
+            onClick={onLogout}
+          >
+            <span aria-hidden="true">↩</span>
             התנתק
           </button>
         </div>
