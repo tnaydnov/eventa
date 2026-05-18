@@ -1,15 +1,11 @@
 /**
  * @vitest-environment node
  *
- * Unit tests for calcPdfLayout — the single-page PDF guarantee.
- *
- * The invariant under test: for ANY canvas dimensions, the returned
- * imgW/imgH are always ≤ the PDF page dimensions, so jsPDF can never
- * produce a second page.
+ * Unit tests for pdf-layout utilities — single-page PDF guarantee.
  */
 
 import { describe, expect, it } from 'vitest';
-import { calcPdfLayout } from '@/lib/report/pdf-layout';
+import { calcPdfLayout, calcSinglePage } from '@/lib/report/pdf-layout';
 
 const A4_W = 210;
 const A4_H = 297;
@@ -126,5 +122,61 @@ describe('calcPdfLayout — single-page guarantee', () => {
   it('throws RangeError for negative dimensions', () => {
     expect(() => calcPdfLayout(-100, 1000)).toThrow(RangeError);
     expect(() => calcPdfLayout(1000, -100)).toThrow(RangeError);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('calcSinglePage — content-sized page guarantee', () => {
+
+  // The key invariant: pageW == imgW and pageH == imgH so jsPDF
+  // can NEVER produce a second page regardless of content length.
+
+  it.each([
+    [800,  1200],   // compact report
+    [800,  1600],   // report with many sections
+    [800,  2400],   // long report
+    [800,  4000],   // extreme — very long content
+    [1600,  800],   // wide/landscape screenshot
+    [2100, 2970],   // exact A4 aspect
+    [1,    99999],  // degenerate — ultra-tall
+    [99999,    1],  // degenerate — ultra-wide
+  ] as [number, number][])(
+    'page dimensions always positive for canvas %ix%i',
+    (cw, ch) => {
+      const { pageW, pageH } = calcSinglePage(cw, ch);
+      expect(pageW).toBeGreaterThan(0);
+      expect(pageH).toBeGreaterThan(0);
+    },
+  );
+
+  it('preserves exact canvas aspect ratio in the page dimensions', () => {
+    const cw = 1000, ch = 2000;
+    const { pageW, pageH } = calcSinglePage(cw, ch);
+    expect(pageH / pageW).toBeCloseTo(ch / cw, 5);
+  });
+
+  it('page width equals the requested fixed width (210 mm by default)', () => {
+    const { pageW } = calcSinglePage(800, 2000);
+    expect(pageW).toBe(210);
+  });
+
+  it('uses custom page width when supplied', () => {
+    const { pageW, pageH } = calcSinglePage(1000, 3000, 100);
+    expect(pageW).toBe(100);
+    expect(pageH).toBeCloseTo(300);
+  });
+
+  it('result is rounded to 3 decimal places (no floating-point jitter)', () => {
+    const { pageH } = calcSinglePage(3, 1); // non-trivial division
+    const decimals = (pageH.toString().split('.')[1] ?? '').length;
+    expect(decimals).toBeLessThanOrEqual(3);
+  });
+
+  it('throws RangeError for zero or negative dimensions', () => {
+    expect(() => calcSinglePage(0, 1000)).toThrow(RangeError);
+    expect(() => calcSinglePage(1000, 0)).toThrow(RangeError);
+    expect(() => calcSinglePage(-1, 1000)).toThrow(RangeError);
+    expect(() => calcSinglePage(1000, -1)).toThrow(RangeError);
   });
 });

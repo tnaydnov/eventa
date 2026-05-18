@@ -287,7 +287,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
     if (!reportRef.current) return;
     setExportingPdf(true);
     try {
-      const [{ default: html2canvas }, { default: jsPDF }, { calcPdfLayout }] = await Promise.all([
+      const [{ default: html2canvas }, { default: jsPDF }, { calcSinglePage }] = await Promise.all([
         import('html2canvas'),
         import('jspdf'),
         import('@/lib/report/pdf-layout'),
@@ -300,11 +300,11 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
         allowTaint: true,
       });
 
-      // calcPdfLayout guarantees imgW ≤ 210mm and imgH ≤ 297mm for ANY canvas size,
-      // so pdf.addImage() is called exactly once → always exactly 1 page.
-      const { imgW, imgH, xOffset } = calcPdfLayout(canvas.width, canvas.height);
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', xOffset, 0, imgW, imgH);
+      // Content-sized page: page width = 210 mm (A4 width), page height = derived
+      // from canvas aspect. Page dims == image dims → overflow is structurally impossible.
+      const { pageW, pageH } = calcSinglePage(canvas.width, canvas.height);
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pageW, pageH] });
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, pageW, pageH);
 
       const eventName = events.find(e => e.id === selectedEventId)?.name ?? 'event';
       pdf.save(`דוח-${eventName}.pdf`);

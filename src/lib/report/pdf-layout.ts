@@ -1,10 +1,17 @@
 /**
- * Computes the image dimensions and position to fit an html2canvas capture
- * onto a SINGLE PDF page without any cropping.
+ * PDF page layout utilities — single-page guarantee.
  *
- * This is the single source of truth for the "always 1 page" guarantee:
- * because we only ever call pdf.addImage() once, with dimensions that are
- * mathematically bounded by (pageW, pageH), jsPDF can never produce a second page.
+ * Two strategies are exported:
+ *
+ * 1. calcPdfLayout   — fit canvas INTO a fixed-size page (e.g. standard A4).
+ *    Works when content is shorter than A4; if taller, content is scaled down.
+ *
+ * 2. calcSinglePage  — make the PAGE exactly fit the canvas (content-sized page).
+ *    The page width is fixed (210 mm) and the height is derived from the canvas
+ *    aspect ratio. Because page dimensions == image dimensions, overflow is
+ *    structurally impossible regardless of content length.
+ *
+ * handleDownloadPdf uses calcSinglePage so the PDF is ALWAYS exactly 1 page.
  */
 
 export interface PdfImageLayout {
@@ -19,10 +26,8 @@ export interface PdfImageLayout {
 }
 
 /**
- * @param canvasWidth  - Canvas pixel width  (must be > 0)
- * @param canvasHeight - Canvas pixel height (must be > 0)
- * @param pageW        - PDF page width  in mm (default 210 — A4 portrait)
- * @param pageH        - PDF page height in mm (default 297 — A4 portrait)
+ * Strategy 1 — fit canvas into a fixed page (e.g. A4 297mm).
+ * Content is scaled down if it would overflow the page height.
  */
 export function calcPdfLayout(
   canvasWidth: number,
@@ -36,12 +41,10 @@ export function calcPdfLayout(
 
   const aspect = canvasHeight / canvasWidth;
 
-  // Default: fill full page width
   let imgW = pageW;
   let imgH = imgW * aspect;
   let wasScaled = false;
 
-  // If the content is too tall, constrain by height instead
   if (imgH > pageH) {
     imgH = pageH;
     imgW = imgH / aspect;
@@ -51,4 +54,41 @@ export function calcPdfLayout(
   const xOffset = (pageW - imgW) / 2;
 
   return { imgW, imgH, xOffset, wasScaled };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface SinglePageDimensions {
+  /** PDF page width in mm (fixed at pageWidth param, default 210) */
+  pageW: number;
+  /**
+   * PDF page height in mm — derived from canvas aspect ratio so the page is
+   * exactly as tall as the content.  No overflow is possible because
+   * page height == image height.
+   */
+  pageH: number;
+}
+
+/**
+ * Strategy 2 — content-sized page (the correct approach for "always 1 page").
+ *
+ * Creates a custom-sized page whose height matches the canvas aspect ratio.
+ * Pass pageW and pageH as the jsPDF `format` option AND as the addImage
+ * width/height — the page is the image; there is no room to overflow.
+ *
+ * @param canvasWidth  Canvas pixel width  (must be > 0)
+ * @param canvasHeight Canvas pixel height (must be > 0)
+ * @param pageWidth    Fixed page width in mm (default 210 — A4 width)
+ */
+export function calcSinglePage(
+  canvasWidth: number,
+  canvasHeight: number,
+  pageWidth = 210,
+): SinglePageDimensions {
+  if (canvasWidth <= 0 || canvasHeight <= 0) {
+    throw new RangeError('Canvas dimensions must be positive');
+  }
+  // Round to 3 decimal places to avoid floating-point jitter in jsPDF
+  const pageH = Math.round((canvasHeight / canvasWidth) * pageWidth * 1000) / 1000;
+  return { pageW: pageWidth, pageH };
 }
