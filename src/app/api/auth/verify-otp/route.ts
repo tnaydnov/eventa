@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       return jsonError('Invalid input', 400);
     }
 
-    const { code, eventSlug, joinCode, smsConsent } = parsed.data;
+    const { code, eventSlug, joinCode, smsConsent, smsNotificationsEnabled } = parsed.data;
 
     // Normalize phone to E.164
     const phone = normalizePhone(parsed.data.phone);
@@ -218,6 +218,7 @@ export async function POST(req: NextRequest) {
           bio: null,
           is_banned: false,
           sms_consent: smsConsent,
+          sms_notifications_enabled: smsNotificationsEnabled ?? true,
         })
         .select('id')
         .single();

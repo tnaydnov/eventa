@@ -135,6 +135,7 @@ function JoinPageContent({
   const [phone, setPhone] = useState('');
   const [maskedPhone, setMaskedPhone] = useState('');
   const [smsConsent, setSmsConsent] = useState(true);
+  const [smsNotificationsEnabled, setSmsNotificationsEnabled] = useState(true);
   const [otpValue, setOtpValue] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
   const resendTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -373,6 +374,7 @@ function JoinPageContent({
           fingerprint: localId,
           hardwareFingerprint,
           smsConsent,
+          smsNotificationsEnabled,
         });
         completeJoin(result);
       } catch (err) {
@@ -384,7 +386,7 @@ function JoinPageContent({
         setPhase('interactive');
       }
     },
-    [phone, eventSlug, smsConsent, getJoinCode, completeJoin],
+    [phone, eventSlug, smsConsent, smsNotificationsEnabled, getJoinCode, completeJoin],
   );
 
   const handleResendOtp = useCallback(async () => {
@@ -585,6 +587,15 @@ function JoinPageContent({
               ariaLabel="אני מאשר/ת קבלת קוד אימות ב-SMS"
             >
               אני מאשר/ת קבלת קוד אימות ב-SMS לצורך כניסה לשירות.
+            </ConsentRow>
+
+            <ConsentRow
+              checked={smsNotificationsEnabled}
+              onToggle={() => setSmsNotificationsEnabled(!smsNotificationsEnabled)}
+              ariaLabel="קבל/י SMS כשיש התאמה חדשה"
+            >
+              <span>שלחו לי SMS כשיש לי התאמה חדשה</span>
+              <span style={{ display: 'block', fontSize: '0.75em', opacity: 0.6, marginTop: 2 }}>הדפדפן לא תומך בהתראות push — זו הדרך לא לפספס</span>
             </ConsentRow>
 
             {error && <p className="pj-error" role="alert">{error}</p>}
