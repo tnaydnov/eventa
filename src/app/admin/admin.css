@@ -1,4 +1,4 @@
-﻿/* =======================================================
+/* =======================================================
    EVENTA ADMIN -- Redesigned 2025
    Clean dark dashboard . RTL . Responsive
    ======================================================= */
@@ -2357,3 +2357,86 @@ button.admin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
   margin-top: 2px;
   line-height: 1.3;
 }
+
+/* =======================================================
+   ACT-CARD VARIANTS + MSG-PORTAL-INPUT
+   ======================================================= */
+
+/* WhatsApp action card */
+.act-card--wa {
+  border-color: rgba(37, 211, 102, 0.3);
+  background: rgba(37, 211, 102, 0.04);
+}
+.act-card--wa:hover:not(:disabled) {
+  border-color: #25d366;
+  background: rgba(37, 211, 102, 0.1);
+}
+
+/* Danger card (כבה הודעות) */
+.act-card--danger {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.05);
+}
+.act-card--danger:hover:not(:disabled) {
+  border-color: var(--admin-red);
+  background: rgba(239, 68, 68, 0.12);
+}
+
+/* Success card (הפעל הודעות) */
+.act-card--success {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.05);
+}
+.act-card--success:hover:not(:disabled) {
+  border-color: var(--admin-green);
+  background: rgba(16, 185, 129, 0.12);
+}
+
+/* Explicit disabled class (in addition to :disabled attribute) */
+.act-card--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Portal URL readonly input */
+.msg-portal-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--admin-surface-2);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  color: var(--admin-accent);
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+  direction: ltr;
+  text-align: left;
+  cursor: text;
+  outline: none;
+}
+.msg-portal-input:focus {
+  border-color: var(--admin-accent);
+}
+
+/* =======================================================
+   ADMIN-BTN ALIASES (red = danger, orange = warning)
+   ======================================================= */
+.admin-btn--red {
+  background: var(--admin-red);
+  color: #fff;
+  border-color: var(--admin-red);
+}
+.admin-btn--red:hover:not(:disabled) {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+.admin-btn--orange {
+  background: var(--admin-orange);
+  color: #0c0f1a;
+  border-color: var(--admin-orange);
+}
+.admin-btn--orange:hover:not(:disabled) {
+  background: #d97706;
+  border-color: #d97706;
+}
+
