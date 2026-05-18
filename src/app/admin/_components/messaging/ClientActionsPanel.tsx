@@ -52,11 +52,11 @@ const CLIENT_ACTIONS: ActionDef[] = [
     id: 'summary',
     label: 'סיכום אירוע',
     icon: '📊',
-    description: 'שולח ללקוח דו"ח סיכום אחרי האירוע - סטטיסטיקות, התאמות, הודעות.',
+    description: 'שולח ללקוח מייל תודה אחרי האירוע עם דו"ח PDF מלא מצורף — סטטיסטיקות, גרפים ותובנות.',
     preview: [
       '📧 מייל אל: הלקוח שהזמין את השירות',
       '📝 נושא: "סיכום האירוע שלך"',
-      '📎 כולל: מספר משתתפים, לייקים, התאמות, שיחות, הודעות שנשלחו',
+      '📎 מצורף: דו"ח PDF מלא של האירוע',
     ],
     confirmLabel: 'שלח סיכום',
   },
@@ -172,23 +172,12 @@ function generateEmailPreview(actionId: string, eventName: string, eventDate: st
       </td></tr>`, 'תזכורת דחופה');
 
     case 'summary': return emailShell('סיכום אירוע', `
-      <tr><td dir="rtl" style="text-align:right;padding:20px 24px 4px;border-bottom:1px solid ${PE.border};background:${PE.card};">
+      <tr><td dir="rtl" style="text-align:right;padding:20px 24px 16px;border-bottom:1px solid ${PE.border};background:${PE.card};">
         <div style="font-size:15px;font-weight:500;">שלום [שם הלקוח],</div>
-        <div style="font-size:13px;color:${PE.muted};margin-top:6px;line-height:1.6;padding-bottom:16px;">האירוע <strong>${safeName}</strong> הסתיים! הנה סיכום קצר:</div>
+        <div style="font-size:13px;color:${PE.muted};margin-top:6px;line-height:1.6;">האירוע <strong>${safeName}</strong> הסתיים — היה לנו כבוד להיות חלק מהלילה המיוחד! 🎉</div>
       </td></tr>
-      <tr><td dir="rtl" style="text-align:right;padding:16px 24px 0;background:${PE.card};">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${PE.accent};margin-bottom:10px;">נתוני האירוע</div>
-        <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-          ${peRow('משתתפים', '[XX]')}
-          ${peRow('הגיעו מהודעה', '[XX]')}
-          ${peRow('הגיעו מ-QR', '[XX]')}
-          ${peRow('התאמות (Matches)', '[XX]')}
-          ${peRow('הודעות שנשלחו', '[XX/XX]')}
-          ${peRow('פידבקים שנשלחו', '[XX]', true)}
-        </table>
-      </td></tr>
-      <tr><td style="padding:20px 24px;text-align:center;background:${PE.card};">
-        <div style="font-size:13px;color:${PE.muted};line-height:1.7;">תודה שבחרתם ב-Eventa!<br/>נשמח לארח אתכם שוב.</div>
+      <tr><td style="padding:24px 24px 20px;text-align:center;background:${PE.card};">
+        <div style="font-size:13px;color:${PE.muted};line-height:1.9;direction:rtl;text-align:center;">מצורף לתכנות זה <strong>דו&quot;ח מלא של האירוע</strong> —<br/>כולל סטטיסטיקות, גרפים ותובנות על כל הפעילות של הלילה.<br/><br/>תודה שבחרתם ב-Eventa ✨</div>
       </td></tr>`, 'סיכום אירוע');
 
     case 'custom': {

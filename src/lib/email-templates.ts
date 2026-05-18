@@ -959,35 +959,23 @@ export function buildClientEventSummaryEmail(params: {
   const inner = `
         ${greeting(
           safeName,
-          `\u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong> \u05D4\u05E1\u05EA\u05D9\u05D9\u05DD! \u05D4\u05E0\u05D4 \u05E1\u05D9\u05DB\u05D5\u05DD \u05E7\u05E6\u05E8&rlm;:`,
+          `האירוע <strong>${safeEvent}</strong> הסתיים — היה לנו כבוד להיות חלק מהלילה המיוחד! 🎉`,
         )}
 
-        <!-- Stats -->
+        <!-- Report + Thank you -->
         <tr>
-          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
-            ${sectionTitle('\u05E0\u05EA\u05D5\u05E0\u05D9 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2')}
-            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
-              ${row('\u05E1\u05D4\u05F4\u05DB \u05DE\u05E9\u05EA\u05EA\u05E4\u05D9\u05DD', ltr(String(s.totalParticipants)))}
-              ${row('\u05D2\u05D1\u05E8\u05D9\u05DD', ltr(String(s.men)))}
-              ${row('\u05E0\u05E9\u05D9\u05DD', ltr(String(s.women)))}
-              ${row(`\u05D4\u05EA\u05D0\u05DE\u05D5\u05EA (${ltr('Matches')})`, ltr(String(s.totalMatches)))}
-              ${row('\u05E9\u05D9\u05D7\u05D5\u05EA', ltr(String(s.totalConversations)), true)}
-            </table>
-          </td>
-        </tr>
-
-        <!-- Thank you -->
-        <tr>
-          <td dir="rtl" style="direction:rtl;text-align:center;padding:32px 32px 28px;background-color:${C.card};">
-            <div dir="rtl" style="direction:rtl;text-align:center;font-size:15px;color:${C.muted};line-height:1.7;">
-              \u05EA\u05D5\u05D3\u05D4 \u05E9\u05D1\u05D7\u05E8\u05EA\u05DD \u05D1-${ltr('Eventa')}!<br/>\u05E0\u05E9\u05DE\u05D7 \u05DC\u05D0\u05E8\u05D7 \u05D0\u05EA\u05DB\u05DD \u05E9\u05D5\u05D1.
+          <td dir="rtl" style="direction:rtl;text-align:center;padding:28px 32px 24px;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:center;font-size:15px;color:${C.muted};line-height:1.9;">
+              מצורף לתכנות זה <strong>דו&quot;ח מלא של האירוע</strong> —<br/>
+              כולל סטטיסטיקות, גרפים ותובנות על כל הפעילות של הלילה.<br/><br/>
+              תודה שבחרתם ב-${ltr('Eventa')} ✨
             </div>
           </td>
         </tr>
 
         ${supportRow()}`;
 
-  return { subject, html: shell(subject, inner, '\u05E1\u05D9\u05DB\u05D5\u05DD \u05D0\u05D9\u05E8\u05D5\u05E2') };
+  return { subject, html: shell(subject, inner, 'סיכום אירוע') };
 }
 
 
