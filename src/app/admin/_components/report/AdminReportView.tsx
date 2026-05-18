@@ -15,10 +15,12 @@ type ReportData = {
 
 interface AdminReportViewProps {
   events: Event[];
+  /** Pre-select a specific event on mount (e.g. when embedded in event detail view) */
+  initialEventId?: string;
 }
 
-export default function AdminReportView({ events }: AdminReportViewProps) {
-  const [selectedEventId, setSelectedEventId] = useState<string>('');
+export default function AdminReportView({ events, initialEventId }: AdminReportViewProps) {
+  const [selectedEventId, setSelectedEventId] = useState<string>(initialEventId ?? '');
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -145,13 +147,25 @@ export default function AdminReportView({ events }: AdminReportViewProps) {
   const selectedEvent = events.find((e) => e.id === selectedEventId);
   const sendReportEnabled = selectedEvent?.send_report_email ?? true;
 
+  // When embedded in event detail for a non-ended event, show an informative message
+  if (initialEventId && eligibleEvents.length === 0) {
+    return (
+      <div className="admin-section" dir="rtl">
+        <div className="ad-empty">
+          <p>הדוח זמין רק לאחר סיום האירוע.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="admin-section" dir="rtl">
       <div className="admin-section__header">
         <h2 className="admin-section__title">דוחות אירוע</h2>
       </div>
 
-      {/* Event picker */}
+      {/* Event picker — hidden when a specific event is pre-selected */}
+      {!initialEventId && (
       <div style={{ marginBottom: '24px' }}>
         <label className="admin-label">בחר אירוע שהסתיים</label>
         <select
@@ -173,6 +187,7 @@ export default function AdminReportView({ events }: AdminReportViewProps) {
           </p>
         )}
       </div>
+      )}
 
       {loading && (
         <div style={{ textAlign: 'center', padding: '32px' }}>

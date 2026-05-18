@@ -12,6 +12,7 @@ import ClientActionsPanel from '../messaging/ClientActionsPanel';
 const AnalyticsDashboard = dynamic(() => import('./AnalyticsDashboard'), { ssr: false });
 const MessagingTab = dynamic(() => import('../messaging/MessagingTab'), { ssr: false });
 const FeedbackTab = dynamic(() => import('../feedback/FeedbackTab'), { ssr: false });
+const AdminReportView = dynamic(() => import('../report/AdminReportView'), { ssr: false });
 
 interface EventAnalyticsViewProps {
   event: Event;
@@ -40,7 +41,7 @@ interface EventAnalyticsViewProps {
   updateEventDetails?: (eventId: string, updates: Record<string, unknown>) => Promise<{ ok: boolean; error?: string }>;
 }
 
-type DetailTab = 'overview' | 'analytics' | 'participants' | 'messaging' | 'feedback' | 'settings';
+type DetailTab = 'overview' | 'analytics' | 'participants' | 'messaging' | 'feedback' | 'settings' | 'report';
 
 const STATUS_BADGE: Record<string, string> = {
   active:   'admin-badge--active',
@@ -67,13 +68,14 @@ const toLocalInput = (iso: string) => {
   } catch { return ''; }
 };
 
-const TABS: { key: DetailTab; label: string }[] = [
+const TABS: { key: DetailTab; label: string; endedOnly?: boolean }[] = [
   { key: 'overview',      label: 'סקירה' },
   { key: 'analytics',     label: 'אנליטיקס' },
   { key: 'participants',  label: 'משתתפים' },
   { key: 'messaging',     label: 'הודעות' },
   { key: 'feedback',      label: 'פידבק' },
   { key: 'settings',      label: 'הגדרות' },
+  { key: 'report',        label: 'דוח לקוח', endedOnly: true },
 ];
 
 export default function EventAnalyticsView({
@@ -214,7 +216,7 @@ export default function EventAnalyticsView({
 
       {/* ── Tabs ── */}
       <div className="edt-tabs" role="tablist">
-        {TABS.map(tab => (
+        {TABS.filter(tab => !tab.endedOnly || event.status === 'ended' || event.status === 'archived').map(tab => (
           <button
             key={tab.key}
             role="tab"
@@ -372,6 +374,13 @@ export default function EventAnalyticsView({
       {activeTab === 'feedback' && (
         <div className="ev-detail__tab-content">
           <FeedbackTab eventId={event.id} eventSlug={event.slug} />
+        </div>
+      )}
+
+      {/* ════ TAB: Report ════ */}
+      {activeTab === 'report' && (
+        <div className="ev-detail__tab-content">
+          <AdminReportView events={[event]} initialEventId={event.id} />
         </div>
       )}
 

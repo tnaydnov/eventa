@@ -97,6 +97,8 @@ const nextConfig = {
       { source: '/dating/event-over', destination: '/event-over', permanent: true },
       { source: '/dating/:eventSlug', destination: '/:eventSlug', permanent: true },
       { source: '/dating/:eventSlug/:path*', destination: '/:eventSlug/:path*', permanent: true },
+      // Permanent redirect from old guest-upload route to new portal route
+      { source: '/guest-upload/:token', destination: '/portal/:token', permanent: true },
     ];
   },
 };

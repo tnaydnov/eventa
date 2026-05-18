@@ -115,6 +115,7 @@ function getOrCreate(
   ch.subscribe((status) => {
     if (channels.get(key) === managed) {
       managed.status = status === 'SUBSCRIBED' ? 'SUBSCRIBED' : status === 'CLOSED' ? 'CLOSED' : 'CONNECTING';
+      notifyConnectionListeners();
     }
   });
 
@@ -185,6 +186,33 @@ export function isSubscribed(channelKey: string): boolean {
   return channels.get(channelKey)?.status === 'SUBSCRIBED';
 }
 
+/** Returns true if any active channel is currently reconnecting */
+export function isAnyChannelReconnecting(): boolean {
+  for (const [, managed] of channels) {
+    if (managed.refCount > 0 && managed.status === 'CONNECTING') return true;
+  }
+  return false;
+}
+
+// ─── Connection status pub-sub ────────────────────────────────────
+type ConnectionStatusListener = (reconnecting: boolean) => void;
+const connectionListeners = new Set<ConnectionStatusListener>();
+
+function notifyConnectionListeners(): void {
+  const reconnecting = isAnyChannelReconnecting();
+  for (const cb of connectionListeners) cb(reconnecting);
+}
+
+/**
+ * Subscribe to hub-wide connection status changes.
+ * Callback fires whenever any channel transitions between CONNECTING and SUBSCRIBED.
+ * Returns an unsubscribe function.
+ */
+export function subscribeConnectionStatus(cb: ConnectionStatusListener): () => void {
+  connectionListeners.add(cb);
+  return () => connectionListeners.delete(cb);
+}
+
 /** Get current status of all managed channels (for debugging) */
 export function getStatus(): Record<string, { refCount: number; status: string }> {
   const result: Record<string, { refCount: number; status: string }> = {};
@@ -252,14 +280,17 @@ function reconnectSingleChannel(key: string): void {
     if (status === 'SUBSCRIBED') {
       managed.status = 'SUBSCRIBED';
       channelReconnectAttempts.delete(key); // success — reset backoff
+      notifyConnectionListeners();
 
     } else if (status === 'CLOSED') {
       managed.status = 'CLOSED';
       channelReconnectAttempts.delete(key);
+      notifyConnectionListeners();
 
     } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
       // Exponential backoff: 500 ms * 2^attempt, capped at 30 s, ±25 % jitter
       managed.status = 'CONNECTING';
+      notifyConnectionListeners();
       const attempt = (channelReconnectAttempts.get(key) ?? 0) + 1;
       channelReconnectAttempts.set(key, attempt);
       const base = Math.min(500 * Math.pow(2, attempt), 30_000);
@@ -268,6 +299,7 @@ function reconnectSingleChannel(key: string): void {
 
     } else {
       managed.status = 'CONNECTING';
+      notifyConnectionListeners();
     }
   });
 }
