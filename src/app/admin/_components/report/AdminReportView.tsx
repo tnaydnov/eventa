@@ -396,8 +396,28 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
     }));
   const attractionMax = attractionData.length > 0 ? Math.max(...attractionData.map(a => a.value)) : 1;
 
-  const hourlyData = (d?.time_dynamics?.hourly_activity ?? [])
-    .map(h => ({ hour: `${String(h.hour).padStart(2, '0')}:00`, count: h.count }));
+  const eventStartHour = selectedEvent?.starts_at
+    ? new Date(selectedEvent.starts_at).getHours()
+    : 0;
+
+  const hourlyData = (() => {
+    const raw = d?.time_dynamics?.hourly_activity ?? [];
+    if (raw.length === 0) return [];
+    // Sort hours starting from event start so the chart reads left-to-right from event open
+    const sorted = [...raw].sort((a, b) => {
+      const ra = ((a.hour - eventStartHour) + 24) % 24;
+      const rb = ((b.hour - eventStartHour) + 24) % 24;
+      return ra - rb;
+    });
+    // Trim leading and trailing zero-count buckets
+    let s = 0, e = sorted.length - 1;
+    while (s < e && sorted[s].count === 0) s++;
+    while (e > s && sorted[e].count === 0) e--;
+    return sorted.slice(s, e + 1).map(h => ({
+      hour: `${String(h.hour).padStart(2, '0')}:00`,
+      count: h.count,
+    }));
+  })();
   const peakHour    = d?.time_dynamics?.peak_hour;
   const peakHourStr = peakHour != null ? `${String(peakHour).padStart(2, '0')}:00` : null;
 
@@ -511,7 +531,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
               <div style={{ textAlign: 'left', direction: 'ltr' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/icons/Eventa_Logo_Dark.png"
+                  src="/icons/Eventa_Logo.png"
                   alt="Eventa"
                   style={{ height: '34px', width: 'auto', display: 'block' }}
                 />
@@ -557,23 +577,41 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
               <div style={{ display: 'grid', gridTemplateColumns: genderData.length > 0 && ageData.length > 0 ? '1fr 1fr' : '1fr', gap: '10px', marginBottom: '10px' }}>
                 {genderData.length > 0 && (
                   <Card title="חלוקה מגדרית">
-                    <ResponsiveContainer width="100%" height={150}>
-                      <PieChart>
-                        <Pie
-                          data={genderData}
-                          cx="50%" cy="44%"
-                          outerRadius={58}
-                          innerRadius={24}
-                          dataKey="value"
-                          paddingAngle={4}
-                          labelLine
-                          label={(props) => <PieLabel {...(props as Parameters<typeof PieLabel>[0])} />}
-                        >
-                          {genderData.map((g, i) => <Cell key={i} fill={g.color} />)}
-                        </Pie>
-                        <RechartsTip content={<Tip />} />
-                      </PieChart>
-                    </ResponsiveContainer>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      {/* Donut — no SVG text so html2canvas captures correctly */}
+                      <div style={{ flexShrink: 0, width: 120, height: 120 }}>
+                        <ResponsiveContainer width={120} height={120}>
+                          <PieChart>
+                            <Pie
+                              data={genderData}
+                              cx="50%" cy="50%"
+                              outerRadius={54}
+                              innerRadius={28}
+                              dataKey="value"
+                              paddingAngle={4}
+                              isAnimationActive={false}
+                            >
+                              {genderData.map((g, i) => <Cell key={i} fill={g.color} />)}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                      {/* DOM-based legend — always captured by html2canvas */}
+                      <div style={{ flex: 1 }}>
+                        {genderData.map((g, i) => {
+                          const total = genderData.reduce((s, x) => s + x.value, 0);
+                          const pct   = total > 0 ? Math.round((g.value / total) * 100) : 0;
+                          return (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: g.color, flexShrink: 0 }} />
+                              <span style={{ fontSize: '12px', color: '#cbd5e1', flex: 1 }}>{g.name}</span>
+                              <span style={{ fontSize: '13px', fontWeight: 700, color: g.color }}>{g.value}</span>
+                              <span style={{ fontSize: '11px', color: '#64748b', minWidth: '34px', textAlign: 'right' }}>{pct}%</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </Card>
                 )}
                 {ageData.length > 0 && (
@@ -678,6 +716,33 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
             </div>
 
 
+
+            {/* PERFORMANCE BARS — fills remaining page space */}
+            <Card title="ציר ביצועים" style={{ marginBottom: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {([
+                  { label: 'משתתפים שמצאו התאמה הדדית',     pct: matchedPct,          color: P.emerald },
+                  { label: 'משתתפים שהחליפו הודעות',         pct: messagedPct,         color: P.violet  },
+                  { label: 'שיחות שהפכו לעמוקות (3+ הודעות)', pct: deepPct,             color: P.pink    },
+                  { label: 'נוכחות יעילה (לא מבודדים)',       pct: 100 - isolatedPct,   color: P.teal    },
+                ] as { label: string; pct: number; color: string }[]).map((item, i) => (
+                  <div key={i}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '5px' }}>
+                      <span style={{ fontSize: '12px', color: '#cbd5e1' }}>{item.label}</span>
+                      <span style={{ fontSize: '16px', fontWeight: 800, color: item.color }}>{item.pct}%</span>
+                    </div>
+                    <div style={{ height: '10px', background: 'rgba(255,255,255,0.06)', borderRadius: '6px', overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${Math.min(Math.max(item.pct, 0), 100)}%`,
+                        height: '100%',
+                        background: `linear-gradient(90deg, ${item.color}70, ${item.color})`,
+                        borderRadius: '6px',
+                      }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
 
             {/* FOOTER */}
             <div style={{
