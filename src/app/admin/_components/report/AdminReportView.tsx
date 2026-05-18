@@ -646,7 +646,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
               <Card title="שיחות ומעורבות">
                 <StatLine label="סה״כ שיחות"              value={d.engagement.total_conversations}                    valueColor={P.violet} />
-                <StatLine label="שיחות קצרות (1–2 הודעות)"  value={shallowConvs}                                       valueColor="#94a3b8" />
+                <StatLine label="שיחות קצרות (1-2 הודעות)"  value={shallowConvs}                                       valueColor="#94a3b8" />
                 <StatLine label="שיחות עמוקות (3+ הודעות)"  value={d.engagement.conversations_with_3plus_messages}    valueColor={P.emerald} bar={deepPct} barColor={P.emerald} />
                 <StatLine label="ממוצע הודעות לשיחה"       value={d.engagement.avg_messages_per_conversation}         valueColor={P.amber} />
                 <StatLine label="סה״כ הודעות"              value={d.engagement.total_messages}                        valueColor={P.orange} />
