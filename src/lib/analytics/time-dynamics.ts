@@ -4,8 +4,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export type TimeDynamicsAnalytics = {
-  hourly_activity: { hour: number; count: number }[];
-  peak_hour: number | null;
+  /** ISO timestamp for the start of each UTC hour bucket, so the browser renders in local time */
+  hourly_activity: { timestamp: string; count: number }[];
+  peak_hour: number | null; // UTC hour of peak activity
 };
 
 export async function computeTimeDynamicsAnalytics(
@@ -22,15 +23,24 @@ export async function computeTimeDynamicsAnalytics(
     return { hourly_activity: [], peak_hour: null };
   }
 
-  const hourCounts: number[] = new Array(24).fill(0);
+  // Bucket by UTC hour — store as ISO timestamp so the browser converts to local time correctly
+  const hourBuckets = new Map<number, number>();
   for (const row of data) {
-    const hour = new Date(row.created_at as string).getHours();
-    hourCounts[hour]++;
+    const d = new Date(row.created_at as string);
+    const utcHourMs = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours());
+    hourBuckets.set(utcHourMs, (hourBuckets.get(utcHourMs) ?? 0) + 1);
   }
 
-  const hourly_activity = hourCounts.map((count, hour) => ({ hour, count }));
-  const maxCount = Math.max(...hourCounts);
-  const peak_hour = maxCount > 0 ? hourCounts.indexOf(maxCount) : null;
+  const sorted = [...hourBuckets.entries()].sort(([a], [b]) => a - b);
+  const hourly_activity = sorted.map(([ms, count]) => ({
+    timestamp: new Date(ms).toISOString(),
+    count,
+  }));
+
+  const peakEntry = sorted.length > 0
+    ? sorted.reduce((max, cur) => cur[1] > max[1] ? cur : max, sorted[0])
+    : null;
+  const peak_hour = peakEntry ? new Date(peakEntry[0]).getUTCHours() : null;
 
   return { hourly_activity, peak_hour };
 }

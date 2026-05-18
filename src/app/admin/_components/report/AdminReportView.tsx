@@ -396,30 +396,31 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
     }));
   const attractionMax = attractionData.length > 0 ? Math.max(...attractionData.map(a => a.value)) : 1;
 
-  const eventStartHour = selectedEvent?.starts_at
-    ? new Date(selectedEvent.starts_at).getHours()
-    : 0;
-
   const hourlyData = (() => {
     const raw = d?.time_dynamics?.hourly_activity ?? [];
     if (raw.length === 0) return [];
-    // Sort hours starting from event start so the chart reads left-to-right from event open
-    const sorted = [...raw].sort((a, b) => {
-      const ra = ((a.hour - eventStartHour) + 24) % 24;
-      const rb = ((b.hour - eventStartHour) + 24) % 24;
-      return ra - rb;
-    });
-    // Trim leading and trailing zero-count buckets
-    let s = 0, e = sorted.length - 1;
-    while (s < e && sorted[s].count === 0) s++;
-    while (e > s && sorted[e].count === 0) e--;
-    return sorted.slice(s, e + 1).map(h => ({
-      hour: `${String(h.hour).padStart(2, '0')}:00`,
-      count: h.count,
-    }));
+    // Support new format (timestamp: ISO string) and legacy (hour: integer 0-23)
+    const normalized = (raw as Array<{ timestamp?: string; hour?: number; count: number }>)
+      .map(h => ({
+        ts: h.timestamp
+          ? new Date(h.timestamp).getTime()
+          : (h.hour ?? 0) * 3_600_000,
+        label: h.timestamp
+          ? new Date(h.timestamp).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
+          : `${String(h.hour ?? 0).padStart(2, '0')}:00`,
+        count: h.count,
+      }))
+      .sort((a, b) => a.ts - b.ts);
+    // Trim leading/trailing zero-count buckets
+    let s = 0, e = normalized.length - 1;
+    while (s < e && normalized[s].count === 0) s++;
+    while (e > s && normalized[e].count === 0) e--;
+    return normalized.slice(s, e + 1).map(h => ({ hour: h.label, count: h.count }));
   })();
-  const peakHour    = d?.time_dynamics?.peak_hour;
-  const peakHourStr = peakHour != null ? `${String(peakHour).padStart(2, '0')}:00` : null;
+  // Peak derived from processed (local-time) data
+  const peakHourStr = hourlyData.length > 0
+    ? hourlyData.reduce((max, h) => h.count > max.count ? h : max, hourlyData[0]).hour
+    : null;
 
   return (
     <div className="admin-section" dir="rtl">
@@ -717,32 +718,33 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
 
 
 
-            {/* PERFORMANCE BARS — fills remaining page space */}
-            <Card title="ציר ביצועים" style={{ marginBottom: '10px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {([
-                  { label: 'משתתפים שמצאו התאמה הדדית',     pct: matchedPct,          color: P.emerald },
-                  { label: 'משתתפים שהחליפו הודעות',         pct: messagedPct,         color: P.violet  },
-                  { label: 'שיחות שהפכו לעמוקות (3+ הודעות)', pct: deepPct,             color: P.pink    },
-                  { label: 'נוכחות יעילה (לא מבודדים)',       pct: 100 - isolatedPct,   color: P.teal    },
-                ] as { label: string; pct: number; color: string }[]).map((item, i) => (
-                  <div key={i}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '5px' }}>
-                      <span style={{ fontSize: '12px', color: '#cbd5e1' }}>{item.label}</span>
-                      <span style={{ fontSize: '16px', fontWeight: 800, color: item.color }}>{item.pct}%</span>
-                    </div>
-                    <div style={{ height: '10px', background: 'rgba(255,255,255,0.06)', borderRadius: '6px', overflow: 'hidden' }}>
-                      <div style={{
-                        width: `${Math.min(Math.max(item.pct, 0), 100)}%`,
-                        height: '100%',
-                        background: `linear-gradient(90deg, ${item.color}70, ${item.color})`,
-                        borderRadius: '6px',
-                      }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+            {/* CONVERSION RATES — unique derived metrics not shown elsewhere */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '10px' }}>
+              <BigKpi
+                label="שיעור לייק → התאמה"
+                value={`${d.engagement.match_rate.toFixed(1)}%`}
+                sub={`מתוך ${d.engagement.total_likes} לייקים`}
+                color={P.emerald}
+              />
+              <BigKpi
+                label="התאמה → שיחה"
+                value={`${convFromMatchPct}%`}
+                sub={`${d.engagement.total_conversations} שיחות מ-${d.engagement.mutual_likes} התאמות`}
+                color={P.violet}
+              />
+              <BigKpi
+                label="התאמה → הודעה"
+                value={`${chatFromMatchPct}%`}
+                sub="ממי שהתאים — עד שהחל לדבר"
+                color={P.fuchsia}
+              />
+              <BigKpi
+                label="לייקים לאדם"
+                value={N > 0 ? (d.engagement.total_likes / N).toFixed(1) : '–'}
+                sub="דירוג ממוצע למשתתפ"
+                color={P.amber}
+              />
+            </div>
 
             {/* FOOTER */}
             <div style={{
