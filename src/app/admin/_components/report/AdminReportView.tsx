@@ -290,8 +290,9 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
         import('html2canvas'),
         import('jspdf'),
       ]);
+      const scale = 2;
       const canvas = await html2canvas(reportRef.current, {
-        scale: 2,
+        scale,
         backgroundColor: '#0e0d18',
         logging: false,
         useCORS: true,
@@ -302,11 +303,37 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
       const pdfH = 297;
       const pxPerMm      = canvas.width / pdfW;
       const pageHeightPx = Math.round(pdfH * pxPerMm);
-      let yStart = 0;
-      let page   = 0;
-      while (yStart < canvas.height) {
-        if (page > 0) pdf.addPage();
-        const chunkH = Math.min(pageHeightPx, canvas.height - yStart);
+
+      // Collect natural break points (bottom edges of top-level children)
+      // so we never slice through a card in the middle.
+      const container    = reportRef.current;
+      const containerTop = container.getBoundingClientRect().top;
+      const children     = Array.from(container.querySelectorAll(':scope > *')) as HTMLElement[];
+      const naturalBreaks = children
+        .map(el => Math.round((el.getBoundingClientRect().bottom - containerTop) * scale))
+        .filter(y => y > 0 && y < canvas.height);
+
+      // Build page ranges using the nearest natural break before each ideal cut
+      const pages: Array<[number, number]> = [];
+      let pageStart = 0;
+      while (pageStart < canvas.height) {
+        const idealEnd = pageStart + pageHeightPx;
+        if (idealEnd >= canvas.height) {
+          pages.push([pageStart, canvas.height]);
+          break;
+        }
+        // Use the largest natural break that fits within this page
+        let bestBreak = idealEnd; // fallback: hard cut
+        for (const y of naturalBreaks) {
+          if (y > pageStart && y <= idealEnd) bestBreak = y;
+        }
+        pages.push([pageStart, bestBreak]);
+        pageStart = bestBreak;
+      }
+
+      pages.forEach(([yStart, yEnd], idx) => {
+        if (idx > 0) pdf.addPage();
+        const chunkH = yEnd - yStart;
         const slice  = document.createElement('canvas');
         slice.width  = canvas.width;
         slice.height = chunkH;
@@ -314,9 +341,8 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
         if (ctx) ctx.drawImage(canvas, 0, yStart, canvas.width, chunkH, 0, 0, canvas.width, chunkH);
         const imgH = chunkH / pxPerMm;
         pdf.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, pdfW, Math.min(imgH, pdfH));
-        yStart += chunkH;
-        page++;
-      }
+      });
+
       const eventName = events.find(e => e.id === selectedEventId)?.name ?? 'event';
       pdf.save(`דוח-${eventName}.pdf`);
     } catch { setError('שגיאה ביצוא PDF'); }
@@ -346,6 +372,12 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
 
   const funnelSteps = d?.funnel?.steps ?? [];
   const funnelMax   = funnelSteps.length > 0 ? (funnelSteps[0]?.count ?? 1) : 1;
+
+  const deletedPct       = d && N > 0 ? Math.round(((d.safety.deleted_participants ?? 0) / N) * 100) : 0;
+  const convFromMatchPct = d && d.engagement.mutual_likes > 0
+    ? Math.min(Math.round((d.engagement.total_conversations / d.engagement.mutual_likes) * 100), 100) : 0;
+  const chatFromMatchPct = d && d.network.participants_with_matches > 0
+    ? Math.min(Math.round((d.network.participants_with_messages / d.network.participants_with_matches) * 100), 100) : 0;
 
   const genderData = (d?.crosstabs?.gender_distribution ?? [])
     .map((g, i) => ({ name: GENDER_HE[g.label] ?? g.label, value: g.count, color: MULTI[i % MULTI.length] }))
@@ -527,28 +559,28 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
               <Card title="מדדי הצלחת האירוע">
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <RingMetric
-                    label="שיעור התאמה"
-                    value={d.engagement.match_rate}
-                    sub={`${d.engagement.mutual_likes} התאמות הדדיות`}
+                    label="המרה: התאמות → שיחות"
+                    value={convFromMatchPct}
+                    sub={`${d.engagement.total_conversations} שיחות מ-${d.engagement.mutual_likes} התאמות`}
                     color={P.emerald}
                   />
                   <RingMetric
-                    label="מעורבות משתתפים"
-                    value={matchedPct}
-                    sub={`${d.network.participants_with_matches} מתוך ${N}`}
+                    label="מהתאמה לצ׳אט"
+                    value={chatFromMatchPct}
+                    sub={`${d.network.participants_with_messages} מ-${d.network.participants_with_matches} מתאימים`}
                     color={P.fuchsia}
                   />
                   <RingMetric
-                    label="שיחות עמוקות"
-                    value={deepPct}
-                    sub={`${d.engagement.conversations_with_3plus_messages} שיחות (3+)`}
+                    label="שיעור בידוד"
+                    value={isolatedPct}
+                    sub={`${d.network.isolated_participants} ללא אינטראקציה`}
                     color={P.violet}
                   />
                   <RingMetric
-                    label="פעילות הודעות"
-                    value={messagedPct}
-                    sub={`${d.network.participants_with_messages} שלחו/קיבלו`}
-                    color={P.amber}
+                    label="נשירה מהאירוע"
+                    value={deletedPct}
+                    sub={`${d.safety.deleted_participants ?? 0} מחקו פרופיל`}
+                    color={P.orange}
                   />
                 </div>
               </Card>
@@ -701,20 +733,20 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
             </div>
 
             {/* SAFETY */}
-            {(d.safety.total_blocks > 0 || d.safety.total_reports > 0 || d.safety.banned_participants > 0) && (
+            {(d.safety.total_blocks > 0 || d.safety.banned_participants > 0 || (d.safety.deleted_participants ?? 0) > 0) && (
               <Card title="בטיחות ואבטחה" style={{ marginBottom: '12px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                   <div style={{ textAlign: 'center', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '10px' }}>
                     <div style={{ fontSize: '22px', fontWeight: 800, color: '#ef4444' }}>{d.safety.total_blocks}</div>
                     <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>חסימות</div>
                   </div>
-                  <div style={{ textAlign: 'center', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.2)', borderRadius: '10px', padding: '10px' }}>
-                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#f97316' }}>{d.safety.total_reports}</div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>דיווחים</div>
-                  </div>
                   <div style={{ textAlign: 'center', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '10px', padding: '10px' }}>
                     <div style={{ fontSize: '22px', fontWeight: 800, color: '#ef4444' }}>{d.safety.banned_participants}</div>
                     <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>חשבונות חסומים</div>
+                  </div>
+                  <div style={{ textAlign: 'center', background: 'rgba(100,116,139,0.12)', border: '1px solid rgba(100,116,139,0.25)', borderRadius: '10px', padding: '10px' }}>
+                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#94a3b8' }}>{d.safety.deleted_participants ?? 0}</div>
+                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>מחקו פרופיל</div>
                   </div>
                 </div>
               </Card>

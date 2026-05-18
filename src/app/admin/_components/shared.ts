@@ -252,6 +252,7 @@ export interface AdminParticipant {
   gender: string;
   age: number | null;
   is_banned: boolean;
+  deleted_at?: string | null;
   created_at: string;
   profile_complete?: boolean;
   // ─── Messaging fields ───

@@ -47,73 +47,25 @@ export async function POST(req: NextRequest) {
         .remove(photos.map((p) => p.storage_path));
     }
 
-    // 2. Delete photo records (scoped to event)
+    // 2. Delete photo records (PII — remove from DB too)
     await supabase
       .from('participant_photos')
       .delete()
       .eq('participant_id', participantId)
       .eq('event_id', eventId);
 
-    // 3. Delete messages (from conversations involving this user)
-    const { data: convos } = await supabase
-      .from('conversations')
-      .select('id')
+    // 3. Delete notifications (ephemeral UI — no analytics value)
+    await supabase
+      .from('notifications')
+      .delete()
       .eq('event_id', eventId)
-      .or(`a_participant_id.eq.${participantId},b_participant_id.eq.${participantId}`);
+      .eq('to_participant_id', participantId);
 
-    const convoIds = (convos || []).map((c) => c.id);
-    if (convoIds.length > 0) {
-      // Delete chat media from storage before deleting messages
-      const { data: chatMedia } = await supabase
-        .from('messages')
-        .select('media_path')
-        .in('conversation_id', convoIds)
-        .not('media_path', 'is', null);
+    // NOTE: likes, blocks, conversations, messages and activity_log are
+    // intentionally KEPT so the participant still counts in event analytics.
 
-      const mediaPaths = (chatMedia || [])
-        .filter((m) => m.media_path)
-        .map((m) => m.media_path!);
-
-      if (mediaPaths.length > 0) {
-        for (let i = 0; i < mediaPaths.length; i += STORAGE_BATCH_SIZE) {
-          try {
-            await supabase.storage.from('photos').remove(mediaPaths.slice(i, i + STORAGE_BATCH_SIZE));
-          } catch (batchErr) {
-            logger.error('[ACCOUNT_DELETE] media batch error:', batchErr);
-          }
-        }
-      }
-
-      const { error: msgsDelErr } = await supabase.from('messages').delete().in('conversation_id', convoIds);
-      if (msgsDelErr) logger.error('[ACCOUNT_DELETE] messages delete error:', msgsDelErr.message);
-
-      const { error: convosDelErr } = await supabase.from('conversations').delete().in('id', convoIds);
-      if (convosDelErr) logger.error('[ACCOUNT_DELETE] conversations delete error:', convosDelErr.message);
-    }
-
-    // 4-6. Delete likes, blocks, notifications, activity_log in parallel
-    const [likesRes, blocksRes, notifsRes, activityRes] = await Promise.all([
-      supabase.from('likes').delete()
-        .eq('event_id', eventId)
-        .or(`from_participant_id.eq.${participantId},to_participant_id.eq.${participantId}`),
-      supabase.from('blocks').delete()
-        .eq('event_id', eventId)
-        .or(`blocker_id.eq.${participantId},blocked_id.eq.${participantId}`),
-      supabase.from('notifications').delete()
-        .eq('event_id', eventId)
-        .eq('to_participant_id', participantId),
-      supabase.from('activity_log').delete()
-        .eq('event_id', eventId)
-        .eq('participant_id', participantId),
-    ]);
-
-    if (likesRes.error) logger.error('[ACCOUNT_DELETE] likes delete error:', likesRes.error.message);
-    if (blocksRes.error) logger.error('[ACCOUNT_DELETE] blocks delete error:', blocksRes.error.message);
-    if (notifsRes.error) logger.error('[ACCOUNT_DELETE] notifications delete error:', notifsRes.error.message);
-    if (activityRes.error) logger.error('[ACCOUNT_DELETE] activity_log delete error:', activityRes.error.message);
-
-    // 7. Remove device from banned_devices so the user can rejoin freely.
-    //    Self-deletion is NOT an admin ban - the user should get a clean slate.
+    // 4. Remove device from banned_devices so the user can rejoin freely.
+    //    Self-deletion is NOT an admin ban — the user should get a clean slate.
     const { data: selfParticipant } = await supabase
       .from('participants')
       .select('device_fingerprint, hardware_fingerprint')
@@ -135,18 +87,28 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 8. Finally, delete the participant record (critical - must succeed)
-    const { error: participantDelErr } = await supabase
+    // 5. Soft-delete: anonymise PII and mark as deleted.
+    //    Analytics fields (gender, attracted_to, age) are preserved.
+    const { error: softDelErr } = await supabase
       .from('participants')
-      .delete()
+      .update({
+        deleted_at: new Date().toISOString(),
+        display_name: '[מחוק]',
+        bio: null,
+        city: null,
+        looking_for: null,
+        phone: null,
+        device_fingerprint: null,
+        hardware_fingerprint: null,
+      })
       .eq('id', participantId);
 
-    if (participantDelErr) {
-      logger.error('[ACCOUNT_DELETE] participant delete error:', participantDelErr.message);
+    if (softDelErr) {
+      logger.error('[ACCOUNT_DELETE] soft-delete error:', softDelErr.message);
       return jsonError('Failed to delete account', 500);
     }
 
-    logger.info('[ACCOUNT_DELETE] success:', JSON.stringify({ participantId, eventId, ts: new Date().toISOString() }));
+    logger.info('[ACCOUNT_DELETE] soft-delete success:', JSON.stringify({ participantId, eventId, ts: new Date().toISOString() }));
 
     const response = NextResponse.json({ success: true });
     response.headers.set('Set-Cookie', clearSessionCookieHeader());

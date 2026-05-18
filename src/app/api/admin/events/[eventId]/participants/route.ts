@@ -29,7 +29,7 @@ export async function GET(
     const [participantsRes, guestPhonesRes] = await Promise.all([
       supabase
         .from('participants')
-        .select('id, display_name, gender, age, is_banned, created_at, phone, sms_consent, feedback_sent')
+        .select('id, display_name, gender, age, is_banned, deleted_at, created_at, phone, sms_consent, feedback_sent')
         .eq('event_id', eventId)
         .order('created_at', { ascending: false }),
       supabase

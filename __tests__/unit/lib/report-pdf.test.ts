@@ -30,7 +30,7 @@ describe('report pdf generator', () => {
       crosstabs: { gender_distribution: [], age_buckets: [] },
       safety: {
         total_blocks: 3,
-        total_reports: 2,
+        deleted_participants: 2,
         banned_participants: 1,
       },
     } as unknown as Parameters<typeof generateReportPdf>[0]['payload'];

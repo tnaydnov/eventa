@@ -182,6 +182,7 @@ export default function ParticipantsTable({ eventId, isArchived, messagesEnabled
   const totalMen = complete.filter(p => p.gender === 'male').length;
   const totalWomen = complete.filter(p => p.gender === 'female').length;
   const totalBanned = participants.filter(p => p.is_banned).length;
+  const totalDeleted = participants.filter(p => p.deleted_at).length;
 
   /* ─── Column header helper ─── */
   const SortHeader = ({ field, label }: { field: SortField; label: string }) => (
@@ -278,6 +279,9 @@ export default function ParticipantsTable({ eventId, isArchived, messagesEnabled
           {totalBanned > 0 && (
             <span className="pt-banned-count">🚫 {totalBanned} חסומים</span>
           )}
+          {totalDeleted > 0 && (
+            <span className="pt-banned-count" style={{ color: '#94a3b8' }}>🗑 {totalDeleted} מחקו פרופיל</span>
+          )}
           <button className="admin-btn admin-btn--sm admin-btn--ghost" onClick={fetchParticipants}>
             🔄 רענן
           </button>
@@ -328,7 +332,7 @@ export default function ParticipantsTable({ eventId, isArchived, messagesEnabled
                 </thead>
                 <tbody>
                   {filtered.map(p => (
-                    <tr key={p.id} className={`pt-row ${p.is_banned ? 'pt-row--banned' : ''}`}>
+                    <tr key={p.id} className={`pt-row ${p.is_banned ? 'pt-row--banned' : ''}`} style={p.deleted_at ? { opacity: 0.55 } : undefined}>
                       <td className="pt-td pt-td--name" style={p.profile_complete === false ? { opacity: 0.5 } : undefined}>
                         {p.display_name || '(ללא שם)'}
                         {p.profile_complete === false && (
@@ -360,7 +364,9 @@ export default function ParticipantsTable({ eventId, isArchived, messagesEnabled
                         </td>
                       )}
                       <td className="pt-td">
-                        {p.is_banned ? (
+                        {p.deleted_at ? (
+                          <span className="admin-badge" style={{ background: '#475569', color: '#fff' }}>🗑 מחוק</span>
+                        ) : p.is_banned ? (
                           <span className="admin-badge admin-badge--ended">🚫 חסום</span>
                         ) : (
                           <span className="admin-badge admin-badge--active">פעיל</span>

@@ -43,6 +43,7 @@ export async function getGridParticipants(
       .select('id, event_id, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at, participant_photos(id, event_id, participant_id, storage_path, order_index, created_at)')
       .eq('event_id', eventId)
       .eq('is_banned', false)
+      .is('deleted_at', null)
       .neq('id', myId)
       .order('order_index', { referencedTable: 'participant_photos' })
       .limit(200),

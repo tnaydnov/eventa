@@ -99,7 +99,7 @@ describe('GET /api/portal/[token]/report/pdf', () => {
         time_dynamics: { hourly_activity: [], peak_hour: null },
         network: { total_participants: 30 },
         crosstabs: { gender_distribution: [], age_buckets: [] },
-        safety: { total_blocks: 0, total_reports: 0, banned_participants: 0 },
+        safety: { total_blocks: 0, deleted_participants: 0, banned_participants: 0 },
       },
       ai_summary: 'Healthy participation.',
     });
