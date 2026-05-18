@@ -718,32 +718,16 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
 
 
 
-            {/* CONVERSION RATES — unique derived metrics not shown elsewhere */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '10px' }}>
-              <BigKpi
-                label="שיעור לייק → התאמה"
-                value={`${d.engagement.match_rate.toFixed(1)}%`}
-                sub={`מתוך ${d.engagement.total_likes} לייקים`}
-                color={P.emerald}
-              />
-              <BigKpi
-                label="התאמה → שיחה"
-                value={`${convFromMatchPct}%`}
-                sub={`${d.engagement.total_conversations} שיחות מ-${d.engagement.mutual_likes} התאמות`}
-                color={P.violet}
-              />
-              <BigKpi
-                label="התאמה → הודעה"
-                value={`${chatFromMatchPct}%`}
-                sub="ממי שהתאים — עד שהחל לדבר"
-                color={P.fuchsia}
-              />
-              <BigKpi
-                label="לייקים לאדם"
-                value={N > 0 ? (d.engagement.total_likes / N).toFixed(1) : '–'}
-                sub="דירוג ממוצע למשתתפ"
-                color={P.amber}
-              />
+            {/* CONVERSATION INSIGHTS — compact 2-col strip, unique data not shown above */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+              <Card title="תוצאות שיחות">
+                <StatLine label="שיחות ללא מענה (1 הודעה)" value={d.engagement.one_message_conversations ?? 0} valueColor="#64748b" />
+                <StatLine label="התאמות שלא הפכו לשיחה"   value={d.engagement.dead_matches ?? 0}                valueColor="#64748b" />
+              </Card>
+              <Card title="יחסי המרה">
+                <StatLine label="התאמה → שיחה" value={`${convFromMatchPct}%`}  valueColor={P.violet}  bar={convFromMatchPct}  barColor={P.violet} />
+                <StatLine label="התאמה → הודעה" value={`${chatFromMatchPct}%`} valueColor={P.fuchsia} bar={chatFromMatchPct} barColor={P.fuchsia} />
+              </Card>
             </div>
 
             {/* FOOTER */}

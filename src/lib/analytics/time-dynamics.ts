@@ -11,13 +11,17 @@ export type TimeDynamicsAnalytics = {
 
 export async function computeTimeDynamicsAnalytics(
   supabase: SupabaseClient,
-  eventId: string
+  eventId: string,
+  eventStart?: string,
+  eventEnd?: string
 ): Promise<TimeDynamicsAnalytics> {
-  const { data, error } = await supabase
+  let query = supabase
     .from('activity_log')
     .select('created_at')
-    .eq('event_id', eventId)
-    .limit(500_000);
+    .eq('event_id', eventId);
+  if (eventStart) query = query.gte('created_at', eventStart);
+  if (eventEnd)   query = query.lte('created_at', eventEnd);
+  const { data, error } = await query.limit(500_000);
 
   if (error || !data) {
     return { hourly_activity: [], peak_hour: null };

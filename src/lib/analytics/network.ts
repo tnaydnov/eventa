@@ -22,6 +22,7 @@ export async function computeNetworkAnalytics(
       .select('id')
       .eq('event_id', eventId)
       .eq('is_banned', false)
+      .neq('display_name', '')  // exclude incomplete registrations
       .limit(10_000),
     supabase
       .from('likes')

@@ -10,6 +10,8 @@ export type EngagementAnalytics = {
   total_messages: number;
   avg_messages_per_conversation: number;
   conversations_with_3plus_messages: number;
+  one_message_conversations: number; // conversations with exactly 1 message (no reply)
+  dead_matches: number;              // mutual matches that never became conversations
   match_rate: number; // mutual_likes / total_likes (0-100)
 };
 
@@ -57,7 +59,9 @@ export async function computeEngagementAnalytics(
     convCounts.length > 0
       ? convCounts.reduce((a, b) => a + b, 0) / convCounts.length
       : 0;
-  const deepConvs = convCounts.filter((c) => c >= 3).length;
+  const deepConvs          = convCounts.filter((c) => c >= 3).length;
+  const oneMessageConvs    = convCounts.filter((c) => c === 1).length;
+  const deadMatches        = Math.max(Math.round(mutualLikes) - conversations.length, 0);
 
   return {
     total_likes: likes.length,
@@ -66,6 +70,8 @@ export async function computeEngagementAnalytics(
     total_messages: messages.length,
     avg_messages_per_conversation: Math.round(avgMessages * 10) / 10,
     conversations_with_3plus_messages: deepConvs,
+    one_message_conversations: oneMessageConvs,
+    dead_matches: deadMatches,
     match_rate:
       likes.length > 0
         ? Math.round((mutualLikes / likes.length) * 2 * 100)

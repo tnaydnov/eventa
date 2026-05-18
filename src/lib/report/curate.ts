@@ -30,10 +30,17 @@ export async function curateReport(
   supabase: SupabaseClient,
   eventId: string
 ): Promise<CuratedReportPayload> {
+  // Fetch event window so time-dynamics can be bounded to the actual event hours
+  const { data: eventRow } = await supabase
+    .from('events')
+    .select('starts_at, ends_at')
+    .eq('id', eventId)
+    .single();
+
   const [engagement, funnel, time_dynamics, network, crosstabs, safety] = await Promise.all([
     computeEngagementAnalytics(supabase, eventId),
     computeFunnelAnalytics(supabase, eventId),
-    computeTimeDynamicsAnalytics(supabase, eventId),
+    computeTimeDynamicsAnalytics(supabase, eventId, eventRow?.starts_at ?? undefined, eventRow?.ends_at ?? undefined),
     computeNetworkAnalytics(supabase, eventId),
     computeCrosstabAnalytics(supabase, eventId),
     computeSafetyAnalytics(supabase, eventId),
