@@ -1,4 +1,11 @@
-'use client';
+import { writeFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const outPath = resolve(__dirname, '../src/app/admin/_components/report/AdminReportView.tsx');
+
+const content = `'use client';
 
 import { useRef, useState, useEffect } from 'react';
 import {
@@ -85,8 +92,8 @@ function BigKpi({ label, value, sub, color }: {
 }) {
   return (
     <div style={{
-      background: `${color}14`,
-      border: `1px solid ${color}38`,
+      background: \`\${color}14\`,
+      border: \`1px solid \${color}38\`,
       borderRadius: '12px',
       padding: '14px 10px',
       textAlign: 'center',
@@ -96,7 +103,7 @@ function BigKpi({ label, value, sub, color }: {
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: color }} />
       <div style={{ fontSize: '26px', fontWeight: 800, color, lineHeight: 1.0 }}>{value}</div>
       <div style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '6px', fontWeight: 600 }}>{label}</div>
-      {sub && <div style={{ fontSize: '10px', color: `${color}cc`, marginTop: '2px' }}>{sub}</div>}
+      {sub && <div style={{ fontSize: '10px', color: \`\${color}cc\`, marginTop: '2px' }}>{sub}</div>}
     </div>
   );
 }
@@ -141,7 +148,7 @@ function StatLine({ label, value, valueColor, bar, barColor }: {
       {bar !== undefined && (
         <div style={{ height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', marginTop: '4px' }}>
           <div style={{
-            height: '100%', width: `${Math.min(Math.max(bar, 0), 100)}%`,
+            height: '100%', width: \`\${Math.min(Math.max(bar, 0), 100)}%\`,
             background: barColor ?? P.rose, borderRadius: '2px',
           }} />
         </div>
@@ -166,14 +173,14 @@ function HBar({ label, value, max, color, badge }: {
         borderRadius: '6px', overflow: 'hidden', direction: 'ltr',
       }}>
         <div style={{
-          width: `${pct}%`, height: '100%', background: color,
+          width: \`\${pct}%\`, height: '100%', background: color,
           borderRadius: '6px', display: 'flex', alignItems: 'center', paddingLeft: '6px',
         }}>
           {value > 0 && <span style={{ fontSize: '11px', color: '#fff', fontWeight: 700 }}>{value}</span>}
         </div>
       </div>
       <span style={{ minWidth: '36px', fontSize: '11px', color: '#64748b', textAlign: 'left', flexShrink: 0 }}>
-        {badge ?? `${pctDisplay}%`}
+        {badge ?? \`\${pctDisplay}%\`}
       </span>
     </div>
   );
@@ -223,7 +230,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
   async function fetchReport(eventId: string) {
     setLoading(true); setError(null);
     try {
-      const res = await fetch(`/api/admin/reports/${eventId}`, { credentials: 'include' });
+      const res = await fetch(\`/api/admin/reports/\${eventId}\`, { credentials: 'include' });
       if (!res.ok) {
         if (res.status !== 404) throw new Error('שגיאת שרת');
         setReport(null);
@@ -239,7 +246,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
     if (!selectedEventId) return;
     setGenerating(true); setError(null);
     try {
-      const res = await fetch(`/api/admin/reports/${selectedEventId}/generate`, {
+      const res = await fetch(\`/api/admin/reports/\${selectedEventId}/generate\`, {
         method: 'POST', credentials: 'include',
       });
       if (!res.ok) throw new Error('שגיאה ביצירת הדוח');
@@ -284,7 +291,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
         page++;
       }
       const eventName = events.find(e => e.id === selectedEventId)?.name ?? 'event';
-      pdf.save(`דוח-${eventName}.pdf`);
+      pdf.save(\`דוח-\${eventName}.pdf\`);
     } catch { setError('שגיאה ביצוא PDF'); }
     finally { setExportingPdf(false); }
   }
@@ -331,9 +338,9 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
   const attractionMax = attractionData.length > 0 ? Math.max(...attractionData.map(a => a.value)) : 1;
 
   const hourlyData = (d?.time_dynamics?.hourly_activity ?? [])
-    .map(h => ({ hour: `${String(h.hour).padStart(2, '0')}:00`, count: h.count }));
+    .map(h => ({ hour: \`\${String(h.hour).padStart(2, '0')}:00\`, count: h.count }));
   const peakHour    = d?.time_dynamics?.peak_hour;
-  const peakHourStr = peakHour != null ? `${String(peakHour).padStart(2, '0')}:00` : null;
+  const peakHourStr = peakHour != null ? \`\${String(peakHour).padStart(2, '0')}:00\` : null;
 
   return (
     <div className="admin-section" dir="rtl">
@@ -463,7 +470,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
                 label="התאמות הדדיות"
                 value={d.engagement.mutual_likes}
                 color={P.emerald}
-                sub={`שיעור: ${d.engagement.match_rate.toFixed(1)}%`}
+                sub={\`שיעור: \${d.engagement.match_rate.toFixed(1)}%\`}
               />
               <BigKpi label="שיחות"             value={d.engagement.total_conversations}  color={P.violet} />
             </div>
@@ -476,13 +483,13 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
                 label="שיחות עמוקות (3+)"
                 value={d.engagement.conversations_with_3plus_messages}
                 color={P.pink}
-                sub={`${deepPct}% מהשיחות`}
+                sub={\`\${deepPct}% מהשיחות\`}
               />
               <BigKpi
                 label="ממוצע לייקים שנשלחו"
                 value={d.network.avg_likes_sent}
                 color={P.teal}
-                sub={`שהתקבלו: ${d.network.avg_likes_received}`}
+                sub={\`שהתקבלו: \${d.network.avg_likes_received}\`}
               />
             </div>
 
@@ -566,7 +573,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
                         value={a.value}
                         max={attractionMax}
                         color={a.color}
-                        badge={`${a.value}`}
+                        badge={\`\${a.value}\`}
                       />
                     ))}
                   </Card>
@@ -638,17 +645,17 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
                 </div>
                 <StatLine
                   label="קיבלו התאמה לפחות אחת"
-                  value={`${d.network.participants_with_matches} (${matchedPct}%)`}
+                  value={\`\${d.network.participants_with_matches} (\${matchedPct}%)\`}
                   valueColor={P.emerald} bar={matchedPct} barColor={P.emerald}
                 />
                 <StatLine
                   label="שלחו או קיבלו הודעות"
-                  value={`${d.network.participants_with_messages} (${messagedPct}%)`}
+                  value={\`\${d.network.participants_with_messages} (\${messagedPct}%)\`}
                   valueColor={P.violet} bar={messagedPct} barColor={P.violet}
                 />
                 <StatLine
                   label="ללא אינטראקציה כלל"
-                  value={`${d.network.isolated_participants} (${isolatedPct}%)`}
+                  value={\`\${d.network.isolated_participants} (\${isolatedPct}%)\`}
                   valueColor="#64748b" bar={isolatedPct} barColor="#475569"
                 />
                 <StatLine label="ממוצע לייקים שנשלחו"   value={d.network.avg_likes_sent} />
@@ -697,3 +704,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
     </div>
   );
 }
+`;
+
+writeFileSync(outPath, content, 'utf8');
+console.log('Written:', outPath);
