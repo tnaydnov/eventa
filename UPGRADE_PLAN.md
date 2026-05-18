@@ -1,4 +1,4 @@
-# Eventa — Major Upgrade Plan
+# Eventa - Major Upgrade Plan
 
 > **Status**: Planning document (no code changes yet).
 > **Author**: AI architecture review.
@@ -8,7 +8,7 @@
 
 ## 0. Executive summary
 
-The current codebase is in a healthier state than the prompt suggests — it is a fairly well-factored Next.js 16 / Supabase monolith with a clean API pipeline (`secureGuard`), a working realtime stack, OTP auth, a serverless SMS provider (TextMe), and a non-trivial admin analytics surface. The biggest *architectural* smell is not the layering, it's the **routing/product identity**: the homepage advertises a multi-service platform that doesn't exist, and the only real product hides behind `/dating/...`. This creates dead URLs in QR codes, dead nav links, and dead marketing copy.
+The current codebase is in a healthier state than the prompt suggests - it is a fairly well-factored Next.js 16 / Supabase monolith with a clean API pipeline (`secureGuard`), a working realtime stack, OTP auth, a serverless SMS provider (TextMe), and a non-trivial admin analytics surface. The biggest *architectural* smell is not the layering, it's the **routing/product identity**: the homepage advertises a multi-service platform that doesn't exist, and the only real product hides behind `/dating/...`. This creates dead URLs in QR codes, dead nav links, and dead marketing copy.
 
 The four upgrade requests fall into three buckets:
 
@@ -20,17 +20,17 @@ The four upgrade requests fall into three buckets:
 
 We recommend executing in this order, because each phase de-risks the next:
 
-1. **Phase 0** — Tighten the analytics data we already collect (small, no user-facing risk).
-2. **Phase 1** — Route migration (`/dating → /`) and i18n shell (one combined deploy so we only touch every link once).
-3. **Phase 2** — Drop-off detection + abandoned-funnel SMS reminders (uses existing TextMe).
-4. **Phase 3** — Out-of-app SMS notifications for likes/messages (requires presence + throttling infra).
-5. **Phase 4** — Client portal + post-event report + AI summary.
+1. **Phase 0** - Tighten the analytics data we already collect (small, no user-facing risk).
+2. **Phase 1** - Route migration (`/dating → /`) and i18n shell (one combined deploy so we only touch every link once).
+3. **Phase 2** - Drop-off detection + abandoned-funnel SMS reminders (uses existing TextMe).
+4. **Phase 3** - Out-of-app SMS notifications for likes/messages (requires presence + throttling infra).
+5. **Phase 4** - Client portal + post-event report + AI summary.
 
 The remainder of this document specifies each of these in depth.
 
 ---
 
-## 1. Current state — what we actually have
+## 1. Current state - what we actually have
 
 ### 1.1 Stack snapshot
 - Next.js 16 App Router, React 19, TypeScript strict, Node 20.
@@ -66,24 +66,24 @@ The remainder of this document specifies each of these in depth.
 
 ### 1.3 What works well (preserve as-is)
 - The `secureGuard` API pipeline.
-- The `RealtimeHub` singleton + polling fallback (it survives mobile Safari background killing — do **not** rewrite this).
+- The `RealtimeHub` singleton + polling fallback (it survives mobile Safari background killing - do **not** rewrite this).
 - `compute-event-analytics.ts` shared between live and snapshot paths.
-- `message_log` + `messaging-service.ts` abstraction — the right shape to extend.
+- `message_log` + `messaging-service.ts` abstraction - the right shape to extend.
 - The admin event lifecycle (`draft → active → paused → ended → archived`) and the 7-day retention cron.
 
 ### 1.4 What's weak (the real architectural debt)
 | Area | Smell | Severity |
 |---|---|---|
-| **Routing/product identity** | Homepage markets "platform with many services" but only dating works | High — directly addressed in §3 |
-| **Text/strings** | All UI strings are inlined Hebrew literals across ~80 files | High — addressed in §4 |
-| **In-memory rate limiter** | Doesn't survive cold starts on Vercel (already noted in ARCHITECTURE.md §5.3) | Medium — out of scope here but worth flagging |
-| **No central event-bus** | Notification-worthy events (like, match, message) are scattered across API routes. To add SMS-on-like we either repeat logic or add an indirection. | High — addressed in §5 & §6 |
-| **No "presence" concept** | We track `last_seen_at` (debounced 2 min) but have no concept of "currently in the app" vs "browser closed". Required for out-of-app SMS. | High — addressed in §6 |
-| **No client identity** | Only admin and participant exist. The paying client has no login of their own (only the token-scoped `/guest-upload/[token]`). Required for §7. | High — addressed in §7 |
-| **No image content moderation** | Profile + chat uploads go straight to storage with no NSFW / CSAM check. Single legal-risk gap in the product. | High — addressed in §14 |
-| **No optimistic UI on likes / no idempotent client retry** | The most-tapped action in the app round-trips to the API before painting feedback. On bad WiFi this looks like the app is broken. | High — addressed in §15.3 / §15.7 |
-| **Service worker too conservative for reads** | `NetworkOnly` is applied to every secure API including safe GETs; photo bytes get no tuned cache rule. On cold WiFi this dominates time-to-grid. | Medium — addressed in §15.9 |
-| **No connection-quality awareness** | We only have `online/offline`. A 60 s stale WebSocket on solid WiFi looks identical to a healthy connection to the user. | Medium — addressed in §15.4 |
+| **Routing/product identity** | Homepage markets "platform with many services" but only dating works | High - directly addressed in §3 |
+| **Text/strings** | All UI strings are inlined Hebrew literals across ~80 files | High - addressed in §4 |
+| **In-memory rate limiter** | Doesn't survive cold starts on Vercel (already noted in ARCHITECTURE.md §5.3) | Medium - out of scope here but worth flagging |
+| **No central event-bus** | Notification-worthy events (like, match, message) are scattered across API routes. To add SMS-on-like we either repeat logic or add an indirection. | High - addressed in §5 & §6 |
+| **No "presence" concept** | We track `last_seen_at` (debounced 2 min) but have no concept of "currently in the app" vs "browser closed". Required for out-of-app SMS. | High - addressed in §6 |
+| **No client identity** | Only admin and participant exist. The paying client has no login of their own (only the token-scoped `/guest-upload/[token]`). Required for §7. | High - addressed in §7 |
+| **No image content moderation** | Profile + chat uploads go straight to storage with no NSFW / CSAM check. Single legal-risk gap in the product. | High - addressed in §14 |
+| **No optimistic UI on likes / no idempotent client retry** | The most-tapped action in the app round-trips to the API before painting feedback. On bad WiFi this looks like the app is broken. | High - addressed in §15.3 / §15.7 |
+| **Service worker too conservative for reads** | `NetworkOnly` is applied to every secure API including safe GETs; photo bytes get no tuned cache rule. On cold WiFi this dominates time-to-grid. | Medium - addressed in §15.9 |
+| **No connection-quality awareness** | We only have `online/offline`. A 60 s stale WebSocket on solid WiFi looks identical to a healthy connection to the user. | Medium - addressed in §15.4 |
 
 ---
 
@@ -97,15 +97,15 @@ The remainder of this document specifies each of these in depth.
 - A polished, AI-augmented post-event report sent to the paying client.
 
 **Non-goals (explicitly)**
-- Native iOS/Android app — PWA stays.
-- Server-rendering the dating app pages — they stay client-only.
+- Native iOS/Android app - PWA stays.
+- Server-rendering the dating app pages - they stay client-only.
 - Replacing Supabase, Vercel, or the JWT auth scheme.
 - More than two languages. RTL switching only happens between `he` and `en`.
-- Real-time web push notifications (out of scope — see §6.4 for why SMS is the right answer for this product).
+- Real-time web push notifications (out of scope - see §6.4 for why SMS is the right answer for this product).
 
 ---
 
-## 3. Workstream A — Route migration: kill `/dating`
+## 3. Workstream A - Route migration: kill `/dating`
 
 ### 3.1 Target URL space
 
@@ -130,7 +130,7 @@ The old multi-service homepage at `/` ([src/app/page.tsx](src/app/page.tsx)) is 
 
 ### 3.2 The slug-collision problem (must be solved before anything else)
 
-Once `/[eventSlug]` lives at the root, it competes with every other top-level static route: `/order`, `/admin`, `/how-it-works`, `/pricing`, `/faq`, `/privacy`, `/terms`, `/cookies`, `/accessibility`, `/guest-upload`, `/api`, `/event-over`, `/sitemap.xml`, `/robots.txt`, `/manifest.json`, `/sw.js`, and any future marketing page. Next.js gives static segments priority over dynamic ones, so routing-wise this is safe — but **slug generation must blacklist all of them** or admins will be able to mint an event whose URL silently shadows a real page.
+Once `/[eventSlug]` lives at the root, it competes with every other top-level static route: `/order`, `/admin`, `/how-it-works`, `/pricing`, `/faq`, `/privacy`, `/terms`, `/cookies`, `/accessibility`, `/guest-upload`, `/api`, `/event-over`, `/sitemap.xml`, `/robots.txt`, `/manifest.json`, `/sw.js`, and any future marketing page. Next.js gives static segments priority over dynamic ones, so routing-wise this is safe - but **slug generation must blacklist all of them** or admins will be able to mint an event whose URL silently shadows a real page.
 
 Action items:
 - Add `RESERVED_SLUGS` constant to [src/lib/slug.ts](src/lib/slug.ts) listing every reserved top-level segment.
@@ -164,7 +164,7 @@ The grep in research turned up ~58 occurrences. They fall into these categories:
 4. **API-side URL building**: [src/app/api/admin/events/route.ts](src/app/api/admin/events/route.ts#L206), [src/app/api/admin/requests/route.ts](src/app/api/admin/requests/route.ts#L301), [src/app/api/payment/callback/route.ts](src/app/api/payment/callback/route.ts#L311), [src/app/api/payment/create-session/route.ts](src/app/api/payment/create-session/route.ts#L110).
 5. **Admin UI**: [src/app/admin/page.tsx](src/app/admin/page.tsx#L67), [src/app/admin/_components/QRDialog.tsx](src/app/admin/_components/QRDialog.tsx#L33), [src/app/admin/_components/events/CreateEventDialog.tsx](src/app/admin/_components/events/CreateEventDialog.tsx#L247), [src/app/admin/_components/feedback/FeedbackTab.tsx](src/app/admin/_components/feedback/FeedbackTab.tsx#L184).
 6. **SEO**: [src/app/sitemap.ts](src/app/sitemap.ts), [public/manifest.json](public/manifest.json), all `<Metadata>` `alternates.canonical` values, the `start_url` in `manifest.json`.
-7. **Tests**: the e2e tests under `__tests__/e2e/flows/` reference paths — sweep them too.
+7. **Tests**: the e2e tests under `__tests__/e2e/flows/` reference paths - sweep them too.
 
 ### 3.5 Cutover sequence (one PR, one deploy)
 
@@ -181,18 +181,18 @@ The whole route move must ship in a single deploy. Half-migrated state will bric
 
 ### 3.6 What does *not* change
 - Database column names (`event_slug` is still just a slug).
-- API endpoints — `/api/secure/likes` etc. stay where they are.
+- API endpoints - `/api/secure/likes` etc. stay where they are.
 - Admin routes stay at `/admin/*`.
 - Guest upload portal stays at `/guest-upload/[token]`.
-- Service worker scope — but `start_url` in `manifest.json` must be updated.
+- Service worker scope - but `start_url` in `manifest.json` must be updated.
 
 ---
 
-## 4. Workstream B — i18n (Hebrew + English)
+## 4. Workstream B - i18n (Hebrew + English)
 
 ### 4.1 Scope
 - **In scope**: marketing pages (`/`, `/order`, `/pricing`, `/how-it-works`, `/faq`, `/privacy`, `/terms`, `/cookies`, `/accessibility`, `/event-over`), the entire dating app (`/[eventSlug]/*`), error pages, the service worker offline page, OTP/SMS templates (English variants for English-speaking participants).
-- **Out of scope**: `/admin/*` (Hebrew-only by user instruction), `/guest-upload/[token]` (Hebrew-only — used by Israeli event organisers).
+- **Out of scope**: `/admin/*` (Hebrew-only by user instruction), `/guest-upload/[token]` (Hebrew-only - used by Israeli event organisers).
 
 ### 4.2 Library choice
 
@@ -205,14 +205,14 @@ Why `next-intl`:
 - Tree-shakeable per route segment, no runtime overhead in client bundles beyond the strings actually used.
 - Good Hebrew/RTL tooling: `useLocale()` plus a `dir` helper.
 
-Trade-off: requires the route group `app/[locale]/...` pattern, which means a *second* big folder move on top of §3. We do them together (see §11 — combined Phase 1).
+Trade-off: requires the route group `app/[locale]/...` pattern, which means a *second* big folder move on top of §3. We do them together (see §11 - combined Phase 1).
 
 ### 4.3 URL strategy
 
 **Pattern**: locale as the first segment, with the default (Hebrew) **shown explicitly** for clarity in SMS templates and OG previews.
 
 ```
-/he/                       (Hebrew landing — current default)
+/he/                       (Hebrew landing - current default)
 /en/                       (English landing)
 /he/order                  /en/order
 /he/[eventSlug]/join       /en/[eventSlug]/join
@@ -229,7 +229,7 @@ Why explicit prefix on the default locale:
 - Marketing pages: language toggle in the global nav (he/en pill, top-right in LTR / top-left in RTL).
 - Dating app: a toggle inside `/profile` and inside `/setup` step 1 (before they've committed to anything). Once changed, the locale is persisted in:
   - a cookie (`NEXT_LOCALE`, 1 year, `Lax`, `Secure`), and
-  - the user's `participants.preferred_locale` column (new — see §4.5).
+  - the user's `participants.preferred_locale` column (new - see §4.5).
 - Server-side: locale is resolved per request as `cookie → URL prefix → Accept-Language → 'he'`.
 
 ### 4.5 Schema changes
@@ -243,7 +243,7 @@ ALTER TABLE event_requests ADD COLUMN preferred_locale TEXT NOT NULL DEFAULT 'he
   CHECK (preferred_locale IN ('he', 'en'));
 ```
 
-`events.preferred_locale` is intentionally *not* added — events are bilingual at the participant level, not the event level (an English-speaking attendee at a Hebrew wedding should see English UI without changing what other attendees see).
+`events.preferred_locale` is intentionally *not* added - events are bilingual at the participant level, not the event level (an English-speaking attendee at a Hebrew wedding should see English UI without changing what other attendees see).
 
 ### 4.6 SMS / email templates
 
@@ -251,7 +251,7 @@ ALTER TABLE event_requests ADD COLUMN preferred_locale TEXT NOT NULL DEFAULT 'he
 
 ### 4.7 RTL / LTR handling
 
-- `<html lang>` and `<html dir>` become dynamic — set in the locale-segment root layout based on `useLocale()`.
+- `<html lang>` and `<html dir>` become dynamic - set in the locale-segment root layout based on `useLocale()`.
 - All CSS files in `src/app/styles/` already use logical properties in many places, but several use `left`/`right`. A grep-and-replace pass is required to migrate to `inline-start`/`inline-end`. This is mechanical but tedious.
 - The decorative `Great Vibes` script font is Latin-only and looks wrong for Hebrew event names (already noted as `font-family: 'Great Vibes', cursive` in many headers). Confirm with the user: when the **event name** is Hebrew but the **UI locale** is English, do we still want Great Vibes for the name? Recommendation: yes, because the script font is applied to the event name itself, not the UI chrome, and Hebrew users have been seeing this work fine for English event names already (the font swap is gated on the *content's* script, not the locale). Implementation: detect Hebrew characters in the event name and conditionally apply the Rubik font instead.
 
@@ -261,7 +261,7 @@ We have ~80 files with Hebrew literals. Brute-force extraction is the only path.
 
 1. Define namespaces matching folder structure: `marketing`, `wizard`, `join`, `setup`, `grid`, `swipe`, `chat`, `likes`, `profile`, `match`, `errors`, `sms`, `email`.
 2. Per file: extract all `>text<`, `placeholder=`, `aria-label=`, `title=`, `alt=` literals into the namespace's `he.json` and replace with `{t('key')}`.
-3. Mechanical translation pass for `en.json` (we'll do this manually — auto-translation creates marketing copy embarrassments).
+3. Mechanical translation pass for `en.json` (we'll do this manually - auto-translation creates marketing copy embarrassments).
 4. ESLint rule: add `eslint-plugin-i18next` or similar to fail the build on raw Hebrew/English string literals in JSX outside of approved files (admin pages, server-only constants).
 
 Estimated message-key count: 600–900 keys total across the user-facing surface.
@@ -273,7 +273,7 @@ Estimated message-key count: 600–900 keys total across the user-facing surface
 
 ---
 
-## 5. Workstream C — Extended event analytics
+## 5. Workstream C - Extended event analytics
 
 ### 5.1 What we already compute
 
@@ -325,7 +325,7 @@ The `?utm_qr=1` query param on the QR-code URL distinguishes a QR scan from a ty
 6. **Photo-completeness vs match rate**: cohort analysis (1 photo / 2-3 / 4-6 / 7+).
 
 #### C. Time dynamics
-1. **Peak-hour activity heatmap** (we already log `activity_log` with timestamps — just bucket by 15-min slot and action type).
+1. **Peak-hour activity heatmap** (we already log `activity_log` with timestamps - just bucket by 15-min slot and action type).
 2. **First-like / first-match / first-message** time-since-event-start histograms.
 3. **Drop-off curve**: how long after joining does each cohort stay active?
 4. **Session count per participant**: how many times did they reopen the app during the event?
@@ -342,14 +342,14 @@ The `?utm_qr=1` query param on the QR-code URL distinguishes a QR scan from a ty
 3. Match rate by city (when ≥ N participants from same city).
 
 #### F. Safety
-1. **Reports per 100 participants** (we have `blocks` with context flags — already half-done).
+1. **Reports per 100 participants** (we have `blocks` with context flags - already half-done).
 2. **Bans issued during event** (admin actions on this event).
-3. **OTP failure rate** (wrong codes / max attempts hit) — anomalous spikes suggest spam.
+3. **OTP failure rate** (wrong codes / max attempts hit) - anomalous spikes suggest spam.
 
 #### G. Quality of experience
-1. **Error rate**: client errors per session (requires lightweight client error logging — see §5.4).
+1. **Error rate**: client errors per session (requires lightweight client error logging - see §5.4).
 2. **Median FCP / LCP** if we expose Web Vitals reporting (Next.js supports this OOTB).
-3. **Realtime delivery health**: % of notifications that arrived via WebSocket vs polling fallback (the hub already knows this — just count and report).
+3. **Realtime delivery health**: % of notifications that arrived via WebSocket vs polling fallback (the hub already knows this - just count and report).
 
 #### H. Post-event feedback (we already have this partially)
 We already collect `/feedback` survey responses. Integrate the scores (NPS, "did you meet someone?", "would you use again?") into the same analytics object so the post-event report has them.
@@ -361,7 +361,7 @@ To avoid bloating the live analytics endpoint (which is already 646 lines) and t
 1. Keep the existing `EventAnalytics` shape; add sub-objects: `funnel`, `engagementQuality`, `timeDynamics`, `network`, `crosstabs`, `safety`, `experience`, `feedback`.
 2. Move computation out of one monster function into one file per sub-object under `src/lib/analytics/`. The orchestrator (`computeEventAnalytics`) becomes a 30-line aggregator.
 3. **Eager materialisation for expensive ones**: the Gini coefficient and conversation-graph density are O(participants²). For an event with 800 participants this is fine in-memory, but we should cap and short-circuit at 5000.
-4. **Snapshot extension**: the existing `event_analytics_snapshots` row stores a JSONB. New fields go straight into that JSONB — no schema migration there, just a versioned `schema_version` field so old snapshots remain readable.
+4. **Snapshot extension**: the existing `event_analytics_snapshots` row stores a JSONB. New fields go straight into that JSONB - no schema migration there, just a versioned `schema_version` field so old snapshots remain readable.
 
 ### 5.4 Client-side error / vitals reporting (small new endpoint)
 
@@ -376,7 +376,7 @@ The current analytics query already pulls up to 7 × 100k rows in parallel. With
 
 ---
 
-## 6. Workstream D — Out-of-app SMS notifications & reminders
+## 6. Workstream D - Out-of-app SMS notifications & reminders
 
 ### 6.1 Use cases the user actually asked for
 
@@ -386,11 +386,11 @@ The current analytics query already pulls up to 7 × 100k rows in parallel. With
 | 2 | Profile complete but no likes/messages 30 min in | "המסיבה בעיצומה! ב-{event} כבר {n} רווקים. בוא תראה" | Once per participant per event |
 | 3 | Received a like and is not in the app | "🔥 קיבלת לייק חדש ב-{event}" | Max 1 per hour per participant; only if `last_seen_at` > 10 min ago |
 | 4 | Received a message and is not in the app | "💬 הודעה חדשה ב-{event} מ-{display_name}" | Max 1 every 15 min per participant; only if `last_seen_at` > 5 min ago and conversation hasn't been opened |
-| 5 | Mutual match and is not in the app | "✨ יש לכם מאצ׳ ב-{event}!" | Always sent (this is the moment) — only if `last_seen_at` > 10 min |
+| 5 | Mutual match and is not in the app | "✨ יש לכם מאצ׳ ב-{event}!" | Always sent (this is the moment) - only if `last_seen_at` > 10 min |
 
 All messages localised per `participants.preferred_locale`.
 
-### 6.2 Presence detection — "not in the app"
+### 6.2 Presence detection - "not in the app"
 
 The product question: *when do we count someone as "not in the app"?*
 
@@ -402,7 +402,7 @@ in_app = (heartbeat seen in last 60s) OR (PWA tab visible per visibilitychange i
 
 Implementation:
 - `HeartbeatPinger` already fires every 60 s. We add a `tab_visible` boolean to its payload (from `document.visibilityState`).
-- Server-side, we **don't** debounce visible-tab heartbeats (drop the 2-min `last_seen_at` debounce for these — the storage cost is trivial).
+- Server-side, we **don't** debounce visible-tab heartbeats (drop the 2-min `last_seen_at` debounce for these - the storage cost is trivial).
 - Add a derived column `participants.is_present` that we compute on read (or a function `is_participant_present(id, threshold)`).
 - The "send SMS" decision for items 3/4/5 happens *inside* the API route that creates the like/message/match, after the fire-and-forget DB insert, gated on `is_present === false`.
 
@@ -441,7 +441,7 @@ Cron: `GET /api/cron/dispatch-sms` runs every 60 s (Vercel cron supports per-min
 
 ### 6.4 Why SMS and not Web Push?
 
-Web Push *is* available on iOS Safari 16.4+ (March 2023+) and on every Android browser, **but only for installed PWAs**. Our product hypothesis is that 60–80 % of attendees never install the PWA — they scan the QR and use the in-browser page. For those users Web Push silently fails. SMS reaches everyone who got past phone-verification (which is everyone in the app), so it's the only universally-deliverable channel for "you're not in the app right now" notifications.
+Web Push *is* available on iOS Safari 16.4+ (March 2023+) and on every Android browser, **but only for installed PWAs**. Our product hypothesis is that 60–80 % of attendees never install the PWA - they scan the QR and use the in-browser page. For those users Web Push silently fails. SMS reaches everyone who got past phone-verification (which is everyone in the app), so it's the only universally-deliverable channel for "you're not in the app right now" notifications.
 
 We can *add* Web Push later as an optimisation that **replaces** SMS for users who installed the PWA and granted permission (saves cost), but it must never be the only channel. Defer for now.
 
@@ -456,7 +456,7 @@ Total ~650 SMS/event vs current ~200. We should:
 - Add a per-event hard cap (e.g. 3 OOA SMS per participant per event total across all types) and surface it in admin so client can lower it.
 - Per-event opt-out: a single column `events.sms_notifications_enabled` (default true) lets the admin turn the whole thing off.
 - Per-participant opt-out: a "SMS notifications" toggle inside `/profile`, persisted as `participants.sms_notifications_enabled` (default true).
-- A "stop" keyword pathway via TextMe inbound webhooks (TextMe supports inbound) — append phone to a global `sms_optout` table.
+- A "stop" keyword pathway via TextMe inbound webhooks (TextMe supports inbound) - append phone to a global `sms_optout` table.
 
 ### 6.6 Rules around quiet hours
 - Default: do not dispatch any `pending_sms` between 22:30 and 08:30 Israel time. Defer to next morning.
@@ -482,19 +482,19 @@ Total ~650 SMS/event vs current ~200. We should:
 
 ---
 
-## 7. Workstream E — Post-event client report
+## 7. Workstream E - Post-event client report
 
 ### 7.1 What the user actually wants
 
 A "report-grade" deliverable sent to the paying client the day after the event, that:
-- Shows the client a **subset** of the analytics (we choose what's appropriate — not safety internals).
+- Shows the client a **subset** of the analytics (we choose what's appropriate - not safety internals).
 - Is visually polished (charts + cards, not a JSON dump).
-- Includes an **AI-generated narrative** that summarises what happened and gives commentary ("this event ran hot — 38 % of attendees joined, twice the platform average; matches were heavily concentrated in the 25–32 age band; consider …").
+- Includes an **AI-generated narrative** that summarises what happened and gives commentary ("this event ran hot - 38 % of attendees joined, twice the platform average; matches were heavily concentrated in the 25–32 age band; consider …").
 - Is delivered as: an emailed PDF + a unique link to a hosted version (with optional expiry).
 
 ### 7.2 New identity: the *client* (event owner)
 
-We currently have no concept of an event owner — admins manage everything. We need to introduce a third actor:
+We currently have no concept of an event owner - admins manage everything. We need to introduce a third actor:
 
 ```
 admins         → /admin                    (Eventa staff)
@@ -506,7 +506,7 @@ The existing `/guest-upload/[token]` portal is already token-authenticated. We e
 
 - Rename `/guest-upload/[token]` → `/portal/[token]` (with a 308 redirect). The portal becomes a multi-tab thing: "Guest list" (existing), "Report" (new, only visible after `event.status='ended'`).
 - The token is the same one already issued by `POST /api/admin/events/[eventId]/portal-token`.
-- Token lifetime: extend to event-end + 30 days (currently shorter — verify in code) so clients can still access the report a month later.
+- Token lifetime: extend to event-end + 30 days (currently shorter - verify in code) so clients can still access the report a month later.
 
 ### 7.3 Curated "client view" of analytics
 
@@ -514,14 +514,14 @@ What goes in the client report (curated subset of §5.2):
 
 | Section | Includes | Excludes |
 |---|---|---|
-| **Headline** | Total participants, total matches, total messages, average rating from feedback | — |
+| **Headline** | Total participants, total matches, total messages, average rating from feedback | - |
 | **Demographics** | Gender split, age distribution, top cities | Looking-for distribution (privacy-sensitive) |
 | **Engagement** | Likes sent, match rate, conversations started, two-sided conversations, median messages-per-conversation | Per-person stats |
-| **Time dynamics** | Activity heatmap (15-min buckets), peak hour, time-to-first-match histogram | — |
-| **Quality moments** | "First match happened at HH:MM (T+ 23 min from event start)", N matches in the first hour | — |
+| **Time dynamics** | Activity heatmap (15-min buckets), peak hour, time-to-first-match histogram | - |
+| **Quality moments** | "First match happened at HH:MM (T+ 23 min from event start)", N matches in the first hour | - |
 | **Feedback** | Aggregate ratings, sample quotes (with consent) | Individual quotes attributed to a person |
-| **AI commentary** | 200–400 words generated narrative (see §7.5) | — |
-| **NOT included** | Block reasons, banned participants, individual photos, individual conversation content, phone numbers, IPs | — |
+| **AI commentary** | 200–400 words generated narrative (see §7.5) | - |
+| **NOT included** | Block reasons, banned participants, individual photos, individual conversation content, phone numbers, IPs | - |
 
 ### 7.4 Rendering: PDF + hosted view
 
@@ -530,7 +530,7 @@ Two artefacts from one source of truth:
 **Hosted view** (`/portal/[token]/report`): a normal React page that fetches the curated payload from `GET /api/portal/[token]/report` and renders it with Recharts (already in deps). Shareable via the token URL.
 
 **PDF**: rendered server-side from the same React tree using one of:
-- `@react-pdf/renderer` (writes a separate component tree — duplicates work, but no headless browser cost).
+- `@react-pdf/renderer` (writes a separate component tree - duplicates work, but no headless browser cost).
 - `puppeteer-core` + Chromium on a Vercel function (high cold-start cost, ~250 MB layer).
 - **Recommendation**: a third-party HTML→PDF service like `Browserless.io`, `Pdfshift`, or `Vercel's @vercel/og` for image renderings. Since the user explicitly mentioned "a saved screenshot of an analytics page", an **image (PNG) snapshot via `@vercel/og` + a separate PDF assembly** is the lowest-friction path.
 
@@ -541,7 +541,7 @@ Two artefacts from one source of truth:
 Inputs to the model: the curated analytics JSON only (no PII, no message content).
 
 Pipeline:
-- Provider: OpenAI `gpt-4o-mini` (cheap, fast, multilingual — needed for Hebrew/English). Anthropic Claude `haiku` is a fine alternative; both have stable APIs and no surprise cost spikes.
+- Provider: OpenAI `gpt-4o-mini` (cheap, fast, multilingual - needed for Hebrew/English). Anthropic Claude `haiku` is a fine alternative; both have stable APIs and no surprise cost spikes.
 - System prompt fixes voice ("you are an event-analytics writer for Eventa, write in {locale}, be concrete, cite numbers, never invent, never name individuals").
 - User prompt is the curated JSON + the event metadata + the locale.
 - Output is a 200–400 word narrative + 3 bullet "highlights" + 1 "suggestion for next event".
@@ -624,7 +624,7 @@ Subscribers (all in-process, all fire-and-forget):
 - `notificationDispatcher` → enqueues `pending_sms` rows.
 - `realtimeBroadcaster` → already implicit via Supabase Realtime, no change.
 
-The bus is in-process and stateless across cold starts, which is exactly what we want — we're not building Kafka, we're collapsing two side-effects (analytics row + SMS enqueue) into one call site. If we ever need cross-instance fan-out (e.g. webhook subscribers), we promote the bus to a Postgres `LISTEN/NOTIFY` channel without changing call sites.
+The bus is in-process and stateless across cold starts, which is exactly what we want - we're not building Kafka, we're collapsing two side-effects (analytics row + SMS enqueue) into one call site. If we ever need cross-instance fan-out (e.g. webhook subscribers), we promote the bus to a Postgres `LISTEN/NOTIFY` channel without changing call sites.
 
 ---
 
@@ -652,12 +652,12 @@ We already have Vitest + Playwright + MSW set up.
 
 | Phase | Tests added |
 |---|---|
-| 1 — route migration | Playwright e2e: stale `/dating/...` URL → 308 → correct page; QR code regression test. Unit: `RESERVED_SLUGS` rejects every reserved word. |
-| 1 — i18n | Snapshot test per page in he & en. Unit: locale resolution from cookie/URL/Accept-Language priority. Unit: every i18n key in `he.json` has a counterpart in `en.json` (and vice versa). |
-| 2 — analytics | Unit: each analytics sub-module with a fixture event. Golden-file: snapshot of `EventAnalytics` JSON for a curated test event. |
-| 3 — funnel SMS | Integration: simulate funnel transitions, assert `pending_sms` rows created/cancelled correctly. Cron dispatch with `cancel_if_seen_after` semantics. |
-| 4 — OOA SMS | Integration: like fires when both online (no SMS), like fires when target offline (SMS), like fires then target opens app within 2 min (cancelled). |
-| 5 — report | E2E: archive a fixture event, run report cron, assert email sent, assert hosted page loads, assert AI summary is non-empty when API key present, gracefully empty when not. |
+| 1 - route migration | Playwright e2e: stale `/dating/...` URL → 308 → correct page; QR code regression test. Unit: `RESERVED_SLUGS` rejects every reserved word. |
+| 1 - i18n | Snapshot test per page in he & en. Unit: locale resolution from cookie/URL/Accept-Language priority. Unit: every i18n key in `he.json` has a counterpart in `en.json` (and vice versa). |
+| 2 - analytics | Unit: each analytics sub-module with a fixture event. Golden-file: snapshot of `EventAnalytics` JSON for a curated test event. |
+| 3 - funnel SMS | Integration: simulate funnel transitions, assert `pending_sms` rows created/cancelled correctly. Cron dispatch with `cancel_if_seen_after` semantics. |
+| 4 - OOA SMS | Integration: like fires when both online (no SMS), like fires when target offline (SMS), like fires then target opens app within 2 min (cancelled). |
+| 5 - report | E2E: archive a fixture event, run report cron, assert email sent, assert hosted page loads, assert AI summary is non-empty when API key present, gracefully empty when not. |
 
 ---
 
@@ -666,8 +666,8 @@ We already have Vitest + Playwright + MSW set up.
 | Phase | Deploys | Headline | Reversible? |
 |---|---|---|---|
 | **0** | 1 | New funnel + telemetry tables created, client emits events but nothing reads them yet. Risk-free instrumentation. | Yes |
-| **1** | 1 | Combined route migration (`/dating` → root) **+** i18n shell. All old URLs 308-redirect. UI gains he/en toggle. | Mostly — requires DB rollback for `RESERVED_SLUGS` constraint and locale columns. Redirects can stay. |
-| **2** | 1 | Extended analytics computation goes live; admin sees new charts. Snapshot schema bumps to v2. | Yes — just stop calling the new sub-modules. |
+| **1** | 1 | Combined route migration (`/dating` → root) **+** i18n shell. All old URLs 308-redirect. UI gains he/en toggle. | Mostly - requires DB rollback for `RESERVED_SLUGS` constraint and locale columns. Redirects can stay. |
+| **2** | 1 | Extended analytics computation goes live; admin sees new charts. Snapshot schema bumps to v2. | Yes - just stop calling the new sub-modules. |
 | **3** | 1 | Abandoned-funnel + inactivity-nudge SMS. Feature flag `SMS_FUNNEL_ENABLED` so we can dark-launch. | Yes via flag. |
 | **4** | 1 | OOA SMS for likes/messages/matches. Feature flag `SMS_OOA_ENABLED`. Per-participant opt-out shipped at the same time. | Yes via flag. |
 | **5** | 1 | Client portal + post-event report. Admin can opt-in per event before universal rollout. | Yes per event. |
@@ -682,24 +682,24 @@ We already have Vitest + Playwright + MSW set up.
 |---|---|---|
 | 1 | English copy: do you want Eventa to write it, or do you have a translator? | Eventa writes a first pass; you review. |
 | 2 | Should `/admin` stay literally Hebrew-only, or "Hebrew-default but English optional"? | Hebrew-only as you said. |
-| 3 | OOA SMS per-participant hard cap per event — 3, 5, or 10? | 5. |
-| 4 | Quiet hours — Israel time only, or per-event timezone? | Israel time (we are Israel-only today). |
+| 3 | OOA SMS per-participant hard cap per event - 3, 5, or 10? | 5. |
+| 4 | Quiet hours - Israel time only, or per-event timezone? | Israel time (we are Israel-only today). |
 | 5 | AI model choice: OpenAI `gpt-4o-mini` or Anthropic `claude-3-5-haiku`? | `gpt-4o-mini` (existing TextMe-style Israeli SaaS market familiarity, cheaper at this size). |
 | 6 | Report delivery: email + hosted only, or also WhatsApp link push to client? | Email + hosted in v1, add WA in v1.1 if asked. |
 | 7 | Web Push: add as opt-in optimisation alongside SMS (saves cost for installed-PWA users)? | Defer to a later phase. |
-| 8 | Existing events in the DB — do we backfill funnel events for them? | No (they're already done; new events benefit). |
-| 9 | The `Great Vibes` script font on English UI — keep for event names only, or drop entirely? | Keep for event names only. |
-| 10 | A "test mode" report admins can generate for any event regardless of status? | Yes — admin-only `?force=true` query param on the report endpoint. |
-| 11 | Moderation thresholds (§14.4) — admin-tunable per event, or global only in v1? | Global only in v1; admin-tunable in v1.1 if pilot events show variance. |
-| 12 | Should borderline images (scores in the 0.55–0.85 "sexual" band) be held for admin review, or auto-approved with a flag? | **Auto-approved + shadow-review queue** (§14.4 / §14.12) — the user is never blocked by a borderline call. Admin can retroactively remove if confirmed. |
-| 13 | HEIC handling on iOS uploads — drop from allowed extensions (forcing iOS to convert to JPEG on share), or keep and add a worker-based decoder? | Drop. Simpler, faster, and iOS converts transparently. |
-| 14 | Should the realtime "syncing…" stale-connection indicator (§15.4 #3) appear at 30 s, 60 s, or 90 s of WebSocket silence? | 60 s — quiet enough to avoid false alarms during natural lulls. |
+| 8 | Existing events in the DB - do we backfill funnel events for them? | No (they're already done; new events benefit). |
+| 9 | The `Great Vibes` script font on English UI - keep for event names only, or drop entirely? | Keep for event names only. |
+| 10 | A "test mode" report admins can generate for any event regardless of status? | Yes - admin-only `?force=true` query param on the report endpoint. |
+| 11 | Moderation thresholds (§14.4) - admin-tunable per event, or global only in v1? | Global only in v1; admin-tunable in v1.1 if pilot events show variance. |
+| 12 | Should borderline images (scores in the 0.55–0.85 "sexual" band) be held for admin review, or auto-approved with a flag? | **Auto-approved + shadow-review queue** (§14.4 / §14.12) - the user is never blocked by a borderline call. Admin can retroactively remove if confirmed. |
+| 13 | HEIC handling on iOS uploads - drop from allowed extensions (forcing iOS to convert to JPEG on share), or keep and add a worker-based decoder? | Drop. Simpler, faster, and iOS converts transparently. |
+| 14 | Should the realtime "syncing…" stale-connection indicator (§15.4 #3) appear at 30 s, 60 s, or 90 s of WebSocket silence? | 60 s - quiet enough to avoid false alarms during natural lulls. |
 
 ---
 
 ## 13. What this plan deliberately does *not* change
 
-- The realtime stack (`RealtimeHub`) — it works and is hard-won. Don't touch it.
+- The realtime stack (`RealtimeHub`) - it works and is hard-won. Don't touch it.
 - The OTP flow itself (only adds optional `?lang=` carry-through).
 - The dual-fingerprint ban system.
 - The dual-JWT auth scheme.
@@ -710,32 +710,32 @@ We already have Vitest + Playwright + MSW set up.
 
 ---
 
-## 14. Workstream F — Image moderation (OpenAI `omni-moderation-latest`, with self-hosted Falconsai second-opinion)
+## 14. Workstream F - Image moderation (OpenAI `omni-moderation-latest`, with self-hosted Falconsai second-opinion)
 
-### 14.1 Goal & policy — two surfaces, two postures
+### 14.1 Goal & policy - two surfaces, two postures
 
-The overriding principle is **no false positives on innocent photos**. A bride blocked from uploading her own beach photo is a far worse outcome than briefly hosting one borderline image. The system must err *strongly* on the side of "allow", and only the most confident matches get blocked outright. Everything in the grey zone falls into a *shadow-review queue* that an admin sees — it doesn't block the user.
+The overriding principle is **no false positives on innocent photos**. A bride blocked from uploading her own beach photo is a far worse outcome than briefly hosting one borderline image. The system must err *strongly* on the side of "allow", and only the most confident matches get blocked outright. Everything in the grey zone falls into a *shadow-review queue* that an admin sees - it doesn't block the user.
 
 The two upload surfaces have **different policies on purpose**:
 
 | Surface | Posture | What gets blocked | What gets allowed |
 |---|---|---|---|
 | **Profile photos** | Strict | Explicit full nudity (exposed genitalia, female nipples), sexually explicit acts, CSAM, graphic violence | Shirtless, swimwear, cleavage, suggestive poses, lingerie photos that aren't sexually explicit, alcohol, party shots |
-| **Chat images (1:1)** | Loose | Only CSAM and graphic violence get blocked. Everything else is allowed. | Full nudity is **allowed** in chat — it's a private 1:1 channel between two consenting adults who already matched. The product shouldn't moderate consensual adult conversation. |
+| **Chat images (1:1)** | Loose | Only CSAM and graphic violence get blocked. Everything else is allowed. | Full nudity is **allowed** in chat - it's a private 1:1 channel between two consenting adults who already matched. The product shouldn't moderate consensual adult conversation. |
 
-The rationale: profile photos are broadcast to every attendee at an event — they're effectively public within the venue. Anyone can see them, including the wedding's grandmother. They need to be safe-for-event. Chat images are sent inside an already-established mutual match (both sides liked each other), where adult content between consenting users is not the product's business to police — only illegal content is.
+The rationale: profile photos are broadcast to every attendee at an event - they're effectively public within the venue. Anyone can see them, including the wedding's grandmother. They need to be safe-for-event. Chat images are sent inside an already-established mutual match (both sides liked each other), where adult content between consenting users is not the product's business to police - only illegal content is.
 
-Background images uploaded by the admin in the wizard are **not** moderated automatically — the admin already gates them and CSAM/illegal content there is the admin's responsibility. (We could moderate them as a backstop; cheap to add.)
+Background images uploaded by the admin in the wizard are **not** moderated automatically - the admin already gates them and CSAM/illegal content there is the admin's responsibility. (We could moderate them as a backstop; cheap to add.)
 
-### 14.2 Model selection — the free-tier landscape
+### 14.2 Model selection - the free-tier landscape
 
 The brief is "best free model, low false-positive rate". Here is the actual market for free image NSFW classification as of mid-2026, ranked by suitability:
 
 | Option | Modality | Cost | Latency | Strengths | Weaknesses |
 |---|---|---|---|---|---|
-| **OpenAI `omni-moderation-latest`** | Hosted multimodal | **Free** (no per-call charge on OpenAI's moderation endpoint) | 300–700 ms | Best calibration of any free option; per-category numeric scores (`sexual`, `sexual/minors`, `violence/graphic`, `self-harm`, etc.); handles photo realism well; we already need an OpenAI key for §7. | Sends image to a third party; rate limits exist (generous — 1k req/min for tier-1 accounts); occasional false positives on suggestive-but-clothed photos. |
-| **Falconsai/nsfw_image_detection** (HuggingFace, ViT) | Self-hosted or HF Inference API | **Free** (open weights, MIT-style license) | 80–200 ms self-hosted | Tiny binary classifier (`nsfw` vs `normal`); very fast; well-known and battle-tested; can run as a Vercel Edge function or a tiny Fly.io worker; no external network call needed. | Binary only — no nuance between "swimwear" and "explicit". Trained heavily on porn vs not-porn, so swimwear is borderline. Higher false-positive rate on borderline photos than OpenAI. No CSAM-specific signal. |
-| **AdamCodd/vit-base-nsfw-detector** (HuggingFace) | Self-hosted | Free | ~150 ms | More fine-grained labels (`drawings`, `hentai`, `neutral`, `porn`, `sexy`) which maps to our "explicit vs suggestive" cut more naturally than Falconsai. | Same self-hosting cost as Falconsai. Slightly less popular — less community calibration data. |
+| **OpenAI `omni-moderation-latest`** | Hosted multimodal | **Free** (no per-call charge on OpenAI's moderation endpoint) | 300–700 ms | Best calibration of any free option; per-category numeric scores (`sexual`, `sexual/minors`, `violence/graphic`, `self-harm`, etc.); handles photo realism well; we already need an OpenAI key for §7. | Sends image to a third party; rate limits exist (generous - 1k req/min for tier-1 accounts); occasional false positives on suggestive-but-clothed photos. |
+| **Falconsai/nsfw_image_detection** (HuggingFace, ViT) | Self-hosted or HF Inference API | **Free** (open weights, MIT-style license) | 80–200 ms self-hosted | Tiny binary classifier (`nsfw` vs `normal`); very fast; well-known and battle-tested; can run as a Vercel Edge function or a tiny Fly.io worker; no external network call needed. | Binary only - no nuance between "swimwear" and "explicit". Trained heavily on porn vs not-porn, so swimwear is borderline. Higher false-positive rate on borderline photos than OpenAI. No CSAM-specific signal. |
+| **AdamCodd/vit-base-nsfw-detector** (HuggingFace) | Self-hosted | Free | ~150 ms | More fine-grained labels (`drawings`, `hentai`, `neutral`, `porn`, `sexy`) which maps to our "explicit vs suggestive" cut more naturally than Falconsai. | Same self-hosting cost as Falconsai. Slightly less popular - less community calibration data. |
 | **NSFWjs** (TensorFlow.js, on-device) | Client-side | Free | 200–800 ms (depends on phone) | Zero server cost; works offline; image never leaves the device. | Adds ~4 MB to the JS bundle; trivially bypassable (attacker can patch the JS); not viable as the *only* gate. Useful as a client-side pre-filter only. |
 | **HuggingFace Inference API (free tier)** | Hosted | Free up to ~1k requests/day, then rate-limited | 500–2000 ms | No infra to maintain | Rate limit will be a hard problem at a 300-person wedding (5–10 photos/person = potential 3000 calls in an hour). |
 | **Google Vision SafeSearch** | Hosted | First 1k images/month free, then $1.50/1k | 200–500 ms | Five-level confidence per category (`VERY_UNLIKELY`…`VERY_LIKELY`); mature; CSAM detection certified. | Not free at our volume. New GCP project to manage. |
@@ -745,11 +745,11 @@ The brief is "best free model, low false-positive rate". Here is the actual mark
 **Decision: OpenAI `omni-moderation-latest` as the primary, with `Falconsai/nsfw_image_detection` as an optional self-hosted second opinion for the *grey-zone band only* (see §14.5 for the two-stage flow).** 
 
 Why:
-1. **Free**, and the OpenAI key is already needed for §7 — zero new credential management.
+1. **Free**, and the OpenAI key is already needed for §7 - zero new credential management.
 2. **Per-category numeric scores** are essential for tuning around the "shirtless OK, nudity not OK" cut. Binary models cannot make that distinction.
-3. **Dedicated `sexual/minors` category** — critical for legal compliance. None of the open-source NSFW models flag CSAM specifically; OpenAI's model has explicit signal on this.
+3. **Dedicated `sexual/minors` category** - critical for legal compliance. None of the open-source NSFW models flag CSAM specifically; OpenAI's model has explicit signal on this.
 4. **Calibration quality**: OpenAI publishes a paper benchmarking `omni-moderation-latest` against 40 categories on a held-out set; it materially outperforms older `text-moderation-007` on images and matches commercial NSFW classifiers (Hive, Sightengine) within a few percentage points.
-5. The **two-stage flow** (§14.5) lets us add Falconsai as a *low-cost sanity check* only when OpenAI's score lands in the ambiguous band — this is the single highest-leverage trick for cutting false positives without slowing down the median upload.
+5. The **two-stage flow** (§14.5) lets us add Falconsai as a *low-cost sanity check* only when OpenAI's score lands in the ambiguous band - this is the single highest-leverage trick for cutting false positives without slowing down the median upload.
 
 On-device NSFWjs is **rejected** as a primary gate (bypassable) but could be added later as an optional client-side **pre-filter** that warns the user *before* upload ("this photo looks explicit, are you sure?"). Defer.
 
@@ -766,7 +766,7 @@ The current upload flow (from [`/api/secure/upload-url`](src/app/api/secure/uplo
 
 Moderation slots in at step **4**, server-side, **after** the file is in storage but **before** the DB row is created. This is the right place because:
 - The file is now at a stable URL we can pass to OpenAI (no need to base64 it).
-- If the verdict is "block", we delete the storage object and return 422 to the client — the participant sees a friendly error and the file never becomes visible.
+- If the verdict is "block", we delete the storage object and return 422 to the client - the participant sees a friendly error and the file never becomes visible.
 - Moderation latency (~500 ms) is paid once per photo, not on every read.
 
 New endpoint flow:
@@ -782,14 +782,14 @@ POST /api/secure/photos
 
 Chat images get the same treatment in `POST /api/secure/messages` when `type='image'`.
 
-### 14.4 Thresholds — per-surface, score-based, with a grey-zone band
+### 14.4 Thresholds - per-surface, score-based, with a grey-zone band
 
 The model returns a number 0–1 per category. We define **three bands per category**:
 - **Allow band** (score below `allow_max`): immediate pass, no further checks, log the score.
 - **Grey band** (between `allow_max` and `block_min`): allowed for the user, but routed to the admin shadow-review queue *and* triggers the second-opinion model (§14.5). Photo goes live; admin can retroactively hide if confirmed.
 - **Block band** (score above `block_min`): blocked outright, storage object deleted, 422 returned.
 
-The `block_min` thresholds are intentionally high — we'd rather a few explicit photos slip into shadow-review than reject swimwear photos. The grey band is the safety net for borderline calls.
+The `block_min` thresholds are intentionally high - we'd rather a few explicit photos slip into shadow-review than reject swimwear photos. The grey band is the safety net for borderline calls.
 
 #### Profile photos (strict)
 
@@ -811,11 +811,11 @@ The `block_min` thresholds are intentionally high — we'd rather a few explicit
 | `self-harm` | `0.40` | `0.75` | Same logic. |
 | `illicit/violent` | `0.50` | `0.85` | Same. |
 
-`hate`, `harassment`, `illicit` (non-violent) are **logged but not blocked** at the image layer in either surface — text moderation is a separate concern handled at message-send time (out of scope here, but worth noting).
+`hate`, `harassment`, `illicit` (non-violent) are **logged but not blocked** at the image layer in either surface - text moderation is a separate concern handled at message-send time (out of scope here, but worth noting).
 
 Both threshold sets live in `src/lib/moderation/thresholds.ts` as exported constants so they can be tuned without a code-change cascade across the codebase. Threshold history is recorded so we can attribute any change in block rate to a specific commit.
 
-### 14.5 Implementation — two-stage flow, surface-aware
+### 14.5 Implementation - two-stage flow, surface-aware
 
 The pipeline always runs the OpenAI call. The second-opinion model (Falconsai) runs **only when the OpenAI score lands in the grey band** for the `sexual` category on profile photos. This adds ~150 ms only to grey-band uploads (an estimated <5% of all uploads) and significantly reduces false positives, because the only blocks that happen are those where *both* models agree.
 
@@ -843,7 +843,7 @@ Upload pipeline (profile photo, strict surface):
                                                                           admin sees in queue
 ```
 
-Chat images skip the second-opinion call entirely — only `sexual/minors`, `violence/graphic`, `self-harm`, `illicit/violent` are even checked, and the second model wouldn't help on those categories anyway (Falconsai is a single-axis NSFW detector).
+Chat images skip the second-opinion call entirely - only `sexual/minors`, `violence/graphic`, `self-harm`, `illicit/violent` are even checked, and the second model wouldn't help on those categories anyway (Falconsai is a single-axis NSFW detector).
 
 ```ts
 // src/lib/moderation/index.ts
@@ -872,14 +872,14 @@ export async function moderateImage(
 
   const thresholds = surface === 'profile_photo' ? PROFILE_THRESHOLDS : CHAT_THRESHOLDS;
 
-  // 1. Hard blocks (sexual/minors, etc.) — highest priority, no second opinion.
+  // 1. Hard blocks (sexual/minors, etc.) - highest priority, no second opinion.
   for (const [cat, { block_min }] of Object.entries(thresholds.hard)) {
     if ((scores[cat] ?? 0) > block_min) {
       return { decision: 'blocked', scores, reason: cat, model: 'openai' };
     }
   }
 
-  // 2. Soft (sexual) on profile — grey-band uses second opinion.
+  // 2. Soft (sexual) on profile - grey-band uses second opinion.
   if (surface === 'profile_photo') {
     const sexual = scores['sexual'] ?? 0;
     const { allow_max, block_min } = thresholds.soft.sexual;
@@ -887,7 +887,7 @@ export async function moderateImage(
       return { decision: 'blocked', scores, reason: 'sexual', model: 'openai' };
     }
     if (sexual > allow_max) {
-      // Grey band — second opinion before we block.
+      // Grey band - second opinion before we block.
       const confirmed = await secondOpinion(url);  // returns true if Falconsai also says nsfw
       if (confirmed) {
         return { decision: 'blocked', scores, reason: 'sexual', model: 'openai+falconsai' };
@@ -953,9 +953,9 @@ export async function secondOpinion(imageUrl: string): Promise<boolean | null> {
 }
 ```
 
-Hosting Falconsai is cheap: the model is ~340 MB; a single Fly.io 1x-shared CPU machine or a Modal serverless function handles tens of QPS at zero monthly cost in the free tier. For v1 we can also skip self-hosting and call HuggingFace Inference API directly (free up to the rate limit), accepting that grey-band calls will fall through to `shadow_review` when the rate limit hits — which is exactly the safe behaviour.
+Hosting Falconsai is cheap: the model is ~340 MB; a single Fly.io 1x-shared CPU machine or a Modal serverless function handles tens of QPS at zero monthly cost in the free tier. For v1 we can also skip self-hosting and call HuggingFace Inference API directly (free up to the rate limit), accepting that grey-band calls will fall through to `shadow_review` when the rate limit hits - which is exactly the safe behaviour.
 
-### 14.6 New table — `moderation_log`
+### 14.6 New table - `moderation_log`
 
 ```sql
 CREATE TABLE moderation_log (
@@ -970,7 +970,7 @@ CREATE TABLE moderation_log (
   second_opinion     jsonb,                -- { label, score } when Falconsai ran, else null
   model              text NOT NULL,        -- 'openai' | 'openai+falconsai' | 'none'
   admin_overridden   boolean NOT NULL DEFAULT false,
-  admin_action       text,                 -- 'kept' | 'removed' — set when admin reviews
+  admin_action       text,                 -- 'kept' | 'removed' - set when admin reviews
   reviewed_at        timestamptz,
   created_at         timestamptz NOT NULL DEFAULT now()
 );
@@ -979,7 +979,7 @@ CREATE INDEX idx_modlog_review_queue   ON moderation_log(event_id, created_at)
   WHERE decision = 'shadow_review' AND admin_action IS NULL;
 ```
 
-All decisions (allowed, blocked, shadow_review, deferred-on-error) are logged — required for:
+All decisions (allowed, blocked, shadow_review, deferred-on-error) are logged - required for:
 - Admin spot-checks ("why did this photo get through / blocked?").
 - Threshold tuning: query the `sexual`-score histogram over a few events and confirm the 0.55 / 0.85 cuts produce the block rate we expect (<1% blocked, <3% in grey band).
 - Repeat-offender detection (a participant whose first 3 uploads are blocked is probably trying to game the policy → auto-flag for admin).
@@ -1008,7 +1008,7 @@ The client gets a 422 with a localised, non-graphic, non-accusatory message:
 - `en`: "We couldn't process this photo. Please try another or contact us."
 
 Deliberately phrased as a *processing failure*, not a moral judgement. Reasons:
-1. The number-one outcome we're optimising against is false positives — if the user *was* in fact innocent, the last thing we want is for the app to imply they uploaded something inappropriate.
+1. The number-one outcome we're optimising against is false positives - if the user *was* in fact innocent, the last thing we want is for the app to imply they uploaded something inappropriate.
 2. The message gives a path forward ("contact us") so a genuinely-blocked-in-error user can escalate to admin without humiliation.
 3. No mention of *which* category triggered the block (avoids gaming).
 4. Repeat offenders see escalation behaviour (§14.8) but **the same neutral message**.
@@ -1018,7 +1018,7 @@ Deliberately phrased as a *processing failure*, not a moral judgement. Reasons:
 - Latency added to `POST /api/secure/photos` (profile, common path): ~400–700 ms (one OpenAI round-trip).
 - Latency in the grey-band path: +150–300 ms for the second-opinion call. This fires on an estimated <5% of uploads.
 - Latency added to `POST /api/secure/messages` for chat image (loose): ~400–700 ms (only the OpenAI call; no second opinion).
-- All moderation is sandwich-async to the user's perception — we show a "מעלה תמונה…" / "Processing photo…" state immediately and the moderation happens during it. Net feel: ~1 second from tap to visible, instead of ~600 ms before. Acceptable.
+- All moderation is sandwich-async to the user's perception - we show a "מעלה תמונה…" / "Processing photo…" state immediately and the moderation happens during it. Net feel: ~1 second from tap to visible, instead of ~600 ms before. Acceptable.
 - No impact on read paths.
 - Storage: one `moderation_log` row per upload (~400 bytes including scores JSON). For a 200-person event with ~5 photos average that's 1 000 rows / event. Auto-purged with event cleanup.
 
@@ -1035,23 +1035,23 @@ A new "Moderation" tab in the admin event detail with two queues:
 - Every `decision='shadow_review'` row, newest first.
 - Thumbnail + `sexual` score + which surface (profile/chat) + participant name.
 - Two-button action: **Keep** (sets `admin_action='kept'`, photo stays live) or **Remove** (sets `admin_action='removed'`, deletes the participant_photos row and the storage object).
-- This is the loop that lets us calibrate — if 95% of shadow-review items are getting "Keep", we know `allow_max` is too low and we should raise it.
+- This is the loop that lets us calibrate - if 95% of shadow-review items are getting "Keep", we know `allow_max` is too low and we should raise it.
 
 **Blocked queue** (for false-positive recovery):
 - Every `decision='blocked'` row from the last 7 days.
-- Storage object was already deleted, so no thumbnail — only score + participant. Useful for: "this participant complained their photo was blocked". Admin can clear their `flagged_for_review` flag and the participant can re-upload.
+- Storage object was already deleted, so no thumbnail - only score + participant. Useful for: "this participant complained their photo was blocked". Admin can clear their `flagged_for_review` flag and the participant can re-upload.
 
-Threshold tuning UI: admin-global, not per-event in v1. Two number inputs per category (`allow_max`, `block_min`) with a preview chart showing the score distribution from the last 30 days of `moderation_log` and a marker line at the current cuts — makes it visually obvious whether a proposed change would block more legitimate-looking content.
+Threshold tuning UI: admin-global, not per-event in v1. Two number inputs per category (`allow_max`, `block_min`) with a preview chart showing the score distribution from the last 30 days of `moderation_log` and a marker line at the current cuts - makes it visually obvious whether a proposed change would block more legitimate-looking content.
 
 ### 14.13 Rollout phase
 
 This becomes **Phase 6** in §11, after Phase 5 (client report). It depends only on the OpenAI key (already added in Phase 5), so it can ship right after.
 
 The rollout is itself two-stage to minimise false-positive damage:
-1. **Shadow mode** (week 1, one event): `MODERATION_ENABLED=true` but the orchestrator returns `decision: 'shadow_review'` for *everything* that would have been blocked. Nothing gets blocked, but we collect a full distribution of scores from real Eventa traffic. Admin reviews the would-have-been-blocked items — if any are false positives, we raise `block_min` before going live.
+1. **Shadow mode** (week 1, one event): `MODERATION_ENABLED=true` but the orchestrator returns `decision: 'shadow_review'` for *everything* that would have been blocked. Nothing gets blocked, but we collect a full distribution of scores from real Eventa traffic. Admin reviews the would-have-been-blocked items - if any are false positives, we raise `block_min` before going live.
 2. **Enforcement** (week 2 onwards): real blocking enabled. Shadow-review queue continues to operate for the grey band.
 
-Falconsai second-opinion can ship in phase 6 or be deferred to 6.1 — the system works (with shadow-review fallback) without it.
+Falconsai second-opinion can ship in phase 6 or be deferred to 6.1 - the system works (with shadow-review fallback) without it.
 
 ---
 
@@ -1064,23 +1064,23 @@ This is a from-scratch read of every file involved in keeping the app feeling in
 | # | Risk | What goes wrong | Fix |
 |---|---|---|---|
 | **A** | **Storage CDN latency for the photo grid** | Grid renders 50 + 3:4 cards; each is a fetch to Supabase Storage. On 3G in a hall, first paint can take 5–15 s. We do not currently use Supabase Storage's image-transformation endpoint with sized URLs. | §15.2 |
-| **B** | **No optimistic UI for the action that defines the product** — the **like** | `handleLike` round-trips to the API before the heart fills. On bad WiFi this is the difference between "snappy app" and "broken app". The optimistic pattern is already used in chat (see [`handleSend`](src/app/dating/[eventSlug]/chat/[conversationId]/page.tsx#L235)) but not in likes, grid, swipe. | §15.3 |
-| **C** | **Realtime fallback is too slow when WebSocket dies silently** | `RealtimeHub` reconnects on `visibilitychange` + `online` events, but a 4G→WiFi handoff inside a venue produces neither. Polling fallback runs every 15 s. So worst case a match notification is delayed 15 s — long enough for the user to give up. | §15.4 |
-| **D** | **Image uploads block the chat input** | `handleImageUpload` runs compression on the main thread (web worker is off — `useWebWorker: false` in [image-compression.ts](src/lib/image-compression.ts#L91)). For a 10 MB iPhone HEIC, compression can freeze the UI for 2–4 s. | §15.6 |
+| **B** | **No optimistic UI for the action that defines the product** - the **like** | `handleLike` round-trips to the API before the heart fills. On bad WiFi this is the difference between "snappy app" and "broken app". The optimistic pattern is already used in chat (see [`handleSend`](src/app/dating/[eventSlug]/chat/[conversationId]/page.tsx#L235)) but not in likes, grid, swipe. | §15.3 |
+| **C** | **Realtime fallback is too slow when WebSocket dies silently** | `RealtimeHub` reconnects on `visibilitychange` + `online` events, but a 4G→WiFi handoff inside a venue produces neither. Polling fallback runs every 15 s. So worst case a match notification is delayed 15 s - long enough for the user to give up. | §15.4 |
+| **D** | **Image uploads block the chat input** | `handleImageUpload` runs compression on the main thread (web worker is off - `useWebWorker: false` in [image-compression.ts](src/lib/image-compression.ts#L91)). For a 10 MB iPhone HEIC, compression can freeze the UI for 2–4 s. | §15.6 |
 
-Everything else is incremental — the four above are the ones I would prioritise.
+Everything else is incremental - the four above are the ones I would prioritise.
 
 ### 15.2 Photo grid: variant URLs, dimension-correct loading, skeletons that match
 
 **Findings**:
 - Current grid loads the full-resolution profile photo (up to 2048 px, 2 MB) into a 3:4 card that renders at roughly 120 px wide on a phone. That's 17× more pixels than displayed, on the most bandwidth-constrained surface in the app.
-- `<Image>` from Next.js *is* used in some places (e.g. landing) but the grid uses `<img>` directly in several spots — bypasses Next's automatic responsive sizing.
+- `<Image>` from Next.js *is* used in some places (e.g. landing) but the grid uses `<img>` directly in several spots - bypasses Next's automatic responsive sizing.
 - The skeleton placeholder isn't always the same aspect ratio as the loaded photo → layout shift when images arrive.
 
 **Fix**:
-1. **Use Supabase Storage image transformations** (Supabase supports `?width=` and `?height=` on storage URLs when image-transform is enabled on the project — check `supabase/config.toml`; if not enabled, enable it). Build a `getPhotoUrl(path, { width, dpr })` helper. Grid card requests `width=300&quality=75` (≈ 25 KB per card instead of 200 KB+).
+1. **Use Supabase Storage image transformations** (Supabase supports `?width=` and `?height=` on storage URLs when image-transform is enabled on the project - check `supabase/config.toml`; if not enabled, enable it). Build a `getPhotoUrl(path, { width, dpr })` helper. Grid card requests `width=300&quality=75` (≈ 25 KB per card instead of 200 KB+).
 2. **Convert all grid `<img>` to `<Image fill sizes="(max-width: 480px) 33vw, 33vw" />`** so Next's image optimisation also kicks in with the Sharp pipeline. Even though Supabase serves the file, the Next loader will request the right size for the device.
-3. **Preload the first 6 cards** of the grid with `<link rel="preload" as="image" imagesrcset="...">` in the head — they're above the fold.
+3. **Preload the first 6 cards** of the grid with `<link rel="preload" as="image" imagesrcset="...">` in the head - they're above the fold.
 4. **Aspect-locked skeletons**: every photo skeleton sets `aspect-ratio: 3/4` so there is zero CLS when the real photo loads.
 5. **Blurhash or `placeholder="blur"` with a 32-byte LQIP** stored alongside each photo (compute on first upload in `POST /api/secure/photos`, store in `participant_photos.blurhash`).
 
@@ -1097,7 +1097,7 @@ The chat already does this right. Apply the same pattern to:
 3. Local state: optimistically insert into useLikesStore.sentLikes.
 4. Network call fires in the background.
 5. On 4xx/5xx: revert + toast "לא הצלחנו לשלוח את הלייק. נסו שוב".
-6. On 409 (race — already liked): no-op (treat as success).
+6. On 409 (race - already liked): no-op (treat as success).
 ```
 
 **Block**:
@@ -1111,10 +1111,10 @@ The chat already does this right. Apply the same pattern to:
 
 **Implementation cost**: small. Zustand stores already exist for likes, chats, notifications. Add a `pendingLikes` set keyed by `toParticipantId` so we can roll back on failure.
 
-### 15.4 Realtime stability — closing the gaps
+### 15.4 Realtime stability - closing the gaps
 
 **Current state** (from [`realtimeHub.ts`](src/lib/realtimeHub.ts) and [`RealtimeNotificationListener.tsx`](src/components/RealtimeNotificationListener.tsx)):
-- ✅ Ref-counted singleton channels (good — survives StrictMode).
+- ✅ Ref-counted singleton channels (good - survives StrictMode).
 - ✅ Reconnect on `visibilitychange` and `online` events.
 - ✅ Polling fallback (15 s) with deduplication via `seenIds`.
 - ✅ `seenIds` pruned after 5 min.
@@ -1125,7 +1125,7 @@ The chat already does this right. Apply the same pattern to:
    
    **Fix**: in `RealtimeHub`, add a 20 s watchdog timer per channel. Every 20 s, check `channel.state`. If `state === 'joined'` but no event of any kind has arrived in the last 60 s, force a `removeChannel` + recreate. Conservative threshold; in practice for any active event there's at least one heartbeat / nearby event per minute.
 
-2. **Polling fallback is 15 s** — this is the worst-case delay for any notification. Tighten to **8 s when the tab is visible**, keep 15 s when hidden. For likes/messages specifically, fall back to 5 s polling for the *3 minutes after* the WebSocket reports CLOSED (aggressive reconnect-and-poll burst).
+2. **Polling fallback is 15 s** - this is the worst-case delay for any notification. Tighten to **8 s when the tab is visible**, keep 15 s when hidden. For likes/messages specifically, fall back to 5 s polling for the *3 minutes after* the WebSocket reports CLOSED (aggressive reconnect-and-poll burst).
 
 3. **No "stale connection" indicator to the user**. We show "offline" when `navigator.onLine === false`, but we don't show anything when WiFi is fine but the realtime channel has been dead for 60 s. Should add a subtle yellow badge "מסנכרן…" / "Syncing…" in the header when this happens; reassures users that the app knows it's behind.
 
@@ -1135,7 +1135,7 @@ The chat already does this right. Apply the same pattern to:
 
 6. **No backoff on failed reconnects**. The current reconnect is "immediate retry on visibility/online". If reconnection fails (server down for 30 s), we hammer. Add exponential backoff capped at 30 s with jitter.
 
-### 15.5 Heartbeat & presence — small but worthwhile
+### 15.5 Heartbeat & presence - small but worthwhile
 
 The `HeartbeatPinger` currently fires immediately on mount + every 60 s when visible. Findings:
 - ✅ Aborts in-flight requests on cleanup.
@@ -1148,7 +1148,7 @@ The `HeartbeatPinger` currently fires immediately on mount + every 60 s when vis
 ### 15.6 Image upload smoothness
 
 **Current**:
-- Compression runs on the main thread (`useWebWorker: false`). Comment says this is intentional — but the comment doesn't explain why. Investigate: was it because `browser-image-compression` Web Worker mode breaks Safari? If yes, gate `useWebWorker: !isSafari`. If we can't get a worker safely, at least chunk the work and `await` between steps so the spinner can paint.
+- Compression runs on the main thread (`useWebWorker: false`). Comment says this is intentional - but the comment doesn't explain why. Investigate: was it because `browser-image-compression` Web Worker mode breaks Safari? If yes, gate `useWebWorker: !isSafari`. If we can't get a worker safely, at least chunk the work and `await` between steps so the spinner can paint.
 - HEIC files from iPhones are not always natively decodable. The current code relies on the browser's `<img>` to read dimensions, which fails for HEIC on non-Safari browsers. We have HEIC in `ALLOWED_EXTENSIONS` but no conversion path. Either drop HEIC from the allowed list (force the iOS share sheet to convert to JPEG, which it does when the target says "JPEG only") or pre-process HEIC with a worker-based decoder. Recommendation: **drop HEIC**, simpler.
 - No **upload progress bar**. The signed URL upload uses `fetch` (no progress events). Replace with `XMLHttpRequest` for the upload step so we can show a 0–100 % progress bar. This single change makes the upload *feel* 2× faster on slow connections.
 - No **retry on upload failure**. If the Supabase Storage PUT fails mid-upload (very likely at venue), the user has to start over. Add automatic retry (3 attempts with exponential backoff) and surface "מנסה שוב…" mid-attempt.
@@ -1166,28 +1166,28 @@ fetchWithRetry(url, init, {
 });
 ```
 
-Migration is mechanical: replace `fetch(` with `fetchWithRetry(` in `src/lib/api/*`. For mutations that aren't idempotent (POSTs without an idempotency key), don't retry on network errors — toast and let the user retry manually. For idempotent ones (PATCH /profile with the same body, DELETE /likes) we retry safely. For new endpoints introduced in §6 (`pending_sms`) we already use idempotency-by-design (DB row with status).
+Migration is mechanical: replace `fetch(` with `fetchWithRetry(` in `src/lib/api/*`. For mutations that aren't idempotent (POSTs without an idempotency key), don't retry on network errors - toast and let the user retry manually. For idempotent ones (PATCH /profile with the same body, DELETE /likes) we retry safely. For new endpoints introduced in §6 (`pending_sms`) we already use idempotency-by-design (DB row with status).
 
 Add an `Idempotency-Key` header (UUID generated client-side) to POST /likes and POST /messages so the server can dedupe replays from retries. Server-side: a small Postgres-backed dedupe (key + result for 60 s) prevents duplicate likes / duplicate messages on retry.
 
-### 15.8 Bundle & boot — the first 1 000 ms
+### 15.8 Bundle & boot - the first 1 000 ms
 
 | Surface | Current | Target | How |
 |---|---|---|---|
-| **First contentful paint on `/[eventSlug]/`** | TTI ~1.8 s on mid-tier Android | <1.0 s | Already mostly there — dynamic imports for `MatchPopup` are good. Add `dynamic()` for `RealtimeNotificationListener` too — it doesn't need to be in the initial bundle. |
+| **First contentful paint on `/[eventSlug]/`** | TTI ~1.8 s on mid-tier Android | <1.0 s | Already mostly there - dynamic imports for `MatchPopup` are good. Add `dynamic()` for `RealtimeNotificationListener` too - it doesn't need to be in the initial bundle. |
 | **`/join` first paint** | ~1.5 s | <800 ms | This is server-renderable (we don't yet). Move OTP form to RSC + a small client island for the OTP input itself. |
 | **Realtime hub** | ~40 KB gzipped (`@supabase/realtime-js`) | unchanged | Verify it's not loaded on `/` or `/order` (it should only load inside `[eventSlug]/`). Currently the Supabase client import is module-level and may pull realtime into every route's bundle. Audit and lazy-load. |
 | **Framer Motion** | 50 KB gzip | 30 KB | Use `framer-motion/m` modular imports + LazyMotion wrapper instead of full Motion. Already partly done. |
 
-### 15.9 Caching strategy — the service worker is too conservative
+### 15.9 Caching strategy - the service worker is too conservative
 
 The current `sw.ts` ([src/app/sw.ts](src/app/sw.ts)) sets `NetworkOnly` for `/api/admin`, `/api/auth`, `/api/secure`, `/api/account`, `/api/cleanup`, `/api/health`. That's correct for *writes* and *auth*, but it makes **reads** also network-only, which is the wrong default at a venue.
 
 **Fix**:
 - Split the rules. Specifically allow `StaleWhileRevalidate` (max-age 30 s) for the read-only secure GETs that are safe to serve briefly stale:
-  - `GET /api/secure/participants` (the grid roster) — fine to serve last cache for 30 s on cold WiFi; the realtime channel will catch up.
+  - `GET /api/secure/participants` (the grid roster) - fine to serve last cache for 30 s on cold WiFi; the realtime channel will catch up.
   - `GET /api/secure/conversations`
-  - `GET /api/secure/messages` (small window — 10 s SWR — and only by exact URL match, not pattern, to avoid leaks between conversations).
+  - `GET /api/secure/messages` (small window - 10 s SWR - and only by exact URL match, not pattern, to avoid leaks between conversations).
 - **Profile/photo image responses** from Supabase Storage: cache them with `CacheFirst`, expiration 7 days, max 200 entries. Currently they fall to `defaultCache` from Serwist which is reasonable but not tuned. Photos rarely change, and re-downloading 30 grid photos every cold start is the dominant data cost.
 
 This single change probably halves the bytes downloaded for a returning user mid-event.
@@ -1199,12 +1199,12 @@ Mostly polish, but cheap to fix:
 - All entrance animations use `opacity + transform` (good), but the match popup's "heart rain" animates 10 absolutely positioned divs with `top` (CPU-bound). Replace `top` with `translateY`.
 - The grid card hover scale (0.97) triggers layout if applied to anything but `transform`. Audit the CSS file for any `width`/`height`/`top`/`left` transitions on interactive elements and migrate to `transform`.
 
-### 15.11 Monitoring — without this, the rest is theatre
+### 15.11 Monitoring - without this, the rest is theatre
 
 You can't claim "smooth at a real event" if you can't see the data after the fact.
 
 Use the new telemetry endpoint (§5.4) to ship:
-- **Web Vitals** (LCP, FID/INP, CLS, TTFB) — sample at 10 % of pageviews.
+- **Web Vitals** (LCP, FID/INP, CLS, TTFB) - sample at 10 % of pageviews.
 - **Realtime channel health**: every channel that goes `CLOSED` unexpectedly emits a `realtime_disconnect` event with `reason` and `state`.
 - **Polling vs WS delivery ratio**: for every notification we surface to the user, log which path delivered it. Target ratio: <5 % delivered via polling. If higher → WS health is bad.
 - **API error rate per endpoint, p50/p95 latency** (already partly logged server-side; add client-side too).
@@ -1223,12 +1223,12 @@ In the admin global-analytics surface (§5), add a small "Reliability" sub-tab s
 
 In order of "stops a real bug at a real event" → "polish":
 
-1. (§15.3) Optimistic likes — small change, biggest UX win.
+1. (§15.3) Optimistic likes - small change, biggest UX win.
 2. (§15.6) HEIC drop + upload progress bar + upload retries.
 3. (§15.2) Photo grid: sized URLs + blurhash + aspect-ratio skeletons.
 4. (§15.4 #1–#2) Realtime watchdog + tighter polling cadence when visible.
 5. (§15.7) `fetchWithRetry` + idempotency keys on POST `/likes` and POST `/messages`.
-6. (§15.9) Service worker tuning — SWR for safe GETs, CacheFirst for photo bytes.
+6. (§15.9) Service worker tuning - SWR for safe GETs, CacheFirst for photo bytes.
 7. (§15.5) Heartbeat retry-on-failure.
 8. (§15.4 #3–#6) Stale-connection indicator, pagehide listener, backoff.
 9. (§15.11) Telemetry shipping + admin reliability dashboard.

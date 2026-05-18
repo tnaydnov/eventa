@@ -194,7 +194,7 @@ export default function Wizard() {
             return; // User will be redirected back after payment
           }
         }
-        // Payment session failed — save order with manual follow-up status
+        // Payment session failed - save order with manual follow-up status
         const fallbackRes = await fetch('/api/order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

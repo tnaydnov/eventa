@@ -1,5 +1,5 @@
 /**
- * In-process event bus — fire-and-forget, no persistence.
+ * In-process event bus - fire-and-forget, no persistence.
  *
  * Usage:
  *   import { eventBus } from '@/lib/event-bus';
@@ -36,7 +36,7 @@ class EventBus {
         try {
           (handler as Listener<K>)(payload);
         } catch {
-          // Swallow errors — event bus must never crash the caller
+          // Swallow errors - event bus must never crash the caller
         }
       });
     }
@@ -53,5 +53,5 @@ class EventBus {
   }
 }
 
-// Singleton — shared across the entire Node.js process
+// Singleton - shared across the entire Node.js process
 export const eventBus = new EventBus();

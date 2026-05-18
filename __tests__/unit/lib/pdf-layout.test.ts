@@ -1,7 +1,7 @@
 /**
  * @vitest-environment node
  *
- * Unit tests for pdf-layout utilities — single-page PDF guarantee.
+ * Unit tests for pdf-layout utilities - single-page PDF guarantee.
  */
 
 import { describe, expect, it } from 'vitest';
@@ -11,7 +11,7 @@ const A4_W = 210;
 const A4_H = 297;
 const EPS  = 0.001; // floating-point tolerance
 
-describe('calcPdfLayout — single-page guarantee', () => {
+describe('calcPdfLayout - single-page guarantee', () => {
 
   // ──────────────────────────────────────────────
   // Core invariant: output MUST always fit A4
@@ -21,11 +21,11 @@ describe('calcPdfLayout — single-page guarantee', () => {
     [800,  1200],   // compact report
     [800,  1600],   // report with many sections
     [800,  2400],   // long report
-    [800,  4000],   // extreme — very long content
+    [800,  4000],   // extreme - very long content
     [1600,  800],   // wide/landscape screenshot
     [2100, 2970],   // exact A4 aspect ratio
-    [1,    99999],  // degenerate — ultra-tall
-    [99999, 1],     // degenerate — ultra-wide
+    [1,    99999],  // degenerate - ultra-tall
+    [99999, 1],     // degenerate - ultra-wide
   ] as [number, number][])(
     'imgW and imgH always fit A4 for canvas %ix%i',
     (cw, ch) => {
@@ -127,7 +127,7 @@ describe('calcPdfLayout — single-page guarantee', () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe('calcSinglePage — content-sized page guarantee', () => {
+describe('calcSinglePage - content-sized page guarantee', () => {
 
   // The key invariant: pageW == imgW and pageH == imgH so jsPDF
   // can NEVER produce a second page regardless of content length.
@@ -136,11 +136,11 @@ describe('calcSinglePage — content-sized page guarantee', () => {
     [800,  1200],   // compact report
     [800,  1600],   // report with many sections
     [800,  2400],   // long report
-    [800,  4000],   // extreme — very long content
+    [800,  4000],   // extreme - very long content
     [1600,  800],   // wide/landscape screenshot
     [2100, 2970],   // exact A4 aspect
-    [1,    99999],  // degenerate — ultra-tall
-    [99999,    1],  // degenerate — ultra-wide
+    [1,    99999],  // degenerate - ultra-tall
+    [99999,    1],  // degenerate - ultra-wide
   ] as [number, number][])(
     'page dimensions always positive for canvas %ix%i',
     (cw, ch) => {

@@ -126,7 +126,7 @@ export function generateReportPdf(params: {
   const lines = toLines([
     'Eventa Post-Event Report',
     `Event ID: ${eventId}`,
-    `Event Name (see portal): ${toAscii(eventName) || '(Hebrew — see online report)'}`,
+    `Event Name (see portal): ${toAscii(eventName) || '(Hebrew - see online report)'}`,
     `Generated: ${generatedAt}`,
     '',
     'Key Metrics',

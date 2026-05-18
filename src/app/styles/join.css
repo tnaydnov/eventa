@@ -1,5 +1,5 @@
 /* ───────────────────────────────────────────────────────────────
- * Premium Join Flow — splash, shell & form styles
+ * Premium Join Flow - splash, shell & form styles
  * Used by:
  *   - app/[eventSlug]/loading.tsx               (server splash)
  *   - components/join/PremiumSplashScreen
@@ -68,7 +68,7 @@
   box-sizing: border-box;
 }
 
-/* Soft static glows — animation only on larger / desktop */
+/* Soft static glows - animation only on larger / desktop */
 .pj-bg::before,
 .pj-bg::after {
   content: "";
@@ -230,7 +230,7 @@
   }
 }
 
-/* ── Header (logo only — wordmark is part of the asset) ───────── */
+/* ── Header (logo only - wordmark is part of the asset) ───────── */
 .pj-shell-header {
   display: flex;
   flex-direction: column;
@@ -267,7 +267,7 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-  /* If content overflows, scroll inside the card only — never the page */
+  /* If content overflows, scroll inside the card only - never the page */
   max-height: calc(100vh - 220px);
   max-height: calc(100dvh - 220px);
   overflow-y: auto;
@@ -291,7 +291,7 @@
   width: 100%;
 }
 
-/* Narrow phones — slightly tighter padding */
+/* Narrow phones - slightly tighter padding */
 @media (max-width: 360px) {
   .pj-card { padding: 22px 18px 18px; border-radius: 20px; gap: 16px; }
   .pj-card-inner { gap: 16px; }
@@ -581,7 +581,7 @@
 /* ── iOS interaction fixes ────────────────────────────────────── */
 /*
  * iOS Safari auto-zooms any focused input with font-size < 16px.
- * We override to the minimum 16px here — the visual size is controlled
+ * We override to the minimum 16px here - the visual size is controlled
  * by padding and the container width, not by font-size directly.
  * This eliminates the zoom-on-focus behaviour without restricting
  * user-initiated pinch zoom (which would harm accessibility).

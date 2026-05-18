@@ -157,7 +157,7 @@ async function main() {
       console.log(`   ✏️  Updated event name="${DEMO_EVENT_NAME}", join_code="${DEMO_JOIN_CODE}"\n`);
     }
   } else {
-    console.log('   Not found — creating new demo event...');
+    console.log('   Not found - creating new demo event...');
 
     // Event runs for 30 days from now
     const startsAt = new Date();

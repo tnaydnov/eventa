@@ -103,7 +103,7 @@ export default function NetworkStatus() {
     );
   }
 
-  // WebSocket reconnecting indicator (subtle — doesn't block interaction)
+  // WebSocket reconnecting indicator (subtle - doesn't block interaction)
   return (
     <div
       role="status"

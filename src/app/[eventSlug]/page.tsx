@@ -65,7 +65,7 @@ const GridCard = memo(function GridCard({
   hasLikeHighlight: boolean;
   hasMessageHighlight: boolean;
   onCardClick: (id: string) => void;
-  /** True for above-the-fold cards (first 6) — enables eager loading / preload. */
+  /** True for above-the-fold cards (first 6) - enables eager loading / preload. */
   priority?: boolean;
 }) {
   const hasHighlight = hasLikeHighlight || hasMessageHighlight;

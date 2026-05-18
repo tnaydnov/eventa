@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
         if (error && error.code !== '23505') logger.error('[LIKES_POST] funnel insert error:', error.message);
       });
     if (isMatch) {
-      // We don't have the conversation_id yet — check for existing conversation
+      // We don't have the conversation_id yet - check for existing conversation
       void (async () => {
         const supabase2 = getServiceClient();
         const { data: conv } = await supabase2

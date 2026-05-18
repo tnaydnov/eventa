@@ -7,7 +7,7 @@ import { useSessionStore } from '@/lib/store';
 const VITALS_SAMPLE_RATE = 0.1;
 
 /**
- * WebVitalsReporter — ships Core Web Vitals to /api/telemetry/vitals.
+ * WebVitalsReporter - ships Core Web Vitals to /api/telemetry/vitals.
  *
  * Uses `navigator.sendBeacon` (fire-and-forget, survives page unload) with
  * `fetch` as fallback. Drop this component into the root layout.

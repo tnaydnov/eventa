@@ -1,12 +1,12 @@
 /**
- * PDF page layout utilities — single-page guarantee.
+ * PDF page layout utilities - single-page guarantee.
  *
  * Two strategies are exported:
  *
- * 1. calcPdfLayout   — fit canvas INTO a fixed-size page (e.g. standard A4).
+ * 1. calcPdfLayout   - fit canvas INTO a fixed-size page (e.g. standard A4).
  *    Works when content is shorter than A4; if taller, content is scaled down.
  *
- * 2. calcSinglePage  — make the PAGE exactly fit the canvas (content-sized page).
+ * 2. calcSinglePage  - make the PAGE exactly fit the canvas (content-sized page).
  *    The page width is fixed (210 mm) and the height is derived from the canvas
  *    aspect ratio. Because page dimensions == image dimensions, overflow is
  *    structurally impossible regardless of content length.
@@ -26,7 +26,7 @@ export interface PdfImageLayout {
 }
 
 /**
- * Strategy 1 — fit canvas into a fixed page (e.g. A4 297mm).
+ * Strategy 1 - fit canvas into a fixed page (e.g. A4 297mm).
  * Content is scaled down if it would overflow the page height.
  */
 export function calcPdfLayout(
@@ -62,7 +62,7 @@ export interface SinglePageDimensions {
   /** PDF page width in mm (fixed at pageWidth param, default 210) */
   pageW: number;
   /**
-   * PDF page height in mm — derived from canvas aspect ratio so the page is
+   * PDF page height in mm - derived from canvas aspect ratio so the page is
    * exactly as tall as the content.  No overflow is possible because
    * page height == image height.
    */
@@ -70,15 +70,15 @@ export interface SinglePageDimensions {
 }
 
 /**
- * Strategy 2 — content-sized page (the correct approach for "always 1 page").
+ * Strategy 2 - content-sized page (the correct approach for "always 1 page").
  *
  * Creates a custom-sized page whose height matches the canvas aspect ratio.
  * Pass pageW and pageH as the jsPDF `format` option AND as the addImage
- * width/height — the page is the image; there is no room to overflow.
+ * width/height - the page is the image; there is no room to overflow.
  *
  * @param canvasWidth  Canvas pixel width  (must be > 0)
  * @param canvasHeight Canvas pixel height (must be > 0)
- * @param pageWidth    Fixed page width in mm (default 210 — A4 width)
+ * @param pageWidth    Fixed page width in mm (default 210 - A4 width)
  */
 export function calcSinglePage(
   canvasWidth: number,

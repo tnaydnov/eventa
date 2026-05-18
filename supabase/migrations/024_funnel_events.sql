@@ -22,5 +22,5 @@ CREATE INDEX IF NOT EXISTS idx_funnel_events_session ON funnel_events(session_id
 -- RLS: allow insert from service role only (no client-side writes)
 ALTER TABLE funnel_events ENABLE ROW LEVEL SECURITY;
 
--- Service role bypass (default behaviour) — no need for explicit policies
+-- Service role bypass (default behaviour) - no need for explicit policies
 -- Reads are restricted to admin-only via service role key

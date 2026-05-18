@@ -1,12 +1,12 @@
 /**
- * Falconsai/nsfw_image_detection — second-opinion for grey-band profile photos.
+ * Falconsai/nsfw_image_detection - second-opinion for grey-band profile photos.
  *
  * Calls a self-hosted endpoint (Fly.io / Modal / HuggingFace Inference API).
  * The endpoint URL is in the `FALCONSAI_ENDPOINT` env var.
  *
  * If FALCONSAI_ENDPOINT is unset (e.g. local dev, or when the service isn't yet
  * deployed), `secondOpinion()` returns `null` and the caller treats grey-band
- * calls as `shadow_review` — the safe default.
+ * calls as `shadow_review` - the safe default.
  *
  * Expected endpoint contract:
  *   POST { image_url: string }
@@ -36,7 +36,7 @@ const FALCONSAI_BLOCK_THRESHOLD = 0.85;
  */
 export async function secondOpinion(imageUrl: string): Promise<boolean | null> {
   const endpoint = process.env.FALCONSAI_ENDPOINT;
-  if (!endpoint) return null; // Not configured — safe fallback is shadow_review
+  if (!endpoint) return null; // Not configured - safe fallback is shadow_review
 
   try {
     const res = await fetch(endpoint, {
@@ -48,7 +48,7 @@ export async function secondOpinion(imageUrl: string): Promise<boolean | null> {
           : {}),
       },
       body: JSON.stringify({ image_url: imageUrl }),
-      signal: AbortSignal.timeout(4_000), // 4 s — faster SLA than OpenAI
+      signal: AbortSignal.timeout(4_000), // 4 s - faster SLA than OpenAI
     });
 
     if (!res.ok) {

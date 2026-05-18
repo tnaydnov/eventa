@@ -279,7 +279,7 @@ function reconnectSingleChannel(key: string): void {
 
     if (status === 'SUBSCRIBED') {
       managed.status = 'SUBSCRIBED';
-      channelReconnectAttempts.delete(key); // success — reset backoff
+      channelReconnectAttempts.delete(key); // success - reset backoff
       notifyConnectionListeners();
 
     } else if (status === 'CLOSED') {
@@ -312,7 +312,7 @@ function reconnectStaleChannels(): void {
     const state = managed.channel.state;
     if (state === 'joined' || state === 'joining') continue;
 
-    // Channel is stale — tear down and rebuild with backoff
+    // Channel is stale - tear down and rebuild with backoff
     reconnectSingleChannel(key);
   }
 }
@@ -334,7 +334,7 @@ if (typeof window !== 'undefined') {
       if (managed.channel.state !== 'joined') continue;
       const sinceLastEvent = now - managed.lastEventReceivedAt;
       if (sinceLastEvent > WATCHDOG_STALE_MS) {
-        // Force channel rebuild — same logic as reconnectStaleChannels
+        // Force channel rebuild - same logic as reconnectStaleChannels
         // but we treat it as stale even though state === 'joined'
         managed.status = 'CLOSED';
         managed.channel.state = 'closed' as never; // trick reconnect to pick it up

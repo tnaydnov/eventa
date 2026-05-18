@@ -1,5 +1,5 @@
 /**
- * Network analytics — graph density and connection statistics.
+ * Network analytics - graph density and connection statistics.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 

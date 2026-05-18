@@ -6,7 +6,7 @@
 ALTER TABLE participant_photos
   ADD COLUMN IF NOT EXISTS moderation_scores JSONB;
 
--- Full moderation audit log — one row per upload decision
+-- Full moderation audit log - one row per upload decision
 CREATE TABLE IF NOT EXISTS moderation_log (
   id                 UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   event_id           UUID        REFERENCES events(id) ON DELETE CASCADE,

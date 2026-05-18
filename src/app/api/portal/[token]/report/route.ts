@@ -6,7 +6,7 @@ import { logger } from '@/lib/logger';
 /**
  * GET /api/portal/[token]/report
  * Returns the curated report payload for a valid client portal token.
- * No auth required — the token is the credential.
+ * No auth required - the token is the credential.
  */
 export async function GET(
   req: NextRequest,

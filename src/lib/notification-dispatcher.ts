@@ -1,5 +1,5 @@
 /**
- * Notification dispatcher — enqueues SMS notifications into pending_sms.
+ * Notification dispatcher - enqueues SMS notifications into pending_sms.
  *
  * Presence check: considers participant online if last_seen_at within 60s.
  * Quota rules:

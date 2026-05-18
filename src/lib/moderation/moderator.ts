@@ -1,6 +1,6 @@
 /**
  * OpenAI omni-moderation-latest image moderator.
- * Gracefully degrades — returns null on any error or missing API key.
+ * Gracefully degrades - returns null on any error or missing API key.
  */
 import { logger } from '@/lib/logger';
 
@@ -29,7 +29,7 @@ type OmniModerationResponse = {
 export async function moderateImageUrl(imageUrl: string): Promise<ModerationResult | null> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return null; // Graceful degradation — no API key
+    return null; // Graceful degradation - no API key
   }
 
   try {

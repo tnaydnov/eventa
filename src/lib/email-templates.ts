@@ -959,14 +959,14 @@ export function buildClientEventSummaryEmail(params: {
   const inner = `
         ${greeting(
           safeName,
-          `האירוע <strong>${safeEvent}</strong> הסתיים — היה לנו כבוד להיות חלק מהלילה המיוחד! 🎉`,
+          `האירוע <strong>${safeEvent}</strong> הסתיים - היה לנו כבוד להיות חלק מהלילה המיוחד! 🎉`,
         )}
 
         <!-- Report + Thank you -->
         <tr>
           <td dir="rtl" style="direction:rtl;text-align:center;padding:28px 32px 24px;background-color:${C.card};">
             <div dir="rtl" style="direction:rtl;text-align:center;font-size:15px;color:${C.muted};line-height:1.9;">
-              מצורף לתכנות זה <strong>דו&quot;ח מלא של האירוע</strong> —<br/>
+              מצורף לתכנות זה <strong>דו&quot;ח מלא של האירוע</strong> -<br/>
               כולל סטטיסטיקות, גרפים ותובנות על כל הפעילות של הלילה.<br/><br/>
               תודה שבחרתם ב-${ltr('Eventa')} ✨
             </div>

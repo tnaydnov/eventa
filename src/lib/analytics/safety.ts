@@ -1,5 +1,5 @@
 /**
- * Safety analytics — blocks, moderation activity, and churn.
+ * Safety analytics - blocks, moderation activity, and churn.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 

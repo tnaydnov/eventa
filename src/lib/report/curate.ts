@@ -1,5 +1,5 @@
 /**
- * Report curation — assembles the analytics payload for a client report.
+ * Report curation - assembles the analytics payload for a client report.
  * Uses the analytics sub-modules to build a serializable JSON payload.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';

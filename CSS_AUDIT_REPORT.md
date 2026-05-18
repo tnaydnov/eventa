@@ -1,4 +1,4 @@
-# Eventa — Comprehensive CSS Audit Report
+# Eventa - Comprehensive CSS Audit Report
 
 > **Audited files (19):** `globals.css`, `base.css`, `layout.css`, `components.css`, `grid.css`, `swipe.css`, `chat.css`, `profile.css`, `profile-edit.css`, `landing.css`, `event-bg.css`, `event-over.css`, `how-it-works.css`, `home.css`, `wizard.css`, `pricing.css`, `site-page.css`, `guest-portal.css`, `admin.css`
 
@@ -36,8 +36,8 @@
 
 | Keyframe name | File A | File B | Risk |
 |---------------|--------|--------|------|
-| `shimmer` | `base.css` L124 | `admin.css` L3903 | **Duplicate definition** — admin.css redefines `shimmer` with identical semantics. Because both are loaded, last-write-wins ordering determines the active version. **Fix:** rename to `admin-shimmer` in admin.css, or delete the duplicate since it inherits the global one. |
-| `pulse` | `event-over.css` L354 | (Tailwind's built-in `pulse` via `animate-pulse`) | **Potential shadow** — Tailwind ships its own `@keyframes pulse`. If both are in the cascade, event-over's definition may leak. **Fix:** rename to `eo-pulse`. |
+| `shimmer` | `base.css` L124 | `admin.css` L3903 | **Duplicate definition** - admin.css redefines `shimmer` with identical semantics. Because both are loaded, last-write-wins ordering determines the active version. **Fix:** rename to `admin-shimmer` in admin.css, or delete the duplicate since it inherits the global one. |
+| `pulse` | `event-over.css` L354 | (Tailwind's built-in `pulse` via `animate-pulse`) | **Potential shadow** - Tailwind ships its own `@keyframes pulse`. If both are in the cascade, event-over's definition may leak. **Fix:** rename to `eo-pulse`. |
 
 ### 1.2 Generic class names without namespace
 
@@ -48,14 +48,14 @@
 | `.input` | `components.css` | ~84 | Generic, mirrors HTML `<input>` | Rename to `.ev-input` |
 | `.toast` | `components.css` | ~126 | Conflictable | Rename to `.ev-toast` |
 | `.spinner` | `components.css` | ~117 | Generic | Rename to `.ev-spinner` |
-| `.name` | `grid.css` (inside `.card-overlay`) | ~45 | Bare `.name` used inside `.card-overlay .name` — fragile descendant selector | Rename to `.grid-card-name` |
+| `.name` | `grid.css` (inside `.card-overlay`) | ~45 | Bare `.name` used inside `.card-overlay .name` - fragile descendant selector | Rename to `.grid-card-name` |
 
 ### 1.3 Bare element selectors
 
 These are intentional and scoped enough but should be noted:
 
-- `html`, `body`, `*` in `base.css` — expected for a design-system reset.
-- `.landing-demo__text h3`, `.landing-demo__text p` in `landing.css` — scoped under parent, acceptable.
+- `html`, `body`, `*` in `base.css` - expected for a design-system reset.
+- `.landing-demo__text h3`, `.landing-demo__text p` in `landing.css` - scoped under parent, acceptable.
 
 ---
 
@@ -76,7 +76,7 @@ These are intentional and scoped enough but should be noted:
 
 Below, **Token** is the matching variable from `base.css :root`.
 
-#### `swipe.css` — 6 violations
+#### `swipe.css` - 6 violations
 
 | Line (approx) | Raw value | Token equivalent |
 |---------------|-----------|-----------------|
@@ -84,10 +84,10 @@ Below, **Token** is the matching variable from `base.css :root`.
 | ~55 | `#f87171` | `var(--danger)` (`#DC2626` family) |
 | ~70 | `#fff` | `var(--foreground)` |
 | ~80 | `rgba(255,255,255,0.7)` | `var(--foreground)` at 70% or dedicated token |
-| ~100 | `rgba(0,0,0,0.3)` | (shadow — tolerable) |
+| ~100 | `rgba(0,0,0,0.3)` | (shadow - tolerable) |
 | ~145 | `#4ade80` / `#f87171` for badges | Same as above |
 
-#### `home.css` — 5 violations
+#### `home.css` - 5 violations
 
 | Line (approx) | Raw value | Token |
 |---------------|-----------|-------|
@@ -97,7 +97,7 @@ Below, **Token** is the matching variable from `base.css :root`.
 | ~30 | `#6fcf97` | `var(--success)` (`#34D399` close) |
 | ~55 | `#c9a580` | `var(--accent-gold)` |
 
-#### `site-page.css` — 4 violations
+#### `site-page.css` - 4 violations
 
 | Line (approx) | Raw value | Token |
 |---------------|-----------|-------|
@@ -106,7 +106,7 @@ Below, **Token** is the matching variable from `base.css :root`.
 | ~50 | `#fff` | `var(--foreground)` |
 | ~70 | `#888` | `var(--text-muted)` |
 
-#### `landing.css` — 3 violations
+#### `landing.css` - 3 violations
 
 | Line (approx) | Raw value | Token |
 |---------------|-----------|-------|
@@ -114,57 +114,57 @@ Below, **Token** is the matching variable from `base.css :root`.
 | ~35 | `#f0ede8` | `var(--foreground)` |
 | ~200 | `rgba(212,165,154,0.2)` | `var(--primary)` at opacity |
 
-#### `event-over.css` — 2 violations
+#### `event-over.css` - 2 violations
 
 | Line (approx) | Raw value | Token |
 |---------------|-----------|-------|
 | ~10 | `#060606` | `var(--background)` |
 | ~15 | `#f0ede8` | `var(--foreground)` |
 
-#### `how-it-works.css` — 1 violation
+#### `how-it-works.css` - 1 violation
 
 | Line (approx) | Raw value | Token |
 |---------------|-----------|-------|
 | ~15 | `#f0ede8` | `var(--foreground)` |
 
-#### `wizard.css` — 1 violation
+#### `wizard.css` - 1 violation
 
 | Line (approx) | Raw value | Token |
 |---------------|-----------|-------|
 | ~5 | `#080808` | `var(--background)` |
 
-#### `grid.css` — 1 violation
+#### `grid.css` - 1 violation
 
 | Line (approx) | Raw value | Token |
 |---------------|-----------|-------|
 | ~72 | `#1a1a1a` | Should be `var(--surface)` or a new `--badge-bg` token |
 
-#### `layout.css` — 2 violations
+#### `layout.css` - 2 violations
 
 | Line (approx) | Raw value | Token |
 |---------------|-----------|-------|
 | ~30 | `rgba(10,10,10,0.75)` | Use `color-mix(in srgb, var(--background) 75%, transparent)` or token |
 | ~45 | `rgba(255,255,255,0.60)` | `var(--foreground)` at 60% opacity |
 
-#### `components.css` — 1 violation
+#### `components.css` - 1 violation
 
 | Line (approx) | Raw value | Token |
 |---------------|-----------|-------|
 | ~88 | `rgba(255,255,255,0.12)` for `.input` background | `var(--glass-bg)` (identical value) |
 
-#### `profile-edit.css` — 1 violation
+#### `profile-edit.css` - 1 violation
 
 | Line (approx) | Raw value | Token |
 |---------------|-----------|-------|
 | ~400+ | `rgba(239,68,68,*)` for error states | `var(--danger)` at varying opacities |
 
-#### `guest-portal.css` — WhatsApp brand colors
+#### `guest-portal.css` - WhatsApp brand colors
 
-`#1f2c34`, `#0b141a`, `#00a884`, `#25d366`, `#dcf8c6` — these are **intentional** WA brand-identity colors. **No fix needed**, but consider adding a comment block to document the intent.
+`#1f2c34`, `#0b141a`, `#00a884`, `#25d366`, `#dcf8c6` - these are **intentional** WA brand-identity colors. **No fix needed**, but consider adding a comment block to document the intent.
 
-#### `admin.css` — Self-contained system
+#### `admin.css` - Self-contained system
 
-Admin uses its own `--admin-*` variables consistently with fallback values like `var(--admin-accent, #7c3aed)`. This is **correct and intentional** — admin is a separate design system. No violations within its own scope. The only note is the `@keyframes shimmer` duplicate mentioned in §1.1.
+Admin uses its own `--admin-*` variables consistently with fallback values like `var(--admin-accent, #7c3aed)`. This is **correct and intentional** - admin is a separate design system. No violations within its own scope. The only note is the `@keyframes shimmer` duplicate mentioned in §1.1.
 
 ### 2.3 Summary count
 
@@ -207,11 +207,11 @@ Searched every class name against all `.tsx` files in the project.
 
 | File | Lines | Impact |
 |------|------:|--------|
-| **`chat.css`** | 214 | **HIGH** — Chat is a core mobile-first feature. Messages, input bar, and list items have no responsive adaptation. On very small screens (< 360px) the message input bar may overflow. |
-| **`swipe.css`** | ~162 | **HIGH** — Swipe cards are the primary mobile interaction. Button sizes, card dimensions, and badge sizes are fixed. No adaptation for small phones (< 360px) or landscape orientation. |
-| **`profile.css`** | ~66 | MEDIUM — Short file, profile detail view. May rely on parent layout breakpoints, but no explicit adaptation. |
+| **`chat.css`** | 214 | **HIGH** - Chat is a core mobile-first feature. Messages, input bar, and list items have no responsive adaptation. On very small screens (< 360px) the message input bar may overflow. |
+| **`swipe.css`** | ~162 | **HIGH** - Swipe cards are the primary mobile interaction. Button sizes, card dimensions, and badge sizes are fixed. No adaptation for small phones (< 360px) or landscape orientation. |
+| **`profile.css`** | ~66 | MEDIUM - Short file, profile detail view. May rely on parent layout breakpoints, but no explicit adaptation. |
 
-### 4.2 Files with responsive breakpoints — but gaps
+### 4.2 Files with responsive breakpoints - but gaps
 
 | File | Breakpoints present | Missing |
 |------|-------------------|---------|
@@ -226,10 +226,10 @@ Searched every class name against all `.tsx` files in the project.
 
 | File | Breakpoints |
 |------|------------|
-| `admin.css` | 860px, 768px, 700px, 640px, 480px, 380px — **Excellent coverage** |
-| `profile-edit.css` | Relies on flex/grid intrinsic sizing — acceptable for the content type |
-| `guest-portal.css` | 480px + flex-based — adequate |
-| `grid.css` | Uses `auto-fill` / `minmax` grids — inherently responsive |
+| `admin.css` | 860px, 768px, 700px, 640px, 480px, 380px - **Excellent coverage** |
+| `profile-edit.css` | Relies on flex/grid intrinsic sizing - acceptable for the content type |
+| `guest-portal.css` | 480px + flex-based - adequate |
+| `grid.css` | Uses `auto-fill` / `minmax` grids - inherently responsive |
 
 ### 4.4 Specific recommendations
 

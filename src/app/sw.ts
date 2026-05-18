@@ -15,7 +15,7 @@ declare const self: WorkerGlobalScope & typeof globalThis;
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
 /**
- * Runtime caching rules (in priority order — first match wins):
+ * Runtime caching rules (in priority order - first match wins):
  *
  * 1. NetworkOnly for all auth, admin, and mutating secure requests.
  *    These must never be served from cache (session-sensitive).

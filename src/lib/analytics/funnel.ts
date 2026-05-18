@@ -1,5 +1,5 @@
 /**
- * Funnel analytics — computes step-by-step conversion from funnel_events table.
+ * Funnel analytics - computes step-by-step conversion from funnel_events table.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 

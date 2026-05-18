@@ -1,5 +1,5 @@
 /**
- * Moderation policy — auto-approval and auto-rejection thresholds.
+ * Moderation policy - auto-approval and auto-rejection thresholds.
  */
 
 /** Score above which content is auto-rejected (hidden immediately). */

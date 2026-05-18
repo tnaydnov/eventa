@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Cancel any pending message-type SMS for this participant in this event
-    // (user opened the conversation, so they've seen it — no longer need the SMS)
+    // (user opened the conversation, so they've seen it - no longer need the SMS)
     void supabase
       .from('pending_sms')
       .update({ cancelled_at: now, cancel_reason: 'conversation_opened' })

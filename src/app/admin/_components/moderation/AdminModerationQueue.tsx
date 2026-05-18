@@ -253,7 +253,7 @@ export default function AdminModerationQueue() {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                     <span style={{ fontSize: '13px', fontWeight: 600, color: '#ef4444' }}>
-                      ✗ חסום — {item.surface === 'profile_photo' ? 'תמונת פרופיל' : 'תמונת צ\'אט'}
+                      ✗ חסום - {item.surface === 'profile_photo' ? 'תמונת פרופיל' : 'תמונת צ\'אט'}
                     </span>
                     <span style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>
                       {new Date(item.created_at).toLocaleString('he-IL')}

@@ -2,8 +2,8 @@
  * Image moderation orchestrator.
  *
  * Implements the two-stage flow from §14.5:
- * 1. OpenAI omni-moderation-latest — primary check (all uploads)
- * 2. Falconsai second-opinion — grey-band profile photos only
+ * 1. OpenAI omni-moderation-latest - primary check (all uploads)
+ * 2. Falconsai second-opinion - grey-band profile photos only
  *
  * Three outcomes per category per surface (§14.4):
  * - ALLOW  (score < allow_max): pass, log
@@ -36,7 +36,7 @@ async function evaluateScores(
   imageUrl: string,
   surface: 'profile_photo' | 'chat_image',
 ): Promise<{ verdict: Verdict; reason: string | null; model: string; secondOpinionData: Record<string, number> | null }> {
-  // 1. Hard categories — block immediately on BLOCK band, shadow_review on GREY band.
+  // 1. Hard categories - block immediately on BLOCK band, shadow_review on GREY band.
   for (const [cat, limits] of Object.entries(thresholds.hard)) {
     const score = scores[cat] ?? 0;
     if (score >= limits.block_min) {
@@ -48,7 +48,7 @@ async function evaluateScores(
     }
   }
 
-  // 2. Soft category (sexual on profile — skip on chat where allow_max = 1.01)
+  // 2. Soft category (sexual on profile - skip on chat where allow_max = 1.01)
   if (surface === 'profile_photo') {
     const sexual = scores['sexual'] ?? 0;
     const { allow_max, block_min } = thresholds.soft.sexual;
@@ -58,15 +58,15 @@ async function evaluateScores(
     }
 
     if (sexual >= allow_max) {
-      // Grey band — run second-opinion before blocking
+      // Grey band - run second-opinion before blocking
       const opinion = await secondOpinion(imageUrl);
       const secondOpinionData = opinion !== null ? { confirmed: opinion ? 1 : 0 } : null;
 
       if (opinion === true) {
-        // Both models agree — block
+        // Both models agree - block
         return { verdict: 'blocked', reason: 'sexual', model: 'openai+falconsai', secondOpinionData };
       }
-      // Falconsai disagrees or unavailable — shadow review only
+      // Falconsai disagrees or unavailable - shadow review only
       return { verdict: 'shadow_review', reason: 'sexual', model: 'openai', secondOpinionData };
     }
   }
@@ -137,10 +137,10 @@ async function writeModerationLog(params: {
 
 /**
  * Moderate a participant profile photo after upload.
- * Fire-and-forget safe — never throws.
+ * Fire-and-forget safe - never throws.
  * On BLOCK: updates moderation_status to 'rejected' and queues for shadow review.
  * On GREY:  photo stays live, queued for shadow review.
- * On error: deferred — recheck cron will re-process.
+ * On error: deferred - recheck cron will re-process.
  */
 export async function moderateProfilePhoto(
   photoId: string,
@@ -155,7 +155,7 @@ export async function moderateProfilePhoto(
     const supabase = getServiceClient();
 
     if (!result) {
-      // API unavailable — defer for recheck cron
+      // API unavailable - defer for recheck cron
       await supabase
         .from('participant_photos')
         .update({ moderation_status: 'pending' })
@@ -235,14 +235,14 @@ export async function moderateProfilePhoto(
     );
   } catch (err) {
     logger.error('[MODERATION] moderateProfilePhoto error:', err);
-    // Fail open — don't block the user
+    // Fail open - don't block the user
   }
 }
 
 /**
  * Moderate a chat image message after it is sent.
- * Fire-and-forget safe — never throws.
- * Chat is loose (§14.4) — only CSAM and extreme violence are enforced.
+ * Fire-and-forget safe - never throws.
+ * Chat is loose (§14.4) - only CSAM and extreme violence are enforced.
  */
 export async function moderateChatImage(messageId: string, storagePath: string, eventId: string): Promise<void> {
   try {
@@ -296,7 +296,7 @@ export async function moderateChatImage(messageId: string, storagePath: string, 
     );
   } catch (err) {
     logger.error('[MODERATION] moderateChatImage error:', err);
-    // Fail open — don't block the user
+    // Fail open - don't block the user
   }
 }
 

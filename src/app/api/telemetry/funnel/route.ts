@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       logger.error('[TELEMETRY_FUNNEL] insert error:', error.message);
-      // Return 200 anyway — analytics failures must not break client flows
+      // Return 200 anyway - analytics failures must not break client flows
     }
 
     return NextResponse.json({ ok: true });

@@ -539,7 +539,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
                 {genderData.length > 0 && (
                   <Card title="חלוקה מגדרית">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      {/* Donut — no SVG text so html2canvas captures correctly */}
+                      {/* Donut - no SVG text so html2canvas captures correctly */}
                       <div style={{ flexShrink: 0, width: 120, height: 120 }}>
                         <ResponsiveContainer width={120} height={120}>
                           <PieChart>
@@ -557,7 +557,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
                           </PieChart>
                         </ResponsiveContainer>
                       </div>
-                      {/* DOM-based legend — always captured by html2canvas */}
+                      {/* DOM-based legend - always captured by html2canvas */}
                       <div style={{ flex: 1 }}>
                         {genderData.map((g, i) => {
                           const total = genderData.reduce((s, x) => s + x.value, 0);
@@ -682,7 +682,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
 
 
 
-            {/* GENDER INITIATIVE — who opened first + ghosting */}
+            {/* GENDER INITIATIVE - who opened first + ghosting */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '10px' }}>
               <Card title="מי פתח שיחה ראשון">
                 <StatLine label="גברים" value={d.engagement.first_message_by_men   ?? 0} valueColor={P.blue}   />

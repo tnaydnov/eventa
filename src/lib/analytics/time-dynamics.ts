@@ -1,5 +1,5 @@
 /**
- * Time dynamics analytics — activity heatmap by hour.
+ * Time dynamics analytics - activity heatmap by hour.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -27,7 +27,7 @@ export async function computeTimeDynamicsAnalytics(
     return { hourly_activity: [], peak_hour: null };
   }
 
-  // Bucket by UTC hour — store as ISO timestamp so the browser converts to local time correctly
+  // Bucket by UTC hour - store as ISO timestamp so the browser converts to local time correctly
   const hourBuckets = new Map<number, number>();
   for (const row of data) {
     const d = new Date(row.created_at as string);

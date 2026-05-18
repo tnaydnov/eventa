@@ -47,8 +47,8 @@ async function xhrUpload(
     }
 
     if (httpStatus >= 200 && httpStatus < 300) return; // success
-    if (httpStatus >= 400 && httpStatus < 500) throw new Error(`HTTP ${httpStatus}`); // client error — don't retry
-    if (attempt < MAX_ATTEMPTS - 1) continue; // 5xx — retry
+    if (httpStatus >= 400 && httpStatus < 500) throw new Error(`HTTP ${httpStatus}`); // client error - don't retry
+    if (attempt < MAX_ATTEMPTS - 1) continue; // 5xx - retry
     throw new Error(`HTTP ${httpStatus}`);
   }
 }
@@ -59,7 +59,7 @@ export async function uploadPhoto(
   participantId: string,
   file: File,
   orderIndex: number,
-  /** Optional progress callback — receives 0–100 as bytes are uploaded. */
+  /** Optional progress callback - receives 0–100 as bytes are uploaded. */
   onProgress?: (pct: number) => void,
 ): Promise<ParticipantPhoto | null> {
   // Magic byte validation - don't block on mismatch.

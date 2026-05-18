@@ -1,7 +1,7 @@
 /**
  * AI summary generation for post-event client reports.
  * Uses OpenAI gpt-4o-mini to generate a Hebrew-friendly summary.
- * Gracefully degrades — returns null if no API key or on any error.
+ * Gracefully degrades - returns null if no API key or on any error.
  */
 import { logger } from '@/lib/logger';
 import type { CuratedReportPayload } from './curate';
@@ -36,7 +36,7 @@ export async function generateAiSummary(
 ): Promise<string | null> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    logger.warn('[AI_SUMMARY] OPENAI_API_KEY not set — skipping AI summary');
+    logger.warn('[AI_SUMMARY] OPENAI_API_KEY not set - skipping AI summary');
     return null;
   }
 

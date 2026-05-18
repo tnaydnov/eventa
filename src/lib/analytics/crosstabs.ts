@@ -1,5 +1,5 @@
 /**
- * Crosstab analytics — gender/age/preference breakdown.
+ * Crosstab analytics - gender/age/preference breakdown.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 

@@ -245,7 +245,7 @@ export default function AdminReliabilityView() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
         <div>
           <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
-            📡 אמינות — 7 ימים אחרונים
+            📡 אמינות - 7 ימים אחרונים
           </h2>
           <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: 13 }}>
             מאז {sinceDate} &nbsp;·&nbsp; {data.totalVitals.toLocaleString('he-IL')} מדידות &nbsp;·&nbsp; {data.totalErrors.toLocaleString('he-IL')} שגיאות
@@ -548,7 +548,7 @@ export default function AdminReliabilityView() {
 
       {/* ─── Client Errors Bar Chart ─── */}
       <div className="ad-card">
-        <div className="ad-card__title">שגיאות JavaScript — לפי יום</div>
+        <div className="ad-card__title">שגיאות JavaScript - לפי יום</div>
         {data.errorCounts.length === 0 ? (
           <p style={{ color: '#64748b', margin: '1rem 0' }}>אין שגיאות שנרשמו ב-7 ימים האחרונים.</p>
         ) : (

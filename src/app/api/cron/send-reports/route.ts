@@ -106,7 +106,7 @@ async function handler(req: NextRequest) {
         .maybeSingle();
 
       if (!tokenRow?.token) {
-        logger.warn(`[SEND_REPORTS_CRON] No portal token for event ${event.id} — skipping email`);
+        logger.warn(`[SEND_REPORTS_CRON] No portal token for event ${event.id} - skipping email`);
         failed++;
         continue;
       }

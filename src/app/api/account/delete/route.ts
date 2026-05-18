@@ -47,14 +47,14 @@ export async function POST(req: NextRequest) {
         .remove(photos.map((p) => p.storage_path));
     }
 
-    // 2. Delete photo records (PII — remove from DB too)
+    // 2. Delete photo records (PII - remove from DB too)
     await supabase
       .from('participant_photos')
       .delete()
       .eq('participant_id', participantId)
       .eq('event_id', eventId);
 
-    // 3. Delete notifications (ephemeral UI — no analytics value)
+    // 3. Delete notifications (ephemeral UI - no analytics value)
     await supabase
       .from('notifications')
       .delete()
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     // intentionally KEPT so the participant still counts in event analytics.
 
     // 4. Remove device from banned_devices so the user can rejoin freely.
-    //    Self-deletion is NOT an admin ban — the user should get a clean slate.
+    //    Self-deletion is NOT an admin ban - the user should get a clean slate.
     const { data: selfParticipant } = await supabase
       .from('participants')
       .select('device_fingerprint, hardware_fingerprint')

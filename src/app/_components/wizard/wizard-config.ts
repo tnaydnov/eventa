@@ -1,5 +1,5 @@
 /**
- * Wizard Configuration — primary configuration source for the order wizard.
+ * Wizard Configuration - primary configuration source for the order wizard.
  *
  * To add/remove an event type → add/remove one entry in WIZARD_TYPES.
  * Types, steps, fields, and template filtering are driven from here.

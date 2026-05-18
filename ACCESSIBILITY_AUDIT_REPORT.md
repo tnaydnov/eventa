@@ -1,4 +1,4 @@
-# Eventa — Accessibility Audit Report (WCAG 2.1 AA / Israeli Standard 5568)
+# Eventa - Accessibility Audit Report (WCAG 2.1 AA / Israeli Standard 5568)
 
 **Date:** June 2025  
 **Scope:** Full read-only audit of all `.tsx` files under `src/app/`, `src/components/`, and `src/app/dating/_components/`  
@@ -17,7 +17,7 @@ However, **16 genuine issues** remain across the categories below. The most impa
 
 ## Issues Found
 
-### 1 · CRITICAL — Missing Labels in Chat Input Bar
+### 1 · CRITICAL - Missing Labels in Chat Input Bar
 
 | Field | Value |
 |-------|-------|
@@ -28,25 +28,25 @@ However, **16 genuine issues** remain across the categories below. The most impa
 **Description:**  
 Three interactive controls have no accessible name:
 
-- **Line 27** — Camera/photo upload `<button>` contains only a `<CameraIcon>` (decorative, `aria-hidden="true"`). The button itself has no `aria-label`, so screen readers announce it as an empty button.
-- **Line 49** — Message text `<input>` has `placeholder="הקלידו הודעה..."` but no `<label>`, `aria-label`, or `aria-labelledby`. Placeholder alone is not a reliable accessible name.
-- **Line 57** — Send `<button>` contains only an SVG icon (no `aria-hidden` on the SVG, but no text content either). Screen readers cannot determine its purpose.
+- **Line 27** - Camera/photo upload `<button>` contains only a `<CameraIcon>` (decorative, `aria-hidden="true"`). The button itself has no `aria-label`, so screen readers announce it as an empty button.
+- **Line 49** - Message text `<input>` has `placeholder="הקלידו הודעה..."` but no `<label>`, `aria-label`, or `aria-labelledby`. Placeholder alone is not a reliable accessible name.
+- **Line 57** - Send `<button>` contains only an SVG icon (no `aria-hidden` on the SVG, but no text content either). Screen readers cannot determine its purpose.
 
 **Suggested Fix:**
 ```tsx
-// Camera button — add aria-label
+// Camera button - add aria-label
 <button aria-label="שליחת תמונה" onClick={...}>
 
-// Text input — add aria-label
+// Text input - add aria-label
 <input aria-label="הקלידו הודעה" placeholder="הקלידו הודעה..." ... />
 
-// Send button — add aria-label
+// Send button - add aria-label
 <button aria-label="שליחת הודעה" onClick={onSend} disabled={...}>
 ```
 
 ---
 
-### 2 · CRITICAL — Clickable User Info Not Keyboard-Accessible
+### 2 · CRITICAL - Clickable User Info Not Keyboard-Accessible
 
 | Field | Value |
 |-------|-------|
@@ -71,7 +71,7 @@ The `<div>` wrapping the user's avatar + name (`onClick={onUserClick}`, `cursor:
 
 ---
 
-### 3 · SERIOUS — Back Button Below Minimum Touch Target
+### 3 · SERIOUS - Back Button Below Minimum Touch Target
 
 | Field | Value |
 |-------|-------|
@@ -80,7 +80,7 @@ The `<div>` wrapping the user's avatar + name (`onClick={onUserClick}`, `cursor:
 | **WCAG** | 2.5.8 Target Size (Minimum) |
 
 **Description:**  
-The back button (`←`) has inline `padding: '4px'` and `fontSize: '18px'` with no explicit `minWidth`/`minHeight`. The rendered size is approximately 26×26px — well below the 44×44px WCAG minimum. By contrast, the menu button at line 75 correctly sets `minWidth: '44px', minHeight: '44px'`.
+The back button (`←`) has inline `padding: '4px'` and `fontSize: '18px'` with no explicit `minWidth`/`minHeight`. The rendered size is approximately 26×26px - well below the 44×44px WCAG minimum. By contrast, the menu button at line 75 correctly sets `minWidth: '44px', minHeight: '44px'`.
 
 **Suggested Fix:**
 ```tsx
@@ -93,7 +93,7 @@ The back button (`←`) has inline `padding: '4px'` and `fontSize: '18px'` with 
 
 ---
 
-### 4 · SERIOUS — Photo Grid Items Not Keyboard-Accessible
+### 4 · SERIOUS - Photo Grid Items Not Keyboard-Accessible
 
 | Field | Value |
 |-------|-------|
@@ -102,7 +102,7 @@ The back button (`←`) has inline `padding: '4px'` and `fontSize: '18px'` with 
 | **WCAG** | 2.1.1 Keyboard |
 
 **Description:**  
-Each existing photo `<div>` has `onClick={() => handlePhotoTap(idx)}` and `draggable` for reordering but is missing `role`, `tabIndex`, and `onKeyDown`. Keyboard users cannot select photos to swap/reorder. The "add photo" placeholder at line 224 correctly has `role="button"`, `tabIndex={0}`, and `onKeyDown` — the existing photo items should match.
+Each existing photo `<div>` has `onClick={() => handlePhotoTap(idx)}` and `draggable` for reordering but is missing `role`, `tabIndex`, and `onKeyDown`. Keyboard users cannot select photos to swap/reorder. The "add photo" placeholder at line 224 correctly has `role="button"`, `tabIndex={0}`, and `onKeyDown` - the existing photo items should match.
 
 **Suggested Fix:**
 ```tsx
@@ -120,7 +120,7 @@ Each existing photo `<div>` has `onClick={() => handlePhotoTap(idx)}` and `dragg
 
 ---
 
-### 5 · SERIOUS — Photo Delete Buttons Missing Accessible Name
+### 5 · SERIOUS - Photo Delete Buttons Missing Accessible Name
 
 | Field | Value |
 |-------|-------|
@@ -143,7 +143,7 @@ Each photo's delete `<button>` uses `✕` as its text content with no `aria-labe
 
 ---
 
-### 6 · SERIOUS — Guest Portal Form Inputs Missing Labels
+### 6 · SERIOUS - Guest Portal Form Inputs Missing Labels
 
 | Field | Value |
 |-------|-------|
@@ -153,8 +153,8 @@ Each photo's delete `<button>` uses `✕` as its text content with no `aria-labe
 
 **Description:**  
 Both inputs rely on `placeholder` alone as their accessible name:
-- **Line 49** — Name input: `placeholder="שם (אופציונלי)"`, no `<label>` or `aria-label`.
-- **Line 57** — Phone input: `placeholder="050-1234567"`, no `<label>` or `aria-label`.
+- **Line 49** - Name input: `placeholder="שם (אופציונלי)"`, no `<label>` or `aria-label`.
+- **Line 57** - Phone input: `placeholder="050-1234567"`, no `<label>` or `aria-label`.
 
 **Suggested Fix:**
 ```tsx
@@ -164,7 +164,7 @@ Both inputs rely on `placeholder` alone as their accessible name:
 
 ---
 
-### 7 · SERIOUS — Guest Portal Search Input Missing Label
+### 7 · SERIOUS - Guest Portal Search Input Missing Label
 
 | Field | Value |
 |-------|-------|
@@ -187,7 +187,7 @@ The guest search `<input>` has `placeholder="🔍 חיפוש לפי שם או מ
 
 ---
 
-### 8 · SERIOUS — Guest Portal Error Not Announced
+### 8 · SERIOUS - Guest Portal Error Not Announced
 
 | Field | Value |
 |-------|-------|
@@ -207,7 +207,7 @@ The form error message is rendered as a plain `<p>` with styled red text but no 
 
 ---
 
-### 9 · MODERATE — Guest Remove Button Missing Accessible Name
+### 9 · MODERATE - Guest Remove Button Missing Accessible Name
 
 | Field | Value |
 |-------|-------|
@@ -230,7 +230,7 @@ The remove button uses the 🗑 emoji as its text content and has a `title` attr
 
 ---
 
-### 10 · MODERATE — Guest List Uses Divs Instead of Table Semantics
+### 10 · MODERATE - Guest List Uses Divs Instead of Table Semantics
 
 | Field | Value |
 |-------|-------|
@@ -246,7 +246,7 @@ Replace the div structure with a semantic `<table>`, `<thead>`, `<tbody>`, `<tr>
 
 ---
 
-### 11 · MODERATE — Likes Page Tab Pattern Incomplete
+### 11 · MODERATE - Likes Page Tab Pattern Incomplete
 
 | Field | Value |
 |-------|-------|
@@ -271,7 +271,7 @@ The three tab buttons all share `aria-controls="tabpanel-likes"` pointing to the
 
 ---
 
-### 12 · MODERATE — Swipe Card Photo Navigation Not Keyboard-Accessible
+### 12 · MODERATE - Swipe Card Photo Navigation Not Keyboard-Accessible
 
 | Field | Value |
 |-------|-------|
@@ -287,7 +287,7 @@ Add `onKeyDown` for `ArrowLeft`/`ArrowRight` on the card container (or when focu
 
 ---
 
-### 13 · MODERATE — Event-Over Countdown Not Announced
+### 13 · MODERATE - Event-Over Countdown Not Announced
 
 | Field | Value |
 |-------|-------|
@@ -305,7 +305,7 @@ The auto-redirect countdown timer (15 → 0 seconds with ring animation) has no 
 
 ---
 
-### 14 · MODERATE — Onboarding Slide Indicators Not Accessible
+### 14 · MODERATE - Onboarding Slide Indicators Not Accessible
 
 | Field | Value |
 |-------|-------|
@@ -314,7 +314,7 @@ The auto-redirect countdown timer (15 → 0 seconds with ring animation) has no 
 | **WCAG** | 4.1.2 Name Role Value |
 
 **Description:**  
-The dot indicators showing current slide position are empty `<div>` elements styled visually. They convey no information to screen readers — users cannot tell which slide they're on or how many there are.
+The dot indicators showing current slide position are empty `<div>` elements styled visually. They convey no information to screen readers - users cannot tell which slide they're on or how many there are.
 
 **Suggested Fix:**
 ```tsx
@@ -332,7 +332,7 @@ The dot indicators showing current slide position are empty `<div>` elements sty
 
 ---
 
-### 15 · MINOR — Heading Hierarchy: ErrorBoundary Uses `<h2>` Without `<h1>`
+### 15 · MINOR - Heading Hierarchy: ErrorBoundary Uses `<h2>` Without `<h1>`
 
 | Field | Value |
 |-------|-------|
@@ -352,7 +352,7 @@ The fallback UI uses `<h2>אופס, משהו השתבש</h2>` but there is no `<
 
 ---
 
-### 16 · MINOR — How-It-Works Demo Phone: Decorative SVGs Missing `aria-hidden`
+### 16 · MINOR - How-It-Works Demo Phone: Decorative SVGs Missing `aria-hidden`
 
 | Field | Value |
 |-------|-------|

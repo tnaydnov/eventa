@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
       return jsonError('Failed to save photo', 400);
     }
 
-    // Moderate the photo (fire-and-forget — must not block response)
+    // Moderate the photo (fire-and-forget - must not block response)
     void moderateProfilePhoto(data.id as string, storagePath, session.sub, session.eid);
 
     return NextResponse.json(data);

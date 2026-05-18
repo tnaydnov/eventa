@@ -11,7 +11,7 @@ import {
 import type { ReactNode } from 'react';
 
 interface PremiumJoinShellProps {
-  /** Stable key for the active step — drives AnimatePresence transitions. */
+  /** Stable key for the active step - drives AnimatePresence transitions. */
   stepKey: string;
   /** Optional notice rendered above the card (e.g. in-app browser warning). */
   notice?: ReactNode;
@@ -40,7 +40,7 @@ const reducedVariants: Variants = {
  * PremiumJoinShell
  * ────────────────
  * Stable shell for every interactive step (welcome / phone / OTP / error).
- * The background, header and card frame never remount — only the inner
+ * The background, header and card frame never remount - only the inner
  * content fades + lifts between steps, and the card height morphs smoothly
  * via Framer's layout animations.
  */

@@ -1,15 +1,15 @@
 /**
- * fetchWithRetry — resilient fetch for API calls at busy venues.
+ * fetchWithRetry - resilient fetch for API calls at busy venues.
  *
  * Retries on server errors (5xx) and network failures with exponential backoff + jitter.
- * Does NOT retry on 4xx — those are caller errors (bad input, auth, etc.).
+ * Does NOT retry on 4xx - those are caller errors (bad input, auth, etc.).
  * Does NOT retry non-idempotent methods (POST/DELETE) unless explicitly opted in,
  * to avoid duplicate mutations.
  *
  * Usage:
  *   const res = await fetchWithRetry('/api/secure/something', { method: 'GET' });
  *
- *   // For idempotent POSTs (e.g. likes — server dedupes by unique constraint):
+ *   // For idempotent POSTs (e.g. likes - server dedupes by unique constraint):
  *   const res = await fetchWithRetry('/api/secure/likes', { method: 'POST', body: ... },
  *     { retryOnMutations: true });
  */
@@ -118,7 +118,7 @@ export async function fetchWithRetry(
       const res = await fetch(url, { ...init, signal });
       clearTimeout(timeoutId);
 
-      // 4xx — don't retry, return immediately so callers can handle the error
+      // 4xx - don't retry, return immediately so callers can handle the error
       if (res.status >= 400 && res.status < 500) {
         if (shouldTrackTelemetry) {
           const durationMs = Math.round(performance.now() - requestStart);
@@ -137,7 +137,7 @@ export async function fetchWithRetry(
         return res;
       }
 
-      // Success or final attempt — return as-is
+      // Success or final attempt - return as-is
       if (res.ok || attempt === retries || !shouldRetry) {
         if (shouldTrackTelemetry) {
           const durationMs = Math.round(performance.now() - requestStart);
@@ -175,7 +175,7 @@ export async function fetchWithRetry(
         return res;
       }
 
-      // 5xx retriable — fall through to backoff
+      // 5xx retriable - fall through to backoff
       if (!RETRIABLE_STATUS.has(res.status)) return res;
       lastError = new Error(`HTTP ${res.status}`);
     } catch (err) {
@@ -198,10 +198,10 @@ export async function fetchWithRetry(
         });
       }
 
-      // If caller aborted — don't retry
+      // If caller aborted - don't retry
       if (init.signal?.aborted) throw err;
 
-      // Final attempt — propagate
+      // Final attempt - propagate
       if (attempt === retries || !shouldRetry) throw err;
     }
 

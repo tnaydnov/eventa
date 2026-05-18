@@ -973,7 +973,7 @@
 .req-chevron--open { transform: rotate(180deg); }
 
 /* =======================================================
-   EVENT ANALYTICS VIEW (detail page) — ev-detail
+   EVENT ANALYTICS VIEW (detail page) - ev-detail
    ======================================================= */
 
 /* Back bar */
@@ -1621,7 +1621,7 @@
 }
 
 /* =======================================================
-   EVENT SERVICES INFO — msg-status-* / ea-section
+   EVENT SERVICES INFO - msg-status-* / ea-section
    ======================================================= */
 .ea-section { margin-bottom: 0; padding: 16px; }
 .ea-section + .ea-section { border-top: 1px solid var(--admin-border); }
@@ -1664,7 +1664,7 @@
 }
 
 /* =======================================================
-   CLIENT ACTIONS PANEL — act-*
+   CLIENT ACTIONS PANEL - act-*
    ======================================================= */
 .act-grid {
   display: grid;
@@ -1884,7 +1884,7 @@
 .act-qr-files__total { font-size: 12px; color: var(--admin-text-muted); margin-top: 4px; }
 
 /* =======================================================
-   FEEDBACK TAB — afb-*
+   FEEDBACK TAB - afb-*
    ======================================================= */
 
 /* Root */
@@ -2110,7 +2110,7 @@
 .afb-empty__text { font-size: 13px; color: var(--admin-text-muted); margin: 0; max-width: 320px; line-height: 1.5; }
 
 /* =======================================================
-   ANALYTICS DASHBOARD EXTRAS — ad-* (supplement existing)
+   ANALYTICS DASHBOARD EXTRAS - ad-* (supplement existing)
    ======================================================= */
 
 /* Incomplete banner */
@@ -2202,7 +2202,7 @@ button.admin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
 /* =======================================================
-   MESSAGING TAB EXTRAS — msg-* supplement
+   MESSAGING TAB EXTRAS - msg-* supplement
    ======================================================= */
 .msg-status-grid--1 { grid-template-columns: 1fr; }
 .msg-portal-url {
@@ -2237,7 +2237,7 @@ button.admin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
 /* =======================================================
-   MESSAGING — msg-table / msg-input / msg-empty
+   MESSAGING - msg-table / msg-input / msg-empty
    ======================================================= */
 .msg-table-wrap {
   overflow-x: auto;
@@ -2312,7 +2312,7 @@ button.admin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .msg-add-row .msg-input { flex: 1; }
 
 /* =======================================================
-   MESSAGING CONTROLS — act-group / act-card extras
+   MESSAGING CONTROLS - act-group / act-card extras
    ======================================================= */
 .act-group {
   background: var(--admin-surface);
@@ -2442,7 +2442,7 @@ button.admin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 
 /* =======================================================
-   PARTICIPANTS TABLE — TOOLBAR + FILTERS
+   PARTICIPANTS TABLE - TOOLBAR + FILTERS
    ======================================================= */
 
 .pt-table-wrap {
@@ -2549,7 +2549,7 @@ button.admin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
 /* =======================================================
-   PARTICIPANTS TABLE — TOOLBAR + FILTERS
+   PARTICIPANTS TABLE - TOOLBAR + FILTERS
    ======================================================= */
 
 .pt-table-wrap {

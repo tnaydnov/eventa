@@ -4,7 +4,7 @@ import { RATE_LIMITS } from '@/lib/rate-limit';
 import { secureGuard, jsonError, isSafePath } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 
-/** Allowed file extensions for uploads. HEIC/HEIF excluded — iOS converts to JPEG when sharing to web. */
+/** Allowed file extensions for uploads. HEIC/HEIF excluded - iOS converts to JPEG when sharing to web. */
 const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp3', 'ogg', 'wav', 'mp4', 'm4a', 'webm']);
 
 /**

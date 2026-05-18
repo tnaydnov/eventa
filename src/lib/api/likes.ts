@@ -48,7 +48,7 @@ export async function removeLike(toId: string): Promise<boolean> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ toId }),
       },
-      // DELETE is idempotent — safe to retry
+      // DELETE is idempotent - safe to retry
       { retryOnMutations: true },
     );
     return res.ok;

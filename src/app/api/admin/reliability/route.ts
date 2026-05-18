@@ -17,7 +17,7 @@ function percentile(sorted: number[], pct: number): number {
 /**
  * GET /api/admin/reliability
  * Returns the last 7 days of Web Vitals aggregates (p50/p75/p95 per metric)
- * and client error counts per day — for the admin Reliability tab.
+ * and client error counts per day - for the admin Reliability tab.
  */
 export async function GET(req: NextRequest) {
   const denied = adminGuard(req, 'admin-reliability', RATE_LIMITS.standard);

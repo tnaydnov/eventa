@@ -191,7 +191,7 @@ export default function DashboardView({
               <div key={req.id} className="dash-row">
                 <div className="dash-row__icon">👤</div>
                 <div className="dash-row__info">
-                  <div className="dash-row__name">{req.contact_name || '—'}</div>
+                  <div className="dash-row__name">{req.contact_name || '-'}</div>
                   <div className="dash-row__meta">
                     {EVENT_TYPE_LABELS_LOCAL[req.event_type] || req.event_type}
                     {req.event_name && ` · ${req.event_name}`}

@@ -110,7 +110,7 @@ async function recordSmsAttemptFailure(params: {
 
 /**
  * GET|POST /api/cron/dispatch-sms
- * Processes the pending_sms queue — dispatches up to BATCH_SIZE messages per run.
+ * Processes the pending_sms queue - dispatches up to BATCH_SIZE messages per run.
  * Auth: Bearer CRON_SECRET (timing-safe).
  * Schedule: Every minute (* * * * *) via vercel.json.
  */

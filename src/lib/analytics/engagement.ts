@@ -1,5 +1,5 @@
 /**
- * Engagement analytics — messages, likes, matches, conversation depth.
+ * Engagement analytics - messages, likes, matches, conversation depth.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 

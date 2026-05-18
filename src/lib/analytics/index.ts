@@ -1,5 +1,5 @@
 /**
- * Analytics barrel — re-exports all sub-modules.
+ * Analytics barrel - re-exports all sub-modules.
  */
 export { computeFunnelAnalytics } from './funnel';
 export type { FunnelAnalytics, FunnelStep } from './funnel';

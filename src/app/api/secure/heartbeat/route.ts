@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       const body = await req.json();
       tabVisible = body?.tab_visible === true;
     } catch {
-      // Body is optional — older clients won't send it
+      // Body is optional - older clients won't send it
     }
 
     const supabase = getServiceClient();

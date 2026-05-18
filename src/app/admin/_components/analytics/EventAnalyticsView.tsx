@@ -440,7 +440,7 @@ export default function EventAnalyticsView({
                     <span className="ev-bg-preview__label">מוגדר</span>
                   </div>
                 ) : (
-                  <p className="ev-bg-empty">אין תמונת רקע — האירוע משתמש ברקע ברירת המחדל.</p>
+                  <p className="ev-bg-empty">אין תמונת רקע - האירוע משתמש ברקע ברירת המחדל.</p>
                 )}
               </div>
             </div>
@@ -467,7 +467,7 @@ export default function EventAnalyticsView({
                 <div className="ev-danger-item">
                   <div>
                     <div className="ev-danger-item__title">מחק אירוע</div>
-                    <div className="ev-danger-item__desc">מחיקה מוחלטת — לא ניתנת לביטול.</div>
+                    <div className="ev-danger-item__desc">מחיקה מוחלטת - לא ניתנת לביטול.</div>
                   </div>
                   <button className="admin-btn admin-btn--danger admin-btn--sm" onClick={() => onDelete(event.id)}>
                     מחק
