@@ -617,7 +617,11 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
                       axisLine={false} tickLine={false}
                       interval={Math.max(Math.floor(hourlyData.length / 10) - 1, 0)}
                     />
-                    <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis
+                      tick={{ fill: '#94a3b8', fontSize: 10 }}
+                      axisLine={false} tickLine={false}
+                      label={{ value: 'פעולות', angle: -90, position: 'insideLeft', fill: '#64748b', fontSize: 10, dx: 14 }}
+                    />
                     <RechartsTip content={<Tip />} />
                     {peakHourStr && (
                       <ReferenceLine
