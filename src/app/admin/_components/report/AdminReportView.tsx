@@ -111,7 +111,7 @@ function Card({ title, children, style }: {
       background: 'rgba(255,255,255,0.04)',
       border: '1px solid rgba(255,255,255,0.1)',
       borderRadius: '12px',
-      padding: '14px',
+      padding: '17px',
       ...style,
     }}>
       {title && (
@@ -544,7 +544,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
             </div>
 
             {/* KPI ROW 1 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '14px' }}>
               <BigKpi label="משתתפים"           value={N}                                 color={P.rose} />
               <BigKpi label="לייקים שנשלחו"     value={d.engagement.total_likes}          color={P.fuchsia} />
               <BigKpi
@@ -557,7 +557,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
             </div>
 
             {/* KPI ROW 2 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '14px' }}>
               <BigKpi label="הודעות"            value={d.engagement.total_messages}                        color={P.orange} />
               <BigKpi label="ממוצע הודעות לשיחה" value={d.engagement.avg_messages_per_conversation}       color={P.amber} />
               <BigKpi
@@ -576,7 +576,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
 
             {/* GENDER + AGE side by side */}
             {(genderData.length > 0 || ageData.length > 0) && (
-              <div style={{ display: 'grid', gridTemplateColumns: genderData.length > 0 && ageData.length > 0 ? '1fr 1fr' : '1fr', gap: '10px', marginBottom: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: genderData.length > 0 && ageData.length > 0 ? '1fr 1fr' : '1fr', gap: '14px', marginBottom: '14px' }}>
                 {genderData.length > 0 && (
                   <Card title="חלוקה מגדרית">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -637,7 +637,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
 
             {/* HOURLY ACTIVITY */}
             {hourlyData.length > 1 && (
-              <Card title="פעילות לאורך האירוע" style={{ marginBottom: '12px' }}>
+              <Card title="פעילות לאורך האירוע" style={{ marginBottom: '16px' }}>
                 {peakHourStr && (
                   <div style={{ fontSize: '11px', color: P.amber, marginBottom: '8px', fontWeight: 600 }}>
                     שיא פעילות: {peakHourStr}
@@ -684,7 +684,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
             )}
 
             {/* CONVERSATIONS + NETWORK */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <Card title="שיחות ומעורבות">
                 <StatLine label="סה״כ שיחות"              value={d.engagement.total_conversations}                    valueColor={P.violet} />
                 <StatLine label="שיחות קצרות (1–2 הודעות)"  value={shallowConvs}                                       valueColor="#94a3b8" />
@@ -720,7 +720,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
 
 
             {/* GENDER INITIATIVE — who opened first + ghosting */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginBottom: '14px' }}>
               <Card title="מי פתח שיחה ראשון">
                 <StatLine label="גברים" value={d.engagement.first_message_by_men   ?? 0} valueColor={P.blue}   />
                 <StatLine label="נשים"  value={d.engagement.first_message_by_women ?? 0} valueColor={P.rose}   />
