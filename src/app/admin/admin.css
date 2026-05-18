@@ -2440,3 +2440,217 @@ button.admin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
   border-color: #d97706;
 }
 
+
+/* =======================================================
+   PARTICIPANTS TABLE — TOOLBAR + FILTERS
+   ======================================================= */
+
+.pt-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border);
+}
+
+/* Toolbar */
+.pt-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.pt-toolbar__right {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+.pt-toolbar__left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Search input extra styles (built on top of admin-input) */
+.pt-search {
+  max-width: 240px;
+}
+
+/* Gender / source filter tabs */
+.pt-gender-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pt-gender-tab {
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--admin-border);
+  background: transparent;
+  color: var(--admin-text-dim);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--admin-transition);
+  white-space: nowrap;
+}
+.pt-gender-tab:hover {
+  border-color: var(--admin-accent);
+  color: var(--admin-text);
+}
+.pt-gender-tab--active {
+  background: var(--admin-accent);
+  border-color: var(--admin-accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Banned / incomplete count labels */
+.pt-banned-count {
+  font-size: 12px;
+  color: var(--admin-text-dim);
+  white-space: nowrap;
+}
+
+/* Result count */
+.pt-result-count {
+  font-size: 12px;
+  color: var(--admin-text-muted);
+  padding: 2px 0;
+}
+
+/* Sort icon in th */
+.pt-sort-icon {
+  margin-right: 4px;
+  opacity: 0.7;
+  font-size: 10px;
+}
+.pt-th--sortable {
+  cursor: pointer;
+  user-select: none;
+}
+.pt-th--sortable:hover {
+  color: var(--admin-text);
+}
+
+/* Cell variants */
+.pt-td--name {
+  font-weight: 500;
+}
+.pt-td--date {
+  font-size: 11px;
+  color: var(--admin-text-muted);
+  white-space: nowrap;
+}
+
+/* =======================================================
+   PARTICIPANTS TABLE — TOOLBAR + FILTERS
+   ======================================================= */
+
+.pt-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border);
+}
+
+/* Toolbar */
+.pt-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.pt-toolbar__right {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+.pt-toolbar__left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Search input extra styles (built on top of admin-input) */
+.pt-search {
+  max-width: 240px;
+}
+
+/* Gender / source filter tabs */
+.pt-gender-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pt-gender-tab {
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--admin-border);
+  background: transparent;
+  color: var(--admin-text-dim);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--admin-transition);
+  white-space: nowrap;
+}
+.pt-gender-tab:hover {
+  border-color: var(--admin-accent);
+  color: var(--admin-text);
+}
+.pt-gender-tab--active {
+  background: var(--admin-accent);
+  border-color: var(--admin-accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Banned / incomplete count labels */
+.pt-banned-count {
+  font-size: 12px;
+  color: var(--admin-text-dim);
+  white-space: nowrap;
+}
+
+/* Result count */
+.pt-result-count {
+  font-size: 12px;
+  color: var(--admin-text-muted);
+  padding: 2px 0;
+}
+
+/* Sort icon in th */
+.pt-sort-icon {
+  margin-right: 4px;
+  opacity: 0.7;
+  font-size: 10px;
+}
+.pt-th--sortable {
+  cursor: pointer;
+  user-select: none;
+}
+.pt-th--sortable:hover {
+  color: var(--admin-text);
+}
+
+/* Cell variants */
+.pt-td--name {
+  font-weight: 500;
+}
+.pt-td--date {
+  font-size: 11px;
+  color: var(--admin-text-muted);
+  white-space: nowrap;
+}
