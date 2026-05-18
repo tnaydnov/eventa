@@ -482,7 +482,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
             style={{
               background: '#0e0d18',
               borderRadius: '16px',
-              padding: '24px',
+              padding: '18px',
               fontFamily: '"Inter", "Segoe UI", system-ui, sans-serif',
               color: '#e2e8f0',
               maxWidth: '860px',
@@ -535,7 +535,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
             </div>
 
             {/* KPI ROW 2 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '10px' }}>
               <BigKpi label="הודעות"            value={d.engagement.total_messages}                        color={P.orange} />
               <BigKpi label="ממוצע הודעות לשיחה" value={d.engagement.avg_messages_per_conversation}       color={P.amber} />
               <BigKpi
@@ -552,71 +552,34 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
               />
             </div>
 
-            {/* SUCCESS METRICS + GENDER side by side */}
-            <div style={{ display: 'grid', gridTemplateColumns: genderData.length > 0 ? '1fr 1fr' : '1fr', gap: '12px', marginBottom: '12px' }}>
-
-              {/* Event success metrics */}
-              <Card title="מדדי הצלחת האירוע">
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <RingMetric
-                    label="המרה: התאמות → שיחות"
-                    value={convFromMatchPct}
-                    sub={`${d.engagement.total_conversations} שיחות מ-${d.engagement.mutual_likes} התאמות`}
-                    color={P.emerald}
-                  />
-                  <RingMetric
-                    label="מהתאמה לצ׳אט"
-                    value={chatFromMatchPct}
-                    sub={`${d.network.participants_with_messages} מ-${d.network.participants_with_matches} מתאימים`}
-                    color={P.fuchsia}
-                  />
-                  <RingMetric
-                    label="שיעור בידוד"
-                    value={isolatedPct}
-                    sub={`${d.network.isolated_participants} ללא אינטראקציה`}
-                    color={P.violet}
-                  />
-                  <RingMetric
-                    label="נשירה מהאירוע"
-                    value={deletedPct}
-                    sub={`${d.safety.deleted_participants ?? 0} מחקו פרופיל`}
-                    color={P.orange}
-                  />
-                </div>
-              </Card>
-
-              {/* Gender distribution */}
-              {genderData.length > 0 && (
-                <Card title="חלוקה מגדרית">
-                  <ResponsiveContainer width="100%" height={200}>
-                    <PieChart>
-                      <Pie
-                        data={genderData}
-                        cx="50%" cy="44%"
-                        outerRadius={72}
-                        innerRadius={32}
-                        dataKey="value"
-                        paddingAngle={4}
-                        labelLine
-                        label={(props) => <PieLabel {...(props as Parameters<typeof PieLabel>[0])} />}
-                      >
-                        {genderData.map((g, i) => <Cell key={i} fill={g.color} />)}
-                      </Pie>
-                      <RechartsTip content={<Tip />} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </Card>
-              )}
-            </div>
-
-            {/* AGE + ATTRACTION side by side */}
-            {(ageData.length > 0 || attractionData.length > 0) && (
-              <div style={{ display: 'grid', gridTemplateColumns: ageData.length > 0 && attractionData.length > 0 ? '1fr 1fr' : '1fr', gap: '12px', marginBottom: '12px' }}>
-
+            {/* GENDER + AGE side by side */}
+            {(genderData.length > 0 || ageData.length > 0) && (
+              <div style={{ display: 'grid', gridTemplateColumns: genderData.length > 0 && ageData.length > 0 ? '1fr 1fr' : '1fr', gap: '10px', marginBottom: '10px' }}>
+                {genderData.length > 0 && (
+                  <Card title="חלוקה מגדרית">
+                    <ResponsiveContainer width="100%" height={150}>
+                      <PieChart>
+                        <Pie
+                          data={genderData}
+                          cx="50%" cy="44%"
+                          outerRadius={58}
+                          innerRadius={24}
+                          dataKey="value"
+                          paddingAngle={4}
+                          labelLine
+                          label={(props) => <PieLabel {...(props as Parameters<typeof PieLabel>[0])} />}
+                        >
+                          {genderData.map((g, i) => <Cell key={i} fill={g.color} />)}
+                        </Pie>
+                        <RechartsTip content={<Tip />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </Card>
+                )}
                 {ageData.length > 0 && (
                   <Card title="התפלגות גיל">
-                    <ResponsiveContainer width="100%" height={160}>
-                      <BarChart data={ageData} margin={{ top: 18, right: 8, bottom: 0, left: -10 }}>
+                    <ResponsiveContainer width="100%" height={150}>
+                      <BarChart data={ageData} margin={{ top: 16, right: 8, bottom: 0, left: -10 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
                         <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} />
@@ -627,24 +590,6 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
-                  </Card>
-                )}
-
-                {attractionData.length > 0 && (
-                  <Card title="העדפות המשתתפים">
-                    <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px' }}>
-                      אחרי מי המשתתפים הצהירו שהם מחפשים
-                    </div>
-                    {attractionData.map((a, i) => (
-                      <HBar
-                        key={i}
-                        label={a.label}
-                        value={a.value}
-                        max={attractionMax}
-                        color={a.color}
-                        badge={`${a.value}`}
-                      />
-                    ))}
                   </Card>
                 )}
               </div>
@@ -658,7 +603,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
                     שיא פעילות: {peakHourStr}
                   </div>
                 )}
-                <ResponsiveContainer width="100%" height={160}>
+                <ResponsiveContainer width="100%" height={120}>
                   <AreaChart data={hourlyData} margin={{ top: 8, right: 8, bottom: 0, left: -10 }}>
                     <defs>
                       <linearGradient id="hrGrad" x1="0" y1="0" x2="0" y2="1">
@@ -732,206 +677,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
               </Card>
             </div>
 
-            {/* SAFETY */}
-            {(d.safety.total_blocks > 0 || d.safety.banned_participants > 0 || (d.safety.deleted_participants ?? 0) > 0) && (
-              <Card title="בטיחות ואבטחה" style={{ marginBottom: '12px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                  <div style={{ textAlign: 'center', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '10px' }}>
-                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#ef4444' }}>{d.safety.total_blocks}</div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>חסימות</div>
-                  </div>
-                  <div style={{ textAlign: 'center', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '10px', padding: '10px' }}>
-                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#ef4444' }}>{d.safety.banned_participants}</div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>חשבונות חסומים</div>
-                  </div>
-                  <div style={{ textAlign: 'center', background: 'rgba(100,116,139,0.12)', border: '1px solid rgba(100,116,139,0.25)', borderRadius: '10px', padding: '10px' }}>
-                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#94a3b8' }}>{d.safety.deleted_participants ?? 0}</div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>מחקו פרופיל</div>
-                  </div>
-                </div>
-              </Card>
-            )}
 
-            {/* SAFETY */}
-            {(d.safety.total_blocks > 0 || d.safety.banned_participants > 0 || (d.safety.deleted_participants ?? 0) > 0) && (
-              <Card title="בטיחות ואבטחה" style={{ marginBottom: '12px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                  <div style={{ textAlign: 'center', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '10px' }}>
-                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#ef4444' }}>{d.safety.total_blocks}</div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>חסימות</div>
-                  </div>
-                  <div style={{ textAlign: 'center', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '10px', padding: '10px' }}>
-                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#ef4444' }}>{d.safety.banned_participants}</div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>חשבונות חסומים</div>
-                  </div>
-                  <div style={{ textAlign: 'center', background: 'rgba(100,116,139,0.12)', border: '1px solid rgba(100,116,139,0.25)', borderRadius: '10px', padding: '10px' }}>
-                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#94a3b8' }}>{d.safety.deleted_participants ?? 0}</div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>מחקו פרופיל</div>
-                  </div>
-                </div>
-              </Card>
-            )}
-
-            {/* ─── PAGE 2: FUNNEL + INSIGHTS ─── */}
-
-            {/* REGISTRATION FUNNEL */}
-            {funnelSteps.length > 0 && (
-              <Card title="משפך הרישום — כמה מהסורקים הגיעו עד הסוף?" style={{ marginBottom: '12px' }}>
-                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '12px' }}>
-                  מתוך מי שסרק את ה-QR עד מי שהשלים פרופיל מלא
-                </div>
-                {funnelSteps.map((step, i) => (
-                  <HBar
-                    key={step.step}
-                    label={FUNNEL_HE[step.step] ?? step.step}
-                    value={step.count}
-                    max={funnelMax}
-                    color={MULTI[i % MULTI.length]}
-                  />
-                ))}
-                {funnelSteps.length >= 2 && (
-                  <div style={{
-                    marginTop: '10px', padding: '8px 12px',
-                    background: 'rgba(255,255,255,0.04)', borderRadius: '8px',
-                    fontSize: '12px', color: '#94a3b8', display: 'flex', gap: '16px', flexWrap: 'wrap',
-                  }}>
-                    <span>
-                      <strong style={{ color: P.emerald }}>
-                        {funnelMax > 0 ? Math.round((funnelSteps[funnelSteps.length - 1].count / funnelMax) * 100) : 0}%
-                      </strong>{' '}
-                      מהסורקים השלימו רישום
-                    </span>
-                    <span>
-                      <strong style={{ color: P.amber }}>
-                        {funnelMax > 0 ? (funnelMax - funnelSteps[funnelSteps.length - 1].count) : 0}
-                      </strong>{' '}
-                      נטשו בדרך
-                    </span>
-                  </div>
-                )}
-              </Card>
-            )}
-
-            {/* ENGAGEMENT QUALITY */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-              <Card title="איכות השיחות">
-                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px' }}>
-                  חלוקת עומק השיחות באירוע
-                </div>
-                <HBar
-                  label="שיחות קצרות (1–2 הודעות)"
-                  value={shallowConvs}
-                  max={d.engagement.total_conversations || 1}
-                  color="#64748b"
-                />
-                <HBar
-                  label="שיחות עמוקות (3+ הודעות)"
-                  value={d.engagement.conversations_with_3plus_messages}
-                  max={d.engagement.total_conversations || 1}
-                  color={P.emerald}
-                />
-                <div style={{
-                  marginTop: '12px', padding: '8px 12px',
-                  background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)',
-                  borderRadius: '8px', fontSize: '12px', color: '#94a3b8',
-                }}>
-                  <strong style={{ color: P.emerald }}>{deepPct}%</strong> מהשיחות הפכו לשיחה אמיתית (3+ הודעות)
-                </div>
-              </Card>
-
-              <Card title="סיכום ביצועים">
-                <StatLine
-                  label="יחס לייקים לאירוע"
-                  value={N > 0 ? `${(d.engagement.total_likes / N).toFixed(1)} לאדם` : '–'}
-                  valueColor={P.fuchsia}
-                />
-                <StatLine
-                  label="שיעור המרה: לייק → התאמה"
-                  value={d.engagement.total_likes > 0
-                    ? `${Math.round((d.engagement.mutual_likes / d.engagement.total_likes) * 100 * 2)}%`
-                    : '–'}
-                  valueColor={P.emerald}
-                />
-                <StatLine
-                  label="שיחה לכל התאמה"
-                  value={d.engagement.mutual_likes > 0
-                    ? `${(d.engagement.total_conversations / d.engagement.mutual_likes).toFixed(2)}`
-                    : '–'}
-                  valueColor={P.violet}
-                />
-                <StatLine
-                  label="הודעה לכל שיחה"
-                  value={d.engagement.avg_messages_per_conversation}
-                  valueColor={P.orange}
-                />
-                <StatLine
-                  label="נוכחות יעילה"
-                  value={N > 0 ? `${100 - isolatedPct}%` : '–'}
-                  valueColor={P.teal}
-                  bar={100 - isolatedPct}
-                  barColor={P.teal}
-                />
-              </Card>
-            </div>
-
-            {/* AI SUMMARY */}
-            {report.ai_summary && (
-              <Card title="ניתוח AI — תובנות מהאירוע" style={{ marginBottom: '12px' }}>
-                <div style={{
-                  fontSize: '13px', color: '#cbd5e1', lineHeight: 1.7,
-                  whiteSpace: 'pre-line',
-                  background: 'rgba(139,92,246,0.06)',
-                  border: '1px solid rgba(139,92,246,0.2)',
-                  borderRadius: '10px',
-                  padding: '14px 16px',
-                }}>
-                  {report.ai_summary}
-                </div>
-              </Card>
-            )}
-
-            {/* KEY INSIGHTS */}
-            <Card title="תובנות מרכזיות" style={{ marginBottom: '12px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-                {[
-                  {
-                    icon: '💬',
-                    text: `${messagedPct}% מהמשתתפים שלחו או קיבלו הודעה`,
-                    color: P.violet,
-                  },
-                  {
-                    icon: '🔥',
-                    text: peakHourStr
-                      ? `שיא פעילות האירוע: ${peakHourStr}`
-                      : `ממוצע ${d.engagement.avg_messages_per_conversation} הודעות לשיחה`,
-                    color: P.amber,
-                  },
-                  {
-                    icon: '💚',
-                    text: `${matchedPct}% מהמשתתפים מצאו התאמה הדדית`,
-                    color: P.emerald,
-                  },
-                  {
-                    icon: '📊',
-                    text: `${100 - isolatedPct}% מהמשתתפים היו פעילים`,
-                    color: P.teal,
-                  },
-                ].map((insight, i) => (
-                  <div key={i} style={{
-                    background: `${insight.color}10`,
-                    border: `1px solid ${insight.color}28`,
-                    borderRadius: '10px',
-                    padding: '10px 12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                  }}>
-                    <span style={{ fontSize: '18px', flexShrink: 0 }}>{insight.icon}</span>
-                    <span style={{ fontSize: '12px', color: '#cbd5e1', lineHeight: 1.4 }}>{insight.text}</span>
-                  </div>
-                ))}
-              </div>
-            </Card>
 
             {/* FOOTER */}
             <div style={{
