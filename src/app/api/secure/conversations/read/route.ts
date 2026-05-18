@@ -4,6 +4,7 @@ import { isValidUUID } from '@/lib/session';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { secureGuard, jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
+import { eventBus } from '@/lib/event-bus';
 
 /**
  * POST /api/secure/conversations/read
@@ -54,6 +55,38 @@ export async function POST(req: NextRequest) {
     if ((aRes.data?.length ?? 0) === 0 && (bRes.data?.length ?? 0) === 0) {
       return jsonError('Not a participant in this conversation', 403);
     }
+
+    // Cancel any pending message-type SMS for this participant in this event
+    // (user opened the conversation, so they've seen it — no longer need the SMS)
+    void supabase
+      .from('pending_sms')
+      .update({ cancelled_at: now, cancel_reason: 'conversation_opened' })
+      .eq('recipient_id', session.sub)
+      .eq('event_id', session.eid)
+      .eq('message_type', 'message')
+      .is('sent_at', null)
+      .is('cancelled_at', null)
+      .then(({ error: smsErr }) => {
+        if (smsErr) logger.error('[conversations/read] cancel pending sms error:', smsErr.message);
+      });
+
+    // Record conversation_opened funnel step + emit event bus (fire-and-forget)
+    eventBus.emit('conversation_opened', {
+      event_id: session.eid,
+      participant_id: session.sub,
+      conversation_id: conversationId,
+    });
+    void supabase
+      .from('funnel_events')
+      .insert({
+        event_id: session.eid,
+        session_id: session.sub,
+        step: 'conversation_opened',
+        metadata: { conversation_id: conversationId },
+      })
+      .then(({ error: funnelErr }) => {
+        if (funnelErr) logger.error('[conversations/read] funnel insert error:', funnelErr.message);
+      });
 
     return NextResponse.json({ success: true });
   } catch (err) {

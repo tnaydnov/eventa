@@ -217,6 +217,7 @@ export const createEventSchema = z.object({
   client_email: optionalStr(z.string().regex(EMAIL_REGEX, 'כתובת אימייל לא תקינה').max(200)),
   client_phone: optionalStr(z.string().max(20)),
   communication_preference: z.enum(['email', 'phone', 'whatsapp', 'call-me']).optional(),
+  send_report_email: z.boolean().optional(),
 });
 
 /* ---- Admin update event schema ---- */
@@ -234,6 +235,7 @@ export const updateEventSchema = z.object({
   client_email: z.preprocess((v) => (typeof v === 'string' ? (v.trim() === '' ? null : v.trim()) : v), z.string().regex(EMAIL_REGEX, 'כתובת אימייל לא תקינה').max(200).nullable().optional()),
   client_phone: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? null : v), z.string().max(20).nullable().optional()),
   communication_preference: z.enum(['email', 'phone', 'whatsapp', 'call-me']).nullable().optional(),
+  send_report_email: z.boolean().optional(),
   payment_status: z.enum(['unpaid', 'paid', 'waived']).optional(),
   starts_at: z.string().datetime().optional(),
   ends_at: z.string().datetime().optional(),
@@ -285,15 +287,12 @@ const ALLOWED_IMAGE_TYPES = new Set([
   'image/gif',
   'image/webp',
   'image/avif',
-  'image/heic',
-  'image/heif',
 ]);
 
 /** Map file extensions to MIME types (fallback when browser reports empty type). */
 const EXT_TO_MIME: Record<string, string> = {
   jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
   gif: 'image/gif', webp: 'image/webp', avif: 'image/avif',
-  heic: 'image/heic', heif: 'image/heif',
 };
 
 /**
@@ -344,8 +343,6 @@ export function validateImageMagicBytes(
     ],
     'image/webp': [[0x52, 0x49, 0x46, 0x46]], // RIFF container
     'image/avif': [], // ftyp box varies; skip magic check
-    'image/heic': [], // ftyp box varies (ftypheic, ftypmif1); skip magic check
-    'image/heif': [], // ftyp box varies; skip magic check
   };
 
   const expected = signatures[claimedType];

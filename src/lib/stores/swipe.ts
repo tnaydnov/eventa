@@ -18,6 +18,8 @@ interface SwipeState {
   dismissedIds: Set<string>;
   /** Participant IDs the user swiped right on (liked via swipe). */
   likedIds: Set<string>;
+  /** Participant IDs with an in-flight like request. */
+  pendingLikeIds: Set<string>;
   /** Whether the initial sent-likes have been loaded from the API. */
   likedIdsLoaded: boolean;
 
@@ -28,6 +30,12 @@ interface SwipeState {
   addLiked: (id: string) => void;
   /** Remove a liked ID (e.g. when unliking from profile). */
   removeLiked: (id: string) => void;
+  /** Mark like request as in-flight for a participant. */
+  startPendingLike: (id: string) => void;
+  /** Clear in-flight like state for a participant. */
+  finishPendingLike: (id: string) => void;
+  /** Read whether a like request is currently in-flight. */
+  isPendingLike: (id: string) => boolean;
   /** Bulk-seed liked IDs from the server on first load. */
   setLikedIds: (ids: string[]) => void;
   /** Reset the pool - clears dismissed, keeps liked. */
@@ -36,10 +44,11 @@ interface SwipeState {
   reset: () => void;
 }
 
-export const useSwipeStore = create<SwipeState>((set) => ({
+export const useSwipeStore = create<SwipeState>((set, get) => ({
   viewMode: 'grid',
   dismissedIds: new Set(),
   likedIds: new Set(),
+  pendingLikeIds: new Set(),
   likedIdsLoaded: false,
 
   setViewMode: (viewMode) => set({ viewMode }),
@@ -65,6 +74,22 @@ export const useSwipeStore = create<SwipeState>((set) => ({
       return { likedIds: next };
     }),
 
+  startPendingLike: (id) =>
+    set((s) => {
+      const next = new Set(s.pendingLikeIds);
+      next.add(id);
+      return { pendingLikeIds: next };
+    }),
+
+  finishPendingLike: (id) =>
+    set((s) => {
+      const next = new Set(s.pendingLikeIds);
+      next.delete(id);
+      return { pendingLikeIds: next };
+    }),
+
+  isPendingLike: (id) => get().pendingLikeIds.has(id),
+
   setLikedIds: (ids) =>
     set({ likedIds: new Set(ids), likedIdsLoaded: true }),
 
@@ -73,6 +98,7 @@ export const useSwipeStore = create<SwipeState>((set) => ({
     viewMode: 'grid',
     dismissedIds: new Set(),
     likedIds: new Set(),
+    pendingLikeIds: new Set(),
     likedIdsLoaded: false,
   }),
 }));

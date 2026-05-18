@@ -32,7 +32,7 @@ test.describe('Swipe Mode', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
   });
 

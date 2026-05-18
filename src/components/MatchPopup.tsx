@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMatchStore, useSessionStore } from '@/lib/store';
@@ -35,7 +35,7 @@ export default function MatchPopup() {
   // Derive my photo from session store photos (user's own uploaded photos)
   const myPhotos = useSessionStore((s) => s.photos);
   const myPhotoUrl = myPhotos?.[0]?.storage_path
-    ? getPhotoUrl(myPhotos[0].storage_path)
+    ? getPhotoUrl(myPhotos[0].storage_path, { width: 480, height: 640, quality: 80 })
     : null;
 
   const handleSendMessage = useCallback(async () => {
@@ -47,7 +47,7 @@ export default function MatchPopup() {
       clearPendingMatch();
 
       if (conv) {
-        router.push(`/dating/${session.eventSlug}/chat/${conv.id}`);
+        router.push(`/${session.eventSlug}/chat/${conv.id}`);
       }
     } catch (err) {
       console.error('[MatchPopup] Failed to create conversation:', err);
@@ -309,14 +309,19 @@ export default function MatchPopup() {
 
 /** Generates floating heart particles for the match celebration. */
 function HeartsRain() {
-  const hearts = Array.from({ length: 10 }, (_, i) => ({
-    id: i,
-    left: `${Math.random() * 100}%`,
-    delay: Math.random() * 2,
-    duration: 2 + Math.random() * 3,
-    size: 12 + Math.random() * 16,
-    opacity: 0.3 + Math.random() * 0.5,
-  }));
+  // Memoize so random positions don't change on every re-render
+  const hearts = useMemo(
+    () =>
+      Array.from({ length: 10 }, (_, i) => ({
+        id: i,
+        left: `${Math.random() * 100}%`,
+        delay: Math.random() * 2,
+        duration: 2 + Math.random() * 3,
+        size: 12 + Math.random() * 16,
+        opacity: 0.3 + Math.random() * 0.5,
+      })),
+    [],
+  );
 
   return (
     <div
@@ -346,6 +351,7 @@ function HeartsRain() {
             position: 'absolute',
             left: h.left,
             fontSize: `${h.size}px`,
+            willChange: 'transform',
           }}
         >
           <span aria-hidden="true">💗</span>

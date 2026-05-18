@@ -6,6 +6,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../_helpers';
 import { evictEventStatusCache } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
+import { isReservedSlug } from '@/lib/slug';
 
 /**
  * PATCH /api/admin/events/[eventId]
@@ -34,6 +35,39 @@ export async function PATCH(
     }
 
     const supabase = getServiceClient();
+
+    if (parsed.data.slug) {
+      const nextSlug = parsed.data.slug.toLowerCase();
+
+      if (isReservedSlug(nextSlug)) {
+        return NextResponse.json(
+          { error: 'כתובת זו שמורה למערכת ולא ניתן להשתמש בה', details: { slug: ['Reserved slug'] } },
+          { status: 400 }
+        );
+      }
+
+      const { data: existingSlug, error: slugCheckError } = await supabase
+        .from('events')
+        .select('id')
+        .eq('slug', nextSlug)
+        .neq('id', eventId)
+        .maybeSingle();
+
+      if (slugCheckError) {
+        logger.error('[ADMIN_EVENT_PATCH] slug check error:', slugCheckError.message);
+        return jsonError('Failed to update event', 500);
+      }
+
+      if (existingSlug) {
+        return NextResponse.json(
+          { error: 'כתובת כבר בשימוש', details: { slug: ['Slug already exists'] } },
+          { status: 409 }
+        );
+      }
+
+      parsed.data.slug = nextSlug;
+    }
+
     const { data, error } = await supabase
       .from('events')
       .update(parsed.data)

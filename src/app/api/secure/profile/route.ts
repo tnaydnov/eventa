@@ -6,6 +6,8 @@ import { profileSetupSchema } from '@/lib/validations';
 import { MAX_NAME_LENGTH, MAX_BIO_LENGTH, MAX_CITY_LENGTH } from '@/lib/constants';
 import { secureGuard, jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
+import { eventBus } from '@/lib/event-bus';
+import { enqueueInactivitySms } from '@/lib/notification-dispatcher';
 
 /**
  * PATCH /api/secure/profile
@@ -52,6 +54,11 @@ export async function PATCH(req: NextRequest) {
       allowed.looking_for = parsed.data.looking_for; // Already validated by Zod enum
     }
 
+    // sms_notifications_enabled is not part of profileSetupSchema - handle separately
+    if (typeof (data as Record<string, unknown>).sms_notifications_enabled === 'boolean') {
+      allowed.sms_notifications_enabled = (data as Record<string, unknown>).sms_notifications_enabled as boolean;
+    }
+
     if (Object.keys(allowed).length === 0) {
       return jsonError('No valid fields to update', 400);
     }
@@ -74,6 +81,40 @@ export async function PATCH(req: NextRequest) {
       logger.error('[PROFILE] update matched 0 rows - sub=' + session.sub + ' eid=' + session.eid);
       return jsonError('Participant not found', 404);
     }
+
+    // Fire profile_complete event if all required fields are now set (fire-and-forget)
+    const updated = rows[0] as Record<string, unknown>;
+    if (updated.display_name && updated.gender && updated.attracted_to && updated.age) {
+      eventBus.emit('profile_complete', {
+        event_id: session.eid,
+        participant_id: session.sub,
+      });
+      const supabase2 = getServiceClient();
+      // Record funnel step
+      void supabase2
+        .from('funnel_events')
+        .insert({ event_id: session.eid, session_id: session.sub, step: 'profile_complete', metadata: {} })
+        .then(({ error }) => {
+          if (error && error.code !== '23505') logger.error('[PROFILE] funnel insert error:', error.message);
+        });
+      // Cancel any pending abandoned-funnel SMS since user completed profile
+      void supabase2
+        .from('pending_sms')
+        .update({ cancelled_at: new Date().toISOString(), cancel_reason: 'profile_completed' })
+        .eq('recipient_id', session.sub)
+        .eq('event_id', session.eid)
+        .eq('message_type', 'abandoned_funnel')
+        .is('sent_at', null)
+        .is('cancelled_at', null)
+        .then(({ error }) => {
+          if (error) logger.error('[PROFILE] cancel abandoned_funnel sms error:', error.message);
+        });
+
+      // Schedule inactivity nudge (+30m) for participants who completed setup
+      // but still haven't engaged (no likes/messages).
+      void enqueueInactivitySms(session.sub, session.eid);
+    }
+
     return NextResponse.json(rows[0]);
   } catch (err) {
     logger.error('[PROFILE] error:', err);

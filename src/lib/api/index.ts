@@ -48,3 +48,5 @@ export type {
   UploadResult,
   MutationResult,
 } from './guest-portal';
+export { fetchWithRetry } from './fetch-retry';
+export type { FetchRetryOptions } from './fetch-retry';

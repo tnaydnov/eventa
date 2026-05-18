@@ -19,7 +19,7 @@ test.describe('Grid Page', () => {
   });
 
   test('E-GR-01: Grid loads with participant cards', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('.app-container')).toBeVisible();
     // Grid view should show participant cards or main content
     await expect(page.locator('.main-content')).toBeVisible();
@@ -40,7 +40,7 @@ test.describe('Grid Page', () => {
       }
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     // Filter bar chips should appear when attracted_to=all
     const filterBar = page.locator('.filter-bar');
     if (await filterBar.isVisible()) {
@@ -62,12 +62,12 @@ test.describe('Grid Page', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('.main-content')).toBeVisible();
   });
 
   test('E-GR-04: Tap card navigates to profile', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     const card = page.locator('.grid-card').first();
     if (await card.isVisible()) {
       await card.click();
@@ -78,7 +78,7 @@ test.describe('Grid Page', () => {
   });
 
   test('E-GR-05: Swipe mode toggle', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     // Look for swipe toggle button
     const swipeBtn = page.locator('[aria-label="תצוגת סווייפ"]');
     if (await swipeBtn.isVisible()) {
@@ -108,7 +108,7 @@ test.describe('Grid Page', () => {
       }
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('.main-content')).toBeVisible();
     // Highlighted cards should have the highlight class
     // (depends on whether the like data causes highlight)
@@ -123,7 +123,7 @@ test.describe('Grid Page', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     // Empty state message
     await expect(page.locator('body')).toContainText('אין משתתפים');
   });
@@ -142,12 +142,12 @@ test.describe('Grid Page', () => {
       }
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('.main-content')).toBeVisible();
   });
 
   test('E-GR-09: Grid excludes self', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('.main-content')).toBeVisible();
     // Own participant should not appear in grid (API returns only others)
   });

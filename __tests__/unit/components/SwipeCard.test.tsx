@@ -32,7 +32,7 @@ vi.mock('@/lib/constants', () => ({
   },
 }));
 
-import SwipeCard from '@/app/dating/[eventSlug]/_components/SwipeCard';
+import SwipeCard from '@/app/[eventSlug]/_components/SwipeCard';
 
 describe('SwipeCard', () => {
   const mockParticipant = {

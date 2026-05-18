@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
 
     // ── Create clearing session ──
     const returnUrl = `${APP_BASE_URL}/api/payment/callback?rid=${requestId}&src=wizard`;
-    const cancelUrl = `${APP_BASE_URL}/dating/order?payment=cancelled`;
+    const cancelUrl = `${APP_BASE_URL}/order?payment=cancelled`;
 
     const description = wantsMessages
       ? `Eventa – חבילת אירוע + הודעות (₪${BASE_PRICE})`

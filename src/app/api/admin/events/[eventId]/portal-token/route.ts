@@ -4,13 +4,13 @@ import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient, generateShortCode } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
 import { logger } from '@/lib/logger';
-import { APP_BASE_URL } from '@/lib/config';
+import { routes } from '@/lib/routes';
 
 /**
- * Build the full guest-upload portal URL for a given event slug/token.
+ * Build the full portal URL for a given token.
  */
-function buildPortalUrl(slug: string, token: string): string {
-  return `${APP_BASE_URL}/guest-upload/${slug}?k=${token}`;
+function buildPortalUrl(token: string): string {
+  return routes.portal(token);
 }
 
 /**
@@ -56,7 +56,7 @@ export async function GET(
 
     return NextResponse.json({
       token: data.token,
-      portalUrl: buildPortalUrl(event?.slug ?? eventId, data.token),
+      portalUrl: buildPortalUrl(data.token),
       createdAt: data.created_at,
       lastUsedAt: data.last_used_at,
     });
@@ -120,7 +120,7 @@ export async function POST(
 
     return NextResponse.json({
       token,
-      portalUrl: buildPortalUrl(event.slug, token),
+      portalUrl: buildPortalUrl(token),
     });
   } catch (err) {
     logger.error('[ADMIN_PORTAL_TOKEN_POST] error:', err);

@@ -6,6 +6,7 @@ import { MAX_PHOTOS } from '@/lib/constants';
 import { secureGuard, jsonError, isSafePath } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 import { photoReorderSchema } from '@/lib/validations';
+import { moderateProfilePhoto } from '@/lib/moderation';
 
 /**
  * POST /api/secure/photos
@@ -35,6 +36,24 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = getServiceClient();
+
+    // Idempotency-by-storage_path: retries should return the same photo row.
+    const { data: existingPhoto, error: existingPhotoError } = await supabase
+      .from('participant_photos')
+      .select('*')
+      .eq('event_id', session.eid)
+      .eq('participant_id', session.sub)
+      .eq('storage_path', storagePath)
+      .maybeSingle();
+
+    if (existingPhotoError) {
+      logger.error('[PHOTOS_POST] existing photo lookup failed', { error: existingPhotoError.message });
+      return jsonError('Server error', 500);
+    }
+
+    if (existingPhoto) {
+      return NextResponse.json(existingPhoto);
+    }
 
     // Enforce photo count limit
     const { count, error: countErr } = await supabase
@@ -67,6 +86,10 @@ export async function POST(req: NextRequest) {
       logger.error('[PHOTOS_POST] insert error:', error);
       return jsonError('Failed to save photo', 400);
     }
+
+    // Moderate the photo (fire-and-forget — must not block response)
+    void moderateProfilePhoto(data.id as string, storagePath, session.sub, session.eid);
+
     return NextResponse.json(data);
   } catch (err) {
     logger.error('[PHOTOS_POST] error:', err);

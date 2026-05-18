@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
-import DemoPhone from '@/app/dating/_components/demo/DemoPhone';
+import DemoPhone from '@/app/_components/demo/DemoPhone';
 
 describe('DemoPhone', () => {
   it('U-DAT-01: renders phone mockup with grid of users', () => {

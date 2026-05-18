@@ -244,7 +244,7 @@ export default function CreateEventDialog({ open, onClose, onCreate }: CreateEve
           {slugPreview && (
             <div className="ced-slug-preview">
               <span className="ced-slug-preview__label">כתובת:</span>
-              <code className="ced-slug-preview__value">/dating/{slugPreview}</code>
+              <code className="ced-slug-preview__value">/{slugPreview}</code>
             </div>
           )}
         </div>

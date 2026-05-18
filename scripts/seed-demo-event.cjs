@@ -371,7 +371,7 @@ async function main() {
   console.log(`   Join code: ${DEMO_JOIN_CODE}`);
   console.log(`   Users:     ${inserted.length} participants`);
   console.log(`   Photos:    ${photoCount} uploaded`);
-  console.log(`   URL:       ${SITE_URL}/dating/${event.slug}/join`);
+  console.log(`   URL:       ${SITE_URL}/${event.slug}/join`);
   console.log('');
 }
 

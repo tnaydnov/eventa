@@ -47,6 +47,11 @@ describe('sendLike', () => {
     expect(await sendLike('target-id')).toBeNull();
   });
 
+  it('treats 409 as duplicate success', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({ ok: false, status: 409 } as Response);
+    await expect(sendLike('target-id')).resolves.toEqual({ duplicate: true });
+  });
+
   it('returns null on network error', async () => {
     vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('offline'));
     expect(await sendLike('target-id')).toBeNull();

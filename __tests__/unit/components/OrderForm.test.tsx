@@ -7,7 +7,7 @@ import '@testing-library/jest-dom';
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
-import OrderForm from '@/app/dating/_components/OrderForm';
+import OrderForm from '@/app/_components/OrderForm';
 
 describe('OrderForm', () => {
   beforeEach(() => {

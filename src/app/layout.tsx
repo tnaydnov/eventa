@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Rubik, Great_Vibes } from 'next/font/google';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import WebVitalsReporter from '@/components/WebVitalsReporter';
 import './globals.css';
 
 const rubik = Rubik({
@@ -101,6 +102,7 @@ export default function RootLayout({
           }}
         />
         <ErrorBoundary>
+            <WebVitalsReporter />
             {children}
         </ErrorBoundary>
       </body>

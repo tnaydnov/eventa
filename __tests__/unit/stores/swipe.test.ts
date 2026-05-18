@@ -14,7 +14,18 @@ describe('useSwipeStore', () => {
     expect(s.viewMode).toBe('grid');
     expect(s.dismissedIds.size).toBe(0);
     expect(s.likedIds.size).toBe(0);
+    expect(s.pendingLikeIds.size).toBe(0);
     expect(s.likedIdsLoaded).toBe(false);
+  });
+
+  it('pending-like lifecycle works', () => {
+    useSwipeStore.getState().startPendingLike('p1');
+    expect(useSwipeStore.getState().pendingLikeIds.has('p1')).toBe(true);
+    expect(useSwipeStore.getState().isPendingLike('p1')).toBe(true);
+
+    useSwipeStore.getState().finishPendingLike('p1');
+    expect(useSwipeStore.getState().pendingLikeIds.has('p1')).toBe(false);
+    expect(useSwipeStore.getState().isPendingLike('p1')).toBe(false);
   });
 
   it('setViewMode changes mode', () => {
@@ -82,12 +93,14 @@ describe('useSwipeStore', () => {
     useSwipeStore.getState().setViewMode('swipe');
     useSwipeStore.getState().dismiss('p1');
     useSwipeStore.getState().addLiked('p2');
+    useSwipeStore.getState().startPendingLike('p4');
     useSwipeStore.getState().setLikedIds(['p3']);
     useSwipeStore.getState().reset();
     const s = useSwipeStore.getState();
     expect(s.viewMode).toBe('grid');
     expect(s.dismissedIds.size).toBe(0);
     expect(s.likedIds.size).toBe(0);
+    expect(s.pendingLikeIds.size).toBe(0);
     expect(s.likedIdsLoaded).toBe(false);
   });
 });

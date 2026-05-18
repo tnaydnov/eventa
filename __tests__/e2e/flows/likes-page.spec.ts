@@ -18,7 +18,7 @@ test.describe('Likes Page', () => {
   });
 
   test('E-LK-01: Likes page loads', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/likes`);
+    await page.goto(`/${TEST_EVENT_SLUG}/likes`);
     await expect(page.locator('.app-container')).toBeVisible();
   });
 
@@ -40,7 +40,7 @@ test.describe('Likes Page', () => {
       }
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/likes`);
+    await page.goto(`/${TEST_EVENT_SLUG}/likes`);
     await expect(page.locator('body')).toBeVisible();
     // Should have sub-tab buttons
     const sentTab = page.locator('button', { hasText: 'עשיתי' });
@@ -67,7 +67,7 @@ test.describe('Likes Page', () => {
       }
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/likes`);
+    await page.goto(`/${TEST_EVENT_SLUG}/likes`);
     // Matches tab
     const matchesTab = page.locator('button', { hasText: 'התאמות' });
     if (await matchesTab.isVisible()) {
@@ -93,7 +93,7 @@ test.describe('Likes Page', () => {
       }
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/likes`);
+    await page.goto(`/${TEST_EVENT_SLUG}/likes`);
     // Click on a received like card
     const card = page.locator('.grid-card').first();
     if (await card.isVisible()) {
@@ -110,13 +110,13 @@ test.describe('Likes Page', () => {
       await route.fulfill({ status: 200, body: '{"success":true}' });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/likes`);
+    await page.goto(`/${TEST_EVENT_SLUG}/likes`);
     await page.waitForTimeout(1000);
     // markAllLikesSeen should have been called
   });
 
   test('E-LK-06: Like badge clears', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/likes`);
+    await page.goto(`/${TEST_EVENT_SLUG}/likes`);
     await expect(page.locator('body')).toBeVisible();
     // After viewing likes, badge should clear
   });
@@ -134,7 +134,7 @@ test.describe('Likes Page', () => {
       }
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/likes`);
+    await page.goto(`/${TEST_EVENT_SLUG}/likes`);
     // Should show empty state message with timeout for hydration
     await expect(page.locator('body')).toContainText('עדיין', { timeout: 10000 });
   });

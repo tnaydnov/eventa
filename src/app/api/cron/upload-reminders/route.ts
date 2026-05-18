@@ -146,7 +146,7 @@ async function handler(req: NextRequest) {
         .maybeSingle();
 
       const uploadUrl = portalToken
-        ? `${APP_BASE_URL}/guest-upload/${event.slug}?k=${portalToken.token}`
+        ? `${APP_BASE_URL}/portal/${portalToken.token}`
         : `${APP_BASE_URL}/guest-upload/${event.slug}`;
 
       // Compute schedule times for template

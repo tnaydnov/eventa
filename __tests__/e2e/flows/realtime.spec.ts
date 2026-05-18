@@ -40,7 +40,7 @@ test.describe('Realtime Features', () => {
       }
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
 
     // Navigate to likes tab to see notification
@@ -56,7 +56,7 @@ test.describe('Realtime Features', () => {
     // Set up conversations with unread messages
     await mockConversationsWithData(page);
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
 
     // Navigate to chats tab
@@ -72,20 +72,20 @@ test.describe('Realtime Features', () => {
     // When a match happens, it should be reflected in the UI
     await mockLikesWithData(page);
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
   });
 
   test('E-RT-04: Polling fallback when realtime unavailable', async ({ page }) => {
     // Note: realtime is already aborted in setupAuthenticatedMocks
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
 
     // App should still function without realtime
   });
 
   test('E-RT-05: Reconnect after disconnect', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
 
     // Simulate offline then online

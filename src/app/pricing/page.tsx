@@ -134,7 +134,7 @@ export default function PricingPage() {
         <p className="pri__sub">לאירוע · תשלום חד&#8209;פעמי · הכל כלול</p>
 
         {/* CTA */}
-        <Link href={'/dating/order' as Route} className="pri__cta">
+        <Link href={'/order' as Route} className="pri__cta">
           רכשו את החבילה המלאה ב-{BASE_PRICE}₪ בלבד!
         </Link>
 

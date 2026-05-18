@@ -33,7 +33,7 @@ export default function TabBar() {
 
   if (!session) return null;
 
-  const basePath = `/dating/${session.eventSlug}`;
+  const basePath = `/${session.eventSlug}`;
 
   const tabs = [
     { path: basePath, label: 'גריד', icon: GRID_ICON, badge: 0 },

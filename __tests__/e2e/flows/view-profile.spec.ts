@@ -53,14 +53,14 @@ test.describe('View Profile', () => {
   });
 
   test('E-VP-01: Profile page loads with user info', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/user/${TEST_PARTICIPANT_ID_2}`);
+    await page.goto(`/${TEST_EVENT_SLUG}/user/${TEST_PARTICIPANT_ID_2}`);
     await expect(page.locator('body')).toBeVisible();
     // Should show the user's profile with their name
     await expect(page.locator('body')).toContainText('משתמשת טסט', { timeout: 10000 });
   });
 
   test('E-VP-02: Like from profile page', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/user/${TEST_PARTICIPANT_ID_2}`);
+    await page.goto(`/${TEST_EVENT_SLUG}/user/${TEST_PARTICIPANT_ID_2}`);
     await expect(page.locator('body')).toContainText('משתמשת טסט', { timeout: 10000 });
 
     // Find and click like button on profile
@@ -81,12 +81,12 @@ test.describe('View Profile', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/user/${TEST_PARTICIPANT_ID_2}`);
+    await page.goto(`/${TEST_EVENT_SLUG}/user/${TEST_PARTICIPANT_ID_2}`);
     await expect(page.locator('body')).toBeVisible();
   });
 
   test('E-VP-04: Block from profile page', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/user/${TEST_PARTICIPANT_ID_2}`);
+    await page.goto(`/${TEST_EVENT_SLUG}/user/${TEST_PARTICIPANT_ID_2}`);
     await expect(page.locator('body')).toBeVisible();
 
     // Block button should be available
@@ -107,12 +107,12 @@ test.describe('View Profile', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/user/${TEST_PARTICIPANT_ID_2}`);
+    await page.goto(`/${TEST_EVENT_SLUG}/user/${TEST_PARTICIPANT_ID_2}`);
     await expect(page.locator('body')).toBeVisible();
   });
 
   test('E-VP-06: Message button for matched user', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/user/${TEST_PARTICIPANT_ID_2}`);
+    await page.goto(`/${TEST_EVENT_SLUG}/user/${TEST_PARTICIPANT_ID_2}`);
     await expect(page.locator('body')).toBeVisible();
   });
 });

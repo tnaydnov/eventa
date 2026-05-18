@@ -7,7 +7,7 @@ vi.mock('@/components/Icons', () => ({
   CameraIcon: ({ size, color }: { size: number; color?: string }) => <span data-testid="camera-icon" />,
 }));
 
-import ChatInputBar from '@/app/dating/[eventSlug]/chat/[conversationId]/_components/ChatInputBar';
+import ChatInputBar from '@/app/[eventSlug]/chat/[conversationId]/_components/ChatInputBar';
 
 describe('ChatInputBar', () => {
   const defaultProps = {

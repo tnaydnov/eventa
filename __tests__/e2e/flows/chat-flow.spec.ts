@@ -30,7 +30,7 @@ test.describe('Chat Flow', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/chats`);
+    await page.goto(`/${TEST_EVENT_SLUG}/chats`);
     await expect(page.locator('.app-container')).toBeVisible();
   });
 
@@ -50,7 +50,7 @@ test.describe('Chat Flow', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/chats`);
+    await page.goto(`/${TEST_EVENT_SLUG}/chats`);
     await expect(page.locator('body')).toBeVisible();
   });
 
@@ -65,7 +65,7 @@ test.describe('Chat Flow', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/chats`);
+    await page.goto(`/${TEST_EVENT_SLUG}/chats`);
     await expect(page.locator('body')).toBeVisible();
   });
 
@@ -92,7 +92,7 @@ test.describe('Chat Flow', () => {
       await route.fulfill({ status: 200, body: '{"success":true}' });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/chat/${TEST_CONVERSATION_ID}`);
+    await page.goto(`/${TEST_EVENT_SLUG}/chat/${TEST_CONVERSATION_ID}`);
     await expect(page.locator('body')).toBeVisible();
   });
 
@@ -125,7 +125,7 @@ test.describe('Chat Flow', () => {
       await route.fulfill({ status: 200, body: '{"success":true}' });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/chat/${TEST_CONVERSATION_ID}`);
+    await page.goto(`/${TEST_EVENT_SLUG}/chat/${TEST_CONVERSATION_ID}`);
     await expect(page.locator('body')).toBeVisible();
 
     // Type and send a message
@@ -157,7 +157,7 @@ test.describe('Chat Flow', () => {
       await route.fulfill({ status: 200, body: '{"success":true}' });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/chat/${TEST_CONVERSATION_ID}`);
+    await page.goto(`/${TEST_EVENT_SLUG}/chat/${TEST_CONVERSATION_ID}`);
     await expect(page.locator('body')).toBeVisible();
   });
 
@@ -181,7 +181,7 @@ test.describe('Chat Flow', () => {
       await route.fulfill({ status: 200, body: '{"success":true}' });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/chat/${TEST_CONVERSATION_ID}`);
+    await page.goto(`/${TEST_EVENT_SLUG}/chat/${TEST_CONVERSATION_ID}`);
     await expect(page.locator('body')).toBeVisible();
   });
 
@@ -209,7 +209,7 @@ test.describe('Chat Flow', () => {
       await route.fulfill({ status: 200, body: '{"success":true}' });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/chat/${TEST_CONVERSATION_ID}`);
+    await page.goto(`/${TEST_EVENT_SLUG}/chat/${TEST_CONVERSATION_ID}`);
     await expect(page.locator('body')).toBeVisible();
   });
 
@@ -234,7 +234,7 @@ test.describe('Chat Flow', () => {
       await route.fulfill({ status: 200, body: '{"success":true}' });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/chat/${TEST_CONVERSATION_ID}`);
+    await page.goto(`/${TEST_EVENT_SLUG}/chat/${TEST_CONVERSATION_ID}`);
     // Should show "load older" button
     await expect(page.locator('body')).toBeVisible();
   });
@@ -260,7 +260,7 @@ test.describe('Chat Flow', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/chat/${TEST_CONVERSATION_ID}`);
+    await page.goto(`/${TEST_EVENT_SLUG}/chat/${TEST_CONVERSATION_ID}`);
     await page.waitForTimeout(1000);
   });
 
@@ -283,7 +283,7 @@ test.describe('Chat Flow', () => {
       await route.fulfill({ status: 200, body: '{"success":true}' });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/chat/${TEST_CONVERSATION_ID}`);
+    await page.goto(`/${TEST_EVENT_SLUG}/chat/${TEST_CONVERSATION_ID}`);
     // Look for menu/block button
     await expect(page.locator('body')).toBeVisible();
   });
@@ -297,7 +297,7 @@ test.describe('Chat Flow', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/chats`);
+    await page.goto(`/${TEST_EVENT_SLUG}/chats`);
     await expect(page.locator('body')).toContainText('אין שיחות');
   });
 });

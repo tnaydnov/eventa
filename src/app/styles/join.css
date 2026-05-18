@@ -1,10 +1,10 @@
 /* ───────────────────────────────────────────────────────────────
  * Premium Join Flow — splash, shell & form styles
  * Used by:
- *   - app/dating/[eventSlug]/loading.tsx        (server splash)
+ *   - app/[eventSlug]/loading.tsx               (server splash)
  *   - components/join/PremiumSplashScreen
  *   - components/join/PremiumJoinShell          (client shell)
- *   - app/dating/[eventSlug]/join/page.tsx
+ *   - app/[eventSlug]/join/page.tsx
  *   - components/MobileGuard                    (desktop block)
  *
  * Design rules:

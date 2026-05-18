@@ -40,7 +40,7 @@ test.describe('Mobile & Responsive', () => {
     await page.setViewportSize({ width: 1024, height: 768 });
     await setupAuthenticatedMocks(page);
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await page.waitForTimeout(1000);
     // Desktop guard should show "mobile only" message
     const desktopBlock = page.locator('.desktop-block');
@@ -53,7 +53,7 @@ test.describe('Mobile & Responsive', () => {
     await page.setViewportSize({ width: 375, height: 812 });
     await setupAuthenticatedMocks(page);
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     // Switch to swipe mode
     const swipeBtn = page.locator('[aria-label="תצוגת סווייפ"]');
     if (await swipeBtn.isVisible()) {
@@ -68,7 +68,7 @@ test.describe('Mobile & Responsive', () => {
     await page.setViewportSize({ width: 375, height: 812 });
     await setupAuthenticatedMocks(page);
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     // Tab bar should have 3 tabs
     const tabBar = page.locator('.tab-bar');
     if (await tabBar.isVisible()) {

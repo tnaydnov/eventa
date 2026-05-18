@@ -14,7 +14,7 @@ test.describe('Error Handling', () => {
       await route.abort('connectionrefused');
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     // Should still render something (error boundary or fallback)
     await expect(page.locator('body')).toBeVisible();
   });
@@ -30,13 +30,13 @@ test.describe('Error Handling', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
   });
 
   test('E-ERR-03: Session expired mid-use redirects', async ({ page }) => {
     await setupAuthenticatedMocks(page);
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
 
     // Expire session for subsequent requests
@@ -63,7 +63,7 @@ test.describe('Error Handling', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/profile`);
+    await page.goto(`/${TEST_EVENT_SLUG}/profile`);
     await expect(page.locator('body')).toBeVisible();
   });
 
@@ -87,7 +87,7 @@ test.describe('Error Handling', () => {
       }
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
   });
 });

@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
-let mockPathname = '/dating/test-event';
+let mockPathname = '/test-event';
 vi.mock('next/navigation', () => ({
   usePathname: () => mockPathname,
 }));
@@ -33,7 +33,7 @@ beforeEach(() => {
   mockSession = { eventSlug: 'test-event' };
   mockUnreadLikes = 0;
   mockUnreadMessages = 0;
-  mockPathname = '/dating/test-event';
+  mockPathname = '/test-event';
 });
 
 describe('TabBar', () => {
@@ -51,10 +51,10 @@ describe('TabBar', () => {
   });
 
   it('marks active tab based on current path', () => {
-    mockPathname = '/dating/test-event';
+    mockPathname = '/test-event';
     const { container } = render(<TabBar />);
     const links = container.querySelectorAll('a');
-    const gridLink = Array.from(links).find(l => l.getAttribute('href') === '/dating/test-event');
+    const gridLink = Array.from(links).find(l => l.getAttribute('href') === '/test-event');
     expect(gridLink?.classList.contains('active')).toBe(true);
   });
 
@@ -89,8 +89,8 @@ describe('TabBar', () => {
     const { container } = render(<TabBar />);
     const links = container.querySelectorAll('a');
     const hrefs = Array.from(links).map(l => l.getAttribute('href'));
-    expect(hrefs).toContain('/dating/test-event');
-    expect(hrefs).toContain('/dating/test-event/chats');
-    expect(hrefs).toContain('/dating/test-event/likes');
+    expect(hrefs).toContain('/test-event');
+    expect(hrefs).toContain('/test-event/chats');
+    expect(hrefs).toContain('/test-event/likes');
   });
 });

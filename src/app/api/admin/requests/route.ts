@@ -284,7 +284,7 @@ export async function POST(req: NextRequest) {
           .from('client_portal_tokens')
           .insert({ event_id: newEvent.id, token: portalToken, is_active: true });
 
-        portalUrl = `${APP_BASE_URL}/guest-upload/${newEvent.slug}?k=${portalToken}`;
+        portalUrl = `${APP_BASE_URL}/portal/${portalToken}`;
       } catch (msgErr) {
         // Non-fatal - event and approval already succeeded
         logger.warn('[ADMIN_REQUESTS] messaging auto-setup error:', msgErr);
@@ -298,7 +298,7 @@ export async function POST(req: NextRequest) {
       if (request.contact_email) {
         try {
           const totalShekel = (BASE_PRICE);
-          const eventUrl = `${APP_BASE_URL}/dating/${newEvent.slug}/join?k=${newEvent.join_code}`;
+          const eventUrl = `${APP_BASE_URL}/${newEvent.slug}/join?k=${newEvent.join_code}`;
 
           const approvalEmail = buildClientApprovalEmail({
             eventType: request.event_type,

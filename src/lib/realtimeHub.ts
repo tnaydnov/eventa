@@ -31,6 +31,10 @@ interface ManagedChannel {
   status: 'CONNECTING' | 'SUBSCRIBED' | 'CLOSED';
   postgresHandlers: Map<string, Set<PostgresChangeHandler>>;
   postgresBindings: PostgresBinding[];
+  /** Timestamp of the last received event from this channel (used by watchdog) */
+  lastEventReceivedAt: number;
+  /** Timestamp when the channel was created (initial baseline for watchdog) */
+  createdAt: number;
 }
 
 // ─── Hub Singleton ───────────────────────────────────────────────
@@ -84,9 +88,13 @@ function getOrCreate(
         ...(b.filter ? { filter: b.filter } : {}),
       } as Record<string, string>,
       (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
-        const handlers = channels.get(key)?.postgresHandlers.get(bk);
-        if (handlers) {
-          for (const h of handlers) h(payload);
+        const m = channels.get(key);
+        if (m) {
+          m.lastEventReceivedAt = Date.now();
+          const handlers = m.postgresHandlers.get(bk);
+          if (handlers) {
+            for (const h of handlers) h(payload);
+          }
         }
       },
     );
@@ -98,6 +106,8 @@ function getOrCreate(
     status: 'CONNECTING',
     postgresHandlers,
     postgresBindings: bindings,
+    lastEventReceivedAt: Date.now(),
+    createdAt: Date.now(),
   };
 
   channels.set(key, managed);
@@ -189,6 +199,79 @@ export function getStatus(): Record<string, { refCount: number; status: string }
 // the WebSocket can silently die. On return, we check all channels and
 // re-subscribe any that are no longer SUBSCRIBED.
 
+/** Track reconnect attempt counts per channel key for exponential backoff. */
+const channelReconnectAttempts = new Map<string, number>();
+
+/**
+ * Rebuild and re-subscribe a single stale channel.
+ * On failure (CHANNEL_ERROR / TIMED_OUT) schedules a retry with exponential
+ * backoff: base = min(500 * 2^attempt, 30_000) ms, ±25 % jitter.
+ * Resets the attempt counter on successful SUBSCRIBED.
+ */
+function reconnectSingleChannel(key: string): void {
+  const managed = channels.get(key);
+  if (!managed || managed.refCount <= 0) return;
+
+  try { supabase.removeChannel(managed.channel); } catch { /* already removed */ }
+
+  let ch = supabase.channel(key);
+  const newPostgresHandlers = new Map<string, Set<PostgresChangeHandler>>();
+
+  for (const b of managed.postgresBindings) {
+    const bk = bindingKey(b);
+    const existingHandlers = managed.postgresHandlers.get(bk) || new Set();
+    newPostgresHandlers.set(bk, existingHandlers);
+
+    ch = ch.on(
+      'postgres_changes' as 'system',
+      {
+        event: b.event,
+        schema: b.schema,
+        table: b.table,
+        ...(b.filter ? { filter: b.filter } : {}),
+      } as Record<string, string>,
+      (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
+        const m = channels.get(key);
+        if (m) {
+          m.lastEventReceivedAt = Date.now();
+          const handlers = m.postgresHandlers.get(bk);
+          if (handlers) { for (const h of handlers) h(payload); }
+        }
+      },
+    );
+  }
+
+  managed.channel = ch;
+  managed.postgresHandlers = newPostgresHandlers;
+  managed.status = 'CONNECTING';
+  managed.lastEventReceivedAt = Date.now(); // reset baseline on reconnect
+
+  ch.subscribe((status) => {
+    if (channels.get(key) !== managed) return;
+
+    if (status === 'SUBSCRIBED') {
+      managed.status = 'SUBSCRIBED';
+      channelReconnectAttempts.delete(key); // success — reset backoff
+
+    } else if (status === 'CLOSED') {
+      managed.status = 'CLOSED';
+      channelReconnectAttempts.delete(key);
+
+    } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+      // Exponential backoff: 500 ms * 2^attempt, capped at 30 s, ±25 % jitter
+      managed.status = 'CONNECTING';
+      const attempt = (channelReconnectAttempts.get(key) ?? 0) + 1;
+      channelReconnectAttempts.set(key, attempt);
+      const base = Math.min(500 * Math.pow(2, attempt), 30_000);
+      const delay = base * (0.75 + Math.random() * 0.5);
+      setTimeout(() => reconnectSingleChannel(key), delay);
+
+    } else {
+      managed.status = 'CONNECTING';
+    }
+  });
+}
+
 function reconnectStaleChannels(): void {
   for (const [key, managed] of channels) {
     if (managed.refCount <= 0) continue;
@@ -197,45 +280,37 @@ function reconnectStaleChannels(): void {
     const state = managed.channel.state;
     if (state === 'joined' || state === 'joining') continue;
 
-    // Channel is stale - tear down and rebuild
-    try { supabase.removeChannel(managed.channel); } catch { /* already removed */ }
-
-    let ch = supabase.channel(key);
-    const newPostgresHandlers = new Map<string, Set<PostgresChangeHandler>>();
-
-    for (const b of managed.postgresBindings) {
-      const bk = bindingKey(b);
-      // Preserve existing handlers
-      const existingHandlers = managed.postgresHandlers.get(bk) || new Set();
-      newPostgresHandlers.set(bk, existingHandlers);
-
-      ch = ch.on(
-        'postgres_changes' as 'system',
-        {
-          event: b.event,
-          schema: b.schema,
-          table: b.table,
-          ...(b.filter ? { filter: b.filter } : {}),
-        } as Record<string, string>,
-        (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
-          const handlers = channels.get(key)?.postgresHandlers.get(bk);
-          if (handlers) {
-            for (const h of handlers) h(payload);
-          }
-        },
-      );
-    }
-
-    managed.channel = ch;
-    managed.postgresHandlers = newPostgresHandlers;
-    managed.status = 'CONNECTING';
-
-    ch.subscribe((status) => {
-      if (channels.get(key) === managed) {
-        managed.status = status === 'SUBSCRIBED' ? 'SUBSCRIBED' : status === 'CLOSED' ? 'CLOSED' : 'CONNECTING';
-      }
-    });
+    // Channel is stale — tear down and rebuild with backoff
+    reconnectSingleChannel(key);
   }
+}
+
+// ─── Watchdog timer ───────────────────────────────────────────────
+// Every 20 s when the tab is visible, check for channels that claim to be
+// 'joined' but have not delivered any event in the last 60 s (silent TCP drop).
+// Force a channel rebuild in that case.
+const WATCHDOG_CHECK_MS = 20_000;
+const WATCHDOG_STALE_MS = 60_000;
+
+if (typeof window !== 'undefined') {
+  setInterval(() => {
+    if (document.visibilityState !== 'visible') return;
+    const now = Date.now();
+    for (const [, managed] of channels) {
+      if (managed.refCount <= 0) continue;
+      // Only watch channels the Supabase client thinks are "joined"
+      if (managed.channel.state !== 'joined') continue;
+      const sinceLastEvent = now - managed.lastEventReceivedAt;
+      if (sinceLastEvent > WATCHDOG_STALE_MS) {
+        // Force channel rebuild — same logic as reconnectStaleChannels
+        // but we treat it as stale even though state === 'joined'
+        managed.status = 'CLOSED';
+        managed.channel.state = 'closed' as never; // trick reconnect to pick it up
+        reconnectStaleChannels();
+        break; // reconnectStaleChannels loops everything; avoid double-processing
+      }
+    }
+  }, WATCHDOG_CHECK_MS);
 }
 
 // Listen for app resume (visibility change)
@@ -248,8 +323,14 @@ if (typeof document !== 'undefined') {
   });
 }
 
-// Also reconnect when coming back online
+// iOS Safari fires pagehide/pageshow for app-switcher navigation
+// (these don't always trigger visibilitychange)
 if (typeof window !== 'undefined') {
+  window.addEventListener('pageshow', () => {
+    setTimeout(reconnectStaleChannels, 500);
+  });
+
+  // Also reconnect when coming back online
   window.addEventListener('online', () => {
     setTimeout(reconnectStaleChannels, 1000);
   });

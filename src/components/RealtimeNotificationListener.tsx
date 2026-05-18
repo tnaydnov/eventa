@@ -7,13 +7,50 @@ import { useRealtimeHub } from '@/hooks/useRealtimeHub';
 import { useAppResume } from '@/hooks/useAppResume';
 import { useSessionStore, useNotificationStore, useToastStore, useMatchStore } from '@/lib/store';
 import { getUnseenLikes, getUnreadConversations, getPhotoUrl } from '@/lib/api';
+import { isSubscribed } from '@/lib/realtimeHub';
 import type { Like, Message } from '@/lib/database.types';
 
-/**
- * Global realtime listener mounted in event layout.
- * Uses RealtimeHub for stable subscriptions (survives StrictMode).
- * Initializes unread state from DB on mount, then uses realtime + polling.
- */
+/** Polling interval when the tab is visible (safety-net catch-up). */
+const POLL_INTERVAL_VISIBLE_MS = 8_000;
+/** Polling interval when the tab is hidden (save bandwidth). */
+const POLL_INTERVAL_HIDDEN_MS = 15_000;
+/** Temporary fast polling interval after reconnect issues are detected. */
+const POLL_INTERVAL_BURST_MS = 5_000;
+/** Keep burst mode for this long after stale detection. */
+const POLL_BURST_DURATION_MS = 3 * 60_000;
+/** How long to wait before showing the stale-connection indicator (ms). */
+const STALE_THRESHOLD_MS = 60_000;
+
+type DeliverySource = 'ws' | 'poll';
+
+function sendReliabilityTelemetry(payload: {
+  metricType: 'realtime_disconnect' | 'realtime_recovered' | 'notification_delivery';
+  eventId?: string;
+  source?: 'ws' | 'poll' | 'unknown';
+  value?: number;
+  metadata?: Record<string, unknown>;
+}) {
+  const body = JSON.stringify({
+    metricType: payload.metricType,
+    event_id: payload.eventId,
+    source: payload.source,
+    value: payload.value,
+    metadata: payload.metadata,
+  });
+  const url = '/api/telemetry/reliability';
+
+  if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+    navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }));
+  } else {
+    fetch(url, {
+      method: 'POST',
+      body,
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
+    }).catch(() => { /* non-critical */ });
+  }
+}
+
 export default function RealtimeNotificationListener() {
   const session = useSessionStore((s) => s.session);
   const toast = useToastStore((s) => s.show);
@@ -145,11 +182,17 @@ export default function RealtimeNotificationListener() {
     return name;
   };
 
-  const handleLike = async (likeId: string, fromId: string) => {
+  const handleLike = async (likeId: string, fromId: string, source: DeliverySource) => {
     if (seenIds.current.has(`like:${likeId}`)) return;
     markSeen(`like:${likeId}`);
     const s = sessionRef.current;
     if (!s) return;
+    sendReliabilityTelemetry({
+      metricType: 'notification_delivery',
+      eventId: s.eventId,
+      source,
+      metadata: { kind: 'like' },
+    });
     const name = await getName(fromId);
     useNotificationStore.getState().addGridHighlight({ participantId: fromId, type: 'like', timestamp: Date.now() });
     useNotificationStore.getState().incrementLikes();
@@ -175,17 +218,35 @@ export default function RealtimeNotificationListener() {
       useMatchStore.getState().setPendingMatch({
         id: fromId,
         displayName: name,
-        photoUrl: theirPhotos?.[0] ? getPhotoUrl(theirPhotos[0].storage_path) : null,
+        photoUrl: theirPhotos?.[0]
+          ? getPhotoUrl(theirPhotos[0].storage_path, { width: 480, height: 640, quality: 80 })
+          : null,
       });
     } else {
       toast(`💖 ${name} שלח/ה לך לייק!`);
     }
   };
 
-  const handleMessage = async (msgId: string, senderId: string, conversationId: string, text: string | null, type: string) => {
+  const handleMessage = async (
+    msgId: string,
+    senderId: string,
+    conversationId: string,
+    text: string | null,
+    type: string,
+    source: DeliverySource,
+  ) => {
     if (seenIds.current.has(`msg:${msgId}`)) return;
     markSeen(`msg:${msgId}`);
     if (type === 'system') return; // don't count system messages as unread
+    const s = sessionRef.current;
+    if (s) {
+      sendReliabilityTelemetry({
+        metricType: 'notification_delivery',
+        eventId: s.eventId,
+        source,
+        metadata: { kind: 'message' },
+      });
+    }
     const name = await getName(senderId);
     if (!pathnameRef.current.includes(`/chat/${conversationId}`)) {
       useNotificationStore.getState().addGridHighlight({ participantId: senderId, type: 'message', timestamp: Date.now() });
@@ -213,7 +274,7 @@ export default function RealtimeNotificationListener() {
         handler: (payload) => {
           const like = payload.new as Like;
           if (like.to_participant_id !== sessionRef.current?.participantId) return;
-          handleLike(like.id, like.from_participant_id);
+          handleLike(like.id, like.from_participant_id, 'ws');
         },
       },
       {
@@ -234,7 +295,7 @@ export default function RealtimeNotificationListener() {
           if (msg.sender_participant_id === sessionRef.current?.participantId) return;
           // Only process messages from conversations I'm part of
           if (!(await isMyConversation(msg.conversation_id))) return;
-          handleMessage(msg.id, msg.sender_participant_id, msg.conversation_id, msg.text, msg.type);
+          handleMessage(msg.id, msg.sender_participant_id, msg.conversation_id, msg.text, msg.type, 'ws');
         },
       },
     ],
@@ -243,6 +304,8 @@ export default function RealtimeNotificationListener() {
 
   // ─── Polling fallback ─────────────────────────────────────
   const pollRef = useRef<() => Promise<void>>(async () => {});
+  const burstUntilRef = useRef(0);
+  const restartPollingRef = useRef<((visible: boolean) => void) | null>(null);
   pollRef.current = async () => {
     const s = sessionRef.current;
     if (!s) return;
@@ -261,7 +324,7 @@ export default function RealtimeNotificationListener() {
         refreshMyConvoIds(),
       ]);
 
-      if (newLikes) for (const like of newLikes) handleLike(like.id, like.from_participant_id);
+      if (newLikes) for (const like of newLikes) handleLike(like.id, like.from_participant_id, 'poll');
 
       const myConvoIds = [...freshConvoIds];
 
@@ -296,7 +359,9 @@ export default function RealtimeNotificationListener() {
       ]);
 
       if (msgResult?.data) {
-        for (const msg of msgResult.data) handleMessage(msg.id, msg.sender_participant_id, msg.conversation_id, msg.text, msg.type);
+        for (const msg of msgResult.data) {
+          handleMessage(msg.id, msg.sender_participant_id, msg.conversation_id, msg.text, msg.type, 'poll');
+        }
       }
 
       lastPollTsRef.current = now;
@@ -310,34 +375,98 @@ export default function RealtimeNotificationListener() {
     if (!session) return;
     lastPollTsRef.current = new Date().toISOString();
 
-    // Poll every 15s (realtime handles most updates; this is a safety net).
-    // Pause when tab is hidden to avoid wasting bandwidth.
+    // Poll every 8s when visible, 15s when hidden (realtime handles most updates; this is a safety net).
     let interval: ReturnType<typeof setInterval> | null = null;
 
-    const startPolling = () => {
-      if (interval) return;
-      interval = setInterval(() => pollRef.current?.(), 15_000);
+    const startPolling = (visible: boolean) => {
+      if (interval) clearInterval(interval);
+      const now = Date.now();
+      const inBurst = visible && burstUntilRef.current > now;
+      const period = inBurst
+        ? POLL_INTERVAL_BURST_MS
+        : (visible ? POLL_INTERVAL_VISIBLE_MS : POLL_INTERVAL_HIDDEN_MS);
+      interval = setInterval(() => pollRef.current?.(), period);
     };
-    const stopPolling = () => {
-      if (interval) { clearInterval(interval); interval = null; }
-    };
+    restartPollingRef.current = startPolling;
 
     const handleVisibility = () => {
       if (document.visibilityState === 'hidden') {
-        stopPolling();
+        startPolling(false);
       } else {
-        // Catch up immediately when returning, then resume interval
+        // Catch up immediately when returning, then resume faster interval
         pollRef.current?.();
-        startPolling();
+        startPolling(true);
       }
     };
 
-    startPolling();
+    // iOS Safari app-switching path: pagehide/pageshow do not always emit visibilitychange.
+    const handlePageHide = () => startPolling(false);
+    const handlePageShow = () => {
+      pollRef.current?.();
+      startPolling(true);
+    };
+
+    startPolling(document.visibilityState === 'visible');
     document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('pageshow', handlePageShow);
 
     return () => {
-      stopPolling();
+      if (interval) clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('pageshow', handlePageShow);
+      restartPollingRef.current = null;
+    };
+  }, [session]);
+
+  // Stale-connection check: every 20s, check if our realtime channel is still subscribed.
+  // Show the "מסנכרן..." indicator in the header when the channel has been unreachable for >60s.
+  useEffect(() => {
+    if (!session) return;
+    const channelKey = `live-notify:${session.eventId}:${session.participantId}`;
+    let staleStart: number | null = null;
+    let disconnectLogged = false;
+
+    const checkInterval = setInterval(() => {
+      const subscribed = isSubscribed(channelKey);
+      if (!subscribed) {
+        if (staleStart === null) staleStart = Date.now();
+        if (Date.now() - staleStart > STALE_THRESHOLD_MS) {
+          useNotificationStore.getState().setRealtimeStale(true);
+          if (!disconnectLogged) {
+            sendReliabilityTelemetry({
+              metricType: 'realtime_disconnect',
+              eventId: session.eventId,
+              source: 'unknown',
+            });
+            disconnectLogged = true;
+          }
+          // Temporarily tighten polling cadence to reduce notification delay
+          // while the websocket path is recovering.
+          burstUntilRef.current = Date.now() + POLL_BURST_DURATION_MS;
+          if (document.visibilityState === 'visible') {
+            restartPollingRef.current?.(true);
+            pollRef.current?.();
+          }
+        }
+      } else {
+        if (disconnectLogged) {
+          sendReliabilityTelemetry({
+            metricType: 'realtime_recovered',
+            eventId: session.eventId,
+            source: 'ws',
+          });
+        }
+        disconnectLogged = false;
+        staleStart = null;
+        useNotificationStore.getState().setRealtimeStale(false);
+      }
+    }, 20_000);
+
+    return () => {
+      clearInterval(checkInterval);
+      useNotificationStore.getState().setRealtimeStale(false);
     };
   }, [session]);
 

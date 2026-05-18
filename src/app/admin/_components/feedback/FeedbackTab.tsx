@@ -181,8 +181,8 @@ export default function FeedbackTab({ eventId, eventSlug }: { eventId: string; e
   }, [eventId]);
 
   const feedbackUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/dating/${eventSlug}/feedback`
-    : `/dating/${eventSlug}/feedback`;
+    ? `${window.location.origin}/${eventSlug}/feedback`
+    : `/${eventSlug}/feedback`;
 
   const copyLink = () => {
     navigator.clipboard.writeText(feedbackUrl).then(() => {

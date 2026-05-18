@@ -38,7 +38,7 @@ test.describe('Block Flow', () => {
       }
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/user/${TEST_PARTICIPANT_ID_2}`);
+    await page.goto(`/${TEST_EVENT_SLUG}/user/${TEST_PARTICIPANT_ID_2}`);
     await expect(page.locator('body')).toBeVisible();
 
     const blockBtn = page.locator('button', { hasText: 'חסימה' });
@@ -56,7 +56,7 @@ test.describe('Block Flow', () => {
   });
 
   test('E-BL-02: Block user from chat', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
 
     // Block functionality should be accessible from chat context
@@ -84,7 +84,7 @@ test.describe('Block Flow', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
 
     // Blocked user's name should not appear
@@ -112,7 +112,7 @@ test.describe('Block Flow', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
   });
 
@@ -133,7 +133,7 @@ test.describe('Block Flow', () => {
       }
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/user/${TEST_PARTICIPANT_ID_2}`);
+    await page.goto(`/${TEST_EVENT_SLUG}/user/${TEST_PARTICIPANT_ID_2}`);
     await expect(page.locator('body')).toBeVisible();
   });
 });

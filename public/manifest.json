@@ -1,14 +1,14 @@
 {
-  "id": "/dating",
+  "id": "/",
   "name": "Eventa Dating",
   "short_name": "Eventa",
   "description": "אפליקציה להיכרויות באירועים",
-  "start_url": "/dating",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#0a0a0a",
   "orientation": "portrait",
-  "scope": "/dating",
+  "scope": "/",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",

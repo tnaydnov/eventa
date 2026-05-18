@@ -12,6 +12,8 @@ interface NotificationState {
   gridHighlights: GridHighlight[];
   _unreadConvoIds: Set<string>; // internal: track which convos have unread
   _initialized: boolean;
+  /** True when the realtime WebSocket channel has been unresponsive for >60s */
+  realtimeStale: boolean;
   setUnreadLikes: (n: number) => void;
   setUnreadMessages: (n: number) => void;
   incrementLikes: () => void;
@@ -24,6 +26,7 @@ interface NotificationState {
   removeGridHighlight: (participantId: string) => void;
   removeGridHighlightByType: (participantId: string, type: 'like' | 'message') => void;
   setInitialized: (v: boolean) => void;
+  setRealtimeStale: (v: boolean) => void;
   reset: () => void;
 }
 
@@ -33,6 +36,7 @@ export const useNotificationStore = create<NotificationState>((set) => ({
   gridHighlights: [],
   _unreadConvoIds: new Set(),
   _initialized: false,
+  realtimeStale: false,
   setUnreadLikes: (n) => set({ unreadLikes: n }),
   setUnreadMessages: (n) => set({ unreadMessages: n }),
   incrementLikes: () => set((s) => ({ unreadLikes: s.unreadLikes + 1 })),
@@ -70,11 +74,13 @@ export const useNotificationStore = create<NotificationState>((set) => ({
       ),
     })),
   setInitialized: (v) => set({ _initialized: v }),
+  setRealtimeStale: (v) => set({ realtimeStale: v }),
   reset: () => set({
     unreadLikes: 0,
     unreadMessages: 0,
     gridHighlights: [],
     _unreadConvoIds: new Set(),
     _initialized: false,
+    realtimeStale: false,
   }),
 }));

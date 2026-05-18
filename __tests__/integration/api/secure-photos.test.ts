@@ -74,15 +74,12 @@ beforeEach(() => {
 
 describe('POST /api/secure/photos', () => {
   it('creates photo record successfully', async () => {
-    // Count existing photos
+    // Existing photo lookup
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      then: vi.fn(),
-      // For the count query
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
     });
-    // Use a simplified approach
-    mockFrom.mockReset();
     // Photo count
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
@@ -142,6 +139,13 @@ describe('POST /api/secure/photos', () => {
   });
 
   it('I-PHO-08: at MAX_PHOTOS → 400', async () => {
+    // Existing photo lookup
+    mockFrom.mockReturnValueOnce({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+    });
+
     // Photo count = 6 (MAX_PHOTOS)
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
@@ -190,7 +194,7 @@ describe('DELETE /api/secure/photos', () => {
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
+      maybeSingle: vi.fn().mockResolvedValue({
         data: { participant_id: 'other-person', storage_path: 'e1/other/photo.jpg' },
         error: null,
       }),
@@ -211,7 +215,7 @@ describe('DELETE /api/secure/photos', () => {
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
+      maybeSingle: vi.fn().mockResolvedValue({
         data: { participant_id: 'p1', storage_path: 'e1/p1/photo.jpg' },
         error: null,
       }),

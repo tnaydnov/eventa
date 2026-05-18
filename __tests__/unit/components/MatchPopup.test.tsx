@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 
 // ── Mocks ──
 const mockPush = vi.fn();
-const mockPathname = vi.fn(() => '/dating/test-event');
+const mockPathname = vi.fn(() => '/test-event');
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
@@ -77,7 +77,7 @@ describe('MatchPopup', () => {
 
     await waitFor(() => {
       expect(mockClearPendingMatch).toHaveBeenCalled();
-      expect(mockPush).toHaveBeenCalledWith('/dating/test-event/chat/conv-1');
+      expect(mockPush).toHaveBeenCalledWith('/test-event/chat/conv-1');
     });
   });
 

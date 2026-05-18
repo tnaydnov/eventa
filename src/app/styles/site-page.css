@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
    Site Page Layout - shared across all non-landing pages
-   Matches /dating landing colours & footer style
+  Matches root landing colours & footer style
    ═══════════════════════════════════════════ */
 
 /* ── Page shell ── */
@@ -90,7 +90,7 @@
   max-width: 1200px;
 }
 
-/* ── Footer (mirrors /dating landing footer) ── */
+/* ── Footer (mirrors root landing footer) ── */
 .site-page__footer {
   padding: 48px 24px;
   text-align: center;

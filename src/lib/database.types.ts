@@ -62,6 +62,7 @@ export interface Event {
   client_email: string | null;
   client_phone: string | null;
   communication_preference: string | null;
+  send_report_email?: boolean;
   payment_status: EventPaymentStatus;
 }
 
@@ -82,6 +83,7 @@ export interface Participant {
   created_at: string;
   phone: string | null;
   sms_consent: boolean;
+  sms_notifications_enabled: boolean;
   feedback_consent: boolean;
   feedback_sent: boolean;
 }

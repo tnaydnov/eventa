@@ -596,7 +596,7 @@ After completing each implementation step:
 3. Export from store file
 
 ### Adding a new page:
-1. Create route folder under `src/app/dating/[eventSlug]/new-page/`
+1. Create route folder under `src/app/[eventSlug]/new-page/`
 2. Add `page.tsx` (server component by default; add `'use client'` if needed)
 3. Add route-specific components in `_components/` subfolder
 4. Hebrew text, dark theme, mobile layout

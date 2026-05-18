@@ -15,8 +15,8 @@ test.describe('Landing & Static Pages', () => {
   });
 
   test('E-LP-02: Order form interaction', async ({ page }) => {
-    await page.goto('/dating');
-    // Dating landing has the order section
+    await page.goto('/');
+    // Landing has the order section
     await expect(page.locator('.landing')).toBeVisible();
     // Order section anchor exists
     const orderSection = page.locator('#order');

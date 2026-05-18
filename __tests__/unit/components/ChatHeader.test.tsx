@@ -10,7 +10,7 @@ vi.mock('@/components/Icons', () => ({
   UserIcon: ({ size }: { size: number }) => <span data-testid="user-icon" />,
 }));
 
-import ChatHeader from '@/app/dating/[eventSlug]/chat/[conversationId]/_components/ChatHeader';
+import ChatHeader from '@/app/[eventSlug]/chat/[conversationId]/_components/ChatHeader';
 
 describe('ChatHeader', () => {
   const otherUser = {

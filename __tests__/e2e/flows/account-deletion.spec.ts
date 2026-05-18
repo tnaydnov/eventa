@@ -24,18 +24,18 @@ test.describe('Account Deletion', () => {
 
   test('E-ACCT-01: Delete account then rejoin same event', async ({ page }) => {
     // Navigate to profile edit (where delete button is)
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/profile`);
+    await page.goto(`/${TEST_EVENT_SLUG}/profile`);
     await expect(page.locator('body')).toBeVisible();
 
     // After deletion, user should be able to rejoin
     // Simulate: clear session then navigate to join page
     await page.context().clearCookies();
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
   });
 
   test('E-ACCT-02: Delete cascades data', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/profile`);
+    await page.goto(`/${TEST_EVENT_SLUG}/profile`);
     await expect(page.locator('body')).toBeVisible();
 
     // After deletion, grid should not contain the deleted user
@@ -49,12 +49,12 @@ test.describe('Account Deletion', () => {
     });
 
     // Navigate to grid page to verify empty state
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
   });
 
   test('E-ACCT-03: Delete clears client state', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
 
     // After delete, session cookie should be cleared

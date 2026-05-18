@@ -5,10 +5,12 @@
   "description": "Eventa - event-based social matching app",
   "scripts": {
     "dev": "next dev",
-    "build": "next build --webpack && node scripts/fix-sw-paths.cjs",
+    "build": "next build --webpack && node scripts/check-performance-budget.cjs && node scripts/fix-sw-paths.cjs",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "perf:budget": "node scripts/check-performance-budget.cjs",
+    "perf:regression": "node scripts/check-performance-regression.cjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

@@ -186,7 +186,7 @@ export async function GET(req: NextRequest) {
           .from('client_portal_tokens')
           .insert({ event_id: newEvent.id, token: portalToken, is_active: true });
 
-        portalUrl = `${APP_BASE_URL}/guest-upload/${newEvent.slug}?k=${portalToken}`;
+        portalUrl = `${APP_BASE_URL}/portal/${portalToken}`;
       } catch (msgErr) {
         logger.warn('[PAYMENT_CALLBACK] messaging setup error (non-fatal)', msgErr);
       }
@@ -308,7 +308,7 @@ async function sendDocumentAndEmails(ctx: {
   if (request.contact_email && newEvent) {
     try {
       const totalShekel = BASE_PRICE;
-      const eventUrl = `${APP_BASE_URL}/dating/${newEvent.slug}/join?k=${newEvent.join_code}`;
+      const eventUrl = `${APP_BASE_URL}/${newEvent.slug}/join?k=${newEvent.join_code}`;
 
       const approvalEmail = buildClientApprovalEmail({
         eventType: request.event_type as string,
@@ -399,7 +399,7 @@ async function sendDocumentAndEmails(ctx: {
 
 function redirectWithStatus(status: 'success' | 'error' | 'cancelled') {
   return NextResponse.redirect(
-    `${APP_BASE_URL}/dating/order?payment=${status}`,
+    `${APP_BASE_URL}/order?payment=${status}`,
     303,
   );
 }

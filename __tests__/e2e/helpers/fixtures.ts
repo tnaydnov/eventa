@@ -454,7 +454,7 @@ export async function setupAuthenticatedMocks(page: Page) {
  */
 export async function navigateToEvent(page: Page, path = '') {
   await setupAuthenticatedMocks(page);
-  await page.goto(`/dating/${TEST_EVENT_SLUG}${path}`);
+  await page.goto(`/${TEST_EVENT_SLUG}${path}`);
 }
 
 /**

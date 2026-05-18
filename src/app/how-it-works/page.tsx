@@ -133,7 +133,7 @@ export default function HowItWorksPage() {
           <p className="hiw__cta-sub">
             הפעילו את Eventa באירוע שלכם ותנו לאורחים חוויה שהם יזכרו.
           </p>
-          <Link href={'/dating/order' as Route} className="hiw__cta-btn">
+          <Link href={'/order' as Route} className="hiw__cta-btn">
             <span>להזמנה</span>
             <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 18l-6-6 6-6" />

@@ -8,7 +8,7 @@ import Image from 'next/image';
  * info (FAQ, how-it-works), and pricing.
  *
  * Provides consistent header (logo + back button), footer, and colours
- * matching the /dating landing page.
+ * matching the root landing page.
  */
 export default function SitePageLayout({
   children,
@@ -34,13 +34,13 @@ export default function SitePageLayout({
     <div dir="rtl" className={`site-page${className ? ` ${className}` : ''}`}>
       {/* Header */}
       <header className="site-page__header">
-        <Link href="/dating" className="site-page__back" aria-label="חזרה">
+        <Link href="/" className="site-page__back" aria-label="חזרה">
           <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 18l6-6-6-6" />
           </svg>
         </Link>
 
-        <Link href="/dating" className="site-page__logo">
+        <Link href="/" className="site-page__logo">
           <Image
             src="/icons/Eventa_Logo.png"
             alt="Eventa"
@@ -63,7 +63,7 @@ export default function SitePageLayout({
         {children}
       </main>
 
-      {/* Footer - matches /dating landing footer */}
+      {/* Footer - matches root landing footer */}
       <footer className="site-page__footer">
         <div className="site-page__footer-brand">
           <Image

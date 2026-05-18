@@ -73,10 +73,29 @@ export const TYPE_CODES: Record<string, string> = {
 export const SLUG_REGEX = /^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$/;
 
 /**
+ * Reserved slugs that cannot be used as event slugs.
+ * These are top-level app routes, static asset paths, and system paths.
+ */
+export const RESERVED_SLUGS = new Set([
+  'order', 'admin', 'how-it-works', 'pricing', 'faq', 'privacy', 'terms',
+  'cookies', 'accessibility', 'guest-upload', 'portal', 'api', 'event-over',
+  'dating', 'sitemap', 'sitemap.xml', 'robots.txt', 'manifest.json', 'sw.js',
+  'he', 'en', 'ar', 'ru', 'fr', 'es', 'de', 'pt', 'static', 'public',
+  'favicon.ico', '_next', '__nextjs', 'health', 'ping', 'status',
+]);
+
+/**
  * Validate a slug string.
  */
 export function isValidSlug(slug: string): boolean {
   return SLUG_REGEX.test(slug);
+}
+
+/**
+ * Check if a slug is reserved (cannot be used as an event slug).
+ */
+export function isReservedSlug(slug: string): boolean {
+  return RESERVED_SLUGS.has(slug.toLowerCase());
 }
 
 // ─── Helpers ────────────────────────────────────────────────

@@ -54,7 +54,7 @@ export default function SessionProvider({
           // User is banned - clear everything and redirect
           useSessionStore.getState().clearSession();
           localStorage.removeItem(LEGACY_LOCAL_ID_KEY);
-          window.location.href = `/dating/${eventSlug}/banned`;
+          window.location.href = `/${eventSlug}/banned`;
           return;
         } else if (res.status === 410) {
           // Event is inactive (paused/archived/deleted)
@@ -66,7 +66,7 @@ export default function SessionProvider({
           if (body.eventSlug === eventSlug) {
             useSessionStore.getState().clearSession();
             localStorage.removeItem(LEGACY_LOCAL_ID_KEY);
-            window.location.href = `/dating/${eventSlug}/unavailable?reason=${reason}`;
+            window.location.href = `/${eventSlug}/unavailable?reason=${reason}`;
             return;
           }
           // Stale cookie for another event - clear local state and continue
@@ -124,7 +124,7 @@ export default function SessionProvider({
         // User was banned while in background - kick them
         useSessionStore.getState().clearSession();
         localStorage.removeItem(LEGACY_LOCAL_ID_KEY);
-        window.location.href = `/dating/${eventSlug}/banned`;
+        window.location.href = `/${eventSlug}/banned`;
         return;
       } else if (res.status === 410) {
         // Event became inactive while in background
@@ -134,7 +134,7 @@ export default function SessionProvider({
         if (body.eventSlug === eventSlug) {
           useSessionStore.getState().clearSession();
           localStorage.removeItem(LEGACY_LOCAL_ID_KEY);
-          window.location.href = `/dating/${eventSlug}/unavailable?reason=${reason}`;
+          window.location.href = `/${eventSlug}/unavailable?reason=${reason}`;
           return;
         }
       }
@@ -228,7 +228,7 @@ export default function SessionProvider({
             const reason = updated.status;
             useSessionStore.getState().clearSession();
             localStorage.removeItem(LEGACY_LOCAL_ID_KEY);
-            window.location.href = `/dating/${eventSlug}/unavailable?reason=${reason}`;
+            window.location.href = `/${eventSlug}/unavailable?reason=${reason}`;
             return;
           }
 

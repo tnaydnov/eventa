@@ -47,6 +47,6 @@ describe('AppHeader', () => {
     render(<AppHeader />);
     const profileBtn = screen.getByRole('button');
     fireEvent.click(profileBtn);
-    expect(mockPush).toHaveBeenCalledWith('/dating/my-event/profile');
+    expect(mockPush).toHaveBeenCalledWith('/my-event/profile');
   });
 });

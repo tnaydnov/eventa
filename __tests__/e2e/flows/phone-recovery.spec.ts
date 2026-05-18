@@ -17,7 +17,7 @@ import {
  */
 
 test.describe('Phone Recovery Flow', () => {
-  const joinUrl = `/dating/${TEST_EVENT_SLUG}/join?k=${TEST_JOIN_CODE}`;
+  const joinUrl = `/${TEST_EVENT_SLUG}/join?k=${TEST_JOIN_CODE}`;
 
   test.beforeEach(async ({ page }) => {
     await page.route('**/realtime/**', (route) => route.abort());
@@ -64,7 +64,7 @@ test.describe('Phone Recovery Flow', () => {
     }
 
     // Existing user has display_name → redirects to grid (not setup)
-    await page.waitForURL(`**/dating/${TEST_EVENT_SLUG}`, { timeout: 10000 });
+    await page.waitForURL(`**/${TEST_EVENT_SLUG}`, { timeout: 10000 });
   });
 
   test('E-PR-02: OTP send failure shows error and allows retry', async ({ page }) => {

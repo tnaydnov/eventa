@@ -18,7 +18,7 @@ const mockShow = vi.fn();
 const mockSetPendingMatch = vi.fn();
 
 vi.mock('next/navigation', () => ({
-  usePathname: () => '/dating/test-event',
+  usePathname: () => '/test-event',
 }));
 
 vi.mock('@/lib/store', () => ({

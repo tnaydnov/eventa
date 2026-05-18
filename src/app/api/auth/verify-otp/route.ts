@@ -9,6 +9,8 @@ import { normalizePhone, isValidIsraeliMobile } from '@/lib/messaging';
 import { verifyOtp } from '@/lib/otp';
 import { sendWelcomeMessage } from '@/lib/messaging';
 import type { EventMessagingConfig } from '@/lib/messaging';
+import { eventBus } from '@/lib/event-bus';
+import { enqueueAbandonedFunnelSms } from '@/lib/notification-dispatcher';
 
 /** Fingerprint hex/UUID pattern, max 64 chars for regular, 128 for hardware.
  *  NOTE: duplicated in /api/auth/join/route.ts - keep in sync until extracted to shared util. */
@@ -243,6 +245,25 @@ export async function POST(req: NextRequest) {
     if (!participantId) {
       return jsonError('Failed to resolve participant', 500);
     }
+
+    // Fire funnel event: otp_verified (fire-and-forget to DB + event bus)
+    eventBus.emit('otp_verified', {
+      event_id: event.id,
+      participant_id: participantId,
+      session_id: participantId,
+    });
+    void supabase.from('funnel_events').insert({
+      event_id: event.id,
+      session_id: participantId,
+      step: 'otp_verified',
+      metadata: {},
+    }).then(({ error }) => {
+      if (error) logger.error('[VERIFY_OTP] funnel insert error', { error: error.message });
+    });
+
+    // Schedule abandoned-funnel SMS at +15min (fire-and-forget)
+    // Will be cancelled if user completes profile before then
+    void enqueueAbandonedFunnelSms(participantId, event.id);
 
     // Sign session JWT
     const token = signSessionToken({

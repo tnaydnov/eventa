@@ -32,6 +32,11 @@ async function freshImport() {
 describe('RealtimeHub', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('U-RTH-HUB-01: first subscriber creates channel + subscribes', async () => {
@@ -140,5 +145,24 @@ describe('RealtimeHub', () => {
 
     expect(spy).toHaveBeenCalledWith(expect.stringContaining('missing binding'));
     spy.mockRestore();
+  });
+
+  it('U-RTH-HUB-09: watchdog reconnects a stale joined channel', async () => {
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'visible',
+    });
+
+    const hub = await freshImport();
+    const handler = vi.fn();
+
+    hub.subscribe('stale-watchdog', {
+      postgres: [{ binding: { event: 'INSERT', schema: 'public', table: 'likes' }, handler }],
+    });
+
+    await vi.advanceTimersByTimeAsync(81_000);
+
+    expect(mockRemoveChannel).toHaveBeenCalled();
+    expect(mockChannel).toHaveBeenCalledTimes(2);
   });
 });

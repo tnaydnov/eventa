@@ -7,6 +7,9 @@ import { sendMessageSchema, messageTypeValues } from '@/lib/validations';
 import { MAX_MESSAGE_LENGTH } from '@/lib/constants';
 import { secureGuard, jsonError, isSafePath } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
+import { eventBus } from '@/lib/event-bus';
+import { enqueueMessageNotification } from '@/lib/notification-dispatcher';
+import { moderateChatImage } from '@/lib/moderation';
 
 /** Allowed message types for validation. */
 const ALLOWED_TYPES = new Set<string>(messageTypeValues);
@@ -96,6 +99,23 @@ export async function POST(req: NextRequest) {
 
     const cleanText = type === 'text' ? sanitizeWithLimit(text || '', MAX_MESSAGE_LENGTH) : null;
 
+    // Idempotency: if the client sent a key, check for an existing message with that key
+    // to prevent duplicate messages on network retries.
+    const rawIdemKey = req.headers.get('Idempotency-Key');
+    const idempotencyKey: string | null =
+      rawIdemKey && /^[a-zA-Z0-9_\-]{1,128}$/.test(rawIdemKey) ? rawIdemKey : null;
+
+    if (idempotencyKey) {
+      const { data: existing } = await supabase
+        .from('messages')
+        .select()
+        .eq('idempotency_key', idempotencyKey)
+        .maybeSingle();
+      if (existing) {
+        return NextResponse.json(existing);
+      }
+    }
+
     // Run conversation timestamp update + message insert in parallel.
     // The timestamp update ensures the conversation appears in chat lists
     // when the realtime INSERT event fires.
@@ -114,6 +134,7 @@ export async function POST(req: NextRequest) {
           type,
           text: cleanText,
           media_path: mediaPath || null,
+          idempotency_key: idempotencyKey ?? null,
         })
         .select()
         .single(),
@@ -128,20 +149,54 @@ export async function POST(req: NextRequest) {
       return jsonError('Failed to send message', 400);
     }
 
-    // Activity log + notification + push (fire-and-forget / parallel)
-    void supabase.from('activity_log').insert({
-      event_id: session.eid,
-      participant_id: session.sub,
-      action: 'message',
-    }).then(({ error }) => { if (error) logger.error('[MESSAGES_POST] activity_log error:', { error: error.message }); });
+    // Activity log + notification + inactivity-cancel (fire-and-forget / parallel)
+    void Promise.all([
+      supabase.from('activity_log').insert({
+        event_id: session.eid,
+        participant_id: session.sub,
+        action: 'message',
+      }),
+      supabase
+        .from('pending_sms')
+        .update({ cancelled_at: new Date().toISOString(), cancel_reason: 'user_engaged' })
+        .eq('recipient_id', session.sub)
+        .eq('event_id', session.eid)
+        .eq('message_type', 'inactivity')
+        .is('sent_at', null)
+        .is('cancelled_at', null),
+      supabase.from('notifications').insert({
+        event_id: session.eid,
+        to_participant_id: recipientId,
+        type: 'new_message',
+        payload: { from_participant_id: session.sub, conversation_id: conversationId },
+        is_read: false,
+      }),
+    ]).then(([activityRes, inactivityCancelRes, notifRes]) => {
+      if (activityRes.error) logger.error('[MESSAGES_POST] activity_log error:', { error: activityRes.error.message });
+      if (inactivityCancelRes.error) logger.error('[MESSAGES_POST] inactivity cancel error:', { error: inactivityCancelRes.error.message });
+      if (notifRes.error) logger.error('[MESSAGES_POST] notification insert error:', { error: notifRes.error.message });
+    });
 
-    void supabase.from('notifications').insert({
+    // Fire event bus + SMS notification (fire-and-forget)
+    eventBus.emit('message_sent', {
       event_id: session.eid,
-      to_participant_id: recipientId,
-      type: 'new_message',
-      payload: { from_participant_id: session.sub, conversation_id: conversationId },
-      is_read: false,
-    }).then(({ error }) => { if (error) logger.error('[MESSAGES_POST] notification insert error:', { error: error.message }); });
+      conversation_id: conversationId,
+      sender_id: session.sub,
+      has_image: type === 'image',
+    });
+    void enqueueMessageNotification(recipientId as string, session.eid);
+    // Record message_sent funnel step (fire-and-forget)
+    void supabase
+      .from('funnel_events')
+      .insert({ event_id: session.eid, session_id: session.sub, step: 'message_sent', metadata: {} })
+      .then(({ error }) => {
+        if (error && error.code !== '23505') logger.error('[MESSAGES_POST] funnel insert error:', error.message);
+      });
+
+    // Moderate image messages (fire-and-forget)
+    if (type === 'image' && mediaPath && data?.id) {
+      void moderateChatImage(data.id as string, mediaPath, session.eid);
+    }
 
     return NextResponse.json(data);
   } catch (err) {

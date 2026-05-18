@@ -4,7 +4,7 @@ import { EVENT_STATUS_LABELS } from '@/lib/constants';
 import type { EventStatus } from '@/lib/database.types';
 
 /** Navigation view the sidebar can switch between. */
-export type AdminView = 'events' | 'calendar' | 'global-analytics' | 'requests';
+export type AdminView = 'events' | 'calendar' | 'global-analytics' | 'requests' | 'reports' | 'moderation' | 'reliability';
 
 interface SidebarProps {
   activeView: AdminView;
@@ -84,6 +84,30 @@ export default function Sidebar({
           >
             <span className="admin-sidebar__nav-icon" aria-hidden="true">📊</span>
             אנליטיקס כללי
+          </button>
+
+          <button
+            className={`admin-sidebar__nav-item ${activeView === 'reports' ? 'admin-sidebar__nav-item--active' : ''}`}
+            onClick={() => { onNavigate('reports'); onClose(); }}
+          >
+            <span className="admin-sidebar__nav-icon" aria-hidden="true">📄</span>
+            דוחות
+          </button>
+
+          <button
+            className={`admin-sidebar__nav-item ${activeView === 'moderation' ? 'admin-sidebar__nav-item--active' : ''}`}
+            onClick={() => { onNavigate('moderation'); onClose(); }}
+          >
+            <span className="admin-sidebar__nav-icon" aria-hidden="true">🛡️</span>
+            מודרציה
+          </button>
+
+          <button
+            className={`admin-sidebar__nav-item ${activeView === 'reliability' ? 'admin-sidebar__nav-item--active' : ''}`}
+            onClick={() => { onNavigate('reliability'); onClose(); }}
+          >
+            <span className="admin-sidebar__nav-icon" aria-hidden="true">📡</span>
+            אמינות
           </button>
         </nav>
 

@@ -6,7 +6,7 @@ vi.mock('@/lib/api', () => ({
   getPhotoUrl: (path: string) => `https://test.supabase.co/storage/${path}`,
 }));
 
-import MessageBubble from '@/app/dating/[eventSlug]/chat/[conversationId]/_components/MessageBubble';
+import MessageBubble from '@/app/[eventSlug]/chat/[conversationId]/_components/MessageBubble';
 
 const baseMsg = {
   id: 'msg1',

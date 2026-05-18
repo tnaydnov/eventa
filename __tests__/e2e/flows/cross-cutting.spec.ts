@@ -24,7 +24,7 @@ test.describe('Cross-Cutting', () => {
     await setupAuthenticatedMocks(page);
 
     // 1. Navigate to event page
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
 
     // 2. Navigate to likes tab
@@ -53,7 +53,7 @@ test.describe('Cross-Cutting', () => {
     await setupAuthenticatedMocks(page);
 
     // User A sees User B in grid
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
   });
 
@@ -66,7 +66,7 @@ test.describe('Cross-Cutting', () => {
 
   test('E-CC-04: Hebrew throughout the app', async ({ page }) => {
     await setupAuthenticatedMocks(page);
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
 
     // Check that the HTML has RTL or Hebrew content
@@ -113,7 +113,7 @@ test.describe('Cross-Cutting', () => {
     });
 
     const start = Date.now();
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
     const loadTime = Date.now() - start;
 
@@ -152,7 +152,7 @@ test.describe('Cross-Cutting', () => {
       }
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
 
     // Navigate to chats

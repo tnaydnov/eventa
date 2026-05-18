@@ -7,12 +7,12 @@ import type { EventMessagingConfig } from './types';
 
 /** Build the join URL for an event */
 export function buildJoinUrl(slug: string, joinCode: string): string {
-  return `${APP_BASE_URL}/dating/${slug}/join?k=${joinCode}`;
+  return `${APP_BASE_URL}/${slug}/join?k=${joinCode}`;
 }
 
 /** Build the feedback URL for an event */
 export function buildFeedbackUrl(slug: string): string {
-  return `${APP_BASE_URL}/dating/${slug}/feedback`;
+  return `${APP_BASE_URL}/${slug}/feedback`;
 }
 
 // ── SMS Templates (plain text) ──
@@ -63,7 +63,42 @@ export function feedbackSmsText(config: EventMessagingConfig): string {
 ${feedbackUrl}
 
 💫 אם אתם מארגנים אירוע בעצמכם - Eventa תמיד כאן:
-https://eventa.productions/dating
+https://eventa.productions/
 
 תודה רבה ונתראה! 💜`;
+}
+
+/** Notification SMS: someone liked you */
+export function likeNotificationSmsText(eventName: string, eventSlug: string): string {
+  return `✨ מישהו/י ב${eventName} חיבב אותך!
+היכנס/י לאפליקציה כדי לגלות מי זה:
+${APP_BASE_URL}/${eventSlug}`;
+}
+
+/** Notification SMS: you got a match */
+export function matchNotificationSmsText(eventName: string, eventSlug: string): string {
+  return `🎉 יש התאמה! גם אתם וגם ה-Match שלכם חיבבתם אחד את השני ב${eventName}!
+פתחו שיחה עכשיו:
+${APP_BASE_URL}/${eventSlug}`;
+}
+
+/** Notification SMS: new message received */
+export function messageNotificationSmsText(eventName: string, eventSlug: string): string {
+  return `💬 הודעה חדשה ממישהו/י ב${eventName}!
+היכנס/י לאפליקציה כדי לקרוא:
+${APP_BASE_URL}/${eventSlug}`;
+}
+
+/** Notification SMS: abandoned funnel - registered but didn't complete profile */
+export function abandonedFunnelSmsText(eventName: string, eventSlug: string, joinCode: string): string {
+  return `היי! ראינו שנרשמת ל${eventName} אבל עדיין לא השלמת את הפרופיל שלך.
+אל תפספס/י - השלם/י עכשיו ותתחיל/י לחפש:
+${APP_BASE_URL}/${eventSlug}/join?k=${joinCode}`;
+}
+
+/** Notification SMS: participant inactive for a while */
+export function inactivitySmsText(eventName: string, eventSlug: string): string {
+  return `עדיין לא מאוחר! ה${eventName} עדיין פעיל ומחכה לך.
+חזור/י לאפליקציה ותראה/י מה התחדש:
+${APP_BASE_URL}/${eventSlug}`;
 }

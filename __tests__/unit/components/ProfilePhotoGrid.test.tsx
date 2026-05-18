@@ -32,7 +32,7 @@ vi.mock('@/components/Icons', () => ({
   CameraIcon: ({ size }: { size: number }) => <span data-testid="camera-icon" data-size={size} />,
 }));
 
-import ProfilePhotoGrid from '@/app/dating/[eventSlug]/profile/_components/ProfilePhotoGrid';
+import ProfilePhotoGrid from '@/app/[eventSlug]/profile/_components/ProfilePhotoGrid';
 
 const makePhoto = (id: string, idx: number) => ({
   id,

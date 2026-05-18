@@ -21,7 +21,7 @@ vi.mock('@/components/Icons', () => ({
   TrashIcon: ({ size }: { size: number }) => <span data-testid="trash-icon" />,
 }));
 
-import DeleteAccountDialog from '@/app/dating/[eventSlug]/profile/_components/DeleteAccountDialog';
+import DeleteAccountDialog from '@/app/[eventSlug]/profile/_components/DeleteAccountDialog';
 
 describe('DeleteAccountDialog', () => {
   const defaultProps = {

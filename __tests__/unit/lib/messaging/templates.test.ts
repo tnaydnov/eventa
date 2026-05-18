@@ -36,19 +36,19 @@ const mockConfig: EventMessagingConfig = {
 describe('buildJoinUrl', () => {
   it('builds correct join URL', () => {
     expect(buildJoinUrl('summer-party', 'ABC123')).toBe(
-      'https://eventa.test/dating/summer-party/join?k=ABC123'
+      'https://eventa.test/summer-party/join?k=ABC123'
     );
   });
 
   it('handles slugs with special characters', () => {
     expect(buildJoinUrl('my-event-2025', 'XY99')).toBe(
-      'https://eventa.test/dating/my-event-2025/join?k=XY99'
+      'https://eventa.test/my-event-2025/join?k=XY99'
     );
   });
 
   it('handles empty join code', () => {
     expect(buildJoinUrl('event', '')).toBe(
-      'https://eventa.test/dating/event/join?k='
+      'https://eventa.test/event/join?k='
     );
   });
 });
@@ -58,13 +58,13 @@ describe('buildJoinUrl', () => {
 describe('buildFeedbackUrl', () => {
   it('builds correct feedback URL', () => {
     expect(buildFeedbackUrl('summer-party')).toBe(
-      'https://eventa.test/dating/summer-party/feedback'
+      'https://eventa.test/summer-party/feedback'
     );
   });
 
   it('handles slug with special chars', () => {
     expect(buildFeedbackUrl('noa-and-tomer-wedding')).toBe(
-      'https://eventa.test/dating/noa-and-tomer-wedding/feedback'
+      'https://eventa.test/noa-and-tomer-wedding/feedback'
     );
   });
 });
@@ -104,7 +104,7 @@ describe('preEventVars', () => {
     expect(vars[0]).toEqual({ type: 'text', text: 'מסיבת קיץ' });
     expect(vars[1]).toEqual({
       type: 'text',
-      text: 'https://eventa.test/dating/summer-party/join?k=ABC123',
+      text: 'https://eventa.test/summer-party/join?k=ABC123',
     });
   });
 });
@@ -118,7 +118,7 @@ describe('welcomeVars', () => {
     expect(vars[0]).toEqual({ type: 'text', text: 'מסיבת קיץ' });
     expect(vars[1]).toEqual({
       type: 'text',
-      text: 'https://eventa.test/dating/summer-party/join?k=ABC123',
+      text: 'https://eventa.test/summer-party/join?k=ABC123',
     });
   });
 });
@@ -132,11 +132,11 @@ describe('feedbackVars', () => {
     expect(vars[0]).toEqual({ type: 'text', text: 'מסיבת קיץ' });
     expect(vars[1]).toEqual({
       type: 'text',
-      text: 'https://eventa.test/dating/summer-party/feedback',
+      text: 'https://eventa.test/summer-party/feedback',
     });
     expect(vars[2]).toEqual({
       type: 'text',
-      text: 'https://eventa.test/dating',
+      text: 'https://eventa.test',
     });
   });
 });

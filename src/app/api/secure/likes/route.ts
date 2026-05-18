@@ -4,6 +4,8 @@ import { isValidUUID } from '@/lib/session';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { secureGuard, jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
+import { eventBus } from '@/lib/event-bus';
+import { enqueueLikeNotification, enqueueMatchNotification } from '@/lib/notification-dispatcher';
 
 /**
  * POST /api/secure/likes - Send a like.
@@ -102,6 +104,15 @@ export async function POST(req: NextRequest) {
         participant_id: session.sub,
         action: 'like',
       }),
+      // Sending a like means the user is engaged; cancel pending inactivity nudges.
+      supabase
+        .from('pending_sms')
+        .update({ cancelled_at: new Date().toISOString(), cancel_reason: 'user_engaged' })
+        .eq('recipient_id', session.sub)
+        .eq('event_id', session.eid)
+        .eq('message_type', 'inactivity')
+        .is('sent_at', null)
+        .is('cancelled_at', null),
       supabase.from('notifications').insert({
         event_id: session.eid,
         to_participant_id: toId,
@@ -109,10 +120,59 @@ export async function POST(req: NextRequest) {
         payload: { from_participant_id: session.sub, match: isMatch },
         is_read: false,
       }),
-    ]).then(([activityRes, notifRes]) => {
+    ]).then(([activityRes, inactivityCancelRes, notifRes]) => {
       if (activityRes.error) logger.error('[LIKES_POST] activity_log error:', { error: activityRes.error.message });
+      if (inactivityCancelRes.error) logger.error('[LIKES_POST] inactivity cancel error:', { error: inactivityCancelRes.error.message });
       if (notifRes.error) logger.error('[LIKES_POST] notification error:', { error: notifRes.error.message });
     });
+
+    // Fire event bus events (fire-and-forget)
+    eventBus.emit('like_sent', { event_id: session.eid, from_id: session.sub, to_id: toId });
+    // Record like_sent funnel step (fire-and-forget)
+    void supabase
+      .from('funnel_events')
+      .insert({ event_id: session.eid, session_id: session.sub, step: 'like_sent', metadata: {} })
+      .then(({ error }) => {
+        if (error && error.code !== '23505') logger.error('[LIKES_POST] funnel insert error:', error.message);
+      });
+    if (isMatch) {
+      // We don't have the conversation_id yet — check for existing conversation
+      void (async () => {
+        const supabase2 = getServiceClient();
+        const { data: conv } = await supabase2
+          .from('conversations')
+          .select('id')
+          .eq('event_id', session.eid)
+          .or(`and(a_participant_id.eq.${session.sub},b_participant_id.eq.${toId}),and(a_participant_id.eq.${toId},b_participant_id.eq.${session.sub})`)
+          .maybeSingle();
+        if (conv) {
+          eventBus.emit('match_created', {
+            event_id: session.eid,
+            participant_a: session.sub,
+            participant_b: toId,
+            conversation_id: conv.id as string,
+          });
+          // Record match_created funnel step for both participants
+          void supabase2
+            .from('funnel_events')
+            .insert([
+              { event_id: session.eid, session_id: session.sub, step: 'match_created', metadata: {} },
+              { event_id: session.eid, session_id: toId, step: 'match_created', metadata: {} },
+            ])
+            .then(({ error }) => {
+              if (error && error.code !== '23505') logger.error('[LIKES_POST] match funnel insert error:', error.message);
+            });
+        }
+        // SMS notifications (fire-and-forget)
+        void enqueueLikeNotification(toId, session.eid);
+        if (isMatch) {
+          void enqueueMatchNotification(session.sub, toId, session.eid);
+        }
+      })();
+    } else {
+      // Just a like, notify recipient
+      void enqueueLikeNotification(toId, session.eid);
+    }
 
     return NextResponse.json({ ...data, match: isMatch });
   } catch (err) {

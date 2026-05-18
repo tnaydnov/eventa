@@ -105,6 +105,15 @@ export async function POST(req: NextRequest) {
       return jsonError('Failed to send verification code', 500);
     }
 
+    // Fire-and-forget: record funnel step otp_requested
+    void supabase.from('funnel_events').insert({
+      event_id: event.id,
+      step: 'otp_requested',
+      metadata: {},
+    }).then(({ error }) => {
+      if (error) logger.error('[SEND_OTP] funnel insert error', { error: error.message });
+    });
+
     return NextResponse.json({
       success: true,
       expiresIn: otpResult.expiresIn,

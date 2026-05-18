@@ -38,14 +38,14 @@ test.describe('Match Flow', () => {
       }
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
   });
 
   test('E-MA-02: Match appears in likes tab', async ({ page }) => {
     await mockLikesWithData(page);
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
 
     // Navigate to likes tab (force to bypass Next.js dev overlay)
@@ -82,12 +82,12 @@ test.describe('Match Flow', () => {
       }
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
   });
 
   test('E-MA-04: Dismiss match popup', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
 
     // Match popup close button should dismiss it
@@ -112,7 +112,7 @@ test.describe('Match Flow', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
 
     // Navigate to chats tab

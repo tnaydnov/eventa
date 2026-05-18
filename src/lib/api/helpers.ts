@@ -3,13 +3,38 @@ import type { PublicParticipant, ParticipantPhoto } from '../database.types';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
+export interface PhotoUrlOptions {
+  width?: number;
+  height?: number;
+  quality?: number;
+}
+
 /** Build the public URL for a participant photo. */
-export function getPhotoUrl(storagePath: string): string {
+export function getPhotoUrl(storagePath: string, options?: PhotoUrlOptions): string {
   if (!SUPABASE_URL) {
     console.error('NEXT_PUBLIC_SUPABASE_URL is not set - photo URLs will be broken');
     return '';
   }
-  return `${SUPABASE_URL}/storage/v1/object/public/photos/${storagePath}`;
+
+  const base = `${SUPABASE_URL}/storage/v1/object/public/photos/${storagePath}`;
+  if (!options) return base;
+
+  const params = new URLSearchParams();
+  if (typeof options.width === 'number' && options.width > 0) {
+    params.set('width', String(options.width));
+  }
+  if (typeof options.height === 'number' && options.height > 0) {
+    params.set('height', String(options.height));
+  }
+  if (typeof options.quality === 'number' && options.quality > 0) {
+    params.set('quality', String(options.quality));
+  }
+  if (params.has('width') || params.has('height')) {
+    params.set('resize', 'cover');
+  }
+
+  const query = params.toString();
+  return query ? `${base}?${query}` : base;
 }
 
 /* ── Cached getBlockedIds ────────────────────────────────────
@@ -58,7 +83,7 @@ export function invalidateBlockedCache() {
  * Batches .in() calls to avoid exceeding PostgREST URL length limits (~50 UUIDs per batch).
  */
 /** Explicit columns for participant queries (avoids SELECT *). Excludes fingerprints - those are internal only. */
-export const PARTICIPANT_COLUMNS = 'id, event_id, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at, phone, sms_consent, feedback_consent, feedback_sent' as const;
+export const PARTICIPANT_COLUMNS = 'id, event_id, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at, phone, sms_consent, sms_notifications_enabled, feedback_consent, feedback_sent' as const;
 export const PHOTO_COLUMNS = 'id, event_id, participant_id, storage_path, order_index, created_at' as const;
 export const CONVERSATION_COLUMNS = 'id, event_id, a_participant_id, b_participant_id, created_at, last_message_at, a_last_read_at, b_last_read_at' as const;
 export const MESSAGE_COLUMNS = 'id, event_id, conversation_id, sender_participant_id, type, text, media_path, is_deleted, created_at' as const;

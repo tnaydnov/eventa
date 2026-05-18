@@ -9,6 +9,7 @@ import { logger } from '@/lib/logger';
 import { APP_BASE_URL } from '@/lib/config';
 import { buildEventCreatedEmail } from '@/lib/email-templates';
 import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
+import { isReservedSlug } from '@/lib/slug';
 
 /** Default event duration when no end date is provided (24 hours). */
 const DEFAULT_DURATION_MS = 86_400_000;
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest) {
     const order = url.searchParams.get('order') || 'desc';
 
     const supabase = getServiceClient();
-    let query = supabase.from('events').select('id, slug, name, join_code, event_type, status, description, starts_at, ends_at, is_active, background_image, archived_at, created_at, wa_messages_enabled, guest_list_uploaded, guest_list_uploaded_at, guest_list_count, qr_page_sent, client_name, client_email, client_phone, communication_preference, payment_status');
+    let query = supabase.from('events').select('id, slug, name, join_code, event_type, status, description, starts_at, ends_at, is_active, background_image, archived_at, created_at, wa_messages_enabled, guest_list_uploaded, guest_list_uploaded_at, guest_list_count, qr_page_sent, client_name, client_email, client_phone, communication_preference, send_report_email, payment_status');
 
     // Status filter
     if (status) {
@@ -138,6 +139,14 @@ export async function POST(req: NextRequest) {
 
     const supabase = getServiceClient();
 
+    // Reject reserved slugs
+    if (isReservedSlug(parsed.data.slug)) {
+      return NextResponse.json(
+        { error: 'כתובת זו שמורה למערכת ולא ניתן להשתמש בה', details: { slug: ['Reserved slug'] } },
+        { status: 400 }
+      );
+    }
+
     // Ensure slug uniqueness - if collision, append extra suffix
     let slug = parsed.data.slug;
     const { data: existing, error: slugErr } = await supabase
@@ -172,6 +181,7 @@ export async function POST(req: NextRequest) {
         client_email: parsed.data.client_email || null,
         client_phone: parsed.data.client_phone || null,
         communication_preference: parsed.data.communication_preference || 'email',
+        send_report_email: parsed.data.send_report_email ?? true,
       })
       .select()
       .single();
@@ -192,7 +202,7 @@ export async function POST(req: NextRequest) {
           .from('client_portal_tokens')
           .insert({ event_id: data.id, token: portalToken, is_active: true });
 
-        portalUrl = `${APP_BASE_URL}/guest-upload/${data.slug}?k=${portalToken}`;
+        portalUrl = `${APP_BASE_URL}/portal/${portalToken}`;
         logger.info('[ADMIN_EVENTS_POST] Auto-created portal token', { eventId: data.id });
       } catch (portalErr) {
         logger.warn('[ADMIN_EVENTS_POST] Failed to auto-create portal token:', portalErr);
@@ -203,7 +213,7 @@ export async function POST(req: NextRequest) {
     after(async () => {
       if (!data.client_email) return;
       try {
-        const eventUrl = `${APP_BASE_URL}/dating/${data.slug}/join?k=${data.join_code}`;
+        const eventUrl = `${APP_BASE_URL}/${data.slug}/join?k=${data.join_code}`;
 
         const email = buildEventCreatedEmail({
           contactName: data.client_name || '',

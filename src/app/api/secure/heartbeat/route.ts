@@ -8,7 +8,8 @@ import { logger } from '@/lib/logger';
  * POST /api/secure/heartbeat
  * Client sends a heartbeat every ~60 seconds while the app is active.
  * Inserts one 'heartbeat' row into activity_log for usage-timeline analytics.
- * Also updates participant last_seen_at.
+ * Also updates participant last_seen_at and tab_visible.
+ * When tab becomes visible, cancels pending SMS notifications (user is back).
  */
 export async function POST(req: NextRequest) {
   const guard = await secureGuard(req, 'heartbeat', RATE_LIMITS.standard);
@@ -16,13 +17,22 @@ export async function POST(req: NextRequest) {
   const session = guard;
 
   try {
+    // Accept optional tab_visible flag from client
+    let tabVisible = false;
+    try {
+      const body = await req.json();
+      tabVisible = body?.tab_visible === true;
+    } catch {
+      // Body is optional — older clients won't send it
+    }
+
     const supabase = getServiceClient();
 
     // Fire the last_seen_at check and activity_log insert in parallel
     const [participantRes, activityRes] = await Promise.all([
       supabase
         .from('participants')
-        .select('last_seen_at')
+        .select('last_seen_at, tab_visible')
         .eq('id', session.sub)
         .maybeSingle(),
       supabase.from('activity_log').insert({
@@ -40,14 +50,32 @@ export async function POST(req: NextRequest) {
     const now = new Date().toISOString();
     const lastSeen = current?.last_seen_at ? new Date(current.last_seen_at).getTime() : 0;
     const stale = Date.now() - lastSeen > 2 * 60 * 1000; // 2 minutes
+    const tabVisibilityChanged = current?.tab_visible !== tabVisible;
 
-    if (stale) {
-      // Fire-and-forget - don't wait for the UPDATE to respond
+    if (stale || tabVisibilityChanged) {
+      const updates: Record<string, unknown> = {};
+      if (stale) updates.last_seen_at = now;
+      if (tabVisibilityChanged) updates.tab_visible = tabVisible;
+
       void supabase
-          .from('participants')
-          .update({ last_seen_at: now })
-          .eq('id', session.sub)
-          .then(({ error }) => { if (error) logger.error('[HEARTBEAT] last_seen update error:', { error: error.message }); });
+        .from('participants')
+        .update(updates)
+        .eq('id', session.sub)
+        .then(({ error }) => { if (error) logger.error('[HEARTBEAT] participant update error:', { error: error.message }); });
+    }
+
+    // When tab becomes visible, cancel any pending SMS for this participant
+    if (tabVisible && current?.tab_visible === false) {
+      void supabase
+        .from('pending_sms')
+        .update({ cancelled_at: now, cancel_reason: 'user_returned' })
+        .eq('recipient_id', session.sub)
+        .eq('event_id', session.eid)
+        .is('sent_at', null)
+        .is('cancelled_at', null)
+        .then(({ error }) => {
+          if (error) logger.error('[HEARTBEAT] cancel pending sms error:', { error: error.message });
+        });
     }
 
     return NextResponse.json({ success: true });
@@ -56,3 +84,4 @@ export async function POST(req: NextRequest) {
     return jsonError('Server error', 500);
   }
 }
+

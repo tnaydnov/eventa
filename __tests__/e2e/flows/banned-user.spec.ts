@@ -8,7 +8,7 @@ import { setSessionCookie } from '../helpers/fixtures';
 test.describe('Banned User Flow', () => {
   test('E-BN-01: Banned user sees banned page', async ({ page }) => {
     // Banned page is static - no auth needed, just renders content
-    await page.goto('/dating/test-event/banned');
+    await page.goto('/test-event/banned');
     await expect(page.locator('.app-container')).toBeVisible({ timeout: 15000 });
     await expect(page.locator('body')).toContainText('הגישה שלך נחסמה');
   });
@@ -31,7 +31,7 @@ test.describe('Banned User Flow', () => {
       });
     });
 
-    await page.goto('/dating/test-event/join?k=TESTCODE123X');
+    await page.goto('/test-event/join?k=TESTCODE123X');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('body')).toBeVisible();
     // Submit join
@@ -49,7 +49,7 @@ test.describe('Banned User Flow', () => {
   });
 
   test('E-BN-03: Banned page shows re-registration warning', async ({ page }) => {
-    await page.goto('/dating/test-event/banned');
+    await page.goto('/test-event/banned');
     await expect(page.locator('.app-container')).toBeVisible({ timeout: 15000 });
     await expect(page.locator('body')).toContainText('לא ניתן להירשם מחדש');
   });

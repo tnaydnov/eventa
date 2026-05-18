@@ -18,7 +18,7 @@ import {
  */
 
 test.describe('Phone Join Flow', () => {
-  const joinUrl = `/dating/${TEST_EVENT_SLUG}/join?k=${TEST_JOIN_CODE}`;
+  const joinUrl = `/${TEST_EVENT_SLUG}/join?k=${TEST_JOIN_CODE}`;
 
   test.beforeEach(async ({ page }) => {
     // Suppress realtime
@@ -166,7 +166,7 @@ test.describe('Phone Join Flow', () => {
     }
 
     // Should redirect to setup page
-    await page.waitForURL(`**/dating/${TEST_EVENT_SLUG}/setup`, { timeout: 10000 });
+    await page.waitForURL(`**/${TEST_EVENT_SLUG}/setup`, { timeout: 10000 });
   });
 
   test('E-PJ-07: Verifying OTP for returning user redirects to grid', async ({ page }) => {
@@ -204,7 +204,7 @@ test.describe('Phone Join Flow', () => {
     }
 
     // Should redirect to grid (main page)
-    await page.waitForURL(`**/dating/${TEST_EVENT_SLUG}`, { timeout: 10000 });
+    await page.waitForURL(`**/${TEST_EVENT_SLUG}`, { timeout: 10000 });
   });
 
   test('E-PJ-08: Resend OTP button has cooldown', async ({ page }) => {
@@ -277,7 +277,7 @@ test.describe('Phone Join Flow', () => {
     });
 
     // Go without ?k= parameter
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/join`);
+    await page.goto(`/${TEST_EVENT_SLUG}/join`);
 
     // Accept terms - should show error about missing join code
     const checkbox = page.locator('[role="checkbox"]').first();

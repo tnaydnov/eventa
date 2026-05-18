@@ -1,20 +1,35 @@
 import { supabase } from '../supabase';
 import type { Like } from '../database.types';
 import { getBlockedIds, buildParticipantPhotoMaps, LIKE_COLUMNS } from './helpers';
+import { fetchWithRetry } from './fetch-retry';
 
 /** Result of sending a like - includes match detection. */
 export interface SendLikeResult extends Like {
   match: boolean;
 }
 
+export interface SendLikeDuplicateResult {
+  duplicate: true;
+}
+
 /** Send a like to another participant. Returns the like + match flag. */
-export async function sendLike(toId: string): Promise<SendLikeResult | null> {
+export async function sendLike(toId: string): Promise<SendLikeResult | SendLikeDuplicateResult | null> {
+  const idempotencyKey = typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
   try {
-    const res = await fetch('/api/secure/likes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ toId }),
-    });
+    const res = await fetchWithRetry(
+      '/api/secure/likes',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
+        body: JSON.stringify({ toId }),
+      },
+      // Safe to retry: server returns existing like on duplicate (unique constraint)
+      { retryOnMutations: true },
+    );
+    if (res.status === 409) return { duplicate: true };
     if (!res.ok) return null;
     return res.json();
   } catch (err) {
@@ -26,11 +41,16 @@ export async function sendLike(toId: string): Promise<SendLikeResult | null> {
 /** Remove a previously sent like. */
 export async function removeLike(toId: string): Promise<boolean> {
   try {
-    const res = await fetch('/api/secure/likes', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ toId }),
-    });
+    const res = await fetchWithRetry(
+      '/api/secure/likes',
+      {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ toId }),
+      },
+      // DELETE is idempotent — safe to retry
+      { retryOnMutations: true },
+    );
     return res.ok;
   } catch (err) {
     console.error('[removeLike] error:', err);

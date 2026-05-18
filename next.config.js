@@ -88,6 +88,17 @@ const nextConfig = {
       },
     ];
   },
+
+  async redirects() {
+    return [
+      // Permanent redirects from old /dating/* routes
+      { source: '/dating', destination: '/', permanent: true },
+      { source: '/dating/order', destination: '/order', permanent: true },
+      { source: '/dating/event-over', destination: '/event-over', permanent: true },
+      { source: '/dating/:eventSlug', destination: '/:eventSlug', permanent: true },
+      { source: '/dating/:eventSlug/:path*', destination: '/:eventSlug/:path*', permanent: true },
+    ];
+  },
 };
 
 export default withSerwist(nextConfig);

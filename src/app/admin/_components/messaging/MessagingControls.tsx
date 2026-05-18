@@ -302,7 +302,7 @@ export default function MessagingControls({
   const [loading, setLoading] = useState(false);
 
   const portalUrl = status.portalToken
-    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/guest-upload/${eventSlug}?k=${status.portalToken}`
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/portal/${status.portalToken}`
     : null;
 
   const handleAction = useCallback(async (actionId: string) => {

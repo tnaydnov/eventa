@@ -141,7 +141,7 @@ export default function GuestListTable({
                         onClick={() => handleRemove(guest.id)}
                         disabled={guest.sent || removingId === guest.id}
                         title={guest.sent ? 'לא ניתן להסיר - כבר נשלחה הודעה' : 'הסרה'}
-                        aria-label="הסרת אורח"
+                        aria-label={`הסרת ${guest.name || guest.phone}`}
                       >
                         {removingId === guest.id ? '…' : '🗑'}
                       </button>

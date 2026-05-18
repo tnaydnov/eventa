@@ -71,7 +71,7 @@ vi.mock('@/lib/constants', () => ({
 }));
 
 // Mock SwipeCard to simplify
-vi.mock('@/app/dating/[eventSlug]/_components/SwipeCard', () => ({
+vi.mock('@/app/[eventSlug]/_components/SwipeCard', () => ({
   __esModule: true,
   default: ({ participant, onSwipeRight, onSwipeLeft, onViewProfile }: Record<string, unknown>) => (
     <div data-testid={`card-${(participant as { id: string }).id}`}>
@@ -83,7 +83,7 @@ vi.mock('@/app/dating/[eventSlug]/_components/SwipeCard', () => ({
   ),
 }));
 
-import SwipeView from '@/app/dating/[eventSlug]/_components/SwipeView';
+import SwipeView from '@/app/[eventSlug]/_components/SwipeView';
 
 const makeParticipants = () => [
   { id: 'p1', display_name: 'Alice', age: 25, bio: '', city: '', looking_for: 'serious', photos: [{ id: 'ph1', storage_path: 'photos/p1/1.jpg', order_index: 0 }] },
@@ -160,6 +160,6 @@ describe('SwipeView', () => {
     render(<SwipeView participants={makeParticipants()} eventSlug="test" />);
     const viewBtn = screen.getAllByText('view')[0];
     fireEvent.click(viewBtn);
-    expect(mockPush).toHaveBeenCalledWith('/dating/test/user/p1');
+    expect(mockPush).toHaveBeenCalledWith('/test/user/p1');
   });
 });

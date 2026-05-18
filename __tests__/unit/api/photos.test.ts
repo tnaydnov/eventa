@@ -31,7 +31,9 @@ vi.mock('@/lib/api/helpers', () => ({
 import { uploadPhoto, deletePhoto, reorderPhotos, getMyPhotos } from '@/lib/api/photos';
 
 beforeEach(() => {
+  vi.restoreAllMocks();
   vi.clearAllMocks();
+  mockUploadToSignedUrl.mockResolvedValue({ error: null });
   mockFrom.mockReturnValue({
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
@@ -48,9 +50,7 @@ describe('uploadPhoto', () => {
         ok: true,
         json: async () => ({ signedUrl: 'https://storage/signed', token: 'tok' }),
       } as Response)
-      // Step 2: PUT upload
-      .mockResolvedValueOnce({ ok: true } as Response)
-      // Step 3: DB record
+      // Step 2: DB record
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ id: 'photo1', storage_path: 'e/p/1.webp', order_index: 0 }),
@@ -65,7 +65,7 @@ describe('uploadPhoto', () => {
   });
 
   it('returns null when signed URL request fails', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: false,
       status: 500,
       text: async () => 'err',
@@ -74,14 +74,12 @@ describe('uploadPhoto', () => {
     expect(await uploadPhoto('e', 'p', file, 0)).toBeNull();
   });
 
-  it('falls back to SDK upload when PUT fails', async () => {
+  it('uploads via SDK path successfully', async () => {
     vi.spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ signedUrl: 'https://x/s', token: 'tok' }),
       } as Response)
-      // PUT fails
-      .mockResolvedValueOnce({ ok: false, status: 403 } as Response)
       // DB record
       .mockResolvedValueOnce({
         ok: true,
@@ -95,13 +93,12 @@ describe('uploadPhoto', () => {
     expect(result).toEqual({ id: 'p2' });
   });
 
-  it('returns null when both upload methods fail', async () => {
+  it('returns null when SDK upload fails', async () => {
     vi.spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ signedUrl: 'https://x/s', token: 'tok' }),
-      } as Response)
-      .mockResolvedValueOnce({ ok: false, status: 500 } as Response);
+      } as Response);
 
     mockUploadToSignedUrl.mockResolvedValueOnce({ error: { message: 'fail' } });
     const file = new File(['data'], 'pic.webp', { type: 'image/webp' });
@@ -114,7 +111,6 @@ describe('uploadPhoto', () => {
         ok: true,
         json: async () => ({ signedUrl: 'https://x/s', token: 'tok' }),
       } as Response)
-      .mockResolvedValueOnce({ ok: true } as Response)
       .mockResolvedValueOnce({
         ok: false,
         status: 500,
@@ -126,7 +122,7 @@ describe('uploadPhoto', () => {
   });
 
   it('returns null on network error', async () => {
-    vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('offline'));
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('offline'));
     const file = new File(['data'], 'pic.webp', { type: 'image/webp' });
     expect(await uploadPhoto('e', 'p', file, 0)).toBeNull();
   });

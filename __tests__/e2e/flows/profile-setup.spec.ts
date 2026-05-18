@@ -35,12 +35,12 @@ test.describe('Profile Setup Flow', () => {
   });
 
   test('E-PS-01: Profile setup page loads with form', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/setup`);
+    await page.goto(`/${TEST_EVENT_SLUG}/setup`);
     await expect(page.locator('body')).toContainText('יצירת פרופיל');
   });
 
   test('E-PS-02: Missing required fields shows validation', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/setup`);
+    await page.goto(`/${TEST_EVENT_SLUG}/setup`);
     // Try to submit without filling fields
     const saveBtn = page.locator('button', { hasText: 'שמירה והמשך' });
     if (await saveBtn.isVisible()) {
@@ -53,7 +53,7 @@ test.describe('Profile Setup Flow', () => {
   });
 
   test('E-PS-03: Photo section is visible', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/setup`);
+    await page.goto(`/${TEST_EVENT_SLUG}/setup`);
     await expect(page.locator('body')).toBeVisible();
     // Photo section should exist (for uploading)
     const photoText = await page.textContent('body');
@@ -61,14 +61,14 @@ test.describe('Profile Setup Flow', () => {
   });
 
   test('E-PS-04: Form has all required fields', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/setup`);
+    await page.goto(`/${TEST_EVENT_SLUG}/setup`);
     // Name input should exist (uses class 'input' without explicit type)
     const nameInput = page.locator('input.input').first();
     await expect(nameInput).toBeAttached({ timeout: 10000 });
   });
 
   test('E-PS-05: Bio and city are optional', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/setup`);
+    await page.goto(`/${TEST_EVENT_SLUG}/setup`);
     // Bio textarea and city input should exist but not required
     const body = page.locator('body');
     await expect(body).toBeVisible();
@@ -82,7 +82,7 @@ test.describe('Profile Setup Flow', () => {
   });
 
   test('E-PS-06: Name input has max length', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/setup`);
+    await page.goto(`/${TEST_EVENT_SLUG}/setup`);
     const nameInput = page.locator('input.input').first();
     if (await nameInput.isVisible()) {
       // Type a very long name
@@ -93,7 +93,7 @@ test.describe('Profile Setup Flow', () => {
   });
 
   test('E-PS-07: Hebrew text renders RTL', async ({ page }) => {
-    await page.goto(`/dating/${TEST_EVENT_SLUG}/setup`);
+    await page.goto(`/${TEST_EVENT_SLUG}/setup`);
     await expect(page.locator('body')).toBeVisible();
     const dir = await page.evaluate(
       () => document.documentElement.dir || document.body.dir || getComputedStyle(document.body).direction

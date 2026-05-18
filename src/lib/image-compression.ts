@@ -81,7 +81,8 @@ export async function compressImage(
     const compressed = await imageCompression(file, {
       maxSizeMB: options.maxSizeMB,
       maxWidthOrHeight: options.maxSizePx,
-      useWebWorker: false,
+      // Offload compression to a worker when available to keep UI responsive.
+      useWebWorker: true,
       initialQuality: 0.92,
     });
 

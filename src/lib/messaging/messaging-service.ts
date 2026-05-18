@@ -47,6 +47,29 @@ async function logMessage(params: {
   }
 }
 
+async function logSmsReliability(params: {
+  eventId: string;
+  messageType: MessagePurpose;
+  success: boolean;
+  error?: string | null;
+}): Promise<void> {
+  try {
+    const supabase = getServiceClient();
+    await supabase.from('event_reliability_metrics').insert({
+      event_id: params.eventId,
+      metric_type: params.success ? 'sms_delivery_success' : 'sms_delivery_failed',
+      source: 'unknown',
+      value: 1,
+      metadata: {
+        messageType: params.messageType,
+        ...(params.error ? { reason: params.error } : {}),
+      },
+    });
+  } catch (err) {
+    logger.error('[MESSAGING] Failed to log SMS reliability metric', { error: err });
+  }
+}
+
 // ── Public API ──
 
 /**
@@ -68,6 +91,13 @@ export async function sendOtp(
     status: result.success ? 'sent' : 'failed',
     providerMessageId: result.messageId,
     errorMessage: result.error,
+  });
+
+  await logSmsReliability({
+    eventId,
+    messageType: 'otp',
+    success: result.success,
+    error: result.error,
   });
 
   return {
@@ -96,6 +126,13 @@ export async function sendPreEventMessage(
     status: result.success ? 'sent' : 'failed',
     providerMessageId: result.messageId,
     errorMessage: result.error,
+  });
+
+  await logSmsReliability({
+    eventId: config.eventId,
+    messageType: 'pre_event',
+    success: result.success,
+    error: result.error,
   });
 
   return {
@@ -164,6 +201,13 @@ export async function sendWelcomeMessage(
     errorMessage: result.error,
   });
 
+  await logSmsReliability({
+    eventId: config.eventId,
+    messageType: 'welcome',
+    success: result.success,
+    error: result.error,
+  });
+
   return {
     success: result.success,
     channel: 'sms',
@@ -210,6 +254,13 @@ export async function sendFeedbackMessage(
     status: result.success ? 'sent' : 'failed',
     providerMessageId: result.messageId,
     errorMessage: result.error,
+  });
+
+  await logSmsReliability({
+    eventId: config.eventId,
+    messageType: 'feedback',
+    success: result.success,
+    error: result.error,
   });
 
   return {

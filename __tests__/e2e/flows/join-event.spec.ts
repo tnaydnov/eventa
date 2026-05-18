@@ -24,7 +24,7 @@ test.describe('Join Event Flow', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
   });
 
@@ -47,7 +47,7 @@ test.describe('Join Event Flow', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     // Page should show the join form or error state
     await expect(page.locator('body')).toBeVisible();
   });
@@ -61,7 +61,7 @@ test.describe('Join Event Flow', () => {
       });
     });
 
-    await page.goto('/dating/non-existent-event-slug-xyz');
+    await page.goto('/non-existent-event-slug-xyz');
     await expect(page.locator('body')).toBeVisible();
   });
 
@@ -74,7 +74,7 @@ test.describe('Join Event Flow', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
   });
 
@@ -112,7 +112,7 @@ test.describe('Join Event Flow', () => {
       });
     });
 
-    await page.goto(`/dating/${TEST_EVENT_SLUG}`);
+    await page.goto(`/${TEST_EVENT_SLUG}`);
     await expect(page.locator('body')).toBeVisible();
   });
 });

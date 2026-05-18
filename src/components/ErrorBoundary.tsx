@@ -12,6 +12,10 @@ interface State {
   error: Error | null;
 }
 
+interface SessionLike {
+  eventId?: string;
+}
+
 export default class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -22,8 +26,84 @@ export default class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
+  componentDidMount() {
+    window.addEventListener('error', this.handleWindowError);
+    window.addEventListener('unhandledrejection', this.handleUnhandledRejection);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('error', this.handleWindowError);
+    window.removeEventListener('unhandledrejection', this.handleUnhandledRejection);
+  }
+
+  private getEventIdFromSession(): string | undefined {
+    try {
+      const raw = localStorage.getItem('ws_session');
+      if (!raw) return undefined;
+      const parsed = JSON.parse(raw) as SessionLike;
+      return typeof parsed.eventId === 'string' ? parsed.eventId : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private postClientError(payload: {
+    message: string;
+    stack?: string;
+    componentStack?: string;
+    url?: string;
+  }) {
+    const body = JSON.stringify({
+      ...payload,
+      event_id: this.getEventIdFromSession(),
+      url: payload.url ?? window.location.pathname,
+    });
+
+    const endpoint = '/api/telemetry/error';
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(endpoint, new Blob([body], { type: 'application/json' }));
+      return;
+    }
+
+    fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      keepalive: true,
+    }).catch(() => { /* non-critical */ });
+  }
+
+  private handleWindowError = (event: ErrorEvent) => {
+    this.postClientError({
+      message: event.message || 'window.error',
+      stack: event.error instanceof Error ? event.error.stack : undefined,
+      url: window.location.pathname,
+    });
+  };
+
+  private handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+    const reason = event.reason;
+    const message = reason instanceof Error
+      ? reason.message
+      : typeof reason === 'string'
+        ? reason
+        : 'Unhandled promise rejection';
+
+    this.postClientError({
+      message,
+      stack: reason instanceof Error ? reason.stack : undefined,
+      url: window.location.pathname,
+    });
+  };
+
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('ErrorBoundary caught:', error, errorInfo);
+    this.postClientError({
+      message: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack ?? undefined,
+      url: window.location.pathname,
+    });
   }
 
   render() {

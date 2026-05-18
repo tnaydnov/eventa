@@ -15,6 +15,9 @@ import RequestsView from './_components/requests/RequestsView';
 import CalendarView from './_components/calendar/CalendarView';
 import QRDialog from './_components/QRDialog';
 import ParticipantsDialog from './_components/ParticipantsDialog';
+import AdminReportView from './_components/report/AdminReportView';
+import AdminModerationQueue from './_components/moderation/AdminModerationQueue';
+import AdminReliabilityView from './_components/analytics/AdminReliabilityView';
 
 /** Delay (ms) before re-reading event status after an update */
 const STATUS_REFRESH_DELAY_MS = 500;
@@ -64,7 +67,7 @@ export default function AdminPage() {
 
   /* ─── QR helpers ─── */
   const generateQR = async (event: Event) => {
-    const url = `${window.location.origin}/dating/${event.slug}?k=${event.join_code}`;
+    const url = `${window.location.origin}/${event.slug}?k=${event.join_code}`;
     try {
       const dataUrl = await QRCode.toDataURL(url, {
         width: 400, margin: 2,
@@ -87,7 +90,7 @@ export default function AdminPage() {
   };
 
   const copyJoinUrl = (event: Event) => {
-    const url = `${window.location.origin}/dating/${event.slug}?k=${event.join_code}`;
+    const url = `${window.location.origin}/${event.slug}?k=${event.join_code}`;
     navigator.clipboard.writeText(url);
     alert('הקישור הועתק! 📋');
   };
@@ -263,6 +266,18 @@ export default function AdminPage() {
                 onSendPaymentLink={admin.resendPaymentLink}
                 onReload={admin.loadRequests}
               />
+            )}
+
+            {activeView === 'reports' && (
+              <AdminReportView events={admin.events} />
+            )}
+
+            {activeView === 'moderation' && (
+              <AdminModerationQueue />
+            )}
+
+            {activeView === 'reliability' && (
+              <AdminReliabilityView />
             )}
 
           </div>

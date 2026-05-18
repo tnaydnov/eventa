@@ -74,7 +74,7 @@ export async function POST(
       .maybeSingle();
 
     const portalUrl = tokenData?.token
-      ? `${APP_BASE_URL}/guest-upload/${event.slug}?k=${tokenData.token}`
+      ? `${APP_BASE_URL}/portal/${tokenData.token}`
       : null;
 
     // Format event date for templates

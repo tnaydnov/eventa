@@ -262,6 +262,16 @@ async function handler(req: NextRequest) {
       logger.info('[CLEANUP] Cleaned expired OTPs', { count: otpsCleaned });
     }
 
+    // Telemetry purge: remove event_vitals and event_errors older than 30 days
+    // (event-scoped rows are already cascade-deleted when events are archived)
+    const telemetryCutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const [vitalsDelRes, errorsDelRes] = await Promise.all([
+      supabase.from('event_vitals').delete().lt('created_at', telemetryCutoff).is('event_id', null),
+      supabase.from('event_errors').delete().lt('created_at', telemetryCutoff).is('event_id', null),
+    ]);
+    if (vitalsDelRes.error) logger.error('[CLEANUP] event_vitals purge error:', vitalsDelRes.error.message);
+    if (errorsDelRes.error) logger.error('[CLEANUP] event_errors purge error:', errorsDelRes.error.message);
+
     logger.info('[CLEANUP] complete', {
       archivedEvents: archivedCount,
       deletedFiles: totalDeletedFiles,

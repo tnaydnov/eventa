@@ -45,7 +45,7 @@ Eventa is a **Hebrew-language, mobile-first, event-scoped dating Progressive Web
 Everything lives in one Next.js repository:
 
 - **Static/SSR pages** (landing, legal pages) - server-rendered for SEO
-- **Client-side SPA** (the dating app at `/dating/[eventSlug]/*`) - fully interactive, no server rendering
+- **Client-side SPA** (the app at `/[eventSlug]/*`) - fully interactive, no server rendering
 - **API routes** (`/api/*`) - serverless functions on Vercel, acting as the backend
 - **Database** - managed Supabase (external PostgreSQL 17)
 
@@ -55,17 +55,16 @@ Everything lives in one Next.js repository:
 
 ```
 /                                    → SSR landing page (homepage)
-/dating                              → SSR product landing page
-/dating/[eventSlug]/join             → Client: join flow (enter code)
-/dating/[eventSlug]/setup            → Client: profile setup
-/dating/[eventSlug]/                 → Client: participant grid (main view)
-/dating/[eventSlug]/user/[id]        → Client: view profile
-/dating/[eventSlug]/likes            → Client: received likes
-/dating/[eventSlug]/chats            → Client: conversations list
-/dating/[eventSlug]/chat/[id]        → Client: chat thread
-/dating/[eventSlug]/profile          → Client: own profile
-/dating/[eventSlug]/banned           → Client: ban screen
-/dating/[eventSlug]/unavailable      → Client: event ended screen
+/[eventSlug]/join             → Client: join flow (enter code)
+/[eventSlug]/setup            → Client: profile setup
+/[eventSlug]/                 → Client: participant grid (main view)
+/[eventSlug]/user/[id]        → Client: view profile
+/[eventSlug]/likes            → Client: received likes
+/[eventSlug]/chats            → Client: conversations list
+/[eventSlug]/chat/[id]        → Client: chat thread
+/[eventSlug]/profile          → Client: own profile
+/[eventSlug]/banned           → Client: ban screen
+/[eventSlug]/unavailable      → Client: event ended screen
 /admin                               → Client: admin dashboard (SPA)
 /faq                                 → SSR: FAQ page
 /privacy                             → SSR: privacy policy
@@ -75,7 +74,7 @@ Everything lives in one Next.js repository:
 
 ### 3.3 The Event-Scoped Layout Shell
 
-`src/app/dating/[eventSlug]/layout.tsx` wraps every dating page with:
+`src/app/[eventSlug]/layout.tsx` wraps every event page with:
 
 | Component | Purpose |
 |---|---|
@@ -499,12 +498,12 @@ Built from `src/app/sw.ts` at build time via `@serwist/next`:
 
 ```json
 {
-  "id": "/dating",
+  "id": "/",
   "name": "Eventa Dating",
   "display": "standalone",
   "orientation": "portrait",
-  "scope": "/dating",
-  "start_url": "/dating",
+  "scope": "/",
+  "start_url": "/",
   "theme_color": "#0a0a0a",
   "lang": "he",
   "dir": "rtl",

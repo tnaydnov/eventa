@@ -40,6 +40,18 @@
     {
       "path": "/api/cron/feedback-messages",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/dispatch-sms",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/send-reports",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/recheck-moderation",
+      "schedule": "*/15 * * * *"
     }
   ],
   "headers": [

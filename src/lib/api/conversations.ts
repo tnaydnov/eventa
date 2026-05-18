@@ -4,6 +4,7 @@ import type { ConversationWithDetails } from '../store';
 import { compressChatImage } from '../image-compression';
 import { validateImageMagicBytes, getEffectiveImageType } from '../validations';
 import { getBlockedIds, buildParticipantPhotoMaps, CONVERSATION_COLUMNS, MESSAGE_COLUMNS } from './helpers';
+import { fetchWithRetry } from './fetch-retry';
 
 /** Fetch a single conversation by ID (returns null if not found). */
 export async function getConversationById(
@@ -22,12 +23,21 @@ export async function getConversationById(
 export async function getOrCreateConversation(
   otherId: string
 ): Promise<Conversation | null> {
+  const idempotencyKey = typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
   try {
-    const res = await fetch('/api/secure/conversations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ otherId }),
-    });
+    const res = await fetchWithRetry(
+      '/api/secure/conversations',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
+        body: JSON.stringify({ otherId }),
+      },
+      // Safe to retry: server is race-safe and returns existing conversation when present.
+      { retryOnMutations: true },
+    );
     if (!res.ok) return null;
     return res.json();
   } catch (err) {
@@ -173,19 +183,31 @@ export async function getMessagesBefore(
   return (data || []).reverse();
 }
 
-/** Send a text / image message. */
+/** Send a text / image message.
+ * An Idempotency-Key header is generated per call so that network retries
+ * do not create duplicate messages. The server deduplicates by this key. */
 export async function sendMessage(
   conversationId: string,
   text: string,
   type: 'text' | 'image' = 'text',
   mediaPath?: string
 ): Promise<Message | null> {
+  // Generate a per-call idempotency key to prevent duplicate messages on retry
+  const idempotencyKey = typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
   try {
-    const res = await fetch('/api/secure/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversationId, text, type, mediaPath }),
-    });
+    const res = await fetchWithRetry(
+      '/api/secure/messages',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
+        body: JSON.stringify({ conversationId, text, type, mediaPath }),
+      },
+      // Safe to retry: server deduplicates by idempotency key.
+      { retryOnMutations: true },
+    );
     if (!res.ok) return null;
     return res.json();
   } catch (err) {
@@ -197,11 +219,16 @@ export async function sendMessage(
 /** Soft-delete a message. */
 export async function deleteMessage(messageId: string): Promise<boolean> {
   try {
-    const res = await fetch('/api/secure/messages', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messageId }),
-    });
+    const res = await fetchWithRetry(
+      '/api/secure/messages',
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageId }),
+      },
+      // PATCH is idempotent for this operation (soft delete to same state).
+      { retryOnMutations: true },
+    );
     return res.ok;
   } catch (err) {
     console.error('[deleteMessage] error:', err);
@@ -262,11 +289,16 @@ export async function uploadChatImage(
 /** Mark a conversation as read. */
 export async function markConversationRead(conversationId: string): Promise<boolean> {
   try {
-    const res = await fetch('/api/secure/conversations/read', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversationId }),
-    });
+    const res = await fetchWithRetry(
+      '/api/secure/conversations/read',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversationId }),
+      },
+      // Read receipt updates to "now" are safe to retry.
+      { retryOnMutations: true },
+    );
     return res.ok;
   } catch (err) {
     console.error('[markConversationRead] error:', err);
