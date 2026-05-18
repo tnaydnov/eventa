@@ -35,7 +35,7 @@ interface ManagedChannel {
   lastEventReceivedAt: number;
   /** Timestamp when the channel was created (initial baseline for watchdog) */
   createdAt: number;
-  /** True once this channel has reached SUBSCRIBED at least once — prevents
+  /** True once this channel has reached SUBSCRIBED at least once - prevents
    * initial-connection CONNECTING from triggering the reconnecting indicator. */
   hasBeenSubscribed: boolean;
 }
@@ -126,7 +126,7 @@ function getOrCreate(
       } else {
         managed.status = 'CONNECTING';
       }
-      // Only notify if the channel has been subscribed before — avoids
+      // Only notify if the channel has been subscribed before - avoids
       // showing 'reconnecting' during the initial connection handshake.
       if (managed.hasBeenSubscribed || status === 'SUBSCRIBED') {
         notifyConnectionListeners();
@@ -288,7 +288,7 @@ function reconnectSingleChannel(key: string): void {
   managed.postgresHandlers = newPostgresHandlers;
   managed.status = 'CONNECTING';
   managed.lastEventReceivedAt = Date.now(); // reset baseline on reconnect
-  // hasBeenSubscribed stays true — this is a reconnect, not initial connect
+  // hasBeenSubscribed stays true - this is a reconnect, not initial connect
 
   ch.subscribe((status) => {
     if (channels.get(key) !== managed) return;

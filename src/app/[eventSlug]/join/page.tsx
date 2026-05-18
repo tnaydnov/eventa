@@ -595,7 +595,7 @@ function JoinPageContent({
               ariaLabel="קבל/י SMS כשיש התאמה חדשה"
             >
               <span>שלחו לי SMS כשיש לי התאמה חדשה</span>
-              <span style={{ display: 'block', fontSize: '0.75em', opacity: 0.6, marginTop: 2 }}>הדפדפן לא תומך בהתראות push — זו הדרך לא לפספס</span>
+              <span style={{ display: 'block', fontSize: '0.75em', opacity: 0.6, marginTop: 2 }}>הדפדפן לא תומך בהתראות push - זו הדרך לא לפספס</span>
             </ConsentRow>
 
             {error && <p className="pj-error" role="alert">{error}</p>}
