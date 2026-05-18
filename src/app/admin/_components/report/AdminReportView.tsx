@@ -718,15 +718,18 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
 
 
 
-            {/* CONVERSATION INSIGHTS — compact 2-col strip, unique data not shown above */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
-              <Card title="תוצאות שיחות">
-                <StatLine label="שיחות ללא מענה (1 הודעה)" value={d.engagement.one_message_conversations ?? 0} valueColor="#64748b" />
-                <StatLine label="התאמות שלא הפכו לשיחה"   value={d.engagement.dead_matches ?? 0}                valueColor="#64748b" />
+            {/* GENDER INITIATIVE — who opened first + ghosting */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+              <Card title="מי פתח שיחה ראשון">
+                <StatLine label="גברים" value={d.engagement.first_message_by_men   ?? 0} valueColor={P.blue}   />
+                <StatLine label="נשים"  value={d.engagement.first_message_by_women ?? 0} valueColor={P.rose}   />
               </Card>
-              <Card title="יחסי המרה">
-                <StatLine label="התאמה → שיחה" value={`${convFromMatchPct}%`}  valueColor={P.violet}  bar={convFromMatchPct}  barColor={P.violet} />
-                <StatLine label="התאמה → הודעה" value={`${chatFromMatchPct}%`} valueColor={P.fuchsia} bar={chatFromMatchPct} barColor={P.fuchsia} />
+              <Card title="לייק ראשון">
+                <StatLine label="גברים" value={d.engagement.first_like_by_men   ?? 0} valueColor={P.blue}   />
+                <StatLine label="נשים"  value={d.engagement.first_like_by_women ?? 0} valueColor={P.rose}   />
+              </Card>
+              <Card title="גוסטינג">
+                <StatLine label="שיחות ללא מענה" value={d.engagement.ghosted_conversations ?? 0} valueColor="#64748b" />
               </Card>
             </div>
 
