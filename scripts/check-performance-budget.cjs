@@ -15,7 +15,7 @@ const PROFILE_BUDGETS = {
   },
   standard: {
     maxLargestJsChunkBytes: 480 * 1024,
-    maxTotalJsBytes: 3300 * 1024,
+    maxTotalJsBytes: 3800 * 1024, // raised: jspdf + html2canvas add ~400 KB (lazy-loaded, admin-only)
     maxTotalCssBytes: 300 * 1024,
   },
   entry: {
