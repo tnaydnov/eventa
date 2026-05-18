@@ -203,6 +203,40 @@ function PieLabel({
   );
 }
 
+// Ring progress gauge
+function RingMetric({ label, value, sub, color }: {
+  label: string; value: number; sub?: string; color: string;
+}) {
+  const r = 28;
+  const circ = 2 * Math.PI * r;
+  const offset = circ * (1 - Math.min(Math.max(value, 0), 100) / 100);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '4px 0' }}>
+      <div style={{ position: 'relative', width: '72px', height: '72px' }}>
+        <svg width="72" height="72" style={{ transform: 'rotate(-90deg)' }}>
+          <circle cx="36" cy="36" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="7" />
+          <circle
+            cx="36" cy="36" r={r} fill="none"
+            stroke={color} strokeWidth="7"
+            strokeDasharray={circ}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+          />
+        </svg>
+        <div style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '14px', fontWeight: 800, color,
+        }}>
+          {Math.round(value)}%
+        </div>
+      </div>
+      <div style={{ fontSize: '11px', color: '#f1f5f9', marginTop: '6px', fontWeight: 600 }}>{label}</div>
+      {sub && <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>{sub}</div>}
+    </div>
+  );
+}
+
 // Main component
 export default function AdminReportView({ events, initialEventId }: AdminReportViewProps) {
   const [selectedEventId, setSelectedEventId] = useState<string>(initialEventId ?? '');
@@ -486,28 +520,38 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
               />
             </div>
 
-            {/* FUNNEL + GENDER side by side */}
-            <div style={{ display: 'grid', gridTemplateColumns: funnelSteps.length > 0 ? '1fr 1fr' : '1fr', gap: '12px', marginBottom: '12px' }}>
+            {/* SUCCESS METRICS + GENDER side by side */}
+            <div style={{ display: 'grid', gridTemplateColumns: genderData.length > 0 ? '1fr 1fr' : '1fr', gap: '12px', marginBottom: '12px' }}>
 
-              {/* Registration funnel */}
-              {funnelSteps.length > 0 && (
-                <Card title="משפך הרשמה לאירוע">
-                  {d.funnel.top_drop_off && (
-                    <div style={{ fontSize: '11px', color: P.rose, marginBottom: '10px', fontWeight: 600 }}>
-                      שלב עם הנשירה הגבוהה ביותר: {FUNNEL_HE[d.funnel.top_drop_off] ?? d.funnel.top_drop_off}
-                    </div>
-                  )}
-                  {funnelSteps.map((step, i) => (
-                    <HBar
-                      key={step.step}
-                      label={FUNNEL_HE[step.step] ?? step.step}
-                      value={step.count}
-                      max={funnelMax}
-                      color={MULTI[i % MULTI.length]}
-                    />
-                  ))}
-                </Card>
-              )}
+              {/* Event success metrics */}
+              <Card title="מדדי הצלחת האירוע">
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <RingMetric
+                    label="שיעור התאמה"
+                    value={d.engagement.match_rate}
+                    sub={`${d.engagement.mutual_likes} התאמות הדדיות`}
+                    color={P.emerald}
+                  />
+                  <RingMetric
+                    label="מעורבות משתתפים"
+                    value={matchedPct}
+                    sub={`${d.network.participants_with_matches} מתוך ${N}`}
+                    color={P.fuchsia}
+                  />
+                  <RingMetric
+                    label="שיחות עמוקות"
+                    value={deepPct}
+                    sub={`${d.engagement.conversations_with_3plus_messages} שיחות (3+)`}
+                    color={P.violet}
+                  />
+                  <RingMetric
+                    label="פעילות הודעות"
+                    value={messagedPct}
+                    sub={`${d.network.participants_with_messages} שלחו/קיבלו`}
+                    color={P.amber}
+                  />
+                </div>
+              </Card>
 
               {/* Gender distribution */}
               {genderData.length > 0 && (
