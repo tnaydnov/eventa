@@ -84,6 +84,18 @@ const CLIENT_ACTIONS: ActionDef[] = [
     ],
     confirmLabel: 'שלח עם קבצים',
   },
+  {
+    id: 'payment_link',
+    label: 'קישור תשלום',
+    icon: '💳',
+    description: 'שולח ללקוח קישור לתשלום עבור האירוע. מתאים לאירועים שנוצרו ידנית ולא שילמו דרך האתר.',
+    preview: [
+      '📧 מייל אל: הלקוח שהזמין את השירות',
+      '📝 נושא: "Eventa - קישור לתשלום"',
+      '💳 כולל: קישור לדף תשלום מאובטח עם פרטי האירוע',
+    ],
+    confirmLabel: 'שלח קישור תשלום',
+  },
 ];
 
 /* ── Helpers ── */
@@ -226,6 +238,17 @@ function generateEmailPreview(actionId: string, eventName: string, eventDate: st
       </td></tr>`, qrOnly ? 'קוד QR מוכן' : 'דף QR מוכן');
     }
 
+    case 'payment_link': return emailShell('קישור לתשלום', `
+      <tr><td dir="rtl" style="text-align:right;padding:20px 24px 4px;border-bottom:1px solid ${PE.border};background:${PE.card};">
+        <div style="font-size:15px;font-weight:500;">שלום [שם הלקוח],</div>
+        <div style="font-size:13px;color:${PE.muted};margin-top:6px;line-height:1.6;">כדי להשלים את ההזמנה עבור האירוע <strong>${safeName}</strong>, יש לבצע את התשלום דרך הקישור הבא.</div>
+        <div style="font-size:13px;color:${PE.muted};line-height:1.6;padding-bottom:16px;">לאחר ביצוע התשלום תקבלו אישור ופרטי הגישה לאירוע.</div>
+      </td></tr>
+      <tr><td style="padding:20px 24px;text-align:center;background:${PE.card};">
+        <a href="#" style="display:inline-block;background:${PE.accent};border-radius:10px;padding:14px 28px;color:#fff;font-size:15px;font-weight:700;text-decoration:none;">לתשלום מאובטח</a>
+        <div style="font-size:11px;color:${PE.dim};margin-top:10px;">הקישור בתוקף ל-7 ימים</div>
+      </td></tr>`, 'תשלום עבור האירוע');
+
     default: return null;
   }
 }
@@ -355,6 +378,7 @@ export default function ClientActionsPanel({
       switch (actionId) {
         case 'upload_reminder':
         case 'summary':
+        case 'payment_link':
           result = await onSendEmail(eventId, actionId);
           if (result.ok) alert('✅ נשלח בהצלחה');
           else alert(result.error || 'שגיאה');

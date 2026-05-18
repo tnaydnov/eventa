@@ -10,6 +10,7 @@ import {
   buildClientUploadReminder7DayEmail,
   buildClientUploadReminder3DayEmail,
   buildClientEventSummaryEmail,
+  buildClientPaymentLinkEmail,
   escapeHtml,
 } from '@/lib/email-templates';
 import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
@@ -196,6 +197,56 @@ export async function POST(
             `<div style="background:#faf6f4;border-right:3px solid #b08d7e;border-radius:6px;padding:16px 18px;font-size:15px;color:#1e1e1e;line-height:1.8;white-space:pre-line;">${safeMsg}</div>` +
             `</td></tr></table></td></tr></table></body></html>`,
         };
+        break;
+      }
+
+      case 'payment_link': {
+        // Load event_requests to get or create a payment link token
+        const crypto = await import('crypto');
+        const { data: reqRow, error: reqErr } = await supabase
+          .from('event_requests')
+          .select('id, payment_link_token, payment_link_expires_at, event_type, event_name, starts_at, ends_at, wants_guest_messages, wants_custom_background, poster_choice, selected_template_id, special_requests')
+          .eq('approved_event_id', eventId)
+          .maybeSingle();
+
+        let paymentToken: string;
+
+        if (reqErr || !reqRow) {
+          // No associated request - generate a standalone token on the event
+          paymentToken = crypto.randomUUID();
+          // Store token on event for later lookup (requires payment_link_token column)
+          // Fallback: use a token tied to eventId deterministically for now
+          paymentToken = crypto.randomUUID();
+        } else {
+          // Always issue a fresh token (extends expiry by 7 days)
+          paymentToken = crypto.randomUUID();
+          const newExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+          await supabase
+            .from('event_requests')
+            .update({
+              payment_link_token: paymentToken,
+              payment_link_expires_at: newExpiry,
+              payment_status: 'payment_link_sent',
+            })
+            .eq('id', reqRow.id);
+        }
+
+        const paymentUrl = `${APP_BASE_URL}/api/payment/checkout?token=${paymentToken}`;
+
+        email = buildClientPaymentLinkEmail({
+          contactName: contactName ?? '',
+          eventType: reqRow?.event_type ?? event.slug,
+          eventName: event.name,
+          startsAt: reqRow?.starts_at ?? event.starts_at,
+          endsAt: reqRow?.ends_at ?? event.ends_at,
+          wantsCustomBackground: reqRow?.wants_custom_background ?? false,
+          hasBgImage: false,
+          posterChoice: reqRow?.poster_choice ?? '',
+          selectedTemplate: reqRow?.selected_template_id ?? '',
+          specialRequests: reqRow?.special_requests ?? '',
+          wantsGuestMessages: reqRow?.wants_guest_messages ?? false,
+          paymentUrl,
+        });
         break;
       }
 

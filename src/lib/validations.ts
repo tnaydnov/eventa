@@ -75,6 +75,7 @@ export const adminEmailTypeValues = [
   'summary',
   'custom',
   'qr_page',
+  'payment_link',
 ] as const;
 
 export const adminSendEmailSchema = z.object({

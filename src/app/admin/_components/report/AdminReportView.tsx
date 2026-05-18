@@ -752,6 +752,187 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
               </Card>
             )}
 
+            {/* SAFETY */}
+            {(d.safety.total_blocks > 0 || d.safety.banned_participants > 0 || (d.safety.deleted_participants ?? 0) > 0) && (
+              <Card title="בטיחות ואבטחה" style={{ marginBottom: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                  <div style={{ textAlign: 'center', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '10px' }}>
+                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#ef4444' }}>{d.safety.total_blocks}</div>
+                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>חסימות</div>
+                  </div>
+                  <div style={{ textAlign: 'center', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '10px', padding: '10px' }}>
+                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#ef4444' }}>{d.safety.banned_participants}</div>
+                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>חשבונות חסומים</div>
+                  </div>
+                  <div style={{ textAlign: 'center', background: 'rgba(100,116,139,0.12)', border: '1px solid rgba(100,116,139,0.25)', borderRadius: '10px', padding: '10px' }}>
+                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#94a3b8' }}>{d.safety.deleted_participants ?? 0}</div>
+                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>מחקו פרופיל</div>
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            {/* ─── PAGE 2: FUNNEL + INSIGHTS ─── */}
+
+            {/* REGISTRATION FUNNEL */}
+            {funnelSteps.length > 0 && (
+              <Card title="משפך הרישום — כמה מהסורקים הגיעו עד הסוף?" style={{ marginBottom: '12px' }}>
+                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '12px' }}>
+                  מתוך מי שסרק את ה-QR עד מי שהשלים פרופיל מלא
+                </div>
+                {funnelSteps.map((step, i) => (
+                  <HBar
+                    key={step.step}
+                    label={FUNNEL_HE[step.step] ?? step.step}
+                    value={step.count}
+                    max={funnelMax}
+                    color={MULTI[i % MULTI.length]}
+                  />
+                ))}
+                {funnelSteps.length >= 2 && (
+                  <div style={{
+                    marginTop: '10px', padding: '8px 12px',
+                    background: 'rgba(255,255,255,0.04)', borderRadius: '8px',
+                    fontSize: '12px', color: '#94a3b8', display: 'flex', gap: '16px', flexWrap: 'wrap',
+                  }}>
+                    <span>
+                      <strong style={{ color: P.emerald }}>
+                        {funnelMax > 0 ? Math.round((funnelSteps[funnelSteps.length - 1].count / funnelMax) * 100) : 0}%
+                      </strong>{' '}
+                      מהסורקים השלימו רישום
+                    </span>
+                    <span>
+                      <strong style={{ color: P.amber }}>
+                        {funnelMax > 0 ? (funnelMax - funnelSteps[funnelSteps.length - 1].count) : 0}
+                      </strong>{' '}
+                      נטשו בדרך
+                    </span>
+                  </div>
+                )}
+              </Card>
+            )}
+
+            {/* ENGAGEMENT QUALITY */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+              <Card title="איכות השיחות">
+                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px' }}>
+                  חלוקת עומק השיחות באירוע
+                </div>
+                <HBar
+                  label="שיחות קצרות (1–2 הודעות)"
+                  value={shallowConvs}
+                  max={d.engagement.total_conversations || 1}
+                  color="#64748b"
+                />
+                <HBar
+                  label="שיחות עמוקות (3+ הודעות)"
+                  value={d.engagement.conversations_with_3plus_messages}
+                  max={d.engagement.total_conversations || 1}
+                  color={P.emerald}
+                />
+                <div style={{
+                  marginTop: '12px', padding: '8px 12px',
+                  background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)',
+                  borderRadius: '8px', fontSize: '12px', color: '#94a3b8',
+                }}>
+                  <strong style={{ color: P.emerald }}>{deepPct}%</strong> מהשיחות הפכו לשיחה אמיתית (3+ הודעות)
+                </div>
+              </Card>
+
+              <Card title="סיכום ביצועים">
+                <StatLine
+                  label="יחס לייקים לאירוע"
+                  value={N > 0 ? `${(d.engagement.total_likes / N).toFixed(1)} לאדם` : '–'}
+                  valueColor={P.fuchsia}
+                />
+                <StatLine
+                  label="שיעור המרה: לייק → התאמה"
+                  value={d.engagement.total_likes > 0
+                    ? `${Math.round((d.engagement.mutual_likes / d.engagement.total_likes) * 100 * 2)}%`
+                    : '–'}
+                  valueColor={P.emerald}
+                />
+                <StatLine
+                  label="שיחה לכל התאמה"
+                  value={d.engagement.mutual_likes > 0
+                    ? `${(d.engagement.total_conversations / d.engagement.mutual_likes).toFixed(2)}`
+                    : '–'}
+                  valueColor={P.violet}
+                />
+                <StatLine
+                  label="הודעה לכל שיחה"
+                  value={d.engagement.avg_messages_per_conversation}
+                  valueColor={P.orange}
+                />
+                <StatLine
+                  label="נוכחות יעילה"
+                  value={N > 0 ? `${100 - isolatedPct}%` : '–'}
+                  valueColor={P.teal}
+                  bar={100 - isolatedPct}
+                  barColor={P.teal}
+                />
+              </Card>
+            </div>
+
+            {/* AI SUMMARY */}
+            {report.ai_summary && (
+              <Card title="ניתוח AI — תובנות מהאירוע" style={{ marginBottom: '12px' }}>
+                <div style={{
+                  fontSize: '13px', color: '#cbd5e1', lineHeight: 1.7,
+                  whiteSpace: 'pre-line',
+                  background: 'rgba(139,92,246,0.06)',
+                  border: '1px solid rgba(139,92,246,0.2)',
+                  borderRadius: '10px',
+                  padding: '14px 16px',
+                }}>
+                  {report.ai_summary}
+                </div>
+              </Card>
+            )}
+
+            {/* KEY INSIGHTS */}
+            <Card title="תובנות מרכזיות" style={{ marginBottom: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+                {[
+                  {
+                    icon: '💬',
+                    text: `${messagedPct}% מהמשתתפים שלחו או קיבלו הודעה`,
+                    color: P.violet,
+                  },
+                  {
+                    icon: '🔥',
+                    text: peakHourStr
+                      ? `שיא פעילות האירוע: ${peakHourStr}`
+                      : `ממוצע ${d.engagement.avg_messages_per_conversation} הודעות לשיחה`,
+                    color: P.amber,
+                  },
+                  {
+                    icon: '💚',
+                    text: `${matchedPct}% מהמשתתפים מצאו התאמה הדדית`,
+                    color: P.emerald,
+                  },
+                  {
+                    icon: '📊',
+                    text: `${100 - isolatedPct}% מהמשתתפים היו פעילים`,
+                    color: P.teal,
+                  },
+                ].map((insight, i) => (
+                  <div key={i} style={{
+                    background: `${insight.color}10`,
+                    border: `1px solid ${insight.color}28`,
+                    borderRadius: '10px',
+                    padding: '10px 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}>
+                    <span style={{ fontSize: '18px', flexShrink: 0 }}>{insight.icon}</span>
+                    <span style={{ fontSize: '12px', color: '#cbd5e1', lineHeight: 1.4 }}>{insight.text}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
             {/* FOOTER */}
             <div style={{
               borderTop: '1px solid rgba(255,255,255,0.08)',
