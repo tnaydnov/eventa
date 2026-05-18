@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState } from 'react';
 import type { Event } from '@/lib/database.types';
@@ -101,7 +101,7 @@ export default function DashboardView({
 
   /* ─── Handlers ─── */
   const handleApprove = async (req: EventRequest) => {
-    if (!confirm(`לאשר את הבקשה של ${req.client_name}?`)) return;
+    if (!confirm(`לאשר את הבקשה של ${req.contact_name}?`)) return;
     setProcessingId(req.id);
     const result = await onApprove(req.id);
     setProcessingId(null);
@@ -113,7 +113,7 @@ export default function DashboardView({
   };
 
   const handleDeny = async (req: EventRequest) => {
-    if (!confirm(`לדחות את הבקשה של ${req.client_name}?`)) return;
+    if (!confirm(`לדחות את הבקשה של ${req.contact_name}?`)) return;
     setProcessingId(req.id);
     const result = await onDeny(req.id);
     setProcessingId(null);
@@ -191,7 +191,7 @@ export default function DashboardView({
               <div key={req.id} className="dash-row">
                 <div className="dash-row__icon">👤</div>
                 <div className="dash-row__info">
-                  <div className="dash-row__name">{req.client_name || '—'}</div>
+                  <div className="dash-row__name">{req.contact_name || '—'}</div>
                   <div className="dash-row__meta">
                     {EVENT_TYPE_LABELS_LOCAL[req.event_type] || req.event_type}
                     {req.event_name && ` · ${req.event_name}`}
