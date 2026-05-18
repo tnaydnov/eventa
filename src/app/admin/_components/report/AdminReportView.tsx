@@ -33,6 +33,7 @@ const P = {
   orange:  '#f97316',
   pink:    '#ec4899',
   teal:    '#14b8a6',
+  blue:    '#3b82f6',
 };
 const MULTI = [P.rose, P.fuchsia, P.amber, P.emerald, P.violet, P.orange, P.pink, P.teal];
 
