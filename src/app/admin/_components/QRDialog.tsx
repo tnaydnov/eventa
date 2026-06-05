@@ -30,7 +30,7 @@ export default function QRDialog({ event, dataUrl, onClose, onDownload, onCopyUr
         )}
 
         <p style={{ fontSize: '12px', color: 'var(--admin-text-muted)', wordBreak: 'break-all', marginBottom: '16px' }}>
-          {typeof window !== 'undefined' && window.location.origin}/{event.slug}?k={event.join_code}
+          {typeof window !== 'undefined' && window.location.origin}/{event.slug}
         </p>
 
         <div className="admin-dialog__actions" style={{ justifyContent: 'center' }}>
