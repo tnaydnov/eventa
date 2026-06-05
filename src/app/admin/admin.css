@@ -2928,3 +2928,290 @@ button.admin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
   color: var(--admin-text-muted);
   white-space: nowrap;
 }
+
+/* =======================================================
+   RESPONSIVE OVERRIDES — ALL SCREEN SIZES
+   Comprehensive mobile/tablet fixes for the admin portal.
+   Breakpoints: 380px, 400px, 480px, 560px, 600px, 640px, 860px
+   ======================================================= */
+
+/* ── Inputs: prevent iOS auto-zoom on focus (font-size >= 16px) ── */
+@media (max-width: 860px) {
+  .admin-input,
+  .admin-select,
+  .ev-search,
+  .ev-type-select,
+  .act-dialog__input,
+  .act-dialog__textarea,
+  .afb-link-input,
+  .req-notes input,
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="datetime-local"],
+  input[type="date"],
+  textarea,
+  select { font-size: 16px !important; }
+}
+
+/* ── Main content padding on mobile ── */
+@media (max-width: 860px) {
+  .admin-main__content { padding: 12px 14px; padding-top: 60px; }
+}
+@media (max-width: 480px) {
+  .admin-main__content { padding: 8px 10px; padding-top: 56px; }
+}
+
+/* ── Sidebar toggle — larger touch target ── */
+@media (max-width: 480px) {
+  .admin-sidebar-toggle { width: 44px; height: 44px; top: 10px; right: 10px; }
+}
+
+/* ── Topbar ── */
+@media (max-width: 600px) {
+  .admin-topbar { margin-bottom: 14px; gap: 8px; }
+  .admin-topbar__title { font-size: 17px; }
+}
+
+/* ── Buttons: minimum touch target ── */
+@media (max-width: 860px) {
+  .admin-btn { min-height: 38px; padding: 8px 14px; }
+  .admin-btn--sm { min-height: 34px; padding: 6px 11px; }
+}
+
+/* ── Dashboard stats ── */
+@media (max-width: 480px) {
+  .dash-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .dash-stat__value { font-size: 26px; }
+}
+@media (max-width: 640px) {
+  .dash-grid { grid-template-columns: 1fr; gap: 10px; }
+}
+
+/* ── Requests ── */
+@media (max-width: 600px) {
+  .req-head { flex-wrap: wrap; gap: 8px; }
+  .req-head__right { width: 100%; justify-content: flex-start; }
+  .req-details { grid-template-columns: 1fr 1fr; }
+  .req-actions { flex-wrap: wrap; }
+}
+@media (max-width: 400px) {
+  .req-details { grid-template-columns: 1fr; }
+}
+
+/* ── Event hero card ── */
+@media (max-width: 600px) {
+  .ev-detail__hero { flex-direction: column; gap: 10px; padding: 14px; }
+  .ev-detail__hero-icon { font-size: 26px; margin-top: 0; }
+  .ev-detail__hero-right { flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 6px; }
+  .ev-detail__quick-btns { flex-wrap: wrap; }
+  .ev-detail__name { font-size: 16px; }
+}
+
+/* ── Event stats row ── */
+@media (max-width: 480px) {
+  .ev-detail__stats { gap: 6px; }
+  .ev-detail__stat { flex: 1 1 48px; padding: 9px 6px; min-width: 48px; }
+  .ev-detail__stat-val { font-size: 16px; }
+  .ev-detail__stat-lbl { font-size: 10px; }
+}
+
+/* ── Tab bar ── */
+@media (max-width: 600px) {
+  .edt-tab { padding: 9px 10px; font-size: 12px; }
+}
+@media (max-width: 400px) {
+  .edt-tab { padding: 8px 8px; font-size: 11px; }
+}
+
+/* ── ev-card body ── */
+@media (max-width: 480px) {
+  .ev-card__body { padding: 12px; }
+  .ev-card__header { padding: 10px 12px; }
+}
+
+/* ── Dates row ── */
+@media (max-width: 480px) {
+  .ev-dates-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .ev-date-item__sep { display: none; }
+}
+
+/* ── Settings tab ── */
+@media (max-width: 560px) {
+  .ev-settings-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .ev-settings-status { flex-wrap: wrap; }
+  .ev-danger-item { flex-direction: column; align-items: flex-start; gap: 10px; }
+}
+
+/* ── Danger zone buttons ── */
+@media (max-width: 480px) {
+  .admin-danger-zone__actions { flex-direction: column; }
+  .admin-danger-zone__actions .admin-btn { width: 100%; }
+}
+
+/* ── Modals: slide up from bottom on mobile ── */
+@media (max-width: 560px) {
+  .admin-overlay,
+  .admin-modal-overlay,
+  .ced-overlay,
+  .act-dialog-overlay { padding: 0; align-items: flex-end; }
+
+  .admin-dialog,
+  .admin-modal { max-width: 100%; width: 100%; border-radius: var(--admin-radius) var(--admin-radius) 0 0; padding: 20px 16px; max-height: 92vh; }
+
+  .admin-dialog--lg { max-width: 100%; width: 100%; border-radius: var(--admin-radius) var(--admin-radius) 0 0; }
+
+  .ced-dialog { max-width: 100%; width: 100%; border-radius: var(--admin-radius) var(--admin-radius) 0 0; padding: 20px 16px; max-height: 92vh; }
+
+  .act-dialog { max-width: 100%; width: 100%; border-radius: var(--admin-radius) var(--admin-radius) 0 0; max-height: 92vh; }
+}
+
+/* ── Create event dialog ── */
+@media (max-width: 560px) {
+  .ced-field-row,
+  .admin-grid-2 { grid-template-columns: 1fr; }
+  .ced-type-grid { gap: 8px; }
+  .ced-type-card { padding: 14px 8px; }
+  .ced-type-card__icon { font-size: 22px; }
+  .ced-type-card__label { font-size: 12px; }
+}
+
+/* ── Dialog actions ── */
+@media (max-width: 480px) {
+  .admin-dialog__actions { flex-wrap: wrap; gap: 8px; }
+  .admin-dialog__actions .admin-btn { flex: 1; min-width: 80px; justify-content: center; }
+  .act-dialog__actions { flex-wrap: wrap; }
+  .act-dialog__actions .admin-btn { flex: 1; min-width: 80px; justify-content: center; }
+}
+
+/* ── Client actions grid ── */
+@media (max-width: 600px) {
+  .act-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .act-card { padding: 12px 6px; min-height: 72px; }
+  .act-card__icon { font-size: 18px; }
+  .act-card__label { font-size: 11px; }
+}
+@media (max-width: 380px) {
+  .act-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Act dialog iframe ── */
+@media (max-width: 560px) {
+  .act-dialog__iframe { height: 220px; }
+}
+
+/* ── Participants table ── */
+@media (max-width: 640px) {
+  .pt-table-wrap { -webkit-overflow-scrolling: touch; overflow-x: auto; }
+  .pt-toolbar { flex-wrap: wrap; gap: 8px; }
+  .pt-search { max-width: 100%; width: 100%; }
+}
+
+/* ── Message log table ── */
+@media (max-width: 640px) {
+  .msg-table-wrap { -webkit-overflow-scrolling: touch; }
+}
+
+/* ── Analytics KPI ── */
+@media (max-width: 480px) {
+  .ad-kpi-grid { grid-template-columns: 1fr 1fr; }
+  .ad-kpi-grid--4 { grid-template-columns: 1fr 1fr; }
+  .ad-kpi__value { font-size: 22px; }
+  .stat-cards-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+}
+@media (max-width: 560px) {
+  .ad-grid-2, .ad-grid-3 { grid-template-columns: 1fr; }
+}
+
+/* ── Feedback tab ── */
+@media (max-width: 480px) {
+  .afb-stats-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+  .afb-stat-card__value { font-size: 20px; }
+  .afb-link-card__url-row { flex-direction: column; align-items: stretch; }
+}
+
+/* ── Event card dropdown — prevent off-screen ── */
+@media (max-width: 860px) {
+  .ev-dropdown,
+  .et-dropdown {
+    position: fixed !important;
+    right: 10px !important;
+    left: 10px !important;
+    width: auto !important;
+    min-width: unset !important;
+    top: auto !important;
+    bottom: 80px !important;
+    max-height: 60vh;
+    overflow-y: auto;
+    border-radius: var(--admin-radius);
+    z-index: 9999;
+  }
+}
+
+/* ── Events search/filter bar ── */
+@media (max-width: 600px) {
+  .ev-search { max-width: 100%; width: 100%; }
+  .ev-type-select { width: 100%; }
+}
+
+/* ── Calendar horizontal scroll ── */
+@media (max-width: 640px) {
+  .cal-root { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .cal-grid { min-width: 480px; }
+}
+
+/* ── Report view tables ── */
+@media (max-width: 640px) {
+  .rv-section { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .rv-table { min-width: 400px; }
+}
+
+/* ── Admin section compact ── */
+@media (max-width: 480px) {
+  .admin-section__body { padding: 12px; }
+  .admin-section__header { padding: 12px; flex-wrap: wrap; gap: 8px; }
+}
+
+/* ── Moderation tables ── */
+@media (max-width: 640px) {
+  .et-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .et-table { min-width: 500px; }
+}
+
+/* ── Prevent any horizontal overflow ── */
+.admin-root,
+.admin-layout,
+.admin-main,
+.admin-main__content { max-width: 100vw; }
+
+@media (max-width: 860px) {
+  .admin-root,
+  .admin-layout { overflow-x: hidden; }
+}
+
+/* ── iOS Safari safe area ── */
+@supports (padding: env(safe-area-inset-bottom)) {
+  @media (max-width: 860px) {
+    .admin-main__content { padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+    .act-dialog,
+    .admin-dialog,
+    .ced-dialog { padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+  }
+}
+@supports (padding: env(safe-area-inset-top)) {
+  .admin-sidebar__logo { padding-top: max(20px, env(safe-area-inset-top)); }
+  .admin-sidebar-toggle { top: max(14px, env(safe-area-inset-top)); }
+}
+
+/* ── Warn banner ── */
+@media (max-width: 480px) {
+  .ev-warn-banner { flex-direction: column; align-items: flex-start; gap: 6px; }
+}
+
+/* ── Very small phones (360px) ── */
+@media (max-width: 360px) {
+  .ad-kpi-grid--4,
+  .ad-kpi-grid { grid-template-columns: 1fr 1fr; }
+  .dash-stats { grid-template-columns: 1fr 1fr; }
+  .edt-tab { padding: 7px 7px; font-size: 10px; }
+}
