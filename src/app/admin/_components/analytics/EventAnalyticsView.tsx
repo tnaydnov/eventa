@@ -38,7 +38,7 @@ interface EventAnalyticsViewProps {
   sendClientEmail: (eventId: string, type: string, opts?: { subject?: string; body?: string }) => Promise<{ ok: boolean; error?: string }>;
   sendQrPage: (eventId: string, files: File[], qrOnly?: boolean) => Promise<{ ok: boolean; error?: string }>;
   loadMessageLog: (eventId: string) => Promise<void>;
-  updateEventDetails?: (eventId: string, updates: Record<string, unknown>) => Promise<{ ok: boolean; error?: string }>;
+  updateEventDetails?: (eventId: string, updates: Record<string, unknown>) => Promise<{ ok: boolean; error?: string; preEventSentCount?: number }>;
 }
 
 type DetailTab = 'overview' | 'analytics' | 'participants' | 'messaging' | 'feedback' | 'settings' | 'report';
@@ -98,6 +98,7 @@ export default function EventAnalyticsView({
   const [editEndsAt, setEditEndsAt]     = useState('');
   const [savingDates, setSavingDates]   = useState(false);
   const [dateError, setDateError]       = useState('');
+  const [preEventSentWarn, setPreEventSentWarn] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -128,16 +129,21 @@ export default function EventAnalyticsView({
     if (e2 <= s) { setDateError('שעת סיום חייבת להיות אחרי ההתחלה'); return; }
     setSavingDates(true);
     setDateError('');
+    setPreEventSentWarn(0);
     const r = await updateEventDetails(event.id, { starts_at: s, ends_at: e2 });
     setSavingDates(false);
-    if (r.ok) setEditingDates(false);
-    else setDateError(r.error || 'שגיאה בעדכון');
+    if (r.ok) {
+      setEditingDates(false);
+      if ((r.preEventSentCount ?? 0) > 0) setPreEventSentWarn(r.preEventSentCount!);
+    } else setDateError(r.error || 'שגיאה בעדכון');
   };
 
   const typeIcon   = EVENT_TYPE_ICONS[event.event_type]   || '?';
   const typeLabel  = EVENT_TYPE_LABELS[event.event_type]  || event.event_type;
   const statusLabel = EVENT_STATUS_LABELS[event.status]    || event.status;
   const isArchived = event.status === 'archived';
+  const isEnded    = event.status === 'ended' || isArchived;
+  const canEditDates = !!updateEventDetails && !isEnded;
 
   return (
     <div className="ev-detail admin-animate-in">
@@ -239,12 +245,17 @@ export default function EventAnalyticsView({
           <div className="ev-card">
             <div className="ev-card__header">
               <span className="ev-card__title">תאריכים</span>
-              {updateEventDetails && !editingDates && (
+              {canEditDates && !editingDates && (
                 <button className="admin-btn admin-btn--sm admin-btn--ghost" onClick={openDateEditor}>
                   ערוך
                 </button>
               )}
             </div>
+            {preEventSentWarn > 0 && (
+              <div className="ev-warn-banner" style={{ margin: '0 0 8px 0' }}>
+                ⚠️ {preEventSentWarn} אורחים כבר קיבלו SMS עם התאריך הישן. הם לא יקבלו הודעה חדשה.
+              </div>
+            )}
             {editingDates ? (
               <div className="ev-card__body">
                 <div className="ev-date-edit">

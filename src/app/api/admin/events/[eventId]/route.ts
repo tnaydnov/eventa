@@ -68,6 +68,28 @@ export async function PATCH(
       parsed.data.slug = nextSlug;
     }
 
+    // ── Date change guards ──
+    const isDatesChange = 'starts_at' in parsed.data || 'ends_at' in parsed.data;
+    if (isDatesChange) {
+      // Fetch current event to check status
+      const { data: current, error: fetchErr } = await supabase
+        .from('events')
+        .select('status')
+        .eq('id', eventId)
+        .maybeSingle();
+
+      if (fetchErr || !current) {
+        return jsonError('Event not found', 404);
+      }
+
+      if (current.status === 'ended' || current.status === 'archived') {
+        return NextResponse.json(
+          { error: 'לא ניתן לעדכן תאריכים לאחר שהאירוע הסתיים או עבר לארכיון' },
+          { status: 409 }
+        );
+      }
+    }
+
     const { data, error } = await supabase
       .from('events')
       .update(parsed.data)
@@ -89,8 +111,19 @@ export async function PATCH(
       evictEventStatusCache(eventId);
     }
 
+    // ── Warn if pre-event messages were already sent ──
+    let preEventSentCount = 0;
+    if (isDatesChange) {
+      const { count } = await supabase
+        .from('event_guest_phones')
+        .select('id', { count: 'exact', head: true })
+        .eq('event_id', eventId)
+        .eq('wa_pre_event_sent', true);
+      preEventSentCount = count ?? 0;
+    }
+
     adminAuditLog('EVENT_UPDATE', { eventId, changes: Object.keys(parsed.data) }, req);
-    return NextResponse.json({ event: data });
+    return NextResponse.json({ event: data, preEventSentCount });
   } catch (err) {
     logger.error('[ADMIN_EVENT_PATCH] error:', err);
     return jsonError('Server error', 500);

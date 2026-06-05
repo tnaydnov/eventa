@@ -619,7 +619,7 @@ export function useAdminData() {
   const updateEventDetails = async (
     id: string,
     updates: { client_name?: string | null; client_email?: string | null; client_phone?: string | null; communication_preference?: string | null; starts_at?: string; ends_at?: string }
-  ): Promise<{ ok: boolean; error?: string }> => {
+  ): Promise<{ ok: boolean; error?: string; preEventSentCount?: number }> => {
     try {
       const res = await authedFetch(`/api/admin/events/${id}`, {
         method: 'PATCH',
@@ -629,9 +629,10 @@ export function useAdminData() {
         const d = await res.json().catch(() => ({}));
         return { ok: false, error: d.error || 'שגיאה בעדכון' };
       }
+      const d = await res.json().catch(() => ({}));
       // Update local state
       setEvents(prev => prev.map(e => e.id === id ? { ...e, ...updates } as typeof e : e));
-      return { ok: true };
+      return { ok: true, preEventSentCount: d.preEventSentCount ?? 0 };
     } catch {
       return { ok: false, error: 'שגיאת תקשורת' };
     }
