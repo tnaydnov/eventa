@@ -186,7 +186,6 @@ export default function AdminPage() {
               <EventsView
                 events={admin.events}
                 loading={admin.loading}
-                onRotate={admin.rotateJoinCode}
                 onDelete={admin.deleteEvent}
                 onGenerateQR={generateQR}
                 onCopyUrl={copyJoinUrl}

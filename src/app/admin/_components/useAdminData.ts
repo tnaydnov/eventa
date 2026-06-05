@@ -148,17 +148,6 @@ export function useAdminData() {
     loadEvents();
   };
 
-  /* ─── rotate join code ─── */
-  const rotateJoinCode = async (id: string) => {
-    const res = await authedFetch(`/api/admin/events/${id}/rotate`, { method: 'POST' });
-    if (res.ok) {
-      loadEvents();
-      alert('✅ קוד חדש נוצר');
-    } else {
-      alert('שגיאה בהחלפת קוד');
-    }
-  };
-
   /* ─── delete event ─── */
   const deleteEvent = async (id: string) => {
     if (!confirm('למחוק את האירוע? לא ניתן לשחזר.')) return;
@@ -653,7 +642,7 @@ export function useAdminData() {
     selectedEvent, participants,
     messagingStatus, guestPhones, messageLog,
     login, logout, loadEvents,
-    createEvent, toggleEvent, rotateJoinCode, deleteEvent,
+    createEvent, toggleEvent, deleteEvent,
     loadStats, loadParticipants, banParticipant, closeParticipants,
     uploadBackground, removeBackground, updateStatus, archiveEvent,
     loadRequests, approveRequest, denyRequest, deleteRequest,

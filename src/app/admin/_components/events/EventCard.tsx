@@ -12,7 +12,6 @@ interface EventRowProps {
   onCopyUrl: (event: Event) => void;
   onUploadBg: (eventId: string) => void;
   onRemoveBg: (eventId: string) => void;
-  onRotate: (id: string) => void;
   onUpdateStatus: (id: string, status: string) => void;
   onToggleQrSent: (id: string, sent: boolean) => void;
   onTogglePayment: (id: string, status: 'unpaid' | 'paid' | 'waived') => void;
@@ -35,7 +34,7 @@ const shortDate = (iso: string) => {
 
 export default function EventRow({
   event, onViewDetails, onGenerateQR, onCopyUrl,
-  onUploadBg, onRemoveBg, onRotate, onUpdateStatus, onToggleQrSent, onTogglePayment, onDelete,
+  onUploadBg, onRemoveBg, onUpdateStatus, onToggleQrSent, onTogglePayment, onDelete,
 }: EventRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -161,9 +160,6 @@ export default function EventRow({
                 </button>
                 <button className="ev-dropdown__item" role="menuitem" onClick={() => act(() => onCopyUrl(event))}>
                   העתק קישור
-                </button>
-                <button className="ev-dropdown__item" role="menuitem" onClick={() => act(() => onRotate(event.id))}>
-                  החלף קוד כניסה
                 </button>
                 <button className="ev-dropdown__item" role="menuitem" onClick={() => act(() => onUploadBg(event.id))}>
                   העלה רקע

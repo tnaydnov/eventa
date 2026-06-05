@@ -278,10 +278,7 @@ export default function EventAnalyticsView({
                   <span className="ev-date-item__label">סיום</span>
                   <span className="ev-date-item__value">{fmtDate(event.ends_at)}</span>
                 </div>
-                <div className="ev-date-item ev-date-item--code">
-                  <span className="ev-date-item__label">קוד כניסה</span>
-                  <span className="ev-date-item__value ev-date-item__value--mono">{event.join_code}</span>
-                </div>
+
               </div>
             )}
           </div>

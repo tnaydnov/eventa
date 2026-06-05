@@ -8,7 +8,6 @@ import EventRow from './EventCard';
 interface EventsViewProps {
   events: Event[];
   loading: boolean;
-  onRotate: (id: string) => void;
   onDelete: (id: string) => void;
   onGenerateQR: (event: Event) => void;
   onCopyUrl: (event: Event) => void;
@@ -25,7 +24,7 @@ interface EventsViewProps {
 
 export default function EventsView({
   events, loading,
-  onRotate, onDelete,
+  onDelete,
   onGenerateQR, onCopyUrl,
   onUploadBg, onRemoveBg, onViewDetails, onUpdateStatus,
   onToggleQrSent, onTogglePayment, onCreateEvent, title, subtitle,
@@ -101,7 +100,6 @@ export default function EventsView({
               onCopyUrl={onCopyUrl}
               onUploadBg={onUploadBg}
               onRemoveBg={onRemoveBg}
-              onRotate={onRotate}
               onUpdateStatus={onUpdateStatus}
               onToggleQrSent={onToggleQrSent}
               onTogglePayment={onTogglePayment}
