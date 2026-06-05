@@ -18,7 +18,7 @@ export const routes = {
 
   // Event pages
   event: (slug: string) => `/${slug}`,
-  join: (slug: string, code: string) => `/${slug}/join?k=${code}`,
+  join: (slug: string, _code?: string) => `/${slug}/join`,
   setup: (slug: string) => `/${slug}/setup`,
   profile: (slug: string) => `/${slug}/profile`,
   feedback: (slug: string) => `/${slug}/feedback`,

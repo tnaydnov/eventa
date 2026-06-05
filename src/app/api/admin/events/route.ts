@@ -213,7 +213,7 @@ export async function POST(req: NextRequest) {
     after(async () => {
       if (!data.client_email) return;
       try {
-        const eventUrl = `${APP_BASE_URL}/${data.slug}/join?k=${data.join_code}`;
+        const eventUrl = `${APP_BASE_URL}/${data.slug}`;
 
         const email = buildEventCreatedEmail({
           contactName: data.client_name || '',
