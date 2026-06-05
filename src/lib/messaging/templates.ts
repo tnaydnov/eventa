@@ -23,8 +23,7 @@ export function otpSmsText(code: string): string {
 
 /** Build pre-event SMS text */
 export function preEventSmsText(config: EventMessagingConfig): string {
-  const joinUrl = buildJoinUrl(config.eventSlug, config.joinCode);
-  return `מגיע/ה ל${config.eventName}? את/ה רווק/ה? 💍
+  const joinUrl = buildJoinUrl(config.eventSlug);
 
 באירוע תהיה לכם הזדמנות להצטרף לאפליקציית Eventa - ולראות את שאר הרווקים והרווקות שיהיו שם.
 
@@ -40,8 +39,7 @@ export function preEventSmsText(config: EventMessagingConfig): string {
 
 /** Build welcome SMS text */
 export function welcomeSmsText(config: EventMessagingConfig): string {
-  const joinUrl = buildJoinUrl(config.eventSlug, config.joinCode);
-  return `ברוכים הבאים ל${config.eventName}! 🎉
+  const joinUrl = buildJoinUrl(config.eventSlug);
 
 ההרשמה שלך בוצעה בהצלחה ✅
 
