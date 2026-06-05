@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { createEventSchema } from '@/lib/validations';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
-import { getServiceClient, generateJoinCode, generateShortCode } from '@/lib/supabase';
+import { getServiceClient, generateShortCode } from '@/lib/supabase';
 import { adminGuard, jsonError } from '../_helpers';
 import { logger } from '@/lib/logger';
 import { APP_BASE_URL } from '@/lib/config';
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
     const order = url.searchParams.get('order') || 'desc';
 
     const supabase = getServiceClient();
-    let query = supabase.from('events').select('id, slug, name, join_code, event_type, status, description, starts_at, ends_at, is_active, background_image, archived_at, created_at, wa_messages_enabled, guest_list_uploaded, guest_list_uploaded_at, guest_list_count, qr_page_sent, client_name, client_email, client_phone, communication_preference, send_report_email, payment_status');
+    let query = supabase.from('events').select('id, slug, name, event_type, status, description, starts_at, ends_at, is_active, background_image, archived_at, created_at, wa_messages_enabled, guest_list_uploaded, guest_list_uploaded_at, guest_list_count, qr_page_sent, client_name, client_email, client_phone, communication_preference, send_report_email, payment_status');
 
     // Status filter
     if (status) {
@@ -169,7 +169,6 @@ export async function POST(req: NextRequest) {
       .insert({
         name: parsed.data.name,
         slug,
-        join_code: generateJoinCode(),
         event_type: parsed.data.event_type || 'wedding',
         status: 'active',
         description: parsed.data.description || null,

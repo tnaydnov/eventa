@@ -233,7 +233,7 @@ export async function POST(
     // Load event for messaging config
     const { data: event, error: evErr } = await supabase
       .from('events')
-      .select('id, slug, name, join_code, wa_messages_enabled, starts_at')
+      .select('id, slug, name, wa_messages_enabled, starts_at')
       .eq('id', eventId)
       .maybeSingle();
 
@@ -246,7 +246,6 @@ export async function POST(
       eventId: event.id,
       eventSlug: event.slug,
       eventName: event.name,
-      joinCode: event.join_code,
       messagesEnabled: event.wa_messages_enabled,
     };
 

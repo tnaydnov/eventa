@@ -55,7 +55,7 @@ async function handler(req: NextRequest) {
     // Find events starting within the next N hours that have messaging enabled
     const { data: events, error: eventError } = await supabase
       .from('events')
-      .select('id, name, slug, join_code, starts_at, wa_messages_enabled')
+      .select('id, name, slug, starts_at, wa_messages_enabled')
       .eq('wa_messages_enabled', true)
       .eq('status', 'active')
       .eq('is_active', true)
@@ -116,7 +116,6 @@ async function handler(req: NextRequest) {
         eventId: event.id,
         eventName: event.name,
         eventSlug: event.slug,
-        joinCode: event.join_code,
         messagesEnabled: true,
       };
 

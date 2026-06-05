@@ -41,7 +41,6 @@ type EventInfo = {
   id: string;
   slug: string;
   name: string;
-  join_code: string;
   sms_notifications_enabled: boolean;
 };
 
@@ -69,7 +68,7 @@ async function getEvent(eventId: string): Promise<EventInfo | null> {
   const supabase = getServiceClient();
   const { data, error } = await supabase
     .from('events')
-    .select('id, slug, name, join_code, sms_notifications_enabled')
+    .select('id, slug, name, sms_notifications_enabled')
     .eq('id', eventId)
     .maybeSingle();
   if (error || !data) return null;
@@ -293,7 +292,7 @@ export async function enqueueAbandonedFunnelSms(
     if (await isOptedOut(participant.phone)) return;
     if (await hasReachedEventSmsCap(participantId, eventId)) return;
 
-    const body = abandonedFunnelSmsText(event.name, event.slug, event.join_code);
+    const body = abandonedFunnelSmsText(event.name, event.slug);
     await enqueue(eventId, participantId, participant.phone, 'abandoned_funnel', body, 15 * 60_000);
   } catch (err) {
     logger.error('[NOTIFICATION_DISPATCHER] enqueueAbandonedFunnelSms error:', err);

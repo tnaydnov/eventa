@@ -63,7 +63,7 @@ async function handler(req: NextRequest) {
     // Find ended events in the feedback window
     const { data: events, error: eventError } = await supabase
       .from('events')
-      .select('id, name, slug, join_code')
+      .select('id, name, slug')
       .eq('status', 'ended')
       .gte('ends_at', windowStart)
       .lte('ends_at', windowEnd);
@@ -123,7 +123,6 @@ async function handler(req: NextRequest) {
         eventId: event.id,
         eventName: event.name,
         eventSlug: event.slug,
-        joinCode: event.join_code,
         messagesEnabled: true,
       };
 

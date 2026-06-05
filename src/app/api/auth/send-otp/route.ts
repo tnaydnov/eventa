@@ -17,7 +17,7 @@ import { sendOtp as sendOtpSms } from '@/lib/messaging';
  *  1. CSRF check
  *  2. Rate limit (auth tier: 5/min)
  *  3. Validate + normalize phone number
- *  4. Lookup event by slug + join_code + is_active
+ *  4. Lookup event by slug + is_active
  *  5. Check if phone is banned for this event
  *  6. Create OTP (with cooldown check)
  *  7. Send SMS
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     // Find active event by slug (join code no longer required in URL)
     const { data: event, error: eventError } = await supabase
       .from('events')
-      .select('id, slug, name, join_code, is_active')
+      .select('id, slug, name, is_active')
       .eq('slug', eventSlug)
       .eq('is_active', true)
       .maybeSingle();

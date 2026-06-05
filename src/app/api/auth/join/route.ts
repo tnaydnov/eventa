@@ -18,7 +18,7 @@ const FP_PATTERN = /^[a-f0-9-]+$/i;
  *  1. CSRF check
  *  2. Rate limit
  *  3. Validate input (Zod)
- *  4. Lookup event by slug + join_code
+ *  4. Lookup event by slug
  *  5. Check device ban
  *  6. Check if banned participant exists for fingerprint
  *  7. Find/create participant
@@ -60,12 +60,11 @@ export async function POST(req: NextRequest) {
 
     const supabase = getServiceClient();
 
-    // Find active event by slug + join code
+    // Find active event by slug
     const { data: event, error: eventError } = await supabase
       .from('events')
-      .select('id, slug, name, join_code, event_type, status, starts_at, ends_at, is_active, background_image')
+      .select('id, slug, name, event_type, status, starts_at, ends_at, is_active, background_image')
       .eq('slug', eventSlug)
-      .eq('join_code', joinCode)
       .eq('is_active', true)
       .maybeSingle();
 

@@ -22,7 +22,6 @@ export interface EventMessagingConfig {
   eventId: string;
   eventName: string;
   eventSlug: string;
-  joinCode: string;
   messagesEnabled: boolean;
 }
 

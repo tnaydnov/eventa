@@ -2,7 +2,7 @@
 import { after } from 'next/server';
 import crypto from 'crypto';
 import { RATE_LIMITS } from '@/lib/rate-limit';
-import { getServiceClient, generateJoinCode, generateShortCode } from '@/lib/supabase';
+import { getServiceClient, generateShortCode } from '@/lib/supabase';
 import { adminGuard, jsonError } from '../_helpers';
 import { logger } from '@/lib/logger';
 import { adminAuditLog } from '@/lib/admin-auth';
@@ -188,7 +188,6 @@ export async function POST(req: NextRequest) {
       .insert({
         name: eventName,
         slug,
-        join_code: generateJoinCode(),
         event_type: request.event_type,
         status: 'active',
         description: request.special_requests || null,
@@ -202,7 +201,7 @@ export async function POST(req: NextRequest) {
         communication_preference: request.contact_preference || 'email',
         payment_status: (chargeSucceeded || request.payment_status === 'paid') ? 'paid' : 'unpaid',
       })
-      .select('id, slug, join_code')
+      .select('id, slug')
       .single();
 
     if (createErr) {

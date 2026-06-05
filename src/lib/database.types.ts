@@ -42,7 +42,6 @@ export interface Event {
   id: string;
   slug: string;
   name: string;
-  join_code: string;
   event_type: EventType;
   status: EventStatus;
   description: string | null;

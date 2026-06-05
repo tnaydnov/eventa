@@ -6,7 +6,7 @@ import { APP_BASE_URL, OTP_EXPIRY_S } from '@/lib/config';
 import type { EventMessagingConfig } from './types';
 
 /** Build the join URL for an event */
-export function buildJoinUrl(slug: string, _joinCode?: string): string {
+export function buildJoinUrl(slug: string): string {
   return `${APP_BASE_URL}/${slug}`;
 }
 
@@ -90,7 +90,7 @@ ${APP_BASE_URL}/${eventSlug}`;
 }
 
 /** Notification SMS: abandoned funnel - registered but didn't complete profile */
-export function abandonedFunnelSmsText(eventName: string, eventSlug: string, _joinCode?: string): string {
+export function abandonedFunnelSmsText(eventName: string, eventSlug: string): string {
   return `היי! ראינו שנרשמת ל${eventName} אבל עדיין לא השלמת את הפרופיל שלך.
 אל תפספס/י - השלם/י עכשיו ותתחיל/י לחפש:
 ${APP_BASE_URL}/${eventSlug}`;

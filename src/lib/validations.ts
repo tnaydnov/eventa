@@ -254,7 +254,7 @@ export const sendMessageSchema = z.object({
 /* ---- Join event schema ---- */
 export const joinEventSchema = z.object({
   eventSlug: z.string().min(1),
-  joinCode: z.string().min(6).max(32),
+  joinCode: z.string().max(32).optional(),
 });
 
 /* ---- Photo reorder schema ---- */

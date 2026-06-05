@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
     // Find active event by slug (join code no longer required in URL)
     const { data: event, error: eventError } = await supabase
       .from('events')
-      .select('id, slug, name, join_code, is_active, background_image')
+      .select('id, slug, name, is_active, background_image')
       .eq('slug', eventSlug)
       .eq('is_active', true)
       .maybeSingle();
@@ -279,7 +279,6 @@ export async function POST(req: NextRequest) {
         eventId: event.id,
         eventName: event.name,
         eventSlug: event.slug,
-        joinCode: event.join_code,
         messagesEnabled: true,
       };
 

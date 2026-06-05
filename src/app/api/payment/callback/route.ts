@@ -1,7 +1,7 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { after } from 'next/server';
 import { logger } from '@/lib/logger';
-import { getServiceClient, generateJoinCode, generateShortCode } from '@/lib/supabase';
+import { getServiceClient, generateShortCode } from '@/lib/supabase';
 import { getClearingLogById, createDocument, getDocument, DocumentType, PaymentType, getOrCreateCustomer, isConfigured } from '@/lib/invoice4u';
 import { buildClientApprovalEmail, buildAdminPayNowNotification } from '@/lib/email-templates';
 import { generatePrettySlug } from '@/lib/slug';
@@ -17,7 +17,7 @@ import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
  * Phase 1 (fast - before redirect):
  *   1. Verify payment via GetClearingLogById
  *   2. Mark order as paid
- *   3. Auto-create event (slug, join_code, background, messaging, portal)
+ *   3. Auto-create event (slug, background, messaging, portal)
  *
  * Phase 2 (after() - runs after the response is sent):
  *   4. Create itemised invoice-receipt via SOAP
@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
   logger.info('[PAYMENT_CALLBACK] Payment verified', { rid });
 
   // ── 4. Auto-create the event ──
-  let newEventData: { id: string; slug: string; join_code: string } | null = null;
+  let newEventData: { id: string; slug: string } | null = null;
   let portalUrl: string | undefined;
   const eventName = request.event_name || `${request.event_type}-event`;
 
@@ -103,7 +103,6 @@ export async function GET(req: NextRequest) {
       .insert({
         name: eventName,
         slug,
-        join_code: generateJoinCode(),
         event_type: request.event_type,
         status: 'active',
         description: request.special_requests || null,
@@ -117,7 +116,7 @@ export async function GET(req: NextRequest) {
         communication_preference: 'email',
         payment_status: 'paid',
       })
-      .select('id, slug, join_code')
+      .select('id, slug')
       .single();
 
     if (createErr) {
@@ -225,7 +224,7 @@ async function sendDocumentAndEmails(ctx: {
   request: Record<string, unknown>;
   rid: string;
   eventName: string;
-  newEvent: { id: string; slug: string; join_code: string } | null;
+  newEvent: { id: string; slug: string } | null;
   portalUrl?: string;
 }) {
   const { request, rid, eventName, newEvent, portalUrl } = ctx;
