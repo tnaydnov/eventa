@@ -56,7 +56,7 @@ export default function AdminPage() {
 
   /* ─── QR helpers ─── */
   const generateQR = async (event: Event) => {
-    const url = `${window.location.origin}/${event.slug}?k=${event.join_code}`;
+    const url = `${window.location.origin}/${event.slug}`;
     try {
       const dataUrl = await QRCode.toDataURL(url, {
         width: 400, margin: 2,
@@ -79,7 +79,7 @@ export default function AdminPage() {
   };
 
   const copyJoinUrl = (event: Event) => {
-    const url = `${window.location.origin}/${event.slug}?k=${event.join_code}`;
+    const url = `${window.location.origin}/${event.slug}`;
     navigator.clipboard.writeText(url);
     alert('הקישור הועתק! 📋');
   };

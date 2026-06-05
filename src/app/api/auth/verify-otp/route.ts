@@ -78,12 +78,11 @@ export async function POST(req: NextRequest) {
 
     const supabase = getServiceClient();
 
-    // Find active event by slug + join code
+    // Find active event by slug (join code no longer required in URL)
     const { data: event, error: eventError } = await supabase
       .from('events')
       .select('id, slug, name, join_code, is_active, background_image')
       .eq('slug', eventSlug)
-      .eq('join_code', joinCode)
       .eq('is_active', true)
       .maybeSingle();
 
@@ -93,7 +92,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!event) {
-      return jsonError('Invalid event or join code', 404);
+      return jsonError('Event not found', 404);
     }
 
     // Verify OTP code

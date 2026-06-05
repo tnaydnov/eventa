@@ -6,7 +6,7 @@ import type { PublicParticipant } from '../database.types';
 export async function sendOtp(params: {
   phone: string;
   eventSlug: string;
-  joinCode: string;
+  joinCode?: string;
 }): Promise<{
   success: boolean;
   expiresIn?: number;
@@ -31,7 +31,7 @@ export async function verifyOtp(params: {
   phone: string;
   code: string;
   eventSlug: string;
-  joinCode: string;
+  joinCode?: string;
   fingerprint?: string;
   hardwareFingerprint?: string;
   smsConsent: boolean;

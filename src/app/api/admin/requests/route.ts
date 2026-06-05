@@ -298,7 +298,7 @@ export async function POST(req: NextRequest) {
       if (request.contact_email) {
         try {
           const totalShekel = (BASE_PRICE);
-          const eventUrl = `${APP_BASE_URL}/${newEvent.slug}/join?k=${newEvent.join_code}`;
+          const eventUrl = `${APP_BASE_URL}/${newEvent.slug}`;
 
           const approvalEmail = buildClientApprovalEmail({
             eventType: request.event_type,

@@ -43,7 +43,7 @@ export async function GET(
   const [eventRes, reportRes] = await Promise.all([
     supabase
       .from('events')
-      .select('id, name, slug, type, starts_at, ends_at, venue_name, client_name, client_email')
+      .select('id, name, slug, event_type, starts_at, ends_at, client_name, client_email')
       .eq('id', eventId)
       .maybeSingle(),
     supabase

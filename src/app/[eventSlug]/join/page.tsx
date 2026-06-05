@@ -246,13 +246,8 @@ function JoinPageContent({
 
   // ─── Helpers ──────────────────────────────────────────────
 
-  const getJoinCode = useCallback((): string | null => {
-    const code = searchParams.get('k');
-    if (!code) {
-      setError('קוד כניסה חסר - סרקו שוב את ה-QR');
-      return null;
-    }
-    return code;
+  const getJoinCode = useCallback((): string => {
+    return searchParams.get('k') ?? '';
   }, [searchParams]);
 
   const completeJoin = useCallback(
@@ -323,10 +318,9 @@ function JoinPageContent({
   /** Welcome → Phone (phone verification is always required). */
   const handleTermsAccepted = useCallback(() => {
     if (!agreed) return;
-    if (!getJoinCode()) return;
     setError('');
     setStep('phone');
-  }, [agreed, getJoinCode]);
+  }, [agreed]);
 
   const handleSendOtp = useCallback(async () => {
     const joinCode = getJoinCode();

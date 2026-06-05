@@ -41,7 +41,7 @@ export async function POST(
     const { data: event, error: evErr } = await supabase
       .from('events')
       .select(
-        'id, name, slug, starts_at, ends_at, wa_messages_enabled, guest_list_count, client_name, client_email, client_phone'
+        'id, name, slug, event_type, starts_at, ends_at, wa_messages_enabled, guest_list_count, client_name, client_email, client_phone'
       )
       .eq('id', eventId)
       .maybeSingle();
@@ -212,11 +212,26 @@ export async function POST(
         let paymentToken: string;
 
         if (reqErr || !reqRow) {
-          // No associated request - generate a standalone token on the event
+          // No associated request - create one so the checkout can look it up
           paymentToken = crypto.randomUUID();
-          // Store token on event for later lookup (requires payment_link_token column)
-          // Fallback: use a token tied to eventId deterministically for now
-          paymentToken = crypto.randomUUID();
+          const newExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+          await supabase
+            .from('event_requests')
+            .insert({
+              event_type: (event as { event_type?: string }).event_type ?? 'other',
+              event_name: event.name,
+              starts_at: event.starts_at,
+              ends_at: event.ends_at,
+              wants_custom_background: false,
+              wants_guest_messages: event.wa_messages_enabled,
+              contact_name: contactName ?? '',
+              contact_email: contactEmail ?? '',
+              contact_phone: event.client_phone ?? '',
+              payment_status: 'payment_link_sent',
+              payment_link_token: paymentToken,
+              payment_link_expires_at: newExpiry,
+              approved_event_id: eventId,
+            });
         } else {
           // Always issue a fresh token (extends expiry by 7 days)
           paymentToken = crypto.randomUUID();
@@ -235,7 +250,7 @@ export async function POST(
 
         email = buildClientPaymentLinkEmail({
           contactName: contactName ?? '',
-          eventType: reqRow?.event_type ?? event.slug,
+          eventType: reqRow?.event_type ?? (event as { event_type?: string }).event_type ?? 'other',
           eventName: event.name,
           startsAt: reqRow?.starts_at ?? event.starts_at,
           endsAt: reqRow?.ends_at ?? event.ends_at,

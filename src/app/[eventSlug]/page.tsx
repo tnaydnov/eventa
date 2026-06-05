@@ -184,12 +184,12 @@ function EventPageContent({
         router.replace(`/${eventSlug}`);
         return;
       }
-      router.replace(`/${eventSlug}/join?k=${joinCode}`);
+      router.replace(`/${eventSlug}/join`);
       return;
     }
-    // If no session after layout restore, go home
+    // If no session after layout restore, redirect to join page
     if (!session) {
-      router.replace('/');
+      router.replace(`/${eventSlug}/join`);
     }
   }, [eventSlug, searchParams, router, session]);
 
