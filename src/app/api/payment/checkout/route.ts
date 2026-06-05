@@ -32,16 +32,41 @@ export async function GET(req: NextRequest) {
     const supabase = getServiceClient();
 
     // Look up the request by payment_link_token
-    const { data: request, error: fetchErr } = await supabase
+    // First look in event_requests (order-form-based events)
+    const { data: reqRow } = await supabase
       .from('event_requests')
       .select('id, payment_status, payment_link_expires_at, total_price, event_name, contact_name')
       .eq('payment_link_token', token)
       .maybeSingle();
 
-    if (fetchErr || !request) {
+    // Fallback: look in events table (admin-created events store token there)
+    let eventRowFallback = null;
+    if (!reqRow) {
+      const { data: evtCheck } = await supabase
+        .from('events')
+        .select('id, payment_status, payment_link_expires_at, name, client_name')
+        .eq('payment_link_token', token)
+        .maybeSingle();
+      eventRowFallback = evtCheck;
+    }
+
+    if (!reqRow && !eventRowFallback) {
       logger.warn('[PAYMENT_CHECKOUT] Unknown token', { token: token.slice(0, 8) + '…' });
       return NextResponse.json({ error: 'Invalid or unknown payment link' }, { status: 404 });
     }
+
+    // Normalise to a common shape for the rest of the handler
+    const isEventBased = !reqRow && !!eventRowFallback;
+    const request = reqRow ?? {
+      id: eventRowFallback!.id,
+      payment_status: (eventRowFallback!.payment_status === 'paid' ? 'paid'
+        : eventRowFallback!.payment_status === 'waived' ? 'waived'
+        : 'pending_payment') as string,
+      payment_link_expires_at: eventRowFallback!.payment_link_expires_at,
+      total_price: null as number | null,
+      event_name: eventRowFallback!.name,
+      contact_name: eventRowFallback!.client_name,
+    };
 
     // Already paid?
     if (request.payment_status === 'paid') {
@@ -63,12 +88,18 @@ export async function GET(req: NextRequest) {
     if (request.payment_link_expires_at) {
       const expiresAt = new Date(request.payment_link_expires_at);
       if (expiresAt < new Date()) {
-        // Mark as expired in DB
-        const { error: expErr } = await supabase
-          .from('event_requests')
-          .update({ payment_status: 'expired' })
-          .eq('id', request.id);
-        if (expErr) logger.error('[CHECKOUT] Failed to mark as expired', { token, error: expErr.message });
+        // Mark as expired: clear token from whichever table stored it
+        if (isEventBased) {
+          await supabase
+            .from('events')
+            .update({ payment_link_token: null, payment_link_expires_at: null })
+            .eq('id', request.id);
+        } else {
+          await supabase
+            .from('event_requests')
+            .update({ payment_status: 'expired' })
+            .eq('id', request.id);
+        }
 
         return new NextResponse(buildHtmlPage(
           'הקישור פג תוקף ⏰',

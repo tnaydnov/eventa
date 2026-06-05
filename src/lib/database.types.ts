@@ -64,6 +64,8 @@ export interface Event {
   communication_preference: string | null;
   send_report_email?: boolean;
   payment_status: EventPaymentStatus;
+  payment_link_token: string | null;
+  payment_link_expires_at: string | null;
 }
 
 export interface Participant {

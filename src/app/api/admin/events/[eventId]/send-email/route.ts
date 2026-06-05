@@ -201,41 +201,21 @@ export async function POST(
       }
 
       case 'payment_link': {
-        // Load event_requests to get or create a payment link token
         const crypto = await import('crypto');
-        const { data: reqRow, error: reqErr } = await supabase
+
+        // For events that came via a request (order form), use the request row for token storage.
+        // For admin-created events (no request row), store the token directly on the events table.
+        const { data: reqRow } = await supabase
           .from('event_requests')
-          .select('id, payment_link_token, payment_link_expires_at, event_type, event_name, starts_at, ends_at, wants_guest_messages, wants_custom_background, poster_choice, selected_template_id, special_requests')
+          .select('id, event_type, event_name, starts_at, ends_at, wants_guest_messages, wants_custom_background, poster_choice, selected_template_id, special_requests')
           .eq('approved_event_id', eventId)
           .maybeSingle();
 
-        let paymentToken: string;
+        const paymentToken = crypto.randomUUID();
+        const newExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-        if (reqErr || !reqRow) {
-          // No associated request - create one so the checkout can look it up
-          paymentToken = crypto.randomUUID();
-          const newExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-          await supabase
-            .from('event_requests')
-            .insert({
-              event_type: (event as { event_type?: string }).event_type ?? 'other',
-              event_name: event.name,
-              starts_at: event.starts_at,
-              ends_at: event.ends_at,
-              wants_custom_background: false,
-              wants_guest_messages: event.wa_messages_enabled,
-              contact_name: contactName ?? '',
-              contact_email: contactEmail ?? '',
-              contact_phone: event.client_phone ?? '',
-              payment_status: 'payment_link_sent',
-              payment_link_token: paymentToken,
-              payment_link_expires_at: newExpiry,
-              approved_event_id: eventId,
-            });
-        } else {
-          // Always issue a fresh token (extends expiry by 7 days)
-          paymentToken = crypto.randomUUID();
-          const newExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+        if (reqRow) {
+          // Request-based event: store token on event_requests row
           await supabase
             .from('event_requests')
             .update({
@@ -244,6 +224,15 @@ export async function POST(
               payment_status: 'payment_link_sent',
             })
             .eq('id', reqRow.id);
+        } else {
+          // Admin-created event: store token directly on the events table
+          await supabase
+            .from('events')
+            .update({
+              payment_link_token: paymentToken,
+              payment_link_expires_at: newExpiry,
+            })
+            .eq('id', eventId);
         }
 
         const paymentUrl = `${APP_BASE_URL}/api/payment/checkout?token=${paymentToken}`;
