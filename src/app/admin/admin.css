@@ -1422,6 +1422,52 @@
 /* =======================================================
    QR DIALOG / MODALS
    ======================================================= */
+
+/* Generic overlay + dialog used by QRDialog, ParticipantsDialog, CreateEventDialog */
+.admin-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  direction: rtl;
+}
+
+.admin-dialog {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border-light);
+  border-radius: var(--admin-radius);
+  padding: 28px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--admin-shadow);
+  animation: admin-fade-in 0.15s ease-out;
+}
+
+.admin-dialog--lg { max-width: 640px; }
+
+.admin-dialog__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--admin-text);
+  margin: 0 0 20px;
+}
+
+.admin-dialog__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--admin-border);
+}
+
 .admin-modal-overlay {
   position: fixed;
   inset: 0;
