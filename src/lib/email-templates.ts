@@ -3,7 +3,7 @@
  *
  * 10 templates total:
  *
- *   Client-facing (7):
+ *   Client-facing (8):
  *     C1. Call Me Back - client filled the form, wants a callback
  *     C3. Contact Only - client left contact details without filling event form
  *     C4. Approval - order approved, charged, event created
@@ -11,6 +11,7 @@
  *     C6. Upload Reminder (3-day) - urgent guest list upload reminder
  *     C7. Event Summary - post-event stats (day after)
  *     C8. QR Page Ready - A4 print page with QR code attachments
+ *     C9. Payment Confirmed - receipt for payment via a later-sent link (admin-created events)
  *
  *   Admin-facing (3):
  *     A1. Payment Received - payment completed, event auto-created
@@ -1133,4 +1134,93 @@ export function buildAdminContactOnlyNotification(data: {
         <tr><td style="padding:0 0 16px;background-color:${C.card};">&nbsp;</td></tr>`}`;
 
   return { subject, html: shell(subject, inner, '\u05E4\u05E0\u05D9\u05D9\u05D4 \u05D7\u05D3\u05E9\u05D4') };
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   C9. CLIENT - PAYMENT CONFIRMED
+   Sent when a client pays via a link the admin sent later
+   (admin-created event, no original order form).
+   Shows payment confirmation + event details + receipt attached.
+   ═══════════════════════════════════════════════════════════════ */
+
+export function buildPaymentConfirmedEmail(params: {
+  contactName: string;
+  eventName: string;
+  eventType: string;
+  startsAt: string;
+  endsAt: string;
+  totalPriceShekel: number;
+  eventUrl: string;
+}): { subject: string; html: string } {
+  const safeName = escapeHtml(params.contactName || '');
+  const safeEvent = escapeHtml(params.eventName);
+  const eventLabel = escapeHtml(EVENT_TYPE_LABELS[params.eventType] || params.eventType);
+
+  const subject = `Eventa - \u05D4\u05EA\u05E9\u05DC\u05D5\u05DD \u05D4\u05EA\u05E7\u05D1\u05DC!`;
+
+  const inner = `
+        ${statusBanner(
+          '\u05D4\u05EA\u05E9\u05DC\u05D5\u05DD \u05D4\u05EA\u05E7\u05D1\u05DC \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4',
+          null,
+          C.successBg, C.success,
+        )}
+
+        ${greeting(
+          safeName || '\u05DC\u05E7\u05D5\u05D7/\u05D4',
+          `\u05EA\u05D5\u05D3\u05D4! \u05E7\u05D9\u05D1\u05DC\u05E0\u05D5 \u05D0\u05EA \u05EA\u05E9\u05DC\u05D5\u05DE\u05DA \u05E2\u05D1\u05D5\u05E8 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2 <strong>${safeEvent}</strong>.`,
+        )}
+
+        <!-- Payment confirmation -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9 \u05EA\u05E9\u05DC\u05D5\u05DD')}
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
+              ${row('\u05E1\u05D8\u05D8\u05D5\u05E1', `<strong style="color:${C.success};">\u05E9\u05D5\u05DC\u05DD \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4</strong>`)}
+              ${row('\u05E1\u05DB\u05D5\u05DD', ltr(`\u20AA${params.totalPriceShekel}`))}
+              ${row('\u05EA\u05D0\u05E8\u05D9\u05DA \u05D7\u05D9\u05D5\u05D1', fmtDate(new Date().toISOString()), true)}
+            </table>
+          </td>
+        </tr>
+
+        <!-- Invoice note -->
+        <tr>
+          <td dir="rtl" style="direction:rtl;text-align:right;padding:12px 32px 0;background-color:${C.card};">
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:13px;color:${C.dim};">
+              \u05D7\u05E9\u05D1\u05D5\u05E0\u05D9\u05EA \u05D3\u05D9\u05D2\u05D9\u05D8\u05DC\u05D9\u05EA \u05DE\u05E6\u05D5\u05E8\u05E4\u05EA \u05DC\u05DE\u05D9\u05D9\u05DC \u05D6\u05D4.
+            </div>
+          </td>
+        </tr>
+
+        ${divider()}
+
+        <!-- Event details -->
+        <tr>
+          <td ${RTL} style="text-align:right;padding:32px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05E4\u05E8\u05D8\u05D9 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2')}
+            <table dir="rtl" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="direction:rtl;border-collapse:collapse;">
+              ${row('\u05E1\u05D5\u05D2', `<strong>${eventLabel}</strong>`)}
+              ${row('\u05E9\u05DD', safeEvent)}
+              ${row('\u05D4\u05EA\u05D7\u05DC\u05D4', `${fmtDate(params.startsAt)}${fmtTime(params.startsAt) ? `&rlm;, ${ltr(fmtTime(params.startsAt))}` : ''}`)}
+              ${row('\u05E1\u05D9\u05D5\u05DD', `${fmtDate(params.endsAt)}${fmtTime(params.endsAt) ? `&rlm;, ${ltr(fmtTime(params.endsAt))}` : ''}`, true)}
+            </table>
+          </td>
+        </tr>
+
+        <!-- Event link -->
+        <tr>
+          <td dir="rtl" style="direction:rtl;text-align:right;padding:24px 32px 0;background-color:${C.card};">
+            ${sectionTitle('\u05E7\u05D9\u05E9\u05D5\u05E8 \u05D4\u05D0\u05D9\u05E8\u05D5\u05E2')}
+            <div dir="rtl" style="direction:rtl;text-align:right;font-size:14px;color:${C.muted};line-height:1.6;margin-bottom:10px;">
+              \u05D4\u05E7\u05D9\u05E9\u05D5\u05E8 \u05DB\u05D0\u05DF \u05E8\u05E7 \u05DC\u05E0\u05D5\u05D7\u05D5\u05EA\u05DB\u05DD &ndash; \u05D1\u05DE\u05D9\u05D3\u05D4 \u05D5\u05EA\u05E8\u05E6\u05D5 \u05DC\u05E9\u05EA\u05E3 \u05D0\u05D5\u05EA\u05D5 \u05E2\u05DD \u05D0\u05D5\u05E8\u05D7\u05D9\u05DD \u05D0\u05D5 \u05DC\u05D4\u05D9\u05DB\u05E0\u05E1 \u05D1\u05E2\u05E6\u05DE\u05DB\u05DD.
+            </div>
+            <div dir="ltr" style="text-align:left;background-color:${C.accentBg};border-radius:8px;padding:12px 16px;font-size:14px;word-break:break-all;">
+              <a href="${escapeHtml(params.eventUrl)}" style="color:${C.accent};text-decoration:none;" target="_blank">${escapeHtml(params.eventUrl)}</a>
+            </div>
+          </td>
+        </tr>
+
+        ${supportRow()}`;
+
+  return { subject, html: shell(subject, inner, '\u05D0\u05D9\u05E9\u05D5\u05E8 \u05EA\u05E9\u05DC\u05D5\u05DD') };
 }

@@ -3,7 +3,7 @@ import { after } from 'next/server';
 import { logger } from '@/lib/logger';
 import { getServiceClient, generateShortCode } from '@/lib/supabase';
 import { getClearingLogById, createDocument, getDocument, DocumentType, PaymentType, getOrCreateCustomer, isConfigured } from '@/lib/invoice4u';
-import { buildClientApprovalEmail, buildAdminPayNowNotification } from '@/lib/email-templates';
+import { buildClientApprovalEmail, buildAdminPayNowNotification, buildPaymentConfirmedEmail } from '@/lib/email-templates';
 import { generatePrettySlug } from '@/lib/slug';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { APP_BASE_URL, BASE_PRICE } from '@/lib/config';
@@ -35,6 +35,12 @@ export async function GET(req: NextRequest) {
   const rid = req.nextUrl.searchParams.get('rid');
   if (!rid) {
     return redirectWithStatus('error');
+  }
+
+  // ── Event-based payment (admin-created event, no event_requests row) ──
+  const src = req.nextUrl.searchParams.get('src');
+  if (src === 'event') {
+    return handleEventPaymentCallback(rid, req);
   }
 
   const supabase = getServiceClient();
@@ -216,6 +222,171 @@ export async function GET(req: NextRequest) {
   });
 
   return redirectWithStatus('success');
+}
+
+/* ── Event-based payment callback (admin-created events) ─────────────────── */
+
+/**
+ * Handles payment callbacks for admin-created events that store their
+ * payment_link_token on the events table (no event_requests row).
+ * Marks the event as paid, clears the token, creates a receipt, and
+ * sends a C9 confirmation email.
+ */
+async function handleEventPaymentCallback(eventId: string, req: NextRequest): Promise<NextResponse> {
+  const ip = getClientIp(req.headers);
+  logger.info('[PAYMENT_CALLBACK_EVENT] Processing event-based payment', { eventId, ip });
+
+  const supabase = getServiceClient();
+
+  // Load the event
+  const { data: event, error: fetchErr } = await supabase
+    .from('events')
+    .select('id, name, slug, event_type, starts_at, ends_at, client_name, client_email, client_phone, payment_status')
+    .eq('id', eventId)
+    .maybeSingle();
+
+  if (fetchErr || !event) {
+    logger.warn('[PAYMENT_CALLBACK_EVENT] Event not found', { eventId });
+    return redirectWithStatus('error');
+  }
+
+  // Already paid — idempotent
+  if (event.payment_status === 'paid') {
+    return redirectWithStatus('success');
+  }
+
+  // Mark event as paid + clear payment token
+  await supabase
+    .from('events')
+    .update({
+      payment_status: 'paid',
+      payment_link_token: null,
+      payment_link_expires_at: null,
+    })
+    .eq('id', eventId);
+
+  logger.info('[PAYMENT_CALLBACK_EVENT] Event marked as paid', { eventId });
+
+  // Schedule slow work (invoice + email) after response
+  after(async () => {
+    try {
+      await sendEventPaymentEmails(event);
+    } catch (err) {
+      logger.error('[PAYMENT_CALLBACK_EVENT_AFTER] Unhandled error', err);
+    }
+  });
+
+  return redirectWithStatus('success');
+}
+
+/**
+ * Phase 2 for event-based payments: create invoice receipt and send C9 email.
+ */
+async function sendEventPaymentEmails(event: {
+  id: string;
+  name: string;
+  slug: string;
+  event_type: string;
+  starts_at: string;
+  ends_at: string;
+  client_name: string | null;
+  client_email: string | null;
+  client_phone: string | null;
+}): Promise<void> {
+  if (!event.client_email) return;
+
+  const supabase = getServiceClient();
+  let pdfBuffer: Buffer | null = null;
+  let pdfDocNumber = '';
+
+  // ── Create invoice receipt ──
+  try {
+    const custResult = await getOrCreateCustomer({
+      Name: event.client_name || 'לקוח Eventa',
+      Phone: event.client_phone || undefined,
+      Email: event.client_email,
+    });
+
+    const docResult = await createDocument({
+      docType: DocumentType.InvoiceReceipt,
+      customer: {
+        ID: custResult.success ? custResult.data : undefined,
+        Name: event.client_name || 'לקוח Eventa',
+        Phone: event.client_phone || undefined,
+        Email: event.client_email,
+      },
+      items: [{ Name: 'חבילת Eventa לאירוע', Price: BASE_PRICE, Quantity: 1 }],
+      payments: [{ PaymentType: PaymentType.CreditCard, Amount: BASE_PRICE }],
+      subject: `אירוע: ${event.name}`,
+      sendByEmail: false,
+    });
+
+    if (docResult.success && docResult.data) {
+      pdfDocNumber = docResult.data.DocumentNumber || '';
+      let pdfUrl = docResult.data.DocumentURL;
+
+      if (!pdfUrl && docResult.data.DocumentID) {
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        const fetched = await getDocument(docResult.data.DocumentID);
+        if (fetched.success && fetched.data?.DocumentURL) pdfUrl = fetched.data.DocumentURL;
+      }
+
+      if (pdfUrl) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const pdfRes = await fetch(pdfUrl, { signal: AbortSignal.timeout(15_000) });
+        if (pdfRes.ok) pdfBuffer = Buffer.from(await pdfRes.arrayBuffer());
+      }
+    }
+  } catch (pdfErr) {
+    logger.warn('[PAYMENT_CALLBACK_EVENT_AFTER] Invoice creation error (non-fatal)', pdfErr);
+  }
+
+  // ── Send C9 payment confirmed email ──
+  try {
+    const eventUrl = `${APP_BASE_URL}/${event.slug}`;
+    const email = buildPaymentConfirmedEmail({
+      contactName: event.client_name || '',
+      eventName: event.name,
+      eventType: event.event_type,
+      startsAt: event.starts_at,
+      endsAt: event.ends_at,
+      totalPriceShekel: BASE_PRICE,
+      eventUrl,
+    });
+
+    const attachments: Array<{ filename: string; content: Buffer; contentType?: string }> = [];
+    if (pdfBuffer) {
+      attachments.push({
+        filename: pdfDocNumber ? `receipt-${pdfDocNumber}.pdf` : 'receipt.pdf',
+        content: pdfBuffer,
+        contentType: 'application/pdf',
+      });
+    }
+
+    await getMailTransporter().sendMail({
+      from: getSmtpFrom(),
+      to: event.client_email,
+      subject: email.subject,
+      html: email.html,
+      ...(attachments.length > 0 ? { attachments } : {}),
+    });
+
+    await supabase.from('message_log').insert({
+      event_id: event.id,
+      channel: 'email',
+      message_type: 'payment_confirmed',
+      recipient_email: event.client_email,
+      status: 'sent',
+      sent_at: new Date().toISOString(),
+    });
+
+    logger.info('[PAYMENT_CALLBACK_EVENT_AFTER] Payment confirmed email sent', {
+      eventId: event.id,
+      hasPdf: !!pdfBuffer,
+    });
+  } catch (emailErr) {
+    logger.warn('[PAYMENT_CALLBACK_EVENT_AFTER] Email send failed', emailErr);
+  }
 }
 
 /* ── Phase 2: Document creation + email (runs after redirect) ── */

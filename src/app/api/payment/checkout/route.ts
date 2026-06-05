@@ -137,8 +137,10 @@ export async function GET(req: NextRequest) {
       ? Math.round(request.total_price / 100)   // total_price is stored in agorot
       : BASE_PRICE;                              // fallback
 
-    // Build callback URL
-    const returnUrl = `${APP_BASE_URL}/api/payment/callback?rid=${request.id}`;
+    // Build callback URL - include src=event so callback knows which table to use
+    const returnUrl = isEventBased
+      ? `${APP_BASE_URL}/api/payment/callback?rid=${request.id}&src=event`
+      : `${APP_BASE_URL}/api/payment/callback?rid=${request.id}`;
 
     // Create clearing session – direct charge (tokenisation not available)
     const description = request.event_name
