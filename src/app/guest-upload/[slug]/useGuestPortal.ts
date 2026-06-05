@@ -47,7 +47,7 @@ export function useGuestPortal(slug: string, token: string): GuestPortalState & 
       }
       try {
         const result = await getPortalData(token, p, search);
-        if (result.event.slug !== slug) {
+        if (slug && result.event.slug !== slug) {
           setError('הקישור אינו תואם את האירוע');
           setLoading(false);
           return;

@@ -28,9 +28,9 @@ const STATUS_MAP: Record<
 
 // ─── Client component ──────────────────────────────────
 
-export default function GuestUploadClient({ slug }: { slug: string }) {
+export default function GuestUploadClient({ slug, token: tokenProp }: { slug: string; token?: string }) {
   const searchParams = useSearchParams();
-  const token = searchParams.get('k') ?? searchParams.get('token') ?? '';
+  const token = tokenProp ?? searchParams.get('k') ?? searchParams.get('token') ?? '';
 
   const {
     data,
