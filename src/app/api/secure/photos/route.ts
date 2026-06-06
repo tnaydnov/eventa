@@ -72,8 +72,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Moderate synchronously BEFORE inserting to DB.
-    // This keeps the client in "uploading" state and lets us return a clear
-    // rejection message without the photo ever appearing in the UI.
+    // Uses a signed URL so the file is accessible immediately (no CDN propagation delay).
     const preCheck = await preModerationCheck(storagePath);
     if (preCheck.blocked) {
       // Delete from storage so nothing is left behind
@@ -88,7 +87,7 @@ export async function POST(req: NextRequest) {
         participant_id: session.sub,
         storage_path: storagePath,
         order_index: idx,
-        moderation_status: 'approved', // already cleared by preModerationCheck above
+        moderation_status: 'approved',
       })
       .select()
       .single();
@@ -98,7 +97,7 @@ export async function POST(req: NextRequest) {
       return jsonError('Failed to save photo', 400);
     }
 
-    // Run full audit logging + review-queue after responding
+    // Run audit logging in after() - moderation decision is already final from preModerationCheck
     after(() => moderateProfilePhoto(data.id as string, storagePath, session.sub, session.eid));
 
     return NextResponse.json(data);

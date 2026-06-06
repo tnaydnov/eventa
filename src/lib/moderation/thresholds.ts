@@ -39,7 +39,8 @@ export const PROFILE_THRESHOLDS: SurfaceThresholds = {
     'illicit/violent': { allow_max: 0.40, block_min: 0.70 },
   },
   soft: {
-    sexual: { allow_max: 0.55, block_min: 0.85 },
+    // Lower block threshold so explicit nudity is always blocked without needing Falconsai
+    sexual: { allow_max: 0.40, block_min: 0.65 },
   },
 };
 

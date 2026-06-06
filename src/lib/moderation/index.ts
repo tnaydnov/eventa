@@ -137,7 +137,8 @@ async function writeModerationLog(params: {
 
 /**
  * Synchronous pre-upload moderation check.
- * Call this BEFORE inserting the photo DB record.
+ * Uses a SIGNED URL so the file is accessible immediately after upload
+ * without waiting for CDN propagation of the public URL.
  * Returns { blocked: true } if the image violates content policy.
  * Fail-open: any error or missing API key returns { blocked: false }.
  */
@@ -145,7 +146,15 @@ export async function preModerationCheck(
   storagePath: string
 ): Promise<{ blocked: boolean }> {
   try {
-    const imageUrl = buildPublicUrl(storagePath);
+    const supabase = getServiceClient();
+    // Signed URL bypasses CDN propagation - immediately accessible after upload
+    const { data: signedData, error: signedError } = await supabase.storage
+      .from(PHOTOS_BUCKET)
+      .createSignedUrl(storagePath, 120); // 2-minute expiry
+    const imageUrl = (!signedError && signedData?.signedUrl)
+      ? signedData.signedUrl
+      : buildPublicUrl(storagePath);
+
     const result = await moderateImageUrl(imageUrl);
     if (!result) return { blocked: false }; // fail-open
     const { verdict } = await evaluateScores(
@@ -154,7 +163,7 @@ export async function preModerationCheck(
       imageUrl,
       'profile_photo',
     );
-    return { blocked: verdict === 'blocked' };
+    return { blocked: verdict === 'blocked' || verdict === 'shadow_review' };
   } catch {
     return { blocked: false }; // fail-open
   }
@@ -215,12 +224,23 @@ export async function moderateProfilePhoto(
       'approved';
 
     if (verdict === 'blocked') {
-      // Hard block: delete from storage AND DB so the owner can't see it either.
-      // This is the only way to make sure the nude photo is fully gone.
-      await Promise.all([
-        supabase.storage.from('photos').remove([storagePath]),
-        supabase.from('participant_photos').delete().eq('id', photoId),
-      ]);
+      // Hard block: delete from storage AND DB.
+      // Skip if the photo was already approved by preModerationCheck (signed-URL check ran
+      // synchronously before this async task; trust that result over this post-hoc check).
+      const { data: existing } = await supabase
+        .from('participant_photos')
+        .select('moderation_status')
+        .eq('id', photoId)
+        .maybeSingle();
+      if (existing?.moderation_status === 'approved') {
+        // Pre-check already approved - don't delete. Just log for audit.
+        logger.warn(`[MODERATION] post-check blocked but pre-check approved photo ${photoId} - keeping pre-check result`);
+      } else {
+        await Promise.all([
+          supabase.storage.from('photos').remove([storagePath]),
+          supabase.from('participant_photos').delete().eq('id', photoId),
+        ]);
+      }
     } else {
       await supabase
         .from('participant_photos')

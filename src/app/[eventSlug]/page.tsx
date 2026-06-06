@@ -172,10 +172,12 @@ function EventPageContent({
     if (!s) return;
     try {
       const data = await getGridParticipants(s.eventId, s.participantId);
-      // Never overwrite existing participants with empty data (network glitch protection).
-      // An empty response could be a transient DB/network error - keep stale data visible.
       const current = useGridStore.getState().participants;
-      if (data.length > 0 || current.length === 0) {
+      if (data.length === 0 && current.length > 0) return; // protect against empty-on-error
+      // Skip re-render if the participant IDs are unchanged - avoids virtualizer flash
+      const currentIds = current.map((p) => p.id).join(',');
+      const newIds = data.map((p) => p.id).join(',');
+      if (currentIds !== newIds || data.length !== current.length) {
         setParticipants(data);
       }
       _lastGridFetchTime = Date.now();
