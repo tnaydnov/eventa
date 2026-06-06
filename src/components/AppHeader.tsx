@@ -1,12 +1,11 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useSessionStore, useNotificationStore } from '@/lib/store';
+import { useSessionStore } from '@/lib/store';
 
 export default function AppHeader() {
   const router = useRouter();
   const session = useSessionStore((s) => s.session);
-  const realtimeStale = useNotificationStore((s) => s.realtimeStale);
 
   if (!session) return null;
 
@@ -14,25 +13,6 @@ export default function AppHeader() {
     <header className="app-header">
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
         <h1 style={{ margin: 0, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{session.eventName || 'Eventa'}</h1>
-        {realtimeStale && (
-          <span
-            aria-live="polite"
-            title="חיבור בזמן אמת איטי - מסנכרן..."
-            style={{
-              fontSize: '11px',
-              color: '#b58900',
-              background: 'rgba(181,137,0,0.15)',
-              border: '1px solid rgba(181,137,0,0.3)',
-              borderRadius: '8px',
-              padding: '2px 6px',
-              fontWeight: 600,
-              flexShrink: 0,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            מסנכרן...
-          </span>
-        )}
       </div>
       <button
         onClick={() => router.push(`/${session.eventSlug}/profile`)}

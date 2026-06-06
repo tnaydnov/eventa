@@ -70,10 +70,21 @@ export default function HeartbeatPinger() {
     resetInterval();
 
     // On visibility → visible: fire immediately AND reset the interval cadence
+    // On visibility → hidden: fire a keepalive request to flip tab_visible=false
+    // so the SMS dispatcher knows the user has left and can send notifications.
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         sendHeartbeat();
         resetInterval();
+      } else {
+        // keepalive: true ensures the request completes even when the page is unloading
+        fetch('/api/secure/heartbeat', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tab_visible: false }),
+          keepalive: true,
+        }).catch(() => {});
       }
     };
     document.addEventListener('visibilitychange', onVisibilityChange);

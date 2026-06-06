@@ -106,7 +106,7 @@ export async function buildParticipantPhotoMaps(ids: string[]) {
     batches.map((batch) =>
       Promise.all([
         supabase.from('participants').select(PARTICIPANT_COLUMNS).in('id', batch),
-        supabase.from('participant_photos').select(PHOTO_COLUMNS).in('participant_id', batch).order('order_index'),
+        supabase.from('participant_photos').select(PHOTO_COLUMNS).in('participant_id', batch).neq('moderation_status', 'rejected').order('order_index'),
       ])
     )
   );

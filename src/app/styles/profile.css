@@ -40,7 +40,7 @@
 .profile-actions {
   display: flex;
   gap: 10px;
-  padding: 0 16px 24px;
+  padding: 0 16px max(24px, calc(env(safe-area-inset-bottom) + 16px));
 }
 
 .profile-action-btn {
