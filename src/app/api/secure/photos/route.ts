@@ -6,7 +6,7 @@ import { MAX_PHOTOS } from '@/lib/constants';
 import { secureGuard, jsonError, isSafePath } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 import { photoReorderSchema } from '@/lib/validations';
-import { moderateProfilePhoto } from '@/lib/moderation';
+import { preModerationCheck, moderateProfilePhoto } from '@/lib/moderation';
 
 /**
  * POST /api/secure/photos
@@ -71,6 +71,16 @@ export async function POST(req: NextRequest) {
       return jsonError(`Maximum ${MAX_PHOTOS} photos allowed`, 400);
     }
 
+    // Moderate synchronously BEFORE inserting to DB.
+    // This keeps the client in "uploading" state and lets us return a clear
+    // rejection message without the photo ever appearing in the UI.
+    const preCheck = await preModerationCheck(storagePath);
+    if (preCheck.blocked) {
+      // Delete from storage so nothing is left behind
+      void getServiceClient().storage.from('photos').remove([storagePath]);
+      return jsonError('התמונה לא עומדת בהנחיות הקהילה. אנא בחרו תמונה מתאימה.', 422);
+    }
+
     const { data, error } = await supabase
       .from('participant_photos')
       .insert({
@@ -78,6 +88,7 @@ export async function POST(req: NextRequest) {
         participant_id: session.sub,
         storage_path: storagePath,
         order_index: idx,
+        moderation_status: 'approved', // already cleared by preModerationCheck above
       })
       .select()
       .single();
@@ -87,9 +98,7 @@ export async function POST(req: NextRequest) {
       return jsonError('Failed to save photo', 400);
     }
 
-    // Moderate the photo - use after() so Vercel guarantees the async work
-    // completes even after the response has been sent to the client.
-    // Plain void fire-and-forget is NOT reliable in Vercel serverless.
+    // Run full audit logging + review-queue after responding
     after(() => moderateProfilePhoto(data.id as string, storagePath, session.sub, session.eid));
 
     return NextResponse.json(data);

@@ -40,7 +40,7 @@ export async function getGridParticipants(
       .maybeSingle(),
     supabase
       .from('participants')
-      .select('id, event_id, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at, participant_photos(id, event_id, participant_id, storage_path, order_index, created_at)')
+      .select('id, event_id, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at, participant_photos(id, event_id, participant_id, storage_path, order_index, created_at, moderation_status)')
       .eq('event_id', eventId)
       .eq('is_banned', false)
       .is('deleted_at', null)
@@ -76,7 +76,11 @@ export async function getGridParticipants(
   }
 
   return filtered.map((p) => {
-    const { participant_photos, ...rest } = p as typeof p & { participant_photos: ParticipantPhoto[] };
-    return { ...rest, photos: participant_photos || [] };
+    const { participant_photos, ...rest } = p as typeof p & { participant_photos: (ParticipantPhoto & { moderation_status?: string })[] };
+    // Filter out photos that haven't passed moderation - show placeholder instead of rejected content
+    const visiblePhotos = (participant_photos || []).filter(
+      (ph) => !ph.moderation_status || ph.moderation_status === 'approved'
+    );
+    return { ...rest, photos: visiblePhotos };
   }) as GridParticipant[];
 }

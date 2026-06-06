@@ -70,13 +70,18 @@ export default function ProfilePhotoGrid({
     // Yield so React paints the upload spinner before compression blocks the main thread
     await new Promise<void>((r) => requestAnimationFrame(() => setTimeout(r, 0)));
 
-    const photo = await uploadPhoto(eventId, participantId, croppedFile, photos.length, (pct) => {
-      setUploadProgress(pct);
-    });
-    if (photo) {
-      onPhotosChange([...photos, photo]);
-    } else {
-      toast('שגיאה בהעלאת התמונה - נסו שוב');
+    try {
+      const photo = await uploadPhoto(eventId, participantId, croppedFile, photos.length, (pct) => {
+        setUploadProgress(pct);
+      });
+      if (photo) {
+        onPhotosChange([...photos, photo]);
+      } else {
+        toast('שגיאה בהעלאת התמונה - נסו שוב');
+      }
+    } catch (err) {
+      // Moderation rejection or other named error
+      toast(err instanceof Error ? err.message : 'שגיאה בהעלאת התמונה - נסו שוב');
     }
     setUploading(false);
     setUploadProgress(null);

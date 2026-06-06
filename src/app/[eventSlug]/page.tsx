@@ -172,7 +172,12 @@ function EventPageContent({
     if (!s) return;
     try {
       const data = await getGridParticipants(s.eventId, s.participantId);
-      setParticipants(data);
+      // Never overwrite existing participants with empty data (network glitch protection).
+      // An empty response could be a transient DB/network error - keep stale data visible.
+      const current = useGridStore.getState().participants;
+      if (data.length > 0 || current.length === 0) {
+        setParticipants(data);
+      }
       _lastGridFetchTime = Date.now();
     } catch {
       // Silently fail - stale data is better than a stuck spinner
@@ -228,7 +233,12 @@ function EventPageContent({
   }, [session, eventSlug, loadGrid]);
 
   // Reload grid when user returns from background / switches back to app
-  useAppResume(() => loadGrid(), !!session);
+  // Only reload if data is stale - avoids replacing fresh data every app-switch
+  useAppResume(() => {
+    if (Date.now() - _lastGridFetchTime >= SWR_STALE_MS) {
+      loadGrid();
+    }
+  }, !!session);
 
   // Realtime: new participants joining + updates + blocks (via Hub)
   useRealtimeHub({

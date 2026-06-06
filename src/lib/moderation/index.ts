@@ -136,6 +136,31 @@ async function writeModerationLog(params: {
 // ─── Public API ──────────────────────────────────────────────────
 
 /**
+ * Synchronous pre-upload moderation check.
+ * Call this BEFORE inserting the photo DB record.
+ * Returns { blocked: true } if the image violates content policy.
+ * Fail-open: any error or missing API key returns { blocked: false }.
+ */
+export async function preModerationCheck(
+  storagePath: string
+): Promise<{ blocked: boolean }> {
+  try {
+    const imageUrl = buildPublicUrl(storagePath);
+    const result = await moderateImageUrl(imageUrl);
+    if (!result) return { blocked: false }; // fail-open
+    const { verdict } = await evaluateScores(
+      result.scores,
+      PROFILE_THRESHOLDS,
+      imageUrl,
+      'profile_photo',
+    );
+    return { blocked: verdict === 'blocked' };
+  } catch {
+    return { blocked: false }; // fail-open
+  }
+}
+
+/**
  * Moderate a participant profile photo after upload.
  * Fire-and-forget safe - never throws.
  * On BLOCK: updates moderation_status to 'rejected' and queues for shadow review.

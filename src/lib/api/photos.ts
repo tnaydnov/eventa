@@ -151,12 +151,18 @@ export async function uploadPhoto(
       { retryOnMutations: true },
     );
     if (!res.ok) {
+      if (res.status === 422) {
+        // Moderation rejection - surface the reason to the caller
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || 'התמונה לא עומדת בהנחיות הקהילה');
+      }
       const errText = await res.text().catch(() => '');
       console.error('[uploadPhoto] DB record creation failed:', res.status, errText);
       return null;
     }
     return res.json();
   } catch (err) {
+    if (err instanceof Error && err.message.includes('הנחיות')) throw err; // re-throw moderation errors
     console.error('[uploadPhoto] DB record error:', err);
     return null;
   }
