@@ -64,8 +64,11 @@ export async function POST(req: NextRequest) {
         .then(({ error }) => { if (error) logger.error('[HEARTBEAT] participant update error:', { error: error.message }); });
     }
 
-    // When tab becomes visible, cancel any pending SMS for this participant
-    if (tabVisible && current?.tab_visible === false) {
+    // When tab becomes visible, cancel any pending SMS for this participant.
+    // We cancel on every visible heartbeat (not just on transition) because the
+    // dispatch-time delay window may still be open - cancelling early prevents
+    // a user who returned quickly from receiving an unnecessary SMS.
+    if (tabVisible) {
       void supabase
         .from('pending_sms')
         .update({ cancelled_at: now, cancel_reason: 'user_returned' })

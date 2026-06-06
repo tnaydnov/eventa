@@ -16,11 +16,15 @@ const QUIET_HOUR_START_MINUTES = 22 * 60 + 30; // 22:30
 const QUIET_HOUR_END_MINUTES = 8 * 60 + 30; // 08:30
 const ISRAEL_TIMEZONE = 'Asia/Jerusalem';
 
-/** Participant is considered online if tab is visible or seen in the last 60 seconds. */
+/** Participant is considered online if tab is explicitly visible AND heartbeat is fresh (< 90s). */
 function isParticipantOnline(lastSeenAt: string | null, tabVisible: boolean): boolean {
-  if (tabVisible) return true;
+  // Trust the explicit tab_visible=false signal - the browser fires this via keepalive
+  // when the user switches apps or closes the browser. Don't fall back to last_seen_at
+  // when tab is hidden, as that would cause false "online" for up to 60s after leaving.
+  if (!tabVisible) return false;
+  // tab_visible=true: verify with heartbeat freshness (handles crash / killed app)
   if (!lastSeenAt) return false;
-  return Date.now() - new Date(lastSeenAt).getTime() < 60_000;
+  return Date.now() - new Date(lastSeenAt).getTime() < 90_000; // 90s window for crash detection
 }
 
 function getIsraelMinutesOfDay(now: Date): number {

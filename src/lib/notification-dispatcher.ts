@@ -21,6 +21,9 @@ import {
 } from '@/lib/messaging/templates';
 
 const PRESENCE_WINDOW_MS = 60_000; // 60 seconds
+const LIKE_DELAY_MS = 2 * 60_000;    // 2 minutes - user has time to return
+const MESSAGE_DELAY_MS = 90_000;      // 90 seconds
+const MATCH_DELAY_MS = 30_000;        // 30 seconds - match is high-value, send quickly
 const LIKE_QUOTA_MS = 60 * 60_000; // 1 hour
 const MESSAGE_QUOTA_MS = 15 * 60_000; // 15 minutes
 const INACTIVITY_DELAY_MS = 30 * 60_000; // 30 minutes
@@ -46,7 +49,11 @@ type EventInfo = {
 
 /** Returns true if participant is considered online (active in last 60s and tab visible) */
 function isOnline(p: ParticipantInfo): boolean {
-  if (p.tab_visible) return true;
+  // Trust the explicit tab_visible=false signal over last_seen_at.
+  // When the user leaves the browser, a keepalive fires immediately with tab_visible=false.
+  // Relying on last_seen_at in this case causes false "online" for up to 60s after the user leaves.
+  if (!p.tab_visible) return false;
+  // tab_visible=true: verify with heartbeat freshness (handles browser crash / killed app)
   if (!p.last_seen_at) return false;
   return Date.now() - new Date(p.last_seen_at).getTime() < PRESENCE_WINDOW_MS;
 }
@@ -199,7 +206,8 @@ export async function enqueueLikeNotification(
     if (await isQuotaExceeded(recipientId, eventId, 'like', LIKE_QUOTA_MS)) return;
 
     const body = likeNotificationSmsText(event.name, event.slug);
-    await enqueue(eventId, recipientId, participant.phone, 'like', body);
+    // 2-minute delay: gives the user time to return to the app before sending.
+    await enqueue(eventId, recipientId, participant.phone, 'like', body, LIKE_DELAY_MS);
   } catch (err) {
     logger.error('[NOTIFICATION_DISPATCHER] enqueueLikeNotification error:', err);
   }
@@ -207,6 +215,10 @@ export async function enqueueLikeNotification(
 
 /**
  * Enqueue a "match" notification SMS to both participants in a match.
+ * Always enqueues (no enqueue-time online check) to avoid the race where a
+ * match happens milliseconds after the user leaves the browser (before
+ * tab_visible=false reaches the DB). The dispatch cron cancels the SMS at
+ * send-time if the recipient is back online by then.
  */
 export async function enqueueMatchNotification(
   participantAId: string,
@@ -221,10 +233,9 @@ export async function enqueueMatchNotification(
       const participant = await getParticipant(recipientId);
       if (!participant) continue;
       if (!participant.sms_consent || !participant.sms_notifications_enabled) continue;
-      if (isOnline(participant)) continue;
       if (await isOptedOut(participant.phone)) continue;
       if (await hasReachedEventSmsCap(recipientId, eventId)) continue;
-      // Check no duplicate match SMS already pending
+      // Dedup: skip if a match SMS is already pending for this recipient
       const supabase = getServiceClient();
       const { data: existing } = await supabase
         .from('pending_sms')
@@ -237,8 +248,20 @@ export async function enqueueMatchNotification(
         .limit(1);
       if ((existing?.length ?? 0) > 0) continue;
 
+      // Cancel any pending like SMS for this recipient - the match notification supersedes it
+      await supabase
+        .from('pending_sms')
+        .update({ cancelled_at: new Date().toISOString(), cancel_reason: 'superseded_by_match' })
+        .eq('recipient_id', recipientId)
+        .eq('event_id', eventId)
+        .eq('message_type', 'like')
+        .is('sent_at', null)
+        .is('cancelled_at', null);
+
       const body = matchNotificationSmsText(event.name, event.slug);
-      await enqueue(eventId, recipientId, participant.phone, 'match', body);
+      // 30s delay: gives users a chance to see the in-app match popup first.
+      // The dispatch cron will cancel if the user is back in the app by then.
+      await enqueue(eventId, recipientId, participant.phone, 'match', body, MATCH_DELAY_MS);
     }
   } catch (err) {
     logger.error('[NOTIFICATION_DISPATCHER] enqueueMatchNotification error:', err);
@@ -267,7 +290,8 @@ export async function enqueueMessageNotification(
     if (await isQuotaExceeded(recipientId, eventId, 'message', MESSAGE_QUOTA_MS)) return;
 
     const body = messageNotificationSmsText(event.name, event.slug);
-    await enqueue(eventId, recipientId, participant.phone, 'message', body);
+    // 90-second delay: gives user a chance to return before sending.
+    await enqueue(eventId, recipientId, participant.phone, 'message', body, MESSAGE_DELAY_MS);
   } catch (err) {
     logger.error('[NOTIFICATION_DISPATCHER] enqueueMessageNotification error:', err);
   }

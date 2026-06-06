@@ -164,7 +164,11 @@ export async function POST(req: NextRequest) {
             });
         }
         // SMS notifications (fire-and-forget)
-        void enqueueLikeNotification(toId, session.eid);
+        // When there's a match, the match notification supersedes the like notification.
+        // Only send a like SMS when there is NO match.
+        if (!isMatch) {
+          void enqueueLikeNotification(toId, session.eid);
+        }
         if (isMatch) {
           void enqueueMatchNotification(session.sub, toId, session.eid);
         }
