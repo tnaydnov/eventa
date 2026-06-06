@@ -215,6 +215,7 @@ export async function getParticipantPhotos(
     .from('participant_photos')
     .select(PHOTO_COLUMNS)
     .eq('participant_id', participantId)
+    .neq('moderation_status', 'rejected')
     .order('order_index');
   if (error) console.error('[getParticipantPhotos] query error:', error.message);
   return data || [];

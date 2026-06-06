@@ -70,29 +70,48 @@ export default function HeartbeatPinger() {
     resetInterval();
 
     // On visibility → visible: fire immediately AND reset the interval cadence
-    // On visibility → hidden: fire a keepalive request to flip tab_visible=false
-    // so the SMS dispatcher knows the user has left and can send notifications.
+    // On visibility → hidden: signal the server that the user left.
+    // Use sendBeacon (designed for page-leave signals, reliable on iOS Safari)
+    // with a fetch keepalive fallback for browsers that don't support sendBeacon.
+    const sendHiddenSignal = () => {
+      const body = JSON.stringify({ tab_visible: false });
+      const blob = new Blob([body], { type: 'application/json' });
+      if (navigator.sendBeacon) {
+        // sendBeacon is the most reliable option on iOS - it completes even
+        // when the browser suspends JS execution after visibilitychange.
+        navigator.sendBeacon('/api/secure/heartbeat', blob);
+      } else {
+        fetch('/api/secure/heartbeat', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body,
+          keepalive: true,
+        }).catch(() => {});
+      }
+    };
+
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         sendHeartbeat();
         resetInterval();
       } else {
-        // keepalive: true ensures the request completes even when the page is unloading
-        fetch('/api/secure/heartbeat', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tab_visible: false }),
-          keepalive: true,
-        }).catch(() => {});
+        sendHiddenSignal();
       }
     };
+
+    // pagehide fires on iOS when the page is being unloaded/cached (bfcache).
+    // More reliable than visibilitychange for app-switching on some iOS versions.
+    const onPageHide = () => sendHiddenSignal();
+
     document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', onPageHide);
 
     return () => {
       controller.abort();
       if (intervalRef.current) clearInterval(intervalRef.current);
       document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pagehide', onPageHide);
     };
   }, [participantId, eventSlug]);
 
