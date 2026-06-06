@@ -563,7 +563,7 @@ function JoinPageContent({
           <>
             <h1 className="pj-title">רגע קטן ונכנסים</h1>
             <p className="pj-subtitle">
-              נשלח קוד חד-פעמי לטלפון שלך כדי לוודא שאתה באירוע.
+              נשלח קוד חד-פעמי לטלפון שלך כדי לוודא שאת/ה באירוע.
             </p>
 
             <PhoneInput
