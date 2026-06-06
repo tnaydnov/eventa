@@ -190,13 +190,14 @@ export async function POST(req: NextRequest) {
       participantId = existing.id as string;
       participant = existing;
 
-      // Update fingerprints + sms_consent + last_seen_at
+      // Update fingerprints + sms_consent + sms_notifications_enabled + last_seen_at
       const updates: Record<string, unknown> = {
         last_seen_at: new Date().toISOString(),
       };
       if (fingerprint) updates.device_fingerprint = fingerprint;
       if (hwFingerprint) updates.hardware_fingerprint = hwFingerprint;
       if (smsConsent !== existing.sms_consent) updates.sms_consent = smsConsent;
+      if (smsNotificationsEnabled !== undefined) updates.sms_notifications_enabled = smsNotificationsEnabled;
 
       void supabase.from('participants').update(updates).eq('id', participantId)
         .then(({ error }) => {

@@ -18,24 +18,9 @@ const ISRAEL_TIMEZONE = 'Asia/Jerusalem';
 
 /** Participant is considered online if tab is explicitly visible AND heartbeat is fresh (< 90s). */
 function isParticipantOnline(lastSeenAt: string | null, tabVisible: boolean): boolean {
-  // Trust the explicit tab_visible=false signal - the browser fires this via keepalive
-  // when the user switches apps or closes the browser. Don't fall back to last_seen_at
-  // when tab is hidden, as that would cause false "online" for up to 60s after leaving.
   if (!tabVisible) return false;
-  // tab_visible=true: verify with heartbeat freshness (handles crash / killed app)
   if (!lastSeenAt) return false;
-  return Date.now() - new Date(lastSeenAt).getTime() < 90_000; // 90s window for crash detection
-}
-/**
- * For match-type SMS: only cancel if last_seen_at is very recent (user is provably in-app).
- * Unlike isParticipantOnline(), this does NOT trust tab_visible alone - on iOS,
- * the sendBeacon may arrive late and tab_visible may still be true in DB at dispatch time.
- * Requiring a fresh heartbeat (within 25s, less than the 30s dispatch delay) ensures we
- * only cancel if the user genuinely returned and sent a heartbeat after the match was created.
- */
-function isParticipantActivelyInApp(lastSeenAt: string | null): boolean {
-  if (!lastSeenAt) return false;
-  return Date.now() - new Date(lastSeenAt).getTime() < 25_000;
+  return Date.now() - new Date(lastSeenAt).getTime() < 90_000;
 }
 function getIsraelMinutesOfDay(now: Date): number {
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -216,11 +201,12 @@ async function handler(req: NextRequest) {
       continue;
     }
 
-    // For match SMS: only cancel if user provably came back (fresh heartbeat within 25s).
+    // For match SMS: always dispatch - never cancel based on presence.
+    // Match is high-value, deduplicated at enqueue time, and presence detection
+    // is unreliable enough on iOS that we risk missing it. One match SMS per match.
     // For all other types: use the standard online check.
-    // This handles iOS where tab_visible=false beacon may arrive late but last_seen_at is reliable.
     const isUserOnlineForType = sms.message_type === 'match'
-      ? isParticipantActivelyInApp(participant.last_seen_at as string | null)
+      ? false  // never cancel match SMS at dispatch time
       : isParticipantOnline(participant.last_seen_at as string | null, !!participant.tab_visible);
 
     if (isUserOnlineForType) {

@@ -28,6 +28,9 @@ const LIKE_QUOTA_MS = 60 * 60_000; // 1 hour
 const MESSAGE_QUOTA_MS = 15 * 60_000; // 15 minutes
 const INACTIVITY_DELAY_MS = 30 * 60_000; // 30 minutes
 const MAX_OOA_SMS_PER_EVENT = 5;
+// Match SMS is excluded from the OOA cap - it's the highest-value notification
+// and must not be silently blocked by testing/spam-prevention counters.
+const OOA_CAPPED_TYPES = ['like', 'message', 'abandoned_funnel', 'inactivity'] as const;
 const OOA_MESSAGE_TYPES = ['like', 'message', 'match', 'abandoned_funnel', 'inactivity'] as const;
 
 type ParticipantInfo = {
@@ -147,13 +150,13 @@ async function hasReachedEventSmsCap(participantId: string, eventId: string): Pr
       .select('id')
       .eq('participant_id', participantId)
       .eq('event_id', eventId)
-      .in('message_type', [...OOA_MESSAGE_TYPES]),
+      .in('message_type', [...OOA_CAPPED_TYPES]),
     supabase
       .from('pending_sms')
       .select('id')
       .eq('recipient_id', participantId)
       .eq('event_id', eventId)
-      .in('message_type', [...OOA_MESSAGE_TYPES])
+      .in('message_type', [...OOA_CAPPED_TYPES])
       .is('sent_at', null)
       .is('cancelled_at', null),
   ]);

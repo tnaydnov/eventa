@@ -29,7 +29,10 @@ type OmniModerationResponse = {
 export async function moderateImageUrl(imageUrl: string): Promise<ModerationResult | null> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return null; // Graceful degradation - no API key
+    // No API key - auto-approve rather than leaving photos in 'pending' forever.
+    // Returning a synthetic 'allowed' result so the caller writes moderation_status='approved'.
+    logger.warn('[MODERATOR] OPENAI_API_KEY not set - auto-approving photo (no moderation)');
+    return { flagged: false, scores: {}, label: 'none', score: 0 };
   }
 
   try {
