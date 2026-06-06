@@ -11,7 +11,6 @@ import { useRealtimeHub } from '@/hooks/useRealtimeHub';
 import { LEGACY_LOCAL_ID_KEY, PROFILE_SETUP_KEY_PREFIX, SWR_STALE_MS } from '@/lib/constants';
 import { useAppResume } from '@/hooks/useAppResume';
 import { PageTransition } from '@/components/Animations';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import MobileGuard from '@/components/MobileGuard';
 import AppHeader from '@/components/AppHeader';
 import TabBar from '@/components/TabBar';
@@ -165,7 +164,6 @@ function EventPageContent({
   const setViewMode = useSwipeStore((s) => s.setViewMode);
   // Stale-while-revalidate: only show spinner on first-ever load
   const [loading, setLoading] = useState(participants.length === 0);
-  const gridScrollRef = useRef<HTMLDivElement>(null);
 
   const loadGrid = useCallback(async () => {
     const s = useSessionStore.getState().session;
@@ -371,40 +369,6 @@ function EventPageContent({
 
   usePreloadImages(preloadUrls);
 
-  // Virtualized grid: chunk participants into rows of 3
-  const COLS = 3;
-  const GAP = 8;
-  const rows = useMemo(() => {
-    const result: GridParticipant[][] = [];
-    for (let i = 0; i < filteredParticipants.length; i += COLS) {
-      result.push(filteredParticipants.slice(i, i + COLS));
-    }
-    return result;
-  }, [filteredParticipants]);
-
-  // Estimate row height: card width = (containerWidth - gaps) / 3, height = width * 4/3 + gap
-  // On a 390px phone: (390 - 16 padding - 16 gap) / 3 ≈ 119px → 119 * 1.333 ≈ 159px + 8px gap ≈ 167px
-  const estimateRowHeight = useCallback(() => {
-    const container = gridScrollRef.current;
-    if (!container) return 175;
-
-    const horizontalPadding = 16; // 8px each side
-    const totalGapWidth = GAP * (COLS - 1); // 16px
-    const availableWidth = container.clientWidth - horizontalPadding - totalGapWidth;
-    const cardWidth = availableWidth / COLS;
-    const cardHeight = cardWidth * (4 / 3);
-
-    return Math.ceil(cardHeight) + 8; // bottom spacing = same as column gap
-  }, []);
-
-  const virtualizer = useVirtualizer({
-    count: rows.length,
-    getScrollElement: () => gridScrollRef.current,
-    estimateSize: estimateRowHeight,
-    measureElement: (el) => el.getBoundingClientRect().height,
-    overscan: 3,
-  });
-
   if (!session) return null;
 
   return (
@@ -498,40 +462,18 @@ function EventPageContent({
               /* ── Swipe mode ── */
               <SwipeView participants={filteredParticipants} eventSlug={eventSlug} />
             ) : (
-              <div
-                ref={gridScrollRef}
-                className="virtual-grid-scroll"
-              >
-                <div
-                  className="virtual-grid-inner"
-                  style={{ height: virtualizer.getTotalSize() }}
-                >
-                  {virtualizer.getVirtualItems().map((virtualRow) => {
-                    const rowParticipants = rows[virtualRow.index];
-                    return (
-                      <div
-                        key={virtualRow.index}
-                        ref={virtualizer.measureElement}
-                        data-index={virtualRow.index}
-                        className="virtual-grid-row"
-                        style={{
-                          transform: `translateY(${virtualRow.start}px)`,
-                        }}
-                      >
-                        {rowParticipants.map((p) => (
-                            <GridCard
-                              key={p.id}
-                              p={p}
-                              hasLikeHighlight={likeHighlightIds.has(p.id)}
-                              hasMessageHighlight={messageHighlightIds.has(p.id)}
-                              onCardClick={handleCardClick}
-                              priority={virtualRow.index < 2}
-                            />
-                          ))}
-                      </div>
-                    );
-                  })}
-                </div>
+              /* ── Grid mode: plain CSS grid, no virtualizer ── */
+              <div className="profile-grid">
+                {filteredParticipants.map((p, i) => (
+                  <GridCard
+                    key={p.id}
+                    p={p}
+                    hasLikeHighlight={likeHighlightIds.has(p.id)}
+                    hasMessageHighlight={messageHighlightIds.has(p.id)}
+                    onCardClick={handleCardClick}
+                    priority={i < 6}
+                  />
+                ))}
               </div>
             )}
           </div>
