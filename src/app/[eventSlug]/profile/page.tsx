@@ -298,7 +298,10 @@ export default function ProfileEditPage({
                   <span>התראות SMS</span>
                 </div>
                 <div className="profile-edit-field" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <label htmlFor="sms-toggle" style={{ margin: 0, cursor: 'pointer' }}>קבל התראות SMS על התאמות</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <label htmlFor="sms-toggle" style={{ margin: 0, cursor: 'pointer' }}>קבל/י התראות SMS</label>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>על לייקים, הודעות והתאמות חדשות</span>
+                  </div>
                   <button
                     id="sms-toggle"
                     type="button"

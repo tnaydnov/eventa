@@ -584,9 +584,10 @@ function JoinPageContent({
             <ConsentRow
               checked={smsNotificationsEnabled}
               onToggle={() => setSmsNotificationsEnabled(!smsNotificationsEnabled)}
-              ariaLabel="קבל/י SMS כשיש התאמה חדשה"
+              ariaLabel="קבל/י SMS כשיש לייק, הודעה או התאמה חדשה"
             >
-              <span>שלחו לי SMS כשיש לי התאמה חדשה</span>
+              <span>שלחו לי SMS כשיש לייק, הודעה או התאמה חדשה</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>הדפדפן לא חומר בתחרשות push – זו הדרך להישאר מעודכן/ת</span>
               <span style={{ display: 'block', fontSize: '0.75em', opacity: 0.6, marginTop: 2 }}>הדפדפן לא תומך בהתראות push - זו הדרך לא לפספס</span>
             </ConsentRow>
 
