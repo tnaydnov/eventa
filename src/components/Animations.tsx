@@ -26,8 +26,13 @@ const pageVariants: Variants = {
 
 /**
  * Wraps a page/section with a fade-slide-in animation.
+ * Pass instant=true to skip the animation (e.g. when navigating back to a page
+ * that already has cached data - the content is visible immediately).
  */
-export function PageTransition({ children, className }: { children: ReactNode; className?: string }) {
+export function PageTransition({ children, className, instant }: { children: ReactNode; className?: string; instant?: boolean }) {
+  if (instant) {
+    return <div className={className}>{children}</div>;
+  }
   return (
     <motion.div
       variants={pageVariants}

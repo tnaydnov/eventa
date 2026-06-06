@@ -27,6 +27,13 @@ import type { GridParticipant } from '@/lib/stores/grid';
 
 const ABOVE_FOLD_PRELOAD_COUNT = 6;
 
+/**
+ * Module-level last-fetch timestamp. Persists across navigation so the
+ * SWR stale check works correctly when the user navigates back to the grid.
+ * A React ref resets to 0 on every component remount, defeating the stale check.
+ */
+let _lastGridFetchTime = 0;
+
 function usePreloadImages(urls: string[]) {
   useEffect(() => {
     if (typeof document === 'undefined' || urls.length === 0) return;
@@ -158,7 +165,6 @@ function EventPageContent({
   const setViewMode = useSwipeStore((s) => s.setViewMode);
   // Stale-while-revalidate: only show spinner on first-ever load
   const [loading, setLoading] = useState(participants.length === 0);
-  const lastFetchRef = useRef(0);
   const gridScrollRef = useRef<HTMLDivElement>(null);
 
   const loadGrid = useCallback(async () => {
@@ -167,7 +173,7 @@ function EventPageContent({
     try {
       const data = await getGridParticipants(s.eventId, s.participantId);
       setParticipants(data);
-      lastFetchRef.current = Date.now();
+      _lastGridFetchTime = Date.now();
     } catch {
       // Silently fail - stale data is better than a stuck spinner
     } finally {
@@ -216,7 +222,7 @@ function EventPageContent({
   // Load grid (skip if recently fetched - Realtime keeps data fresh)
   useEffect(() => {
     if (session) {
-      if (Date.now() - lastFetchRef.current < SWR_STALE_MS) return;
+      if (Date.now() - _lastGridFetchTime < SWR_STALE_MS) return;
       loadGrid();
     }
   }, [session, eventSlug, loadGrid]);
@@ -391,7 +397,8 @@ function EventPageContent({
 
   return (
     <MobileGuard>
-      <PageTransition>
+      {/* Skip animation when navigating back to an already-populated grid */}
+      <PageTransition instant={participants.length > 0}>
         <div className="app-container">
           <AppHeader />
           <div
