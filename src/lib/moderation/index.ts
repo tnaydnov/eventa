@@ -189,16 +189,25 @@ export async function moderateProfilePhoto(
       verdict === 'shadow_review' ? 'review' :
       'approved';
 
-    await supabase
-      .from('participant_photos')
-      .update({
-        moderation_score: result.score,
-        moderation_scores: result.scores,
-        moderation_label: result.label,
-        moderation_status: dbStatus,
-        moderation_reviewed_at: new Date().toISOString(),
-      })
-      .eq('id', photoId);
+    if (verdict === 'blocked') {
+      // Hard block: delete from storage AND DB so the owner can't see it either.
+      // This is the only way to make sure the nude photo is fully gone.
+      await Promise.all([
+        supabase.storage.from('photos').remove([storagePath]),
+        supabase.from('participant_photos').delete().eq('id', photoId),
+      ]);
+    } else {
+      await supabase
+        .from('participant_photos')
+        .update({
+          moderation_score: result.score,
+          moderation_scores: result.scores,
+          moderation_label: result.label,
+          moderation_status: dbStatus,
+          moderation_reviewed_at: new Date().toISOString(),
+        })
+        .eq('id', photoId);
+    }
 
     // Write full audit log
     await writeModerationLog({

@@ -70,14 +70,14 @@ https://eventa.productions/
 
 /** Notification SMS: someone liked you */
 export function likeNotificationSmsText(eventName: string, eventSlug: string): string {
-  return `✨ מישהו/י ב${eventName} חיבב אותך!
+  return `✨ עשו לך לייק ב${eventName}!
 היכנס/י לאפליקציה כדי לגלות מי זה:
 ${APP_BASE_URL}/${eventSlug}`;
 }
 
 /** Notification SMS: you got a match */
 export function matchNotificationSmsText(eventName: string, eventSlug: string): string {
-  return `🎉 יש התאמה! גם אתם וגם ה-Match שלכם חיבבתם אחד את השני ב${eventName}!
+  return `🎉 יש לכם מאץ' חדש ב${eventName}!
 פתחו שיחה עכשיו:
 ${APP_BASE_URL}/${eventSlug}`;
 }

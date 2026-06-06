@@ -99,6 +99,7 @@ export interface ParticipantPhoto {
   storage_path: string;
   order_index: number;
   created_at: string;
+  moderation_status?: 'pending' | 'approved' | 'rejected' | 'review';
 }
 
 export interface Conversation {

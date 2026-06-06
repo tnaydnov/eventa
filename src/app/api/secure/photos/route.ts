@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
 import { isValidUUID } from '@/lib/session';
 import { RATE_LIMITS } from '@/lib/rate-limit';
@@ -87,8 +87,10 @@ export async function POST(req: NextRequest) {
       return jsonError('Failed to save photo', 400);
     }
 
-    // Moderate the photo (fire-and-forget - must not block response)
-    void moderateProfilePhoto(data.id as string, storagePath, session.sub, session.eid);
+    // Moderate the photo - use after() so Vercel guarantees the async work
+    // completes even after the response has been sent to the client.
+    // Plain void fire-and-forget is NOT reliable in Vercel serverless.
+    after(() => moderateProfilePhoto(data.id as string, storagePath, session.sub, session.eid));
 
     return NextResponse.json(data);
   } catch (err) {

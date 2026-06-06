@@ -84,7 +84,7 @@ export function invalidateBlockedCache() {
  */
 /** Explicit columns for participant queries (avoids SELECT *). Excludes fingerprints - those are internal only. */
 export const PARTICIPANT_COLUMNS = 'id, event_id, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at, phone, sms_consent, sms_notifications_enabled, feedback_consent, feedback_sent' as const;
-export const PHOTO_COLUMNS = 'id, event_id, participant_id, storage_path, order_index, created_at' as const;
+export const PHOTO_COLUMNS = 'id, event_id, participant_id, storage_path, order_index, created_at, moderation_status' as const;
 export const CONVERSATION_COLUMNS = 'id, event_id, a_participant_id, b_participant_id, created_at, last_message_at, a_last_read_at, b_last_read_at' as const;
 export const MESSAGE_COLUMNS = 'id, event_id, conversation_id, sender_participant_id, type, text, media_path, is_deleted, created_at' as const;
 export const LIKE_COLUMNS = 'id, event_id, from_participant_id, to_participant_id, created_at, seen_at' as const;

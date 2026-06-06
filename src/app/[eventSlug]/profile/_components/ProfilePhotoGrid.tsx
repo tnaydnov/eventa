@@ -240,6 +240,21 @@ export default function ProfilePhotoGrid({
               >✕</button>
               {idx === 0 && <span className="profile-edit-photo-badge">ראשית</span>}
               <span className="profile-edit-photo-order">{idx + 1}</span>
+              {photo.moderation_status === 'rejected' && (
+                <div style={{
+                  position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.65)',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  justifyContent: 'center', gap: '4px', padding: '8px', zIndex: 4,
+                }}>
+                  <span style={{ fontSize: '20px' }}>🚫</span>
+                  <span style={{ color: '#fff', fontSize: '11px', fontWeight: 600, textAlign: 'center', lineHeight: 1.3 }}>
+                    תמונה הוסרה
+                  </span>
+                  <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '10px', textAlign: 'center', lineHeight: 1.2 }}>
+                    לא עומדת בהנחיות
+                  </span>
+                </div>
+              )}
             </div>
           ))}
           {photos.length < MAX_PHOTOS && (
