@@ -23,7 +23,7 @@ import {
 const PRESENCE_WINDOW_MS = 60_000; // 60 seconds
 const LIKE_DELAY_MS = 2 * 60_000;    // 2 minutes - user has time to return
 const MESSAGE_DELAY_MS = 90_000;      // 90 seconds
-const MATCH_DELAY_MS = 30_000;        // 30 seconds - match is high-value, send quickly
+const MATCH_DELAY_MS = 0;             // no delay - match is high-value, send as soon as cron runs (~60s max)
 const LIKE_QUOTA_MS = 60 * 60_000; // 1 hour
 const MESSAGE_QUOTA_MS = 15 * 60_000; // 15 minutes
 const INACTIVITY_DELAY_MS = 30 * 60_000; // 30 minutes
