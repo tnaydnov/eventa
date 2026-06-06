@@ -303,6 +303,7 @@ export async function enqueueMessageNotification(
 /**
  * Schedule an abandoned-funnel SMS for a participant who just verified OTP
  * but hasn't completed profile setup. Fires at +15 minutes.
+ * Safe to call multiple times - skips if a pending row already exists.
  */
 export async function enqueueAbandonedFunnelSms(
   participantId: string,
@@ -318,6 +319,19 @@ export async function enqueueAbandonedFunnelSms(
     if (!participant.sms_consent || !participant.sms_notifications_enabled) return;
     if (await isOptedOut(participant.phone)) return;
     if (await hasReachedEventSmsCap(participantId, eventId)) return;
+
+    // Idempotency: skip if a pending (not yet sent, not cancelled) row already exists.
+    const supabase = getServiceClient();
+    const { data: existing } = await supabase
+      .from('pending_sms')
+      .select('id')
+      .eq('recipient_id', participantId)
+      .eq('event_id', eventId)
+      .eq('message_type', 'abandoned_funnel')
+      .is('sent_at', null)
+      .is('cancelled_at', null)
+      .limit(1);
+    if ((existing?.length ?? 0) > 0) return;
 
     const body = abandonedFunnelSmsText(event.name, event.slug);
     await enqueue(eventId, participantId, participant.phone, 'abandoned_funnel', body, 15 * 60_000);

@@ -64,21 +64,37 @@ export async function POST(req: NextRequest) {
         .then(({ error }) => { if (error) logger.error('[HEARTBEAT] participant update error:', { error: error.message }); });
     }
 
-    // When tab becomes visible, cancel any pending SMS for this participant.
+    // When tab becomes visible, cancel pending notification SMSes for this participant.
     // We cancel on every visible heartbeat (not just on transition) because the
     // dispatch-time delay window may still be open - cancelling early prevents
     // a user who returned quickly from receiving an unnecessary SMS.
+    // NOTE: abandoned_funnel is intentionally excluded from cancellation - returning
+    // to the page without completing profile does not resolve the abandonment.
+    // Instead, its dispatch_after is reset to now+15min so the countdown only fires
+    // after 15 consecutive minutes of the user being truly gone.
     if (tabVisible) {
-      void supabase
-        .from('pending_sms')
-        .update({ cancelled_at: now, cancel_reason: 'user_returned' })
-        .eq('recipient_id', session.sub)
-        .eq('event_id', session.eid)
-        .is('sent_at', null)
-        .is('cancelled_at', null)
-        .then(({ error }) => {
-          if (error) logger.error('[HEARTBEAT] cancel pending sms error:', { error: error.message });
-        });
+      const fifteenMinutesFromNow = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+      void Promise.all([
+        supabase
+          .from('pending_sms')
+          .update({ cancelled_at: now, cancel_reason: 'user_returned' })
+          .eq('recipient_id', session.sub)
+          .eq('event_id', session.eid)
+          .neq('message_type', 'abandoned_funnel')
+          .is('sent_at', null)
+          .is('cancelled_at', null),
+        supabase
+          .from('pending_sms')
+          .update({ dispatch_after: fifteenMinutesFromNow })
+          .eq('recipient_id', session.sub)
+          .eq('event_id', session.eid)
+          .eq('message_type', 'abandoned_funnel')
+          .is('sent_at', null)
+          .is('cancelled_at', null),
+      ]).then(([notifRes, funnelRes]) => {
+        if (notifRes.error) logger.error('[HEARTBEAT] cancel pending sms error:', { error: notifRes.error.message });
+        if (funnelRes.error) logger.error('[HEARTBEAT] reset abandoned_funnel dispatch error:', { error: funnelRes.error.message });
+      });
     }
 
     return NextResponse.json({ success: true });
