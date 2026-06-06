@@ -24,6 +24,7 @@ export default function SessionProvider({
   const session = useSessionStore((s) => s.session);
   const [restored, setRestored] = useState(false);
   const verifyingRef = useRef(false);
+  const initialVerifyDoneRef = useRef(false);
 
   useEffect(() => {
     // If the store already has the right session, we're good
@@ -32,6 +33,10 @@ export default function SessionProvider({
       setRestored(true);
       return;
     }
+
+    // Prevent duplicate in-flight verify calls (e.g. re-renders before async completes)
+    if (initialVerifyDoneRef.current) return;
+    initialVerifyDoneRef.current = true;
 
     // Try verifying session from httpOnly cookie first
     async function verifySession() {
@@ -102,6 +107,8 @@ export default function SessionProvider({
 
   // Re-verify session when returning from background (JWT may have expired)
   useAppResume(async () => {
+    // No session means the user is on the join flow - nothing to re-verify
+    if (!useSessionStore.getState().session) return;
     if (verifyingRef.current) return;
     verifyingRef.current = true;
     try {

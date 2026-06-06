@@ -323,8 +323,7 @@ function JoinPageContent({
   }, [agreed]);
 
   const handleSendOtp = useCallback(async () => {
-    const joinCode = getJoinCode();
-    if (!joinCode) return;
+    const joinCode = getJoinCode() || undefined;
     if (phone.length !== VALID_LOCAL_DIGITS) {
       setError('הזינו מספר סלולרי ישראלי תקין');
       return;
@@ -351,8 +350,7 @@ function JoinPageContent({
 
   const handleVerifyOtp = useCallback(
     async (code: string) => {
-      const joinCode = getJoinCode();
-      if (!joinCode) return;
+      const joinCode = getJoinCode() || undefined;
 
       setPhase('verifying_otp');
       setError('');
