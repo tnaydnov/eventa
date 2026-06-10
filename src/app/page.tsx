@@ -68,41 +68,74 @@ export default function LandingPage() {
 
       <RevealSections>
 
-      {/* ═══ Real Photo Showcase ═══ */}
-      <section className="landing-photo-showcase reveal" aria-label="תמונה מהשטח">
-        <figure className="photo-showcase__card">
-          <div className="photo-showcase__media">
-            <Image
-              src="/entrance_scanning.png"
-              alt="אורחת סורקת QR בכניסה לחתונה עם Eventa"
-              width={1920}
-              height={1080}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 92vw, 1120px"
-              className="photo-showcase__img"
-              quality={100}
-              priority={false}
-            />
-            <div className="photo-showcase__scrim" />
-            <div className="photo-showcase__content">
-              <span className="landing-badge photo-showcase__badge">
-                <span aria-hidden="true">📍</span> ממש ככה זה נראה
-              </span>
-              <h2 className="photo-showcase__heading">
-                הרגע שהאורחים<br />
-                <span className="gradient-text">מגלים את Eventa</span>
-              </h2>
-              <p className="photo-showcase__desc">
-                בכניסה לאירוע, פוסטר מעוצב עם QR קוד. סריקה אחת — ותוך דקה האורח כבר בפנים, עם פרופיל, ומוכן להכיר.
-              </p>
-              <a href="/order" className="landing-btn landing-btn--primary photo-showcase__cta">
-                רוצים את זה בחתונה שלכם?
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
-                  <path d="M7 4l-6 6 6 6" />
-                </svg>
-              </a>
-            </div>
+      {/* ═══ Showcase — Cinematic Band ═══ */}
+      <section className="landing-showcase reveal" aria-label="איך זה עובד באירוע">
+        <div className="showcase__media">
+          <Image
+            src="/entrance_scanning.png"
+            alt="אורחת סורקת QR בכניסה לחתונה עם Eventa"
+            width={1920}
+            height={1080}
+            sizes="100vw"
+            className="showcase__img"
+            quality={100}
+            priority={false}
+          />
+        </div>
+        <div className="showcase__text">
+          <div className="showcase__text-inner">
+            <span className="landing-badge"><span aria-hidden="true">📍</span> ממש ככה זה נראה</span>
+            <h2 className="showcase__heading">
+              הרגע שבו אירוע<br />
+              <span className="gradient-text">הופך להיכרות</span>
+            </h2>
+            <p className="showcase__desc">
+              בכניסה לאירוע מחכה פוסטר מעוצב עם QR. סריקה אחת — וכל השאר קורה מעצמו, בזמן אמת.
+            </p>
+            <a href="/order" className="landing-btn landing-btn--primary showcase__cta">
+              רוצים את זה בחתונה שלכם?
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
+                <path d="M7 4l-6 6 6 6" />
+              </svg>
+            </a>
           </div>
-        </figure>
+        </div>
+      </section>
+
+      {/* ═══ Showcase feature strip (continuous) ═══ */}
+      <section className="landing-section showcase-features reveal" aria-label="יתרונות">
+        <div className="sf-grid">
+          <div className="sf-item">
+            <span className="sf-item__icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" focusable="false">
+                <path d="M3 7V5a2 2 0 0 1 2-2h2" /><path d="M17 3h2a2 2 0 0 1 2 2v2" />
+                <path d="M21 17v2a2 2 0 0 1-2 2h-2" /><path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+                <line x1="7" y1="12" x2="17" y2="12" />
+              </svg>
+            </span>
+            <h3 className="sf-item__title">סריקה חכמה בכניסה</h3>
+            <p className="sf-item__desc">סורקים QR ונכנסים ישר מהדפדפן — בלי חנות אפליקציות ובלי הורדות.</p>
+          </div>
+          <div className="sf-item">
+            <span className="sf-item__icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" focusable="false">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </span>
+            <h3 className="sf-item__title">פרופיל תוך 60 שניות</h3>
+            <p className="sf-item__desc">כמה פרטים ותמונה, ומתחילים לגלוש בין הרווקים והרווקות שבאירוע.</p>
+          </div>
+          <div className="sf-item">
+            <span className="sf-item__icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" focusable="false">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+            </span>
+            <h3 className="sf-item__title">מאצ׳ים וצ׳אט חי</h3>
+            <p className="sf-item__desc">לייק הדדי פותח צ׳אט פרטי — כל הריגוש קורה במהלך האירוע עצמו.</p>
+          </div>
+        </div>
       </section>
 
       <section id="demo" className="landing-section landing-demo reveal">

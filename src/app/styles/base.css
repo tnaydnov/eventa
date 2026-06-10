@@ -54,26 +54,17 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Gradient Mesh Background ── */
+/* ── Minimalist warm-dark background ── */
 body::before {
   content: '';
   position: fixed;
-  inset: -50px;
+  inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(ellipse 600px 500px at 15% 25%, rgba(212, 165, 154, 0.18) 0%, transparent 70%),
-    radial-gradient(ellipse 500px 600px at 80% 70%, rgba(140, 100, 140, 0.12) 0%, transparent 70%),
-    radial-gradient(ellipse 700px 400px at 50% 90%, rgba(201, 165, 128, 0.10) 0%, transparent 70%);
-  animation: meshFloat 30s ease-in-out infinite;
   pointer-events: none;
-  will-change: transform;
-}
-
-/* Disable continuous mesh animation on mobile for GPU/battery savings */
-@media (max-width: 768px) {
-  body::before {
-    animation: none;
-  }
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(212, 165, 154, 0.10) 0%, transparent 52%),
+    radial-gradient(115% 75% at 50% 112%, rgba(122, 31, 61, 0.07) 0%, transparent 58%),
+    linear-gradient(180deg, #0a0909 0%, #080808 55%, #070707 100%);
 }
 
 @keyframes meshFloat {

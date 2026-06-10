@@ -7,7 +7,7 @@
 .landing {
   max-width: 100%;
   overflow-x: hidden;
-  background: var(--background);
+  background: transparent;
   color: var(--foreground);
   font-family: var(--font-rubik, 'Rubik', sans-serif);
   position: relative;
@@ -41,10 +41,23 @@
 
 /* Gradient accent lines between sections */
 .landing-accent-line {
+  position: relative;
   height: 1px;
   max-width: 600px;
   margin: 0 auto;
-  background: linear-gradient(90deg, transparent, rgba(214,168,90,0.30), rgba(212,165,154,0.25), transparent);
+  background: linear-gradient(90deg, transparent, rgba(214,168,90,0.32), rgba(212,165,154,0.28), transparent);
+}
+.landing-accent-line::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--accent-gold-deep, #D6A85A);
+  box-shadow: 0 0 14px rgba(214, 168, 90, 0.65);
 }
 
 .landing-badge {
@@ -470,11 +483,11 @@
 .landing-demo::after {
   content: '';
   position: absolute;
-  width: 600px; height: 600px;
+  width: 680px; height: 680px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(212,165,154,0.10) 0%, rgba(122,31,61,0.05) 40%, transparent 70%);
-  top: 50%; right: 8%;
-  transform: translateY(-50%);
+  background: radial-gradient(circle, rgba(212,165,154,0.05) 0%, transparent 68%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -513,6 +526,48 @@
   flex-direction: column;
   align-items: center;
   flex-shrink: 0;
+  perspective: 1600px;
+  perspective-origin: 50% 35%;
+}
+
+/* Grounded stage shadow beneath the phone */
+.demo-phone-wrapper::before {
+  content: '';
+  position: absolute;
+  bottom: 56px;
+  left: 50%;
+  width: 240px;
+  height: 46px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.6) 0%, transparent 70%);
+  filter: blur(14px);
+  z-index: -2;
+  pointer-events: none;
+}
+
+/* 3D resting tilt — straightens on hover for interaction */
+.demo-phone-wrapper .phone-frame {
+  transform: rotateY(-15deg) rotateX(6deg) translateZ(0);
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.8s ease;
+  box-shadow:
+    -34px 44px 90px rgba(0, 0, 0, 0.6),
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(212, 165, 154, 0.14);
+}
+
+.demo-phone-wrapper:hover .phone-frame {
+  transform: rotateY(-4deg) rotateX(2deg);
+  box-shadow:
+    -18px 30px 70px rgba(0, 0, 0, 0.55),
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 44px rgba(212, 165, 154, 0.22);
+}
+
+/* On touch devices keep the phone flat & fully usable */
+@media (hover: none) {
+  .demo-phone-wrapper { perspective: none; }
+  .demo-phone-wrapper .phone-frame { transform: none; }
 }
 
 .demo-try-hint {
@@ -1480,168 +1535,187 @@
   }
 }
 
-/* ═══ Real Photo Showcase ═══ */
-.landing-photo-showcase {
+/* ═══ Showcase — Cinematic Band ═══ */
+/* Full-bleed, full uncropped image, organic dissolve into the page */
+.landing-showcase {
   position: relative;
   width: 100%;
-  padding: 56px 24px;
-  display: flex;
-  justify-content: center;
+  margin: -40px 0 0;        /* gentle overlap with hero for a seamless flow */
+  z-index: 0;
 }
 
-/* Contained card — full image, never cropped, never scaled */
-.photo-showcase__card {
-  position: relative;
-  width: 100%;
-  max-width: 1120px;
-  margin: 0;
-  border-radius: 24px;
-  overflow: hidden;
-  border: 1px solid rgba(214, 168, 90, 0.18);
-  box-shadow:
-    0 24px 70px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(255, 255, 255, 0.03),
-    0 0 80px rgba(212, 165, 154, 0.06);
-  background: #0c0c0c;
-}
-
-.photo-showcase__media {
+.showcase__media {
   position: relative;
   width: 100%;
   line-height: 0;
 }
 
-/* Full image at natural ratio — sharp, no crop, no movement */
-.photo-showcase__img {
+/* Natural aspect ratio = no crop + pixel-sharp. No object-fit, no scale. */
+.showcase__img {
   display: block;
   width: 100%;
   height: auto;
+  /* Organic feathered dissolve: a soft radial vignette intersected with a
+     vertical fade — melts the photo into the page on every edge, no hard line. */
+  -webkit-mask-image:
+    radial-gradient(145% 125% at 50% 40%, #000 56%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 10%, #000 72%, transparent 99%);
+  -webkit-mask-composite: source-in;
+          mask-image:
+    radial-gradient(145% 125% at 50% 40%, #000 56%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 10%, #000 72%, transparent 99%);
+          mask-composite: intersect;
 }
 
-/* Scrim: darkens the right side (RTL) so overlaid text stays legible */
-.photo-showcase__scrim {
+/* Text overlay — pinned to the bottom over a soft scrim (keeps the girl visible) */
+.showcase__text {
   position: absolute;
-  inset: 0;
-  z-index: 1;
-  background:
-    linear-gradient(to left, rgba(8,8,8,0.88) 0%, rgba(8,8,8,0.60) 26%, rgba(8,8,8,0.12) 52%, transparent 72%);
-  pointer-events: none;
-}
-
-/* Text content overlaid on the right (RTL) */
-.photo-showcase__content {
-  position: absolute;
-  top: 0;
-  right: 0;
+  inset-inline: 0;
   bottom: 0;
-  width: 46%;
   z-index: 2;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 32px 5% 32px 24px;
+  justify-content: flex-start;     /* RTL → starts at the right */
+  padding: 0 7vw 4.5vw;
   direction: rtl;
+  pointer-events: none;
+  background: linear-gradient(to top,
+    rgba(8, 8, 8, 0.92) 0%,
+    rgba(8, 8, 8, 0.55) 32%,
+    rgba(8, 8, 8, 0.0) 72%);
 }
 
-.photo-showcase__badge {
-  margin-bottom: 16px;
-  display: inline-block;
-  width: fit-content;
+.showcase__text-inner {
+  max-width: 540px;
+  pointer-events: auto;
 }
 
-.photo-showcase__heading {
-  font-size: clamp(22px, 2.6vw, 44px);
+.showcase__heading {
+  font-size: clamp(26px, 3.4vw, 50px);
   font-weight: 700;
-  line-height: 1.18;
+  line-height: 1.16;
   letter-spacing: -0.5px;
-  margin: 0 0 14px;
+  margin: 14px 0 12px;
   color: var(--foreground);
-  text-shadow: 0 2px 18px rgba(0,0,0,0.7);
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.7);
 }
 
-.photo-showcase__desc {
-  font-size: clamp(13px, 1.15vw, 16px);
-  color: rgba(240,237,232,0.82);
-  line-height: 1.7;
-  margin: 0 0 24px;
-  text-shadow: 0 1px 10px rgba(0,0,0,0.6);
+.showcase__desc {
+  font-size: clamp(14px, 1.25vw, 18px);
+  color: rgba(240, 237, 232, 0.86);
+  line-height: 1.65;
+  margin: 0 0 22px;
+  max-width: 480px;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.65);
 }
 
-.photo-showcase__cta {
-  display: inline-flex !important;
+.showcase__cta {
   white-space: nowrap;
-  align-self: flex-start;
-  font-size: 14px !important;
-  padding: 13px 24px !important;
 }
 
-/* Thin gold accent line on the left border of the content panel */
-.photo-showcase__content::before {
-  content: '';
-  position: absolute;
-  top: 22%;
-  bottom: 22%;
-  left: 0;
-  width: 2px;
-  background: linear-gradient(to bottom, transparent, rgba(214,168,90,0.55), transparent);
-  border-radius: 1px;
+/* — Continuous feature strip (flows straight out of the photo) — */
+.showcase-features {
+  padding-top: clamp(8px, 2vw, 24px);
+  padding-bottom: clamp(40px, 5vw, 72px);
 }
 
-/* ── Tablet ── */
-@media (max-width: 960px) {
-  .photo-showcase__content {
-    width: 54%;
-    padding: 24px 4% 24px 18px;
-  }
+.sf-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(20px, 3vw, 44px);
+  max-width: 980px;
+  margin: 0 auto;
+}
 
-  .photo-showcase__scrim {
-    background:
-      linear-gradient(to left, rgba(8,8,8,0.90) 0%, rgba(8,8,8,0.65) 32%, rgba(8,8,8,0.15) 60%, transparent 78%);
+.sf-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.sf-item__icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, rgba(214, 168, 90, 0.15), rgba(122, 31, 61, 0.12));
+  border: 1px solid rgba(214, 168, 90, 0.20);
+  color: var(--accent-gold-deep, #D6A85A);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease;
+}
+
+.sf-item:hover .sf-item__icon {
+  transform: translateY(-3px) scale(1.06);
+  box-shadow: 0 10px 26px rgba(214, 168, 90, 0.16);
+}
+
+.sf-item__title {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--foreground);
+}
+
+.sf-item__desc {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 280px;
+}
+
+/* — Tablet — */
+@media (max-width: 900px) {
+  .showcase__text {
+    padding: 0 6vw 7vw;
   }
 }
 
-/* ── Mobile: full image on top, text below in same seamless card ── */
-@media (max-width: 680px) {
-  .landing-photo-showcase {
-    padding: 40px 16px;
+/* — Mobile: image dissolves into a stacked caption — fully continuous — */
+@media (max-width: 640px) {
+  .landing-showcase {
+    margin-top: -24px;
   }
 
-  .photo-showcase__card {
-    border-radius: 20px;
+  .showcase__img {
+    /* simple soft top+bottom fade so it melts into the caption below */
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 9%, #000 82%, transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, #000 9%, #000 82%, transparent 100%);
+    -webkit-mask-composite: source-over;
+            mask-composite: add;
   }
 
-  /* Soft fade at the bottom of the image into the text panel */
-  .photo-showcase__scrim {
-    background:
-      linear-gradient(to top, #0c0c0c 0%, rgba(12,12,12,0.0) 16%);
-  }
-
-  .photo-showcase__content {
+  .showcase__text {
     position: static;
+    background: none;
+    padding: 6px 22px 4px;
+    margin-top: -14%;          /* tuck the caption up into the faded image */
+  }
+
+  .showcase__text-inner {
+    max-width: 100%;
+  }
+
+  .showcase__heading {
+    font-size: clamp(24px, 7vw, 32px);
+  }
+
+  .showcase__cta {
     width: 100%;
-    padding: 4px 22px 28px;
-    background: #0c0c0c;
-    text-align: right;
+    justify-content: center;
   }
 
-  .photo-showcase__content::before {
-    display: none;
+  .sf-grid {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    max-width: 340px;
   }
+}
 
-  .photo-showcase__heading {
-    font-size: clamp(22px, 6vw, 30px);
-    margin-top: -8px;
-  }
-
-  .photo-showcase__desc {
-    font-size: 14px;
-  }
-
-  .photo-showcase__cta {
-    width: 100% !important;
-    justify-content: center !important;
-    align-self: stretch;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .showcase__img { transition: none; }
 }
 
 /* ═══ Responsive ═══ */
@@ -1726,13 +1800,22 @@
 /* ═══ Scroll-reveal animation (applied via JS) ═══ */
 .reveal {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transform: translateY(36px);
+  transition: opacity 0.85s ease, transform 0.95s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
 }
 
 .reveal.visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 /* ═══ Selection color ═══ */
