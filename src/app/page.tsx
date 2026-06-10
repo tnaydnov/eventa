@@ -67,20 +67,17 @@ export default function LandingPage() {
       </section>
 
       <RevealSections>
-      <div className="landing-accent-line" />
 
       {/* ═══ Real Photo Showcase ═══ */}
       <section className="landing-photo-showcase reveal" aria-label="תמונה מהשטח">
-        <div className="photo-showcase__image-wrap">
+        <div className="photo-showcase__frame">
           <Image
             src="/entrance_scanning.png"
             alt="אורחת סורקת QR בכניסה לחתונה עם Eventa"
-            width={1920}
-            height={1080}
-            sizes="100vw"
-            style={{ width: '100%', height: 'auto', display: 'block' }}
+            fill
+            sizes="(max-width: 768px) 100vw, 100vw"
             className="photo-showcase__img"
-            quality={90}
+            quality={95}
             priority={false}
           />
           <div className="photo-showcase__overlay" />
@@ -108,7 +105,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <div className="landing-accent-line" />
       <section id="demo" className="landing-section landing-demo reveal">
         <span className="landing-badge"><span aria-hidden="true">📱</span> ראו בעצמכם</span>
         <h2 className="landing-heading" style={{ fontSize: 'clamp(26px, 4vw, 42px)' }}>
