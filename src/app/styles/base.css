@@ -4,12 +4,14 @@
    ═══════════════════════════════════════════ */
 
 :root {
-  --background: #0A0A0A;
+  --background: #080808;
   --foreground: #F0EDE8;
   --primary: #D4A59A;
-  --primary-light: #E8C4BB;
+  --primary-light: #EEC7BC;
   --primary-dark: #B8877C;
   --accent-gold: #C9A580;
+  --accent-gold-deep: #D6A85A;
+  --wine: #7A1F3D;
   --card-bg: rgba(255, 255, 255, 0.12);
   --card-border: rgba(255, 255, 255, 0.18);
   --surface: rgba(255, 255, 255, 0.13);

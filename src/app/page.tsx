@@ -62,15 +62,15 @@ export default function LandingPage() {
         <div className="landing-hero__content">
           <span className="landing-badge"><span aria-hidden="true">✨</span> הדור הבא של אירועים חברתיים</span>
           <h1 className="landing-heading">
-            הפכו כל אירוע<br />
-            ל<span className="gradient-text">חוויית היכרויות</span> בלתי נשכחת
+            יש לכם רווקים ורווקות<br />
+            <span className="gradient-text">בחתונה?</span>
           </h1>
           <p className="landing-hero__subheading">
-            Eventa מוסיפה שכבת היכרויות חכמה לכל אירוע - חתונות, מסיבות, אירועי חברה ועוד. האורחים סורקים QR, בונים פרופיל, ומתחילים לדבר אחד עם השנייה. הכל בדפדפן, בלי להוריד כלום.
+            תנו להם דרך קלילה להכיר אחד את השנייה — בלי אפליקציה, בלי מבוכה. סורקים QR, בונים פרופיל תוך דקה, ומתחילים. הכל נמחק אחרי 7 ימים.
           </p>
           <div className="landing-hero__actions">
             <a className="landing-btn landing-btn--primary" href="/order">
-              הזמינו עכשיו
+              בדקו התאמה לחתונה שלכם
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
                 <path d="M7 4l-6 6 6 6" />
               </svg>
@@ -81,15 +81,15 @@ export default function LandingPage() {
           <div className="landing-stats">
             <div className="landing-stat">
               <div className="landing-stat__num">0</div>
-              <div className="landing-stat__label">התקנות נדרשות</div>
+              <div className="landing-stat__label">התקנות</div>
             </div>
             <div className="landing-stat">
               <div className="landing-stat__num">60 שנ׳</div>
-              <div className="landing-stat__label">ליצירת פרופיל</div>
+              <div className="landing-stat__label">לפרופיל</div>
             </div>
             <div className="landing-stat">
-              <div className="landing-stat__num">100%</div>
-              <div className="landing-stat__label">פרטיות מובטחת</div>
+              <div className="landing-stat__num">7 ימים</div>
+              <div className="landing-stat__label">ואז נמחק</div>
             </div>
           </div>
         </div>
@@ -120,7 +120,44 @@ export default function LandingPage() {
 
       <div className="landing-accent-line" />
 
-      {/* ═══ Demo ═══ */}
+      {/* ═══ Real Photo Showcase ═══ */}
+      <section className="landing-photo-showcase reveal" aria-label="תמונה מהשטח">
+        <div className="photo-showcase__image-wrap">
+          <Image
+            src="/entrance_scanning.png"
+            alt="אורחת סורקת QR בכניסה לחתונה עם Eventa"
+            fill
+            sizes="100vw"
+            className="photo-showcase__img"
+            quality={90}
+            priority={false}
+          />
+          <div className="photo-showcase__overlay" />
+          <div className="photo-showcase__bokeh" aria-hidden="true">
+            <span /><span /><span /><span /><span />
+          </div>
+        </div>
+        <div className="photo-showcase__content">
+          <span className="landing-badge photo-showcase__badge">
+            <span aria-hidden="true">📍</span> ממש ככה זה נראה
+          </span>
+          <h2 className="photo-showcase__heading">
+            הרגע שהאורחים<br />
+            <span className="gradient-text">מגלים את Eventa</span>
+          </h2>
+          <p className="photo-showcase__desc">
+            בכניסה לאירוע, פוסטר מעוצב עם QR קוד. סריקה אחת — ותוך דקה האורח כבר בפנים, עם פרופיל, ומוכן להכיר.
+          </p>
+          <a href="/order" className="landing-btn landing-btn--primary photo-showcase__cta">
+            רוצים את זה בחתונה שלכם?
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
+              <path d="M7 4l-6 6 6 6" />
+            </svg>
+          </a>
+        </div>
+      </section>
+
+      <div className="landing-accent-line" />
       <section id="demo" className="landing-section landing-demo reveal">
         <span className="landing-badge"><span aria-hidden="true">📱</span> ראו בעצמכם</span>
         <h2 className="landing-heading" style={{ fontSize: 'clamp(26px, 4vw, 42px)' }}>
