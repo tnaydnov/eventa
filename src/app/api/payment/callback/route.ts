@@ -250,7 +250,7 @@ async function handleEventPaymentCallback(eventId: string, req: NextRequest): Pr
     return redirectWithStatus('error');
   }
 
-  // Already paid — idempotent
+  // Already paid - idempotent
   if (event.payment_status === 'paid') {
     return redirectWithStatus('success');
   }

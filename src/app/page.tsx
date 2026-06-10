@@ -37,7 +37,7 @@ export default function LandingPage() {
             <span className="gradient-text">בחתונה?</span>
           </h1>
           <p className="landing-hero__subheading">
-            תנו להם דרך קלילה להכיר אחד את השנייה — בלי אפליקציה, בלי מבוכה. סורקים QR, בונים פרופיל תוך דקה, ומתחילים. הכל נמחק אחרי 7 ימים.
+            תנו להם דרך קלילה להכיר אחד את השנייה - בלי אפליקציה, בלי מבוכה. סורקים QR, בונים פרופיל תוך דקה, ומתחילים. הכל נמחק אחרי 7 ימים.
           </p>
           <div className="landing-hero__actions">
             <a className="landing-btn landing-btn--primary" href="/order">
@@ -68,7 +68,7 @@ export default function LandingPage() {
 
       <RevealSections>
 
-      {/* ═══ Showcase — Cinematic Band ═══ */}
+      {/* ═══ Showcase - Cinematic Band ═══ */}
       <section className="landing-showcase reveal" aria-label="איך זה עובד באירוע">
         <div className="showcase__media">
           <Image
@@ -90,14 +90,8 @@ export default function LandingPage() {
               <span className="gradient-text">הופך להיכרות</span>
             </h2>
             <p className="showcase__desc">
-              בכניסה לאירוע מחכה פוסטר מעוצב עם QR. סריקה אחת — וכל השאר קורה מעצמו, בזמן אמת.
+              בכניסה לאירוע מחכה פוסטר מעוצב עם QR. סריקה אחת - וכל השאר קורה מעצמו, בזמן אמת.
             </p>
-            <a href="/order" className="landing-btn landing-btn--primary showcase__cta">
-              רוצים את זה בחתונה שלכם?
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
-                <path d="M7 4l-6 6 6 6" />
-              </svg>
-            </a>
           </div>
         </div>
       </section>
@@ -114,7 +108,7 @@ export default function LandingPage() {
               </svg>
             </span>
             <h3 className="sf-item__title">סריקה חכמה בכניסה</h3>
-            <p className="sf-item__desc">סורקים QR ונכנסים ישר מהדפדפן — בלי חנות אפליקציות ובלי הורדות.</p>
+            <p className="sf-item__desc">סורקים QR ונכנסים ישר מהדפדפן - בלי חנות אפליקציות ובלי הורדות.</p>
           </div>
           <div className="sf-item">
             <span className="sf-item__icon" aria-hidden="true">
@@ -133,7 +127,7 @@ export default function LandingPage() {
               </svg>
             </span>
             <h3 className="sf-item__title">מאצ׳ים וצ׳אט חי</h3>
-            <p className="sf-item__desc">לייק הדדי פותח צ׳אט פרטי — כל הריגוש קורה במהלך האירוע עצמו.</p>
+            <p className="sf-item__desc">לייק הדדי פותח צ׳אט פרטי - כל הריגוש קורה במהלך האירוע עצמו.</p>
           </div>
         </div>
       </section>

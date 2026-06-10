@@ -1533,7 +1533,7 @@
   margin-bottom: 14px;
 }
 
-/* Create Event Dialog — field primitives */
+/* Create Event Dialog - field primitives */
 .ced-field { margin-bottom: 14px; }
 .ced-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
 .ced-label { display: block; font-size: 12px; font-weight: 600; color: var(--admin-text-dim); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.4px; }
@@ -2930,7 +2930,7 @@ button.admin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
 /* =======================================================
-   RESPONSIVE OVERRIDES — ALL SCREEN SIZES
+   RESPONSIVE OVERRIDES - ALL SCREEN SIZES
    Comprehensive mobile/tablet fixes for the admin portal.
    Breakpoints: 380px, 400px, 480px, 560px, 600px, 640px, 860px
    ======================================================= */
@@ -2962,7 +2962,7 @@ button.admin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
   .admin-main__content { padding: 8px 10px; padding-top: 56px; }
 }
 
-/* ── Sidebar toggle — larger touch target ── */
+/* ── Sidebar toggle - larger touch target ── */
 @media (max-width: 480px) {
   .admin-sidebar-toggle { width: 44px; height: 44px; top: 10px; right: 10px; }
 }
@@ -3130,7 +3130,7 @@ button.admin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
   .afb-link-card__url-row { flex-direction: column; align-items: stretch; }
 }
 
-/* ── Event card dropdown — prevent off-screen ── */
+/* ── Event card dropdown - prevent off-screen ── */
 @media (max-width: 860px) {
   .ev-dropdown,
   .et-dropdown {

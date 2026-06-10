@@ -545,7 +545,7 @@
   pointer-events: none;
 }
 
-/* 3D resting tilt — straightens on hover for interaction */
+/* 3D resting tilt - straightens on hover for interaction */
 .demo-phone-wrapper .phone-frame {
   transform: rotateY(-15deg) rotateX(6deg) translateZ(0);
   transform-style: preserve-3d;
@@ -1535,7 +1535,7 @@
   }
 }
 
-/* ═══ Showcase — Cinematic Band ═══ */
+/* ═══ Showcase - Cinematic Band ═══ */
 /* Full-bleed, full uncropped image, organic dissolve into the page */
 .landing-showcase {
   position: relative;
@@ -1559,7 +1559,7 @@
   transform: scale(1.06);
   transition: transform 1.7s cubic-bezier(0.22, 1, 0.36, 1);
   /* Organic feathered dissolve: a soft radial vignette intersected with a
-     vertical fade — melts the photo into the page on every edge, no hard line. */
+     vertical fade - melts the photo into the page on every edge, no hard line. */
   -webkit-mask-image:
     radial-gradient(145% 125% at 50% 40%, #000 56%, transparent 100%),
     linear-gradient(to bottom, transparent 0%, #000 10%, #000 72%, transparent 99%);
@@ -1575,7 +1575,7 @@
   transform: scale(1);
 }
 
-/* Text overlay — pinned to the bottom over a soft scrim (keeps the girl visible) */
+/* Text overlay - pinned to the bottom over a soft scrim (keeps the girl visible) */
 .showcase__text {
   position: absolute;
   inset-inline: 0;
@@ -1597,7 +1597,7 @@
   pointer-events: auto;
 }
 
-/* Always-legible glassy pill — readable over any part of the photo */
+/* Always-legible glassy pill - readable over any part of the photo */
 .showcase__badge {
   background: rgba(10, 9, 9, 0.60);
   border-color: rgba(214, 168, 90, 0.42);
@@ -1621,22 +1621,18 @@
   font-size: clamp(14px, 1.25vw, 18px);
   color: rgba(240, 237, 232, 0.86);
   line-height: 1.65;
-  margin: 0 0 22px;
+  margin: 0;
   max-width: 480px;
   text-shadow: 0 1px 14px rgba(0, 0, 0, 0.65);
 }
 
-.showcase__cta {
-  white-space: nowrap;
-}
-
-/* — Continuous feature strip (flows straight out of the photo) — */
+/* - Continuous feature strip (flows straight out of the photo) - */
 .showcase-features {
   position: relative;
   margin-top: clamp(-34px, -3.2vw, -14px);
   padding-top: clamp(28px, 4vw, 56px);
   padding-bottom: clamp(40px, 4.5vw, 68px);
-  /* Soft warm halo tying the strip to the photo above — edgeless, no box */
+  /* Soft warm halo tying the strip to the photo above - edgeless, no box */
   background:
     radial-gradient(80% 240px at 50% 0%,
       rgba(214, 168, 90, 0.05) 0%,
@@ -1649,7 +1645,7 @@
   display: none;
 }
 
-/* Hairline gold spark centred above the strip — ties it to the image */
+/* Hairline gold spark centred above the strip - ties it to the image */
 .showcase-features::after {
   content: '';
   position: absolute;
@@ -1710,14 +1706,14 @@
   max-width: 280px;
 }
 
-/* — Tablet — */
+/* - Tablet - */
 @media (max-width: 900px) {
   .showcase__text {
     padding: 0 6vw 7vw;
   }
 }
 
-/* — Mobile: image dissolves into a stacked caption — fully continuous — */
+/* - Mobile: image dissolves into a stacked caption - fully continuous - */
 @media (max-width: 640px) {
   .landing-showcase {
     margin-top: -24px;
@@ -1744,11 +1740,6 @@
 
   .showcase__heading {
     font-size: clamp(24px, 7vw, 32px);
-  }
-
-  .showcase__cta {
-    width: 100%;
-    justify-content: center;
   }
 
   .sf-grid {
@@ -1841,7 +1832,7 @@
   }
 }
 
-/* ═══ Scroll-reveal — smooth cascade along the page flow ═══ */
+/* ═══ Scroll-reveal - smooth cascade along the page flow ═══ */
 .reveal {
   opacity: 0;
   transform: translateY(42px);
@@ -1854,7 +1845,7 @@
   transform: none;
 }
 
-/* Sections that drive an internal stagger only fade as a whole —
+/* Sections that drive an internal stagger only fade as a whole -
    their children carry the motion for a layered, flowing entrance. */
 .landing-showcase.reveal,
 .showcase-features.reveal,
@@ -1864,7 +1855,7 @@
   transform: none;
 }
 
-/* Generic heading/badge cascade (skip the showcase — it reveals off-screen) */
+/* Generic heading/badge cascade (skip the showcase - it reveals off-screen) */
 .reveal:not(.landing-showcase) .landing-badge,
 .reveal:not(.landing-showcase) .landing-heading,
 .reveal:not(.landing-showcase) .landing-subheading {
@@ -1887,7 +1878,7 @@
 .showcase-features.visible .sf-item:nth-child(2) { transition-delay: 0.26s; }
 .showcase-features.visible .sf-item:nth-child(3) { transition-delay: 0.40s; }
 
-/* Demo — copy settles, then the phone rises into its 3D stage */
+/* Demo - copy settles, then the phone rises into its 3D stage */
 .landing-demo .landing-demo__text {
   opacity: 0;
   transform: translateY(26px);
