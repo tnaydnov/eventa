@@ -20,35 +20,6 @@ export const metadata: Metadata = {
   },
 };
 
-/* ── Feature data ── */
-const FEATURES = [
-  {
-    icon: <span aria-hidden="true">📱</span>,
-    title: 'ישר מהדפדפן',
-    desc: 'אפליקציית PWA שנפתחת ישר מהדפדפן - האורחים סורקים QR, נרשמים תוך דקה, ומתחילים. בלי חנות אפליקציות, בלי הורדה.',
-  },
-  {
-    icon: <span aria-hidden="true">💘</span>,
-    title: 'גריד, סוויפ ומאצ׳',
-    desc: 'גריד תמונות או סוויפ בסגנון טינדר - שני מצבי גלילה לבחירה. שליחת לייקים, ובמקרה של לייק הדדי - נוצר מאצ׳ ונפתח צ׳אט.',
-  },
-  {
-    icon: <span aria-hidden="true">💬</span>,
-    title: 'צ׳אט מיידי',
-    desc: 'הודעות טקסט ותמונות בין מאצ׳ים - צ׳אט פרטי שנפתח ברגע שנוצר חיבור הדדי.',
-  },
-  {
-    icon: <span aria-hidden="true">⏳</span>,
-    title: 'מוגבל לאירוע',
-    desc: 'הכל קורה בזמן אמת, במהלך האירוע עצמו. אין פיד אינסופי, אין התמכרות - רק חלון הזדמנות קצר שיוצר ריגוש אמיתי.',
-  },
-  {
-    icon: <span aria-hidden="true">🔒</span>,
-    title: 'פרטיות מלאה',
-    desc: 'כל המידע האישי נמחק אוטומטית 7 ימים אחרי האירוע. ללא מעקב, ללא מודעות, ללא שיתוף עם צד שלישי.',
-  },
-];
-
 export default function LandingPage() {
   return (
     <div className="landing">
@@ -98,36 +69,16 @@ export default function LandingPage() {
       <RevealSections>
       <div className="landing-accent-line" />
 
-      {/* ═══ Features ═══ */}
-      <section id="features" className="landing-section landing-features reveal">
-        <span className="landing-badge"><span aria-hidden="true">🎯</span> למה Eventa?</span>
-        <h2 className="landing-heading" style={{ fontSize: 'clamp(26px, 4vw, 42px)' }}>
-          הכל מה שהאירוע שלכם <span className="gradient-text">צריך</span>
-        </h2>
-        <p className="landing-subheading" style={{ margin: '0 auto' }}>
-          פלטפורמה שלמה שמנוהלת בשבילכם - מהרגע שפניתם ועד הלייק האחרון באירוע.
-        </p>
-        <div className="landing-features__grid">
-          {FEATURES.map(f => (
-            <div key={f.title} className="feature-card">
-              <span className="feature-card__icon">{f.icon}</span>
-              <h3 className="feature-card__title">{f.title}</h3>
-              <p className="feature-card__desc">{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <div className="landing-accent-line" />
-
       {/* ═══ Real Photo Showcase ═══ */}
       <section className="landing-photo-showcase reveal" aria-label="תמונה מהשטח">
         <div className="photo-showcase__image-wrap">
           <Image
             src="/entrance_scanning.png"
             alt="אורחת סורקת QR בכניסה לחתונה עם Eventa"
-            fill
+            width={1920}
+            height={1080}
             sizes="100vw"
+            style={{ width: '100%', height: 'auto', display: 'block' }}
             className="photo-showcase__img"
             quality={90}
             priority={false}
@@ -136,24 +87,24 @@ export default function LandingPage() {
           <div className="photo-showcase__bokeh" aria-hidden="true">
             <span /><span /><span /><span /><span />
           </div>
-        </div>
-        <div className="photo-showcase__content">
-          <span className="landing-badge photo-showcase__badge">
-            <span aria-hidden="true">📍</span> ממש ככה זה נראה
-          </span>
-          <h2 className="photo-showcase__heading">
-            הרגע שהאורחים<br />
-            <span className="gradient-text">מגלים את Eventa</span>
-          </h2>
-          <p className="photo-showcase__desc">
-            בכניסה לאירוע, פוסטר מעוצב עם QR קוד. סריקה אחת — ותוך דקה האורח כבר בפנים, עם פרופיל, ומוכן להכיר.
-          </p>
-          <a href="/order" className="landing-btn landing-btn--primary photo-showcase__cta">
-            רוצים את זה בחתונה שלכם?
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
-              <path d="M7 4l-6 6 6 6" />
-            </svg>
-          </a>
+          <div className="photo-showcase__content">
+            <span className="landing-badge photo-showcase__badge">
+              <span aria-hidden="true">📍</span> ממש ככה זה נראה
+            </span>
+            <h2 className="photo-showcase__heading">
+              הרגע שהאורחים<br />
+              <span className="gradient-text">מגלים את Eventa</span>
+            </h2>
+            <p className="photo-showcase__desc">
+              בכניסה לאירוע, פוסטר מעוצב עם QR קוד. סריקה אחת — ותוך דקה האורח כבר בפנים, עם פרופיל, ומוכן להכיר.
+            </p>
+            <a href="/order" className="landing-btn landing-btn--primary photo-showcase__cta">
+              רוצים את זה בחתונה שלכם?
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
+                <path d="M7 4l-6 6 6 6" />
+              </svg>
+            </a>
+          </div>
         </div>
       </section>
 

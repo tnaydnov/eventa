@@ -270,10 +270,7 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 20%, rgba(232,189,178,0.13) 0%, transparent 35%),
-    radial-gradient(circle at 20% 70%, rgba(122,31,61,0.10) 0%, transparent 30%),
-    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212,165,154,0.07) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(160,130,170,0.04) 0%, transparent 50%);
+    radial-gradient(ellipse 65% 45% at 50% 0%, rgba(212,165,154,0.06) 0%, transparent 55%);
   pointer-events: none;
 }
 
@@ -347,13 +344,13 @@
 /* ── Floating particles behind hero ── */
 .landing-hero__glow {
   position: absolute;
-  width: 700px;
-  height: 700px;
+  width: 600px;
+  height: 350px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(212, 165, 154, 0.12) 0%, transparent 65%);
-  top: 40%;
+  background: radial-gradient(circle, rgba(212, 165, 154, 0.07) 0%, transparent 65%);
+  top: -10%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   pointer-events: none;
   animation: glowPulse 6s ease-in-out infinite;
 }
@@ -1485,41 +1482,39 @@
 .landing-photo-showcase {
   position: relative;
   width: 100%;
-  min-height: clamp(520px, 70vh, 800px);
-  display: flex;
-  align-items: center;
   overflow: hidden;
 }
 
 .photo-showcase__image-wrap {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
+  position: relative;
+  width: 100%;
+  line-height: 0;
 }
 
 .photo-showcase__img {
-  object-fit: cover;
-  object-position: center 30%;
+  display: block;
+  width: 100%;
+  height: auto;
   transition: transform 8s ease-out;
   will-change: transform;
 }
 
 .landing-photo-showcase.visible .photo-showcase__img {
-  transform: scale(1.04);
+  transform: scale(1.03);
 }
 
-/* Multi-layer overlay: dark gradient on right side + dark bottom fade */
+/* Overlay: darken the right side in RTL (where text sits) */
 .photo-showcase__overlay {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(to right, rgba(8,8,8,0.92) 0%, rgba(8,8,8,0.75) 40%, rgba(8,8,8,0.30) 65%, rgba(8,8,8,0.15) 100%),
-    linear-gradient(to top, rgba(8,8,8,0.60) 0%, transparent 30%),
-    linear-gradient(to bottom, rgba(8,8,8,0.50) 0%, transparent 20%);
+    linear-gradient(to left, rgba(8,8,8,0.90) 0%, rgba(8,8,8,0.62) 28%, rgba(8,8,8,0.12) 55%, transparent 100%),
+    linear-gradient(to top, rgba(8,8,8,0.45) 0%, transparent 18%),
+    linear-gradient(to bottom, rgba(8,8,8,0.35) 0%, transparent 12%);
   z-index: 1;
 }
 
-/* Bokeh light particles */
+/* Bokeh light particles near text side */
 .photo-showcase__bokeh {
   position: absolute;
   inset: 0;
@@ -1530,28 +1525,34 @@
 .photo-showcase__bokeh span {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(214,168,90,0.18) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(214,168,90,0.14) 0%, transparent 70%);
   animation: bokehFloat linear infinite;
 }
 
-.photo-showcase__bokeh span:nth-child(1) { width: 120px; height: 120px; top: 15%; left: 8%; animation-duration: 12s; animation-delay: 0s; }
-.photo-showcase__bokeh span:nth-child(2) { width: 80px;  height: 80px;  top: 55%; left: 25%; animation-duration: 9s;  animation-delay: -3s; }
-.photo-showcase__bokeh span:nth-child(3) { width: 160px; height: 160px; top: 30%; left: 15%; animation-duration: 15s; animation-delay: -6s; }
-.photo-showcase__bokeh span:nth-child(4) { width: 60px;  height: 60px;  top: 70%; left: 5%;  animation-duration: 10s; animation-delay: -1s; }
-.photo-showcase__bokeh span:nth-child(5) { width: 100px; height: 100px; top: 10%; left: 35%; animation-duration: 13s; animation-delay: -8s; }
+.photo-showcase__bokeh span:nth-child(1) { width: 120px; height: 120px; top: 15%; right: 18%; animation-duration: 12s; animation-delay: 0s; }
+.photo-showcase__bokeh span:nth-child(2) { width: 80px;  height: 80px;  top: 55%; right: 35%; animation-duration: 9s;  animation-delay: -3s; }
+.photo-showcase__bokeh span:nth-child(3) { width: 160px; height: 160px; top: 30%; right: 25%; animation-duration: 15s; animation-delay: -6s; }
+.photo-showcase__bokeh span:nth-child(4) { width: 60px;  height: 60px;  top: 70%; right: 10%; animation-duration: 10s; animation-delay: -1s; }
+.photo-showcase__bokeh span:nth-child(5) { width: 100px; height: 100px; top: 10%; right: 45%; animation-duration: 13s; animation-delay: -8s; }
 
 @keyframes bokehFloat {
-  0%, 100% { transform: translateY(0px) scale(1);   opacity: 0.4; }
+  0%, 100% { transform: translateY(0px) scale(1);    opacity: 0.4; }
   33%       { transform: translateY(-18px) scale(1.08); opacity: 0.7; }
-  66%       { transform: translateY(10px) scale(0.95); opacity: 0.3; }
+  66%       { transform: translateY(10px) scale(0.95);  opacity: 0.3; }
 }
 
-/* Content panel */
+/* Content: overlaid on right side (RTL) */
 .photo-showcase__content {
-  position: relative;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 42%;
   z-index: 3;
-  padding: 64px 48px 64px 10%;
-  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 5% 40px 16px;
   direction: rtl;
   animation: heroFadeUp 0.8s ease-out both;
   animation-play-state: paused;
@@ -1566,63 +1567,75 @@
 }
 
 .photo-showcase__heading {
-  font-size: clamp(32px, 4.5vw, 54px);
+  font-size: clamp(26px, 3.2vw, 52px);
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.5px;
-  margin: 0 0 20px;
+  margin: 0 0 16px;
   color: var(--foreground);
 }
 
 .photo-showcase__desc {
-  font-size: clamp(15px, 2vw, 18px);
+  font-size: clamp(13px, 1.4vw, 16px);
   color: var(--text-muted);
   line-height: 1.7;
-  margin: 0 0 32px;
-  max-width: 420px;
+  margin: 0 0 28px;
 }
 
 .photo-showcase__cta {
   display: inline-flex;
   font-size: 15px !important;
+  white-space: nowrap;
+  align-self: flex-start;
 }
 
-/* Thin gold accent bar on the right edge of the content */
+/* Thin gold accent bar on left edge of content panel */
 .photo-showcase__content::before {
   content: '';
   position: absolute;
-  top: 80px;
-  bottom: 80px;
-  right: 0;
+  top: 60px;
+  bottom: 60px;
+  left: 0;
   width: 2px;
   background: linear-gradient(to bottom, transparent, var(--accent-gold-deep), transparent);
-  opacity: 0.5;
+  opacity: 0.4;
   border-radius: 1px;
 }
 
-@media (max-width: 768px) {
-  .landing-photo-showcase {
-    min-height: 560px;
-    align-items: flex-end;
-  }
-
-  .photo-showcase__overlay {
-    background:
-      linear-gradient(to top, rgba(8,8,8,0.95) 0%, rgba(8,8,8,0.80) 45%, rgba(8,8,8,0.30) 75%, rgba(8,8,8,0.10) 100%);
-  }
-
+@media (max-width: 900px) {
   .photo-showcase__content {
-    padding: 0 20px 48px;
-    max-width: 100%;
+    width: 52%;
+    padding: 32px 4% 32px 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .photo-showcase__content {
+    position: static;
+    width: 100%;
+    padding: 32px 20px 40px;
+    background: var(--background);
+    direction: rtl;
+    animation: none;
   }
 
   .photo-showcase__content::before {
     display: none;
   }
 
+  .photo-showcase__overlay {
+    background:
+      linear-gradient(to bottom, transparent 60%, rgba(8,8,8,0.65) 100%);
+  }
+
   .photo-showcase__bokeh span:nth-child(3),
   .photo-showcase__bokeh span:nth-child(5) {
     display: none;
+  }
+
+  .photo-showcase__cta {
+    width: 100%;
+    justify-content: center;
   }
 }
 
