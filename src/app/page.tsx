@@ -84,7 +84,7 @@ export default function LandingPage() {
         </div>
         <div className="showcase__text">
           <div className="showcase__text-inner">
-            <span className="landing-badge"><span aria-hidden="true">📍</span> ממש ככה זה נראה</span>
+            <span className="landing-badge showcase__badge"><span aria-hidden="true">📍</span> ממש ככה זה נראה</span>
             <h2 className="showcase__heading">
               הרגע שבו אירוע<br />
               <span className="gradient-text">הופך להיכרות</span>

@@ -1548,13 +1548,16 @@
   position: relative;
   width: 100%;
   line-height: 0;
+  overflow: hidden;
 }
 
-/* Natural aspect ratio = no crop + pixel-sharp. No object-fit, no scale. */
+/* Natural aspect ratio = no crop + pixel-sharp. Settles to scale(1) at rest. */
 .showcase__img {
   display: block;
   width: 100%;
   height: auto;
+  transform: scale(1.06);
+  transition: transform 1.7s cubic-bezier(0.22, 1, 0.36, 1);
   /* Organic feathered dissolve: a soft radial vignette intersected with a
      vertical fade — melts the photo into the page on every edge, no hard line. */
   -webkit-mask-image:
@@ -1565,6 +1568,11 @@
     radial-gradient(145% 125% at 50% 40%, #000 56%, transparent 100%),
     linear-gradient(to bottom, transparent 0%, #000 10%, #000 72%, transparent 99%);
           mask-composite: intersect;
+}
+
+/* Cinematic settle: the band eases to its resting, pixel-sharp scale */
+.landing-showcase.visible .showcase__img {
+  transform: scale(1);
 }
 
 /* Text overlay — pinned to the bottom over a soft scrim (keeps the girl visible) */
@@ -1587,6 +1595,16 @@
 .showcase__text-inner {
   max-width: 540px;
   pointer-events: auto;
+}
+
+/* Always-legible glassy pill — readable over any part of the photo */
+.showcase__badge {
+  background: rgba(10, 9, 9, 0.60);
+  border-color: rgba(214, 168, 90, 0.42);
+  color: #F2D9B0;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
 }
 
 .showcase__heading {
@@ -1614,8 +1632,34 @@
 
 /* — Continuous feature strip (flows straight out of the photo) — */
 .showcase-features {
-  padding-top: clamp(8px, 2vw, 24px);
-  padding-bottom: clamp(40px, 5vw, 72px);
+  position: relative;
+  margin-top: clamp(-34px, -3.2vw, -14px);
+  padding-top: clamp(28px, 4vw, 56px);
+  padding-bottom: clamp(40px, 4.5vw, 68px);
+  /* Soft warm halo tying the strip to the photo above — edgeless, no box */
+  background:
+    radial-gradient(80% 240px at 50% 0%,
+      rgba(214, 168, 90, 0.05) 0%,
+      rgba(122, 31, 61, 0.03) 46%,
+      transparent 78%) no-repeat;
+}
+
+/* Drop the alternating-rhythm tint here so the strip stays seamless */
+.showcase-features.landing-section:nth-child(even)::before {
+  display: none;
+}
+
+/* Hairline gold spark centred above the strip — ties it to the image */
+.showcase-features::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: clamp(18px, 3vw, 34px);
+  transform: translateX(-50%);
+  background: linear-gradient(to bottom, rgba(214, 168, 90, 0.5), transparent);
+  pointer-events: none;
 }
 
 .sf-grid {
@@ -1715,7 +1759,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .showcase__img { transition: none; }
+  .showcase__img { transform: none; transition: none; }
 }
 
 /* ═══ Responsive ═══ */
@@ -1797,24 +1841,90 @@
   }
 }
 
-/* ═══ Scroll-reveal animation (applied via JS) ═══ */
+/* ═══ Scroll-reveal — smooth cascade along the page flow ═══ */
 .reveal {
   opacity: 0;
-  transform: translateY(36px);
-  transition: opacity 0.85s ease, transform 0.95s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translateY(42px);
+  transition: opacity 0.9s ease, transform 1s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: opacity, transform;
 }
 
 .reveal.visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
 }
 
+/* Sections that drive an internal stagger only fade as a whole —
+   their children carry the motion for a layered, flowing entrance. */
+.landing-showcase.reveal,
+.showcase-features.reveal,
+.landing-demo.reveal,
+.landing-quicklinks.reveal,
+.landing-order.reveal {
+  transform: none;
+}
+
+/* Generic heading/badge cascade (skip the showcase — it reveals off-screen) */
+.reveal:not(.landing-showcase) .landing-badge,
+.reveal:not(.landing-showcase) .landing-heading,
+.reveal:not(.landing-showcase) .landing-subheading {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.8s ease, transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.visible .landing-badge      { opacity: 1; transform: none; transition-delay: 0.06s; }
+.reveal.visible .landing-heading    { opacity: 1; transform: none; transition-delay: 0.18s; }
+.reveal.visible .landing-subheading { opacity: 1; transform: none; transition-delay: 0.30s; }
+
+/* Feature items cascade out of the photo */
+.showcase-features .sf-item {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.75s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.showcase-features.visible .sf-item { opacity: 1; transform: none; }
+.showcase-features.visible .sf-item:nth-child(1) { transition-delay: 0.12s; }
+.showcase-features.visible .sf-item:nth-child(2) { transition-delay: 0.26s; }
+.showcase-features.visible .sf-item:nth-child(3) { transition-delay: 0.40s; }
+
+/* Demo — copy settles, then the phone rises into its 3D stage */
+.landing-demo .landing-demo__text {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.85s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.landing-demo.visible .landing-demo__text { opacity: 1; transform: none; transition-delay: 0.20s; }
+
+.landing-demo .demo-phone-wrapper {
+  opacity: 0;
+  transform: translateY(44px);
+  transition: opacity 1s ease, transform 1.05s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.landing-demo.visible .demo-phone-wrapper { opacity: 1; transform: none; transition-delay: 0.34s; }
+
+/* Quicklinks cascade */
+.landing-quicklinks .quicklink-card {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.75s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.landing-quicklinks.visible .quicklink-card { opacity: 1; transform: none; }
+.landing-quicklinks.visible .quicklink-card:nth-child(1) { transition-delay: 0.10s; }
+.landing-quicklinks.visible .quicklink-card:nth-child(2) { transition-delay: 0.22s; }
+.landing-quicklinks.visible .quicklink-card:nth-child(3) { transition-delay: 0.34s; }
+
 @media (prefers-reduced-motion: reduce) {
-  .reveal {
-    opacity: 1;
-    transform: none;
-    transition: none;
+  .reveal,
+  .reveal .landing-badge,
+  .reveal .landing-heading,
+  .reveal .landing-subheading,
+  .showcase-features .sf-item,
+  .landing-demo .landing-demo__text,
+  .landing-demo .demo-phone-wrapper,
+  .landing-quicklinks .quicklink-card {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
 }
 
