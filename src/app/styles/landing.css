@@ -259,12 +259,9 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 130px 24px 80px;
+  padding: 130px 24px 72px;
   position: relative;
   overflow: hidden;
-  /* Fade hero bottom into the photo showcase */
-  -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
 }
 
 /* Rich mesh gradient background for hero */
@@ -1487,87 +1484,62 @@
 .landing-photo-showcase {
   position: relative;
   width: 100%;
-  /* Pull up to overlap with the hero's fade */
-  margin-top: -120px;
-  z-index: 1;
+  padding: 56px 24px;
+  display: flex;
+  justify-content: center;
 }
 
-/* Fixed-height container so fill image renders at correct size */
-.photo-showcase__frame {
+/* Contained card — full image, never cropped, never scaled */
+.photo-showcase__card {
   position: relative;
   width: 100%;
-  height: clamp(460px, 56vw, 720px);
+  max-width: 1120px;
+  margin: 0;
+  border-radius: 24px;
   overflow: hidden;
+  border: 1px solid rgba(214, 168, 90, 0.18);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 0 80px rgba(212, 165, 154, 0.06);
+  background: #0c0c0c;
 }
 
+.photo-showcase__media {
+  position: relative;
+  width: 100%;
+  line-height: 0;
+}
+
+/* Full image at natural ratio — sharp, no crop, no movement */
 .photo-showcase__img {
-  object-fit: cover;
-  object-position: center 28%;
-  transition: transform 8s ease-out;
-  will-change: transform;
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
-.landing-photo-showcase.visible .photo-showcase__img {
-  transform: scale(1.04);
-}
-
-/* Multi-layer overlay:
-   - Top fade: blends with hero
-   - Bottom fade: blends with demo section
-   - Right side dark: behind text panel (RTL → text is on right)
-*/
-.photo-showcase__overlay {
+/* Scrim: darkens the right side (RTL) so overlaid text stays legible */
+.photo-showcase__scrim {
   position: absolute;
   inset: 0;
-  background:
-    /* top fade blending into hero */
-    linear-gradient(to bottom, rgba(8,8,8,0.70) 0%, rgba(8,8,8,0.0) 18%),
-    /* bottom fade blending into demo section */
-    linear-gradient(to top, rgba(8,8,8,0.80) 0%, rgba(8,8,8,0.0) 20%),
-    /* right-side dark panel for text legibility (RTL) */
-    linear-gradient(to left, rgba(8,8,8,0.82) 0%, rgba(8,8,8,0.55) 28%, rgba(8,8,8,0.10) 55%, transparent 75%);
   z-index: 1;
-}
-
-/* Bokeh light particles - near text side (right in RTL) */
-.photo-showcase__bokeh {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
+  background:
+    linear-gradient(to left, rgba(8,8,8,0.88) 0%, rgba(8,8,8,0.60) 26%, rgba(8,8,8,0.12) 52%, transparent 72%);
   pointer-events: none;
 }
 
-.photo-showcase__bokeh span {
-  position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(214,168,90,0.16) 0%, transparent 70%);
-  animation: bokehFloat linear infinite;
-}
-
-.photo-showcase__bokeh span:nth-child(1) { width: 120px; height: 120px; top: 15%; right: 18%; animation-duration: 12s; animation-delay: 0s; }
-.photo-showcase__bokeh span:nth-child(2) { width: 80px;  height: 80px;  top: 55%; right: 35%; animation-duration: 9s;  animation-delay: -3s; }
-.photo-showcase__bokeh span:nth-child(3) { width: 140px; height: 140px; top: 30%; right: 26%; animation-duration: 15s; animation-delay: -6s; }
-.photo-showcase__bokeh span:nth-child(4) { width: 60px;  height: 60px;  top: 70%; right: 12%; animation-duration: 10s; animation-delay: -1s; }
-.photo-showcase__bokeh span:nth-child(5) { width: 90px;  height: 90px;  top: 8%;  right: 46%; animation-duration: 13s; animation-delay: -8s; }
-
-@keyframes bokehFloat {
-  0%, 100% { transform: translateY(0px) scale(1);    opacity: 0.35; }
-  33%       { transform: translateY(-16px) scale(1.07); opacity: 0.65; }
-  66%       { transform: translateY(8px) scale(0.95);   opacity: 0.25; }
-}
-
-/* Text content: absolutely positioned on top of image, right side */
+/* Text content overlaid on the right (RTL) */
 .photo-showcase__content {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
-  width: 44%;
-  z-index: 3;
+  width: 46%;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 32px 5% 32px 20px;
+  padding: 32px 5% 32px 24px;
   direction: rtl;
 }
 
@@ -1578,21 +1550,21 @@
 }
 
 .photo-showcase__heading {
-  font-size: clamp(24px, 3vw, 48px);
+  font-size: clamp(22px, 2.6vw, 44px);
   font-weight: 700;
   line-height: 1.18;
   letter-spacing: -0.5px;
   margin: 0 0 14px;
   color: var(--foreground);
-  text-shadow: 0 2px 16px rgba(0,0,0,0.6);
+  text-shadow: 0 2px 18px rgba(0,0,0,0.7);
 }
 
 .photo-showcase__desc {
-  font-size: clamp(13px, 1.2vw, 16px);
-  color: rgba(240,237,232,0.80);
+  font-size: clamp(13px, 1.15vw, 16px);
+  color: rgba(240,237,232,0.82);
   line-height: 1.7;
   margin: 0 0 24px;
-  text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+  text-shadow: 0 1px 10px rgba(0,0,0,0.6);
 }
 
 .photo-showcase__cta {
@@ -1603,74 +1575,72 @@
   padding: 13px 24px !important;
 }
 
-/* Thin gold accent line on left border of content panel */
+/* Thin gold accent line on the left border of the content panel */
 .photo-showcase__content::before {
   content: '';
   position: absolute;
-  top: 20%;
-  bottom: 20%;
+  top: 22%;
+  bottom: 22%;
   left: 0;
   width: 2px;
-  background: linear-gradient(to bottom, transparent, rgba(214,168,90,0.5), transparent);
+  background: linear-gradient(to bottom, transparent, rgba(214,168,90,0.55), transparent);
   border-radius: 1px;
 }
 
 /* ── Tablet ── */
 @media (max-width: 960px) {
-  .photo-showcase__frame {
-    height: clamp(400px, 60vw, 580px);
+  .photo-showcase__content {
+    width: 54%;
+    padding: 24px 4% 24px 18px;
   }
 
-  .photo-showcase__content {
-    width: 52%;
-    padding: 28px 4% 28px 16px;
+  .photo-showcase__scrim {
+    background:
+      linear-gradient(to left, rgba(8,8,8,0.90) 0%, rgba(8,8,8,0.65) 32%, rgba(8,8,8,0.15) 60%, transparent 78%);
   }
 }
 
-/* ── Mobile: image top, content pinned to bottom with gradient ── */
-@media (max-width: 640px) {
+/* ── Mobile: full image on top, text below in same seamless card ── */
+@media (max-width: 680px) {
   .landing-photo-showcase {
-    margin-top: -80px;
+    padding: 40px 16px;
   }
 
-  .photo-showcase__frame {
-    height: auto;
-    aspect-ratio: 3 / 4;
+  .photo-showcase__card {
+    border-radius: 20px;
   }
 
-  .photo-showcase__img {
-    object-position: 65% center;
-  }
-
-  .photo-showcase__overlay {
+  /* Soft fade at the bottom of the image into the text panel */
+  .photo-showcase__scrim {
     background:
-      linear-gradient(to bottom, rgba(8,8,8,0.55) 0%, rgba(8,8,8,0.0) 25%),
-      linear-gradient(to top, rgba(8,8,8,0.97) 0%, rgba(8,8,8,0.80) 40%, rgba(8,8,8,0.0) 65%);
+      linear-gradient(to top, #0c0c0c 0%, rgba(12,12,12,0.0) 16%);
   }
 
   .photo-showcase__content {
-    position: absolute;
-    top: auto;
-    right: 0;
-    left: 0;
-    bottom: 0;
+    position: static;
     width: 100%;
-    padding: 0 20px 28px;
-    direction: rtl;
+    padding: 4px 22px 28px;
+    background: #0c0c0c;
+    text-align: right;
   }
 
   .photo-showcase__content::before {
     display: none;
   }
 
+  .photo-showcase__heading {
+    font-size: clamp(22px, 6vw, 30px);
+    margin-top: -8px;
+  }
+
+  .photo-showcase__desc {
+    font-size: 14px;
+  }
+
   .photo-showcase__cta {
     width: 100% !important;
     justify-content: center !important;
-  }
-
-  .photo-showcase__bokeh span:nth-child(3),
-  .photo-showcase__bokeh span:nth-child(5) {
-    display: none;
+    align-self: stretch;
   }
 }
 
@@ -1693,9 +1663,7 @@
   }
 
   .landing-hero {
-    padding: 110px 16px 140px;
-    -webkit-mask-image: none;
-    mask-image: none;
+    padding: 110px 16px 56px;
   }
 
   .landing-stats {
