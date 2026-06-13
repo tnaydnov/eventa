@@ -14,6 +14,7 @@ import {
   PAYMENT_LINK_EXPIRY_DAYS,
   APP_BASE_URL,
 } from '@/lib/config';
+import { BUSINESS_TERMS_VERSION } from '@/lib/legal-versions';
 import {
   buildAdminCallMeBackNotification,
   buildAdminContactOnlyNotification,
@@ -43,6 +44,8 @@ const orderSchema = z.object({
   specialRequests: z.string().max(500).optional(),
   wantsGuestMessages: z.boolean().optional(),
   contactPreference: z.enum(['call-me', 'send-link', 'pay-now']).optional(),
+  /** ISO timestamp of when the customer ticked the business-terms consent checkbox. */
+  businessTermsAcceptedAt: z.string().datetime().optional(),
 });
 
 /**
@@ -137,6 +140,8 @@ export async function POST(request: NextRequest) {
           total_price: totalPrice,
           payment_link_token: paymentLinkToken,
           payment_link_expires_at: paymentLinkExpiresAt,
+          business_terms_version: BUSINESS_TERMS_VERSION,
+          business_terms_accepted_at: parsed.data.businessTermsAcceptedAt ?? new Date().toISOString(),
         })
         .select('id')
         .single();

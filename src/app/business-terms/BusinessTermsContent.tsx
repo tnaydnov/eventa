@@ -125,6 +125,10 @@ export default function BusinessTermsContent() {
             הסכמה מתאימה כדין והדבר סוכם מראש ובכתב.
           </li>
           <li>
+            הודעות השירות לא יכללו תוכן פרסומי או שיווקי של המזמין, של Eventa או של צד שלישי,
+            אלא אם הדבר סוכם מראש ובכתב וקיימת לכך הסכמה מתאימה לפי דין.
+          </li>
+          <li>
             המזמין משפה את המפעיל בגין כל טענה, דרישה, קנס, תביעה, נזק או הוצאה הנובעים ממסירת
             מספרים ללא הרשאה מתאימה או מבקשה לשליחת הודעות בניגוד לדין.
           </li>
@@ -140,6 +144,10 @@ export default function BusinessTermsContent() {
         <LegalText>
           המפעיל ישמור מידע זה לפרק הזמן הנדרש להפעלת השירות בלבד, ולאחר מכן ימחק אותו בהתאם
           למדיניות הפרטיות, אלא אם נדרשת שמירה מוגבלת לצורכי אבטחה, תיעוד, טיפול בתקלות או עמידה בדין.
+        </LegalText>
+        <LegalText>
+          המזמין אחראי, ככל שנדרש לפי דין, ליידע את האורחים כי פרטיהם עשויים להימסר ל-Eventa
+          לצורך שליחת הודעות שירות הקשורות לאירוע.
         </LegalText>
       </LegalSection>
 
@@ -276,6 +284,10 @@ export default function BusinessTermsContent() {
           לשאלות בנוגע לתנאי ההזמנה ניתן לפנות למפעיל: תומר ניידנוב, עוסק פטור, הפועל תחת השם המסחרי
           Eventa, בכתובת <LegalLink href="mailto:contact@eventa.productions">contact@eventa.productions</LegalLink>.
         </LegalText>
+      </LegalSection>
+
+      <LegalSection title="תאריך עדכון">
+        <LegalText>תנאי הזמנה אלה עודכנו לאחרונה בתאריך: יוני 2026.</LegalText>
       </LegalSection>
     </>
   );

@@ -215,10 +215,27 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
       <p className="wiz-msg-toggle-hint" style={{ marginTop: 16 }}>
         שליחת ההזמנה מהווה בקשת הזמנה הכפופה ל
         <a href="/business-terms" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>
-          תנאי ההזמנה ללקוח
+          תנאי ההזמנה ללקוחות משלמים
         </a>
         .
       </p>
+
+      <label className="wiz-consent-row" style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 14, cursor: 'pointer', lineHeight: 1.7 }}>
+        <input
+          type="checkbox"
+          checked={state.businessTermsAgreed}
+          onChange={(e) => onChange({ businessTermsAgreed: e.target.checked })}
+          style={{ marginTop: 4, width: 18, height: 18, flexShrink: 0, accentColor: 'var(--primary, #b08d7e)', cursor: 'pointer' }}
+          aria-label="אישור תנאי ההזמנה"
+        />
+        <span style={{ fontSize: '0.88rem', color: '#ccc' }}>
+          קראתי והבנתי את{' '}
+          <a href="/business-terms" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>
+            תנאי ההזמנה
+          </a>
+          , לרבות מדיניות הביטולים וההחזרים, ואני מאשר/ת אותם.
+        </span>
+      </label>
     </div>
   );
 }

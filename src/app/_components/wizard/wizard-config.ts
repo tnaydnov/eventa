@@ -158,6 +158,8 @@ export interface WizardFormState {
   contactName: string;
   contactPhone: string;
   contactEmail: string;
+  /** Checkbox: customer confirmed they read and accept business-terms. */
+  businessTermsAgreed: boolean;
 }
 
 export const INITIAL_WIZARD_STATE: WizardFormState = {
@@ -177,6 +179,7 @@ export const INITIAL_WIZARD_STATE: WizardFormState = {
   contactName: '',
   contactPhone: '',
   contactEmail: '',
+  businessTermsAgreed: false,
 };
 
 // ─── Poster Template Manifest Types ─────────────────────────

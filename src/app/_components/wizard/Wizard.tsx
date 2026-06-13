@@ -90,6 +90,9 @@ function validateStep(step: number, state: WizardFormState): string | null {
       if (state.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.contactEmail)) {
         return 'כתובת אימייל לא תקינה';
       }
+      if (!state.businessTermsAgreed) {
+        return 'יש לאשר את תנאי ההזמנה לפני המשך';
+      }
       return null;
 
     default:
@@ -245,6 +248,7 @@ export default function Wizard() {
         wantsGuestMessages: state.wantsGuestMessages,
         contactPreference: state.contactPreference,
         source: 'wizard',
+        businessTermsAcceptedAt: new Date().toISOString(),
       };
 
       const res = await fetch('/api/order', {
