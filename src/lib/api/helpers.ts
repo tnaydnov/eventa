@@ -83,7 +83,7 @@ export function invalidateBlockedCache() {
  * Batches .in() calls to avoid exceeding PostgREST URL length limits (~50 UUIDs per batch).
  */
 /** Explicit columns for participant queries (avoids SELECT *). Excludes fingerprints - those are internal only. */
-export const PARTICIPANT_COLUMNS = 'id, event_id, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at, phone, sms_consent, sms_notifications_enabled, feedback_consent, feedback_sent' as const;
+export const PARTICIPANT_COLUMNS = 'id, event_id, display_name, gender, attracted_to, bio_enc, age, city, looking_for_enc, is_banned, last_seen_at, created_at, phone_enc, sms_consent, sms_notifications_enabled, feedback_consent, feedback_sent' as const;
 export const PHOTO_COLUMNS = 'id, event_id, participant_id, storage_path, order_index, created_at, moderation_status' as const;
 export const CONVERSATION_COLUMNS = 'id, event_id, a_participant_id, b_participant_id, created_at, last_message_at, a_last_read_at, b_last_read_at' as const;
 export const MESSAGE_COLUMNS = 'id, event_id, conversation_id, sender_participant_id, type, text, media_path, is_deleted, created_at' as const;
@@ -96,7 +96,7 @@ export async function buildParticipantPhotoMaps(ids: string[]) {
 
   if (ids.length === 0) return { pMap: new Map<string, PublicParticipant>(), phMap: new Map<string, ParticipantPhoto[]>() };
 
-  // Launch ALL batches in parallel instead of sequentially
+  // Fetch participants via server API (handles decryption)
   const batches: string[][] = [];
   for (let i = 0; i < ids.length; i += BATCH_SIZE) {
     batches.push(ids.slice(i, i + BATCH_SIZE));
@@ -105,20 +105,19 @@ export async function buildParticipantPhotoMaps(ids: string[]) {
   const results = await Promise.all(
     batches.map((batch) =>
       Promise.all([
-        supabase.from('participants').select(PARTICIPANT_COLUMNS).in('id', batch),
+        fetch(`/api/secure/participants?ids=${batch.join(',')}`)
+          .then((r) => r.ok ? r.json() : [])
+          .catch(() => []),
         supabase.from('participant_photos').select(PHOTO_COLUMNS).in('participant_id', batch).eq('moderation_status', 'approved').order('order_index'),
       ])
     )
   );
 
-  for (const [participantsRes, photosRes] of results) {
-    if (participantsRes.error) {
-      console.error('[buildParticipantPhotoMaps] participants query error:', participantsRes.error.message);
-    }
+  for (const [participants, photosRes] of results) {
     if (photosRes.error) {
       console.error('[buildParticipantPhotoMaps] photos query error:', photosRes.error.message);
     }
-    if (participantsRes.data) allParticipants.push(...participantsRes.data);
+    if (Array.isArray(participants)) allParticipants.push(...participants);
     if (photosRes.data) allPhotos.push(...photosRes.data);
   }
 

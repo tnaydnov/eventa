@@ -8,7 +8,7 @@ import {
   adminMessagingPatchSchema,
   adminMessagingTriggerSchema,
 } from '@/lib/validations';
-import { decryptGuestPhoneRow } from '@/lib/pii';
+import { decryptGuestPhoneRow, readPhone } from '@/lib/pii';
 import { sendPreEventMessage, sendFeedbackMessage } from '@/lib/messaging';
 import type { EventMessagingConfig } from '@/lib/messaging/types';
 
@@ -330,11 +330,11 @@ async function handleManualFeedback(
 ) {
   const { data: participants } = await supabase
     .from('participants')
-    .select('id, phone, sms_consent, feedback_sent')
+    .select('id, phone_enc, phone_bi, sms_consent, feedback_sent')
     .eq('event_id', eventId)
     .eq('feedback_sent', false)
     .eq('sms_consent', true)
-    .not('phone', 'is', null)
+    .not('phone_enc', 'is', null)
     .limit(MAX_MESSAGES_PER_TRIGGER);
 
   if (!participants || participants.length === 0) {
@@ -349,9 +349,10 @@ async function handleManualFeedback(
   let failed = 0;
 
   for (const p of participants) {
-    if (!p.phone) continue;
+    const phone = readPhone(p);
+    if (!phone) continue;
 
-    const result = await sendFeedbackMessage(p.phone, config);
+    const result = await sendFeedbackMessage(phone, config);
 
     // Mark feedback_sent regardless of success (don't retry)
     await supabase

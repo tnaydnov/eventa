@@ -142,18 +142,15 @@ describe('buildParticipantPhotoMaps', () => {
     const mockParticipant = { id: 'p1', display_name: 'User1', gender: 'male' };
     const mockPhoto = { id: 'ph1', participant_id: 'p1', storage_path: 'x.jpg', order_index: 0 };
 
-    // Use the shared chainable builder so any filter chained after .in()
-    // (e.g. the soft-delete .is('deleted_at', null) guard) is supported.
-    const mockChain = createQueryMock({ data: [mockPhoto], error: null });
-    const mockParticipantChain = createQueryMock({ data: [mockParticipant], error: null });
+    // buildParticipantPhotoMaps now calls /api/secure/participants?ids=... for participant data
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => [mockParticipant],
+    } as Response);
 
-    let callCount = 0;
-    mockFrom.mockImplementation(() => {
-      callCount++;
-      // Alternate: first call is participants, second is photos
-      if (callCount % 2 === 1) return mockParticipantChain;
-      return mockChain;
-    });
+    // Photos still go through Supabase directly
+    const mockChain = createQueryMock({ data: [mockPhoto], error: null });
+    mockFrom.mockImplementation(() => mockChain);
 
     const { pMap, phMap } = await buildParticipantPhotoMaps(['p1']);
     expect(pMap.get('p1')).toBeDefined();

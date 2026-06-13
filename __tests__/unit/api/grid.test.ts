@@ -1,160 +1,60 @@
 /**
  * Unit tests for lib/api/grid.ts - getGridParticipants
+ * The function now delegates to /api/secure/participants (server-side decryption).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const mockFrom = vi.hoisted(() => vi.fn());
-
-vi.mock('@/lib/supabase', () => ({
-  supabase: { from: mockFrom },
-}));
-
-vi.mock('@/lib/api/helpers', () => ({
-  getBlockedIds: vi.fn().mockResolvedValue(new Set()),
-}));
-
 import { getGridParticipants } from '@/lib/api/grid';
-import { getBlockedIds } from '@/lib/api/helpers';
-import { createQueryMock } from '../../helpers/supabase-mock';
-
-function makeChain(data: unknown, error: unknown = null) {
-  // Delegates to the shared chainable builder so every PostgREST method
-  // (incl. .is() used by the soft-delete filter) is supported.
-  return createQueryMock({ data, error });
-}
 
 beforeEach(() => {
-  vi.clearAllMocks();
-  vi.mocked(getBlockedIds).mockResolvedValue(new Set());
+  vi.restoreAllMocks();
 });
 
 describe('getGridParticipants', () => {
-  it('returns empty when my profile not found', async () => {
-    // myProfile returns null
-    mockFrom
-      .mockReturnValueOnce(makeChain(null))   // myProfile (via maybeSingle)
-      .mockReturnValueOnce(makeChain([]))      // participants
-      ;
-
-    // getBlockedIds is mocked separately, so the first mockFrom call = myProfile
-    // Actually the function does Promise.all([getBlockedIds, myProfile, participants])
-    // getBlockedIds doesn't call mockFrom - it's mocked directly
-    // So mockFrom calls: myProfile, participants
+  it('returns empty array on fetch error', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('network error'));
     const result = await getGridParticipants('e1', 'me');
     expect(result).toEqual([]);
   });
 
-  it('returns empty on myProfile query error', async () => {
-    mockFrom
-      .mockReturnValueOnce(createQueryMock({ data: null, error: { message: 'err' } }))
-      .mockReturnValueOnce(makeChain([]));
-
+  it('returns empty array on non-ok response', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({ ok: false, status: 403 } as Response);
     const result = await getGridParticipants('e1', 'me');
     expect(result).toEqual([]);
   });
 
-  it('filters out blocked participants', async () => {
-    vi.mocked(getBlockedIds).mockResolvedValue(new Set(['p2']));
-
-    mockFrom
-      .mockReturnValueOnce(createQueryMock({
-        data: { gender: 'male', attracted_to: 'women' },
-        error: null,
-      }))
-      .mockReturnValueOnce(createQueryMock({
-        data: [
-          { id: 'p2', display_name: 'Blocked', gender: 'female', attracted_to: 'men', age: 25, participant_photos: [] },
-          { id: 'p3', display_name: 'Visible', gender: 'female', attracted_to: 'men', age: 25, participant_photos: [] },
-        ],
-        error: null,
-      }));
-
-    const result = await getGridParticipants('e1', 'me');
-    expect(result).toHaveLength(1);
-    expect(result[0].id).toBe('p3');
-  });
-
-  it('filters by cross-attraction (male→women only sees women→men)', async () => {
-    mockFrom
-      .mockReturnValueOnce(createQueryMock({
-        data: { gender: 'male', attracted_to: 'women' },
-        error: null,
-      }))
-      .mockReturnValueOnce(createQueryMock({
-        data: [
-          { id: 'p1', display_name: 'F1', gender: 'female', attracted_to: 'men', age: 22, participant_photos: [] },
-          { id: 'p2', display_name: 'F2', gender: 'female', attracted_to: 'women', age: 22, participant_photos: [] },
-          { id: 'p3', display_name: 'M1', gender: 'male', attracted_to: 'men', age: 22, participant_photos: [] },
-        ],
-        error: null,
-      }));
-
-    const result = await getGridParticipants('e1', 'me');
-    // F1 is female attracted_to men → cross-match ✓
-    // F2 is female attracted_to women → I'm attracted to her but she's not attracted to me ✗
-    // M1 is male → I'm not attracted to men ✗
-    expect(result).toHaveLength(1);
-    expect(result[0].id).toBe('p1');
-  });
-
-  it('attracted_to "all" matches anyone', async () => {
-    mockFrom
-      .mockReturnValueOnce(createQueryMock({
-        data: { gender: 'female', attracted_to: 'all' },
-        error: null,
-      }))
-      .mockReturnValueOnce(createQueryMock({
-        data: [
-          { id: 'p1', display_name: 'M', gender: 'male', attracted_to: 'all', age: 25, participant_photos: [] },
-          { id: 'p2', display_name: 'F', gender: 'female', attracted_to: 'all', age: 25, participant_photos: [] },
-        ],
-        error: null,
-      }));
+  it('returns participants from API response', async () => {
+    const participants = [
+      { id: 'p1', display_name: 'Alice', gender: 'female', attracted_to: 'men', age: 25, bio: null, looking_for: null, photos: [] },
+      { id: 'p2', display_name: 'Bob', gender: 'male', attracted_to: 'women', age: 28, bio: null, looking_for: null, photos: [] },
+    ];
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => participants,
+    } as Response);
 
     const result = await getGridParticipants('e1', 'me');
     expect(result).toHaveLength(2);
+    expect(result[0].id).toBe('p1');
   });
 
-  it('filters out participants with empty name or no age', async () => {
-    mockFrom
-      .mockReturnValueOnce(createQueryMock({
-        data: { gender: 'male', attracted_to: 'all' },
-        error: null,
-      }))
-      .mockReturnValueOnce(createQueryMock({
-        data: [
-          { id: 'p1', display_name: '', gender: 'male', attracted_to: 'all', age: 25, participant_photos: [] },
-          { id: 'p2', display_name: 'Good', gender: 'female', attracted_to: 'all', age: null, participant_photos: [] },
-          { id: 'p3', display_name: 'OK', gender: 'female', attracted_to: 'all', age: 30, participant_photos: [] },
-        ],
-        error: null,
-      }));
+  it('calls the correct endpoint', async () => {
+    const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
 
-    const result = await getGridParticipants('e1', 'me');
-    expect(result).toHaveLength(1);
-    expect(result[0].id).toBe('p3');
+    await getGridParticipants('event-abc', 'me');
+    expect(spy).toHaveBeenCalledWith('/api/secure/participants?eventId=event-abc');
   });
 
-  it('maps participant_photos to photos field', async () => {
-    mockFrom
-      .mockReturnValueOnce(createQueryMock({
-        data: { gender: 'female', attracted_to: 'all' },
-        error: null,
-      }))
-      .mockReturnValueOnce(createQueryMock({
-        data: [{
-          id: 'p1',
-          display_name: 'Test',
-          gender: 'male',
-          attracted_to: 'all',
-          age: 25,
-          participant_photos: [{ id: 'ph1', storage_path: 'a.jpg' }],
-        }],
-        error: null,
-      }));
+  it('returns empty array on empty response', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
 
     const result = await getGridParticipants('e1', 'me');
-    expect(result[0].photos).toEqual([{ id: 'ph1', storage_path: 'a.jpg' }]);
-    expect((result[0] as any).participant_photos).toBeUndefined();
+    expect(result).toEqual([]);
   });
 });

@@ -12,6 +12,7 @@
  */
 import { getServiceClient } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
+import { readPhone } from '@/lib/pii';
 import {
   likeNotificationSmsText,
   matchNotificationSmsText,
@@ -66,11 +67,11 @@ async function getParticipant(participantId: string): Promise<ParticipantInfo | 
   const supabase = getServiceClient();
   const { data, error } = await supabase
     .from('participants')
-    .select('id, phone, event_id, sms_consent, sms_notifications_enabled, tab_visible, last_seen_at')
+    .select('id, phone_enc, phone_bi, event_id, sms_consent, sms_notifications_enabled, tab_visible, last_seen_at')
     .eq('id', participantId)
     .maybeSingle();
   if (error || !data) return null;
-  return data as ParticipantInfo;
+  return { ...data, phone: readPhone(data) } as unknown as ParticipantInfo;
 }
 
 /** Fetch event with SMS flag */

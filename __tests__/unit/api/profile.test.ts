@@ -67,52 +67,36 @@ describe('updateProfile', () => {
 // ---------- getParticipant ----------
 describe('getParticipant', () => {
   it('returns participant data with photos on success', async () => {
-    const participant = { id: 'p1', name: 'Dan' };
-    const photos = [{ id: 'ph1', storage_path: 'path.jpg' }];
-    // First from() call: participants
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: participant, error: null }),
-    });
-    // Second from() call: participant_photos
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockResolvedValue({ data: photos, error: null }),
-    });
+    const result = { id: 'p1', name: 'Dan', photos: [{ id: 'ph1', storage_path: 'path.jpg' }] };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => result,
+    } as Response);
 
-    const result = await getParticipant('p1');
-    expect(result).toEqual({ ...participant, photos });
+    const p = await getParticipant('p1');
+    expect(p).toEqual(result);
   });
 
-  it('returns null when participant not found', async () => {
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-    });
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockResolvedValue({ data: [], error: null }),
-    });
+  it('returns null when participant not found (null response)', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => null,
+    } as Response);
 
     expect(await getParticipant('missing')).toBeNull();
   });
 
-  it('returns null on error', async () => {
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: { message: 'fail' } }),
-    });
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockResolvedValue({ data: null, error: null }),
-    });
+  it('returns null on HTTP error', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      status: 404,
+    } as Response);
 
+    expect(await getParticipant('p1')).toBeNull();
+  });
+
+  it('returns null on network error', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('network'));
     expect(await getParticipant('p1')).toBeNull();
   });
 });

@@ -7,6 +7,7 @@ import { logger } from '@/lib/logger';
 import { withCronHeartbeat } from '@/lib/cron-heartbeat';
 import { sendFeedbackMessage } from '@/lib/messaging';
 import type { EventMessagingConfig } from '@/lib/messaging';
+import { readPhone } from '@/lib/pii';
 
 /** Maximum participants to message per cron invocation (15s Vercel timeout). */
 const MAX_MESSAGES_PER_RUN = 50;
@@ -101,10 +102,10 @@ async function handler(req: NextRequest) {
       const remaining = MAX_MESSAGES_PER_RUN - totalProcessed;
       const { data: participants, error: pError } = await supabase
         .from('participants')
-        .select('id, phone, sms_consent')
+        .select('id, phone_enc, phone_bi, sms_consent')
         .eq('event_id', event.id)
         .eq('feedback_sent', false)
-        .not('phone', 'is', null)
+        .not('phone_enc', 'is', null)
         .eq('sms_consent', true)
         .limit(remaining);
 
@@ -128,9 +129,10 @@ async function handler(req: NextRequest) {
       };
 
       for (const p of participants) {
-        if (!p.phone) continue;
+        const phone = readPhone(p);
+        if (!phone) continue;
 
-        const result = await sendFeedbackMessage(p.phone, config);
+        const result = await sendFeedbackMessage(phone, config);
 
         // Mark feedback_sent = true regardless of outcome (don't retry)
         const { error: updateErr } = await supabase

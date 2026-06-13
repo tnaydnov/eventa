@@ -25,26 +25,34 @@ export async function updateProfile(
   }
 }
 
-/** Fetch a single participant with their photos. */
+/** Fetch a single participant with their photos via the server-side endpoint (handles decryption). */
 export async function getParticipant(
   participantId: string
 ): Promise<(PublicParticipant & { photos: ParticipantPhoto[] }) | null> {
-  const [participantRes, photosRes] = await Promise.all([
-    supabase
-      .from('participants')
-      .select(PARTICIPANT_COLUMNS)
-      .eq('id', participantId)
-      .maybeSingle(),
-    supabase
-      .from('participant_photos')
-      .select(PHOTO_COLUMNS)
-      .eq('participant_id', participantId)
-      .eq('moderation_status', 'approved')
-      .order('order_index'),
-  ]);
-  if (participantRes.error) console.error('[getParticipant] participant query error:', participantRes.error.message);
-  if (photosRes.error) console.error('[getParticipant] photos query error:', photosRes.error.message);
-  if (!participantRes.data) return null;
+  try {
+    const res = await fetch(`/api/secure/participants?id=${encodeURIComponent(participantId)}`);
+    if (!res.ok) {
+      console.error('[getParticipant] fetch failed:', res.status);
+      return null;
+    }
+    return res.json();
+  } catch (err) {
+    console.error('[getParticipant] error:', err);
+    return null;
+  }
+}
 
-  return { ...participantRes.data, photos: photosRes.data || [] };
+/** Fetch the current user's own profile (includes phone, SMS settings). */
+export async function getMyParticipant(): Promise<(PublicParticipant & { photos: ParticipantPhoto[] }) | null> {
+  try {
+    const res = await fetch('/api/secure/participants?me=1');
+    if (!res.ok) {
+      console.error('[getMyParticipant] fetch failed:', res.status);
+      return null;
+    }
+    return res.json();
+  } catch (err) {
+    console.error('[getMyParticipant] error:', err);
+    return null;
+  }
 }

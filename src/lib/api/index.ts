@@ -4,7 +4,7 @@
  */
 export { getPhotoUrl } from './helpers';
 export { joinEvent, sendOtp, verifyOtp } from './auth';
-export { updateProfile, getParticipant } from './profile';
+export { updateProfile, getParticipant, getMyParticipant } from './profile';
 export { uploadPhoto, deletePhoto, reorderPhotos, getMyPhotos, getParticipantPhotos } from './photos';
 export { getGridParticipants, matchesCrossAttraction } from './grid';
 export {

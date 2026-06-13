@@ -6,6 +6,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { evictBanCache, bumpSessionEpoch } from '@/lib/route-helpers';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
 import { logger } from '@/lib/logger';
+import { readPhone, computeBlindIndex } from '@/lib/pii';
 
 /**
  * GET /api/admin/events/[eventId]/participants
@@ -29,12 +30,12 @@ export async function GET(
     const [participantsRes, guestPhonesRes] = await Promise.all([
       supabase
         .from('participants')
-        .select('id, display_name, gender, age, is_banned, deleted_at, created_at, phone, sms_consent, feedback_sent')
+        .select('id, display_name, gender, age, is_banned, deleted_at, created_at, phone_enc, phone_bi, sms_consent, feedback_sent')
         .eq('event_id', eventId)
         .order('created_at', { ascending: false }),
       supabase
         .from('event_guest_phones')
-        .select('phone')
+        .select('phone_bi')
         .eq('event_id', eventId),
     ]);
 
@@ -43,12 +44,12 @@ export async function GET(
       return jsonError('Failed to load participants', 500);
     }
 
-    // Build a Set of guest list phones for quick lookup (determines join source)
-    const guestPhoneSet = new Set(
-      (guestPhonesRes.data || []).map((g: { phone: string }) => g.phone)
+    // Build a Set of guest list phone blind indices for quick lookup (determines join source)
+    const guestPhoneBiSet = new Set(
+      (guestPhonesRes.data || []).map((g: { phone_bi: string | null }) => g.phone_bi).filter(Boolean) as string[]
     );
 
-    // Mask phone for admin display: "0501234567" → "050-***-4567"
+    // Mask phone for admin display: "+972501234567" → "050-***-4567"
     const maskPhone = (phone: string | null): string | null => {
       if (!phone) return null;
       const digits = phone.replace(/\D/g, '');
@@ -57,18 +58,16 @@ export async function GET(
     };
 
     // Enrich with profile_complete, masked phone, and join_source
-    const enriched = (participantsRes.data || []).map((p: {
-      display_name: string | null;
-      age: number | null;
-      phone: string | null;
-      sms_consent: boolean;
-      feedback_sent: boolean;
-    }) => ({
-      ...p,
-      profile_complete: !!(p.display_name && p.display_name.trim() && p.age != null),
-      phone: maskPhone(p.phone),
-      join_source: p.phone && guestPhoneSet.has(p.phone) ? 'pre_event_link' : 'qr_on_spot',
-    }));
+    const enriched = (participantsRes.data || []).map((p) => {
+      const phone = readPhone(p);
+      const phoneBi = (p as Record<string, unknown>).phone_bi as string | null ?? computeBlindIndex(phone);
+      return {
+        ...p,
+        profile_complete: !!(p.display_name && p.display_name.trim() && p.age != null),
+        phone: maskPhone(phone),
+        join_source: phoneBi && guestPhoneBiSet.has(phoneBi) ? 'pre_event_link' : 'qr_on_spot',
+      };
+    });
 
     return NextResponse.json({ participants: enriched });
   } catch (err) {
