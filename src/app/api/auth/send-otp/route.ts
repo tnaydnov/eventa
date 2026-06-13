@@ -115,7 +115,10 @@ export async function POST(req: NextRequest) {
     // Create OTP (checks cooldown internally)
     const otpResult = await createOtp(phone, event.id);
     if ('error' in otpResult) {
-      return jsonError(otpResult.error, 429);
+      logger.warn('[SEND_OTP] OTP cooldown hit', { phone: maskPhone(phone) });
+      const res = NextResponse.json({ error: otpResult.error }, { status: 429 });
+      res.headers.set('Retry-After', String(otpResult.retryAfterS));
+      return res;
     }
 
     // Send SMS

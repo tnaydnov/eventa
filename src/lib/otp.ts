@@ -50,7 +50,7 @@ function hashOtpCode(code: string): string {
 export async function createOtp(
   phone: string,
   eventId: string
-): Promise<{ code: string; expiresIn: number } | { error: string }> {
+): Promise<{ code: string; expiresIn: number } | { error: string; retryAfterS: number }> {
   const supabase = getServiceClient();
 
   // Check resend cooldown: prevent spamming
@@ -60,17 +60,24 @@ export async function createOtp(
 
   const { data: recent } = await supabase
     .from('otp_verifications')
-    .select('id')
+    .select('created_at')
     .eq('phone', phone)
     .eq('event_id', eventId)
     .gte('created_at', cooldownCutoff)
     .eq('is_used', false)
+    .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
 
   if (recent) {
+    const createdAtMs = new Date(recent.created_at).getTime();
+    const remainingS = Math.max(
+      1,
+      Math.ceil((createdAtMs + OTP_RESEND_COOLDOWN_S * 1000 - Date.now()) / 1000)
+    );
     return {
-      error: `Please wait ${OTP_RESEND_COOLDOWN_S} seconds before requesting a new code`,
+      error: `Please wait ${remainingS} seconds before requesting a new code`,
+      retryAfterS: remainingS,
     };
   }
 
@@ -102,7 +109,7 @@ export async function createOtp(
       eventId,
       error: error.message,
     });
-    return { error: 'Failed to create verification code' };
+    return { error: 'Failed to create verification code', retryAfterS: 0 };
   }
 
   return { code, expiresIn: OTP_EXPIRY_S };
