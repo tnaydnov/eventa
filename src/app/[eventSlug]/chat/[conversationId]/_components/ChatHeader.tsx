@@ -55,9 +55,9 @@ export default function ChatHeader({ otherUser, onBack, onUserClick, onMenuToggl
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onUserClick(); } }}
           aria-label={`פרופיל ${otherUser.display_name}`}
         >
-          {otherUser.photos.length > 0 ? (
+          {(otherUser.photos ?? []).length > 0 ? (
             <Image
-              src={getPhotoUrl(otherUser.photos[0].storage_path, { width: 96, height: 96, quality: 70 })}
+              src={getPhotoUrl(otherUser.photos![0].storage_path, { width: 96, height: 96, quality: 70 })}
               alt=""
               width={36}
               height={36}

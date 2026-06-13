@@ -244,9 +244,9 @@ export default function UserProfilePage({
             }
           }}
         >
-          {user.photos.length > 0 ? (
+          {(user.photos ?? []).length > 0 ? (
             <Image
-              src={getPhotoUrl(user.photos[photoIndex].storage_path, { width: 900, height: 1200, quality: 80 })}
+              src={getPhotoUrl((user.photos ?? [])[photoIndex]?.storage_path ?? '', { width: 900, height: 1200, quality: 80 })}
               alt={user.display_name}
               fill
               sizes="100vw"
@@ -260,7 +260,7 @@ export default function UserProfilePage({
           )}
 
           {/* Photo dots */}
-          {user.photos.length > 1 && (
+          {(user.photos ?? []).length > 1 && (
             <>
               {/* Progress bar at top */}
               <div
@@ -274,7 +274,7 @@ export default function UserProfilePage({
                   zIndex: 5,
                 }}
               >
-                {user.photos.map((_, i) => (
+                {(user.photos ?? []).map((_, i) => (
                   <div
                     key={i}
                     style={{

@@ -32,9 +32,9 @@ const ParticipantCard = memo(function ParticipantCard({
 }) {
   return (
     <div className="grid-card" onClick={() => onClick(participant.id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(participant.id); } }} role="button" tabIndex={0} aria-label={participant.display_name} style={badge ? { position: 'relative' } : undefined}>
-      {participant.photos.length > 0 ? (
+      {(participant.photos ?? []).length > 0 ? (
         <Image
-          src={getPhotoUrl(participant.photos[0].storage_path, { width: 360, height: 480, quality: 75 })}
+          src={getPhotoUrl(participant.photos![0].storage_path, { width: 360, height: 480, quality: 75 })}
           alt={participant.display_name}
           fill
           sizes="(max-width: 480px) 33vw, 33vw"
