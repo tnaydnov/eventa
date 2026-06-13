@@ -99,7 +99,7 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
           />
         </div>
 
-        {/* 2FA code — revealed only when the server requires it (ADMIN_TOTP_SECRET set) */}
+        {/* 2FA code — revealed only when the server reports that 2FA is enabled */}
         {totpRequired && (
           <div>
             <label

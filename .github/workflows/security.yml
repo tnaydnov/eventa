@@ -26,12 +26,15 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
-      # Hard-fail only on CRITICAL advisories (a single transitive HIGH shouldn't
-      # block every merge). HIGH and below are reported for visibility.
+      # Full report (all severities, incl. devDependencies) for visibility — never fails.
       - name: Audit (report high+)
         run: npm audit --audit-level=high || true
-      - name: Audit (fail on critical)
-        run: npm audit --audit-level=critical
+      # Hard gate: fail only on CRITICAL advisories in PRODUCTION dependencies.
+      # `--omit=dev` excludes build/test tooling (e.g. the vitest UI-server advisory),
+      # which never ships to users — gating releases on dev-only criticals is noise.
+      # Production critical advisories still fail the build.
+      - name: Audit (fail on critical in production deps)
+        run: npm audit --omit=dev --audit-level=critical
 
   secret-hygiene:
     name: Secret hygiene

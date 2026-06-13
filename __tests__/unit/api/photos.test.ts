@@ -43,49 +43,48 @@ beforeEach(() => {
 
 // ---------- uploadPhoto ----------
 describe('uploadPhoto', () => {
-  function mockSuccessPath() {
-    // Step 1: sign url
-    vi.spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ signedUrl: 'https://storage/signed', token: 'tok' }),
-      } as Response)
-      // Step 2: DB record
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ id: 'photo1', storage_path: 'e/p/1.webp', order_index: 0 }),
-      } as Response);
+  // Route fetch by URL so the test is deterministic regardless of how many calls happen.
+  // fetchWithRetry emits API telemetry via an extra fetch('/api/telemetry/...') on a
+  // ~10% random sample of successful /api/secure/* calls (when sendBeacon is unavailable,
+  // as in jsdom). Order-based mockResolvedValueOnce queues are therefore racy — a stolen
+  // queue entry made the DB-record call hit the real relative URL and throw. Routing by
+  // URL removes that coupling.
+  function routeFetch(routes: Array<{ match: string; res: Partial<Response> }>) {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input: RequestInfo | URL) => {
+      const url = typeof input === 'string' ? input : input.toString();
+      for (const r of routes) {
+        if (url.includes(r.match)) return r.res as Response;
+      }
+      // Telemetry + anything else: succeed quietly so it never affects the assertion.
+      return { ok: true, status: 200, json: async () => ({}), text: async () => '' } as Response;
+    });
   }
 
+  const okJson = (data: unknown): Partial<Response> => ({ ok: true, status: 200, json: async () => data });
+
   it('returns photo data on full success', async () => {
-    mockSuccessPath();
+    routeFetch([
+      { match: 'upload-url', res: okJson({ signedUrl: 'https://storage/signed', token: 'tok' }) },
+      { match: '/api/secure/photos', res: okJson({ id: 'photo1', storage_path: 'e/p/1.webp', order_index: 0 }) },
+    ]);
     const file = new File(['data'], 'pic.webp', { type: 'image/webp' });
     const result = await uploadPhoto('event1', 'part1', file, 0);
     expect(result).toEqual(expect.objectContaining({ id: 'photo1' }));
   });
 
   it('returns null when signed URL request fails', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-      ok: false,
-      status: 500,
-      text: async () => 'err',
-    } as Response);
+    routeFetch([
+      { match: 'upload-url', res: { ok: false, status: 500, text: async () => 'err' } as Partial<Response> },
+    ]);
     const file = new File(['data'], 'pic.webp', { type: 'image/webp' });
     expect(await uploadPhoto('e', 'p', file, 0)).toBeNull();
   });
 
   it('uploads via SDK path successfully', async () => {
-    vi.spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ signedUrl: 'https://x/s', token: 'tok' }),
-      } as Response)
-      // DB record
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ id: 'p2' }),
-      } as Response);
-
+    routeFetch([
+      { match: 'upload-url', res: okJson({ signedUrl: 'https://x/s', token: 'tok' }) },
+      { match: '/api/secure/photos', res: okJson({ id: 'p2' }) },
+    ]);
     mockUploadToSignedUrl.mockResolvedValueOnce({ error: null });
     const file = new File(['data'], 'pic.webp', { type: 'image/webp' });
     const result = await uploadPhoto('e', 'p', file, 0);
@@ -94,29 +93,19 @@ describe('uploadPhoto', () => {
   });
 
   it('returns null when SDK upload fails', async () => {
-    vi.spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ signedUrl: 'https://x/s', token: 'tok' }),
-      } as Response);
-
+    routeFetch([
+      { match: 'upload-url', res: okJson({ signedUrl: 'https://x/s', token: 'tok' }) },
+    ]);
     mockUploadToSignedUrl.mockResolvedValueOnce({ error: { message: 'fail' } });
     const file = new File(['data'], 'pic.webp', { type: 'image/webp' });
     expect(await uploadPhoto('e', 'p', file, 0)).toBeNull();
   });
 
   it('returns null when DB record creation fails', async () => {
-    vi.spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ signedUrl: 'https://x/s', token: 'tok' }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        text: async () => 'db error',
-      } as Response);
-
+    routeFetch([
+      { match: 'upload-url', res: okJson({ signedUrl: 'https://x/s', token: 'tok' }) },
+      { match: '/api/secure/photos', res: { ok: false, status: 500, text: async () => 'db error' } as Partial<Response> },
+    ]);
     const file = new File(['data'], 'pic.webp', { type: 'image/webp' });
     expect(await uploadPhoto('e', 'p', file, 0)).toBeNull();
   });
