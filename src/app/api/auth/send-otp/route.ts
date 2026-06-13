@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
 import { checkCsrf } from '@/lib/session';
-import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimitAsync, RATE_LIMITS } from '@/lib/rate-limit';
 import { OTP_MAX_PER_PHONE_PER_HOUR, OTP_GLOBAL_MAX_PER_DAY } from '@/lib/config';
 import { sendOtpSchema } from '@/lib/validations';
 import { jsonError } from '@/lib/route-helpers';
@@ -29,13 +29,12 @@ export async function POST(req: NextRequest) {
     return jsonError('Forbidden', 403);
   }
 
-  const ip = getClientIp(req.headers);
-  const rl = await checkRateLimitAsync(`send-otp:${ip}`, { maxRequests: 15, windowMs: 60_000 });
-  if (!rl.allowed) {
-    const res = NextResponse.json({ error: 'Too many requests' }, { status: 429 });
-    res.headers.set('Retry-After', String(Math.ceil(rl.resetMs / 1000)));
-    return res;
-  }
+  // Note: no per-IP per-minute limit here.
+  // Protection against SMS pumping comes from the per-phone hourly cap below
+  // (OTP_MAX_PER_PHONE_PER_HOUR) and the optional global daily cap. A tight
+  // per-IP per-minute window caused legitimate first attempts to be rejected
+  // because the Upstash Redis counter accumulated entries during development
+  // and testing (same developer IP). CSRF already prevents automated browser scripts.
 
   try {
     const body = await req.json();
