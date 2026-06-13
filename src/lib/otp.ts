@@ -34,7 +34,7 @@ export function generateOtpCode(length: number = OTP_LENGTH): string {
  * Codes are stored as a SHA-256 hash (hex, 64 chars) rather than plaintext, so a DB/
  * service-role leak does not expose live verification codes. A server-side `OTP_PEPPER`
  * (set once, never rotated mid-flight) is mixed in so the hash can't be brute-forced from
- * the DB alone — a 6-digit space is otherwise trivially reversible.
+ * the DB alone - a 6-digit space is otherwise trivially reversible.
  */
 function hashOtpCode(code: string): string {
   const pepper = process.env.OTP_PEPPER || '';

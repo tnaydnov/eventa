@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/totp.ts — RFC 6238 TOTP.
+ * Unit tests for lib/totp.ts - RFC 6238 TOTP.
  *
  * Known-answer vectors are taken from RFC 6238 Appendix B (SHA-1 variant),
  * whose shared secret is the ASCII string "12345678901234567890". We Base32-encode
@@ -46,7 +46,7 @@ describe('base32Decode', () => {
   });
 });
 
-describe('generateTotp — RFC 6238 known-answer vectors (SHA-1, 8 digits)', () => {
+describe('generateTotp - RFC 6238 known-answer vectors (SHA-1, 8 digits)', () => {
   const vectors: Array<[number, string]> = [
     [59, '94287082'],
     [1111111109, '07081804'],

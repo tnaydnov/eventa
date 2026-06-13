@@ -25,7 +25,7 @@ export interface NotificationDeltas {
   /** Senders of currently-unseen likes, or `null` when the server couldn't compute it
    *  (in which case the client must NOT reconcile/clear highlights). */
   unseenLikeSenders: string[] | null;
-  /** Server clock — advance the poll cursor to this so correctness never depends on the device clock. */
+  /** Server clock - advance the poll cursor to this so correctness never depends on the device clock. */
   serverNow: string;
 }
 
@@ -34,7 +34,7 @@ export interface NotificationDeltas {
  *
  * Replaces the poller's ~4 direct Supabase queries with one consolidated, session-scoped
  * API call (queries run server-side, connection-pooled). Returns `null` on failure so the
- * caller can keep its existing cursor and retry on the next tick — never advancing past
+ * caller can keep its existing cursor and retry on the next tick - never advancing past
  * data it didn't actually receive.
  */
 export async function getNotificationDeltas(cursor: string): Promise<NotificationDeltas | null> {

@@ -1,10 +1,10 @@
 /**
- * Post-event report PDF — a clean, branded, single-page Hebrew document.
+ * Post-event report PDF - a clean, branded, single-page Hebrew document.
  *
  * Rendered server-side with jsPDF + an embedded Noto Sans Hebrew font, so the PDF shows
  * real Hebrew (the previous implementation used an ASCII-only core font that stripped all
  * Hebrew). The layout mirrors the brand language of the client report ("דוח לקוח"):
- * cream background, dark header, KPI cards, accent colour, all data inline — and NO link
+ * cream background, dark header, KPI cards, accent colour, all data inline - and NO link
  * (everything the client needs is in the PDF itself).
  *
  * If jsPDF generation ever fails, we fall back to a minimal ASCII PDF so the report email

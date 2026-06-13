@@ -2,7 +2,7 @@
  * IDOR / cross-event authorization tests (SECURITY_HARDENING_PLAN §6, §21).
  *
  * Verifies that a secure route refuses to act on objects the caller does not own,
- * even with a valid session — i.e. horizontal privilege escalation is blocked. Uses
+ * even with a valid session - i.e. horizontal privilege escalation is blocked. Uses
  * the photo-delete route as the representative case: it looks the object up scoped to
  * the session's event and rejects when the owner doesn't match the session participant.
  *
@@ -75,7 +75,7 @@ beforeEach(() => {
 
 describe('IDOR: secure/photos DELETE ownership enforcement', () => {
   it('blocks deleting a photo owned by a DIFFERENT participant (403)', async () => {
-    // Lookup (scoped to event e1) returns a photo owned by p2 — not the caller p1.
+    // Lookup (scoped to event e1) returns a photo owned by p2 - not the caller p1.
     mockFrom.mockReturnValueOnce(createQueryMock({
       data: { participant_id: 'p2', storage_path: 'e1/p2/photo.webp' }, error: null,
     }));
@@ -97,7 +97,7 @@ describe('IDOR: secure/photos DELETE ownership enforcement', () => {
     expect(mockStorageRemove).not.toHaveBeenCalled();
   });
 
-  it('allows deleting the caller’s OWN photo (200) — confirms the 403s are not false positives', async () => {
+  it('allows deleting the caller’s OWN photo (200) - confirms the 403s are not false positives', async () => {
     mockFrom
       .mockReturnValueOnce(createQueryMock({
         data: { participant_id: 'p1', storage_path: 'e1/p1/photo.webp' }, error: null,

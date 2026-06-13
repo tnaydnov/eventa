@@ -7,7 +7,7 @@ import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 9, resetMs: 300000 }),
-  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  // Async (distributed) limiter - routes awaiting it resolve allowed by default.
   checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 9, resetMs: 300000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {

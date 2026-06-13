@@ -143,9 +143,9 @@ function persistAuditLog(action: string, ip: string, details: Record<string, unk
         ({ error }) => {
           if (error) logger.warn('[ADMIN_AUDIT] DB persist failed', { error: error.message });
         },
-        () => { /* network/transport error — swallow, the logger line already captured it */ },
+        () => { /* network/transport error - swallow, the logger line already captured it */ },
       );
   } catch {
-    /* service client unavailable (e.g. missing key) — logger line above is the record */
+    /* service client unavailable (e.g. missing key) - logger line above is the record */
   }
 }

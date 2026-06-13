@@ -46,7 +46,7 @@ describe('uploadPhoto', () => {
   // Route fetch by URL so the test is deterministic regardless of how many calls happen.
   // fetchWithRetry emits API telemetry via an extra fetch('/api/telemetry/...') on a
   // ~10% random sample of successful /api/secure/* calls (when sendBeacon is unavailable,
-  // as in jsdom). Order-based mockResolvedValueOnce queues are therefore racy — a stolen
+  // as in jsdom). Order-based mockResolvedValueOnce queues are therefore racy - a stolen
   // queue entry made the DB-record call hit the real relative URL and throw. Routing by
   // URL removes that coupling.
   function routeFetch(routes: Array<{ match: string; res: Partial<Response> }>) {

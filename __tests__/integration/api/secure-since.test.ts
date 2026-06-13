@@ -1,5 +1,5 @@
 /**
- * Integration tests for GET /api/secure/since — consolidated polling-delta endpoint
+ * Integration tests for GET /api/secure/since - consolidated polling-delta endpoint
  * (SECURITY_HARDENING_PLAN §23.4/R6).
  *
  * @vitest-environment node
@@ -96,7 +96,7 @@ describe('GET /api/secure/since', () => {
     const body = await res.json();
     expect(body.messages).toEqual([]);
     expect(body.myConversationIds).toEqual([]);
-    // Only 3 queries ran (no messages query) — confirms the membership short-circuit.
+    // Only 3 queries ran (no messages query) - confirms the membership short-circuit.
     expect(mockFrom).toHaveBeenCalledTimes(3);
   });
 

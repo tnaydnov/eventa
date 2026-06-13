@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/resilience.ts — timeout, retry, circuit breaker.
+ * Unit tests for lib/resilience.ts - timeout, retry, circuit breaker.
  *
  * @vitest-environment node
  */

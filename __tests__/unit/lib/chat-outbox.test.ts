@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/chat-outbox.ts — durable chat outbox (§23.1 / R1).
+ * Unit tests for lib/chat-outbox.ts - durable chat outbox (§23.1 / R1).
  *
  * @vitest-environment jsdom
  */

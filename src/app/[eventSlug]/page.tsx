@@ -227,7 +227,7 @@ function EventPageContent({
   // Load grid (skip if recently fetched - Realtime keeps data fresh)
   useEffect(() => {
     if (!session) return;
-    // If data was fetched recently we skip the network call — but we MUST still clear
+    // If data was fetched recently we skip the network call - but we MUST still clear
     // the loading flag. `loading` is initialised from `participants.length === 0`, so a
     // remount (e.g. switching tabs back to the grid) with an empty store + a fresh
     // fetch timestamp would otherwise leave the skeletons stuck on screen until a full

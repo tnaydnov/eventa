@@ -19,10 +19,10 @@ import { logger } from '@/lib/logger';
  *   - messages           : new messages in my conversations (from others) since `cursor`
  *   - myConversationIds  : my current conversation ids (membership, for realtime filtering)
  *   - unseenLikeSenders  : senders of my currently-unseen likes (to reconcile stale highlights)
- *   - serverNow          : the server's clock — the client advances its cursor to this,
+ *   - serverNow          : the server's clock - the client advances its cursor to this,
  *                          so correctness never depends on the (often skewed) device clock.
  *
- * Read-only. Scoped to the caller's event + participant via the verified session — never
+ * Read-only. Scoped to the caller's event + participant via the verified session - never
  * trusts client-supplied ids. `cursor` is validated as an ISO timestamp; a missing/invalid
  * cursor falls back to "now" (returns no historical rows, just establishes the baseline).
  */
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
         .select('id')
         .eq('event_id', eventId)
         .or(`a_participant_id.eq.${myId},b_participant_id.eq.${myId}`),
-      // Senders of my currently-unseen likes — lets the client drop stale "like" highlights.
+      // Senders of my currently-unseen likes - lets the client drop stale "like" highlights.
       supabase
         .from('likes')
         .select('from_participant_id')

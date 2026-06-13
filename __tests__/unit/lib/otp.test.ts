@@ -309,7 +309,7 @@ describe('OTP hashing at rest', () => {
         // invalidate previous
         return { update: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) }) }) }) };
       }
-      // insert — capture
+      // insert - capture
       return { insert: vi.fn((payload: Record<string, unknown>) => { captured.payload = payload; return Promise.resolve({ error: null }); }) };
     });
     return captured;

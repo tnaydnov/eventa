@@ -2,8 +2,8 @@
  * Shared Supabase / PostgREST query-builder mock for unit & integration tests.
  *
  * The real `@supabase/supabase-js` query builder is a long, fluent chain
- * (`from().select().eq().is().order().limit()` …) that is *thenable* — you can
- * `await` it at any point — and also exposes terminal resolvers `.single()` /
+ * (`from().select().eq().is().order().limit()` …) that is *thenable* - you can
+ * `await` it at any point - and also exposes terminal resolvers `.single()` /
  * `.maybeSingle()`. Hand-rolled per-test mocks tend to implement only the exact
  * methods a route used at the time, so they break the moment a route adds another
  * filter (e.g. the soft-delete `.is('deleted_at', null)` guard). That brittleness

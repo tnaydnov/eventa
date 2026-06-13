@@ -5,11 +5,11 @@
  * provider can therefore consume the entire budget and cascade into user-visible
  * failures. These helpers bound that blast radius:
  *
- *   - `withTimeout`  — abort an operation that exceeds a deadline (frees the budget).
- *   - `withRetry`    — retry transient failures with exponential backoff + jitter.
- *   - `CircuitBreaker` — stop hammering a provider that is already failing; fail fast
+ *   - `withTimeout`  - abort an operation that exceeds a deadline (frees the budget).
+ *   - `withRetry`    - retry transient failures with exponential backoff + jitter.
+ *   - `CircuitBreaker` - stop hammering a provider that is already failing; fail fast
  *                        for a cool-down window, then probe once to recover.
- *   - `callExternal` — compose all three with sensible defaults.
+ *   - `callExternal` - compose all three with sensible defaults.
  *
  * All helpers are dependency-free and deterministic under test (clock and sleep are
  * injectable). They never import app modules, so they are safe to use anywhere.

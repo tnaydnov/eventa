@@ -1,6 +1,6 @@
 /**
  * Integration tests for GET /api/cron/reconcile-payments (SECURITY_HARDENING_PLAN §18).
- * Verifies read-only detection of payment/provider divergence — no payment mutation.
+ * Verifies read-only detection of payment/provider divergence - no payment mutation.
  *
  * @vitest-environment node
  */
@@ -78,7 +78,7 @@ describe('GET /api/cron/reconcile-payments', () => {
       'PAYMENT_RECONCILE_MISMATCH',
       expect.objectContaining({ type: 'provider_success_local_unpaid', requestId: 'r1' }),
     );
-    // Read-only: only the candidate SELECT touched the DB — no update was issued.
+    // Read-only: only the candidate SELECT touched the DB - no update was issued.
     expect(mockFrom).toHaveBeenCalledTimes(1);
   });
 

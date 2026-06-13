@@ -2,24 +2,24 @@
  * Application-level field encryption + blind index (SECURITY_HARDENING_PLAN §8.3).
  *
  * Platform at-rest encryption (Supabase/AWS) protects against disk theft but NOT against
- * a leaked service-role key — anyone with the key reads every column in plaintext. For the
+ * a leaked service-role key - anyone with the key reads every column in plaintext. For the
  * most sensitive identifiers (phone, email) this util adds an application-layer envelope so
  * that a DB/key leak short of the *encryption* key does not expose the raw value.
  *
- *   - `encryptField` / `decryptField` — authenticated AES-256-GCM. Output is versioned and
+ *   - `encryptField` / `decryptField` - authenticated AES-256-GCM. Output is versioned and
  *     self-describing so the key can be rotated (decrypt falls back to FIELD_ENCRYPTION_KEY_OLD).
- *   - `blindIndex` — keyed HMAC-SHA256 of the normalized value, stored in a separate indexed
+ *   - `blindIndex` - keyed HMAC-SHA256 of the normalized value, stored in a separate indexed
  *     column, so equality lookups ("find participant by phone") still work without plaintext.
  *
  * STAGED, NOT WIRED: this module is intentionally standalone. No column is encrypted and no
- * data is migrated yet — wiring is a separate, carefully-sequenced rollout (write ciphertext +
+ * data is migrated yet - wiring is a separate, carefully-sequenced rollout (write ciphertext +
  * blind index → backfill → switch reads → drop plaintext). Building and testing the primitive
  * first de-risks that rollout.
  *
  * Keys (32 raw bytes, base64-encoded in env):
- *   FIELD_ENCRYPTION_KEY      — active data-encryption key (required to encrypt/decrypt)
- *   FIELD_ENCRYPTION_KEY_OLD  — previous key, accepted for decryption during rotation (optional)
- *   BLIND_INDEX_KEY           — HMAC key for blind indexes (required for blindIndex)
+ *   FIELD_ENCRYPTION_KEY      - active data-encryption key (required to encrypt/decrypt)
+ *   FIELD_ENCRYPTION_KEY_OLD  - previous key, accepted for decryption during rotation (optional)
+ *   BLIND_INDEX_KEY           - HMAC key for blind indexes (required for blindIndex)
  *
  * Generate a key:  node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
  */
@@ -70,7 +70,7 @@ export function encryptField(plaintext: string): string {
 /**
  * Decrypt a value produced by `encryptField`. Tries the active key, then
  * FIELD_ENCRYPTION_KEY_OLD (rotation window). Values that are NOT in our ciphertext
- * format are returned unchanged — this lets a staged rollout read mixed
+ * format are returned unchanged - this lets a staged rollout read mixed
  * plaintext/ciphertext columns safely. Throws on tamper or wrong key.
  */
 export function decryptField(value: string): string {
@@ -98,7 +98,7 @@ export function decryptField(value: string): string {
 }
 
 /**
- * Deterministic keyed HMAC-SHA256 of a normalized value, hex-encoded — a "blind index"
+ * Deterministic keyed HMAC-SHA256 of a normalized value, hex-encoded - a "blind index"
  * for equality lookups on an encrypted column without storing plaintext. Same input →
  * same index (so it can be queried), but the index is not reversible without the key.
  *

@@ -1,5 +1,5 @@
 /**
- * TOTP (Time-based One-Time Password, RFC 6238) — pure Node `crypto`, no native deps.
+ * TOTP (Time-based One-Time Password, RFC 6238) - pure Node `crypto`, no native deps.
  *
  * Used for optional admin two-factor authentication. Compatible with standard
  * authenticator apps (Google Authenticator, Authy, 1Password, …) which use:
@@ -36,7 +36,7 @@ export function base32Decode(input: string): Buffer {
   return Buffer.from(out);
 }
 
-/** HOTP (RFC 4226) — counter-based one-time code with dynamic truncation. */
+/** HOTP (RFC 4226) - counter-based one-time code with dynamic truncation. */
 function hotp(secret: Buffer, counter: number, digits: number): string {
   const buf = Buffer.alloc(8);
   // 64-bit big-endian counter. counter is well within the safe-integer range

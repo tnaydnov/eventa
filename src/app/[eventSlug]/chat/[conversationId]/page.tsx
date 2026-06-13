@@ -117,7 +117,7 @@ export default function ChatRoomPage({
     try {
       if (text) window.localStorage.setItem(`chat-draft:${conversationId}`, text);
       else window.localStorage.removeItem(`chat-draft:${conversationId}`);
-    } catch { /* private-mode / quota — non-critical */ }
+    } catch { /* private-mode / quota - non-critical */ }
   }, [text, conversationId]);
 
   // ─── Scroll to bottom only on NEW messages (not history load) ──
@@ -244,7 +244,7 @@ export default function ChatRoomPage({
     if (!session) return;
     // Reconcile block status first: a block placed while we were backgrounded would
     // have been missed by the realtime handler (the socket may have been dead). Re-check
-    // and redirect out of the conversation if we're now blocked — mirrors the realtime path.
+    // and redirect out of the conversation if we're now blocked - mirrors the realtime path.
     if (otherUser) {
       const blockedIds = await getBlockedIds(session.eventId, session.participantId);
       if (blockedIds.has(otherUser.id)) {
@@ -283,7 +283,7 @@ export default function ChatRoomPage({
   const inFlightRef = useRef<Set<string>>(new Set());
 
   // Send (or resend) a single durable-outbox entry. Reuses the entry's stable
-  // idempotency key, so the server dedupes replays — a resend can never duplicate.
+  // idempotency key, so the server dedupes replays - a resend can never duplicate.
   const sendOutboxEntry = useCallback(async (entry: OutboxEntry) => {
     if (inFlightRef.current.has(entry.key)) return;
     inFlightRef.current.add(entry.key);
@@ -300,7 +300,7 @@ export default function ChatRoomPage({
           return [...withoutTemp, msg];
         });
       } else {
-        // Keep the message visible as "failed — tap to retry" (never delete the text).
+        // Keep the message visible as "failed - tap to retry" (never delete the text).
         setMessages((prev) => prev.map((m) => (m.id === tempId ? { ...m, _status: 'failed' } : m)));
       }
     } finally {
@@ -308,7 +308,7 @@ export default function ChatRoomPage({
     }
   }, [session]);
 
-  // Flush every queued entry — called on mount, on reconnect (`online`), and on resume.
+  // Flush every queued entry - called on mount, on reconnect (`online`), and on resume.
   const flushOutbox = useCallback(() => {
     for (const entry of loadOutbox(conversationId)) {
       void sendOutboxEntry(entry);

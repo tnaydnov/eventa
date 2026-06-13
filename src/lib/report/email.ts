@@ -3,7 +3,7 @@
  *
  * Uses the branded C7 "Event Summary" template (buildClientEventSummaryEmail) so the
  * email matches every other Eventa email, and attaches the one-page styled PDF report.
- * There is intentionally NO portal/report link in the email — everything the client needs
+ * There is intentionally NO portal/report link in the email - everything the client needs
  * is inside the attached PDF (the client portal is only for guest-list uploads).
  */
 import { logger } from '@/lib/logger';
@@ -47,7 +47,7 @@ export async function sendReportEmail(opts: {
       logger.error('[REPORT_EMAIL] pdf generation error, sending without attachment:', pdfErr);
     }
 
-    // Branded C7 template — stats mirror the admin "דוח לקוח" so the numbers are consistent.
+    // Branded C7 template - stats mirror the admin "דוח לקוח" so the numbers are consistent.
     const { subject, html } = buildClientEventSummaryEmail({
       contactName: clientName || '',
       eventName,

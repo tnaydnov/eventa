@@ -1,8 +1,8 @@
-# Eventa — Security, Resilience & Production-Hardening Plan
+# Eventa - Security, Resilience & Production-Hardening Plan
 
 > **Type:** Planning document (no code changes). Roadmap only.
 > **Date:** June 2026
-> **Scope:** Whole application — app layer, API, database, storage, infra, operations, compliance.
+> **Scope:** Whole application - app layer, API, database, storage, infra, operations, compliance.
 > **Stack:** Next.js 16 (App Router) on Vercel `fra1` (serverless, 15 s max) · React 19 · TypeScript 5.9 (strict) · Supabase (PostgreSQL 17, Realtime, Storage) · Zustand · hand-rolled HMAC-SHA256 JWT · Nodemailer SMTP · Invoice4U payments · SMS provider · OpenAI + Falconsai moderation.
 > **Nature of data:** Hebrew-language, mobile-only, event-scoped **dating** PWA. Processes **special-category personal data** (sexual orientation, photos, private messages, phone numbers). This raises the required security/compliance bar substantially.
 
@@ -14,10 +14,10 @@ Every recommendation is tagged so you can sequence the work:
 
 | Tag | Meaning |
 |---|---|
-| **P0** | Critical — do before any paid marketing push / scale. Direct money, legal, or account-takeover risk. |
-| **P1** | High — schedule within the next development cycle. |
-| **P2** | Medium — valuable hardening, do when capacity allows. |
-| **P3** | Future / at-scale — revisit when traffic, team size, or contractual obligations grow. |
+| **P0** | Critical - do before any paid marketing push / scale. Direct money, legal, or account-takeover risk. |
+| **P1** | High - schedule within the next development cycle. |
+| **P2** | Medium - valuable hardening, do when capacity allows. |
+| **P3** | Future / at-scale - revisit when traffic, team size, or contractual obligations grow. |
 
 | Effort | Meaning |
 |---|---|
@@ -25,7 +25,7 @@ Every recommendation is tagged so you can sequence the work:
 | **M** | Medium (1–3 days) |
 | **L** | Large (week+ or ongoing) |
 
-> Nothing here is an implementation instruction — it is a prioritized map of *what* to do and *why*. Sequencing is in [§24 Roadmap](#24-prioritized-roadmap).
+> Nothing here is an implementation instruction - it is a prioritized map of *what* to do and *why*. Sequencing is in [§24 Roadmap](#24-prioritized-roadmap).
 
 ---
 
@@ -56,9 +56,9 @@ Every recommendation is tagged so you can sequence the work:
 23. [Resilience, consistency & connectivity (crowded venues & low signal)](#23-resilience-consistency--connectivity-crowded-venues--low-signal)
 24. [Prioritized roadmap](#24-prioritized-roadmap)
 25. [Quick wins](#25-quick-wins)
-26. [Appendix A — Secrets & env inventory](#appendix-a--secrets--env-inventory)
-27. [Appendix B — Production readiness checklist](#appendix-b--production-readiness-checklist)
-28. [Appendix C — Incident runbook skeleton](#appendix-c--incident-runbook-skeleton)
+26. [Appendix A - Secrets & env inventory](#appendix-a--secrets--env-inventory)
+27. [Appendix B - Production readiness checklist](#appendix-b--production-readiness-checklist)
+28. [Appendix C - Incident runbook skeleton](#appendix-c--incident-runbook-skeleton)
 
 ---
 
@@ -68,14 +68,14 @@ Eventa already has an **above-average security foundation for a solo-built produ
 
 The remaining work is mostly the move from *"secure code"* to *"secure, observable, recoverable production service handling sensitive data at scale."* The highest-value gaps fall into six themes:
 
-1. **Money path** — the payment webhook has a legacy branch that trusts the request body without provider-side verification (fraud risk). **(P0)**
-2. **Operational blindness** — no external error tracking, alerting, or uptime monitoring. A production outage or attack would currently be discovered by users, not by you. **(P0/P1)**
-3. **Abuse & bot resistance** — rate limiting is in-memory only (resets on every serverless cold start) and there is no CAPTCHA/bot challenge on auth, OTP, or order endpoints (SMS toll-fraud and spam exposure). **(P0/P1)**
-4. **Sensitive-data encryption** — this is a dating app holding sexual-orientation data, photos and phone numbers. Beyond Supabase's default at-rest encryption, there is no application-level encryption of PII and photos sit in **public** storage buckets. **(P1)**
-5. **Identity hardening** — a single shared `ADMIN_PASSWORD`, no admin MFA, and no JWT revocation/denylist. **(P0/P1)**
-6. **Recoverability & compliance** — backup/restore has never been drilled (no documented RTO/RPO), and GDPR special-category + Israeli Privacy Law (Amendment 13, in force 2025) obligations need formal coverage. **(P1)**
+1. **Money path** - the payment webhook has a legacy branch that trusts the request body without provider-side verification (fraud risk). **(P0)**
+2. **Operational blindness** - no external error tracking, alerting, or uptime monitoring. A production outage or attack would currently be discovered by users, not by you. **(P0/P1)**
+3. **Abuse & bot resistance** - rate limiting is in-memory only (resets on every serverless cold start) and there is no CAPTCHA/bot challenge on auth, OTP, or order endpoints (SMS toll-fraud and spam exposure). **(P0/P1)**
+4. **Sensitive-data encryption** - this is a dating app holding sexual-orientation data, photos and phone numbers. Beyond Supabase's default at-rest encryption, there is no application-level encryption of PII and photos sit in **public** storage buckets. **(P1)**
+5. **Identity hardening** - a single shared `ADMIN_PASSWORD`, no admin MFA, and no JWT revocation/denylist. **(P0/P1)**
+6. **Recoverability & compliance** - backup/restore has never been drilled (no documented RTO/RPO), and GDPR special-category + Israeli Privacy Law (Amendment 13, in force 2025) obligations need formal coverage. **(P1)**
 
-None of these indicate poor engineering — they are the normal "next layer" for a maturing product. This document lays them out in full.
+None of these indicate poor engineering - they are the normal "next layer" for a maturing product. This document lays them out in full.
 
 ---
 
@@ -107,17 +107,17 @@ None of these indicate poor engineering — they are the normal "next layer" for
 | Private chat messages | Intimate content; reputational + legal exposure |
 | Event/business data (orders, payments, client phone lists) | Revenue + B2B client trust |
 | Admin credentials & service-role key | Full-database compromise if leaked |
-| Availability of the app during a live event | The product only has value *during* the event window — downtime = total failure for that customer |
+| Availability of the app during a live event | The product only has value *during* the event window - downtime = total failure for that customer |
 | Brand/trust & legal standing | A single publicized incident on a dating app is existential |
 
 ### 3.2 Threat actors
 
-- **Opportunistic attackers / script kiddies** — automated scanning, credential stuffing, default-path probing.
-- **Malicious participants** — scraping other attendees, harassment, ban evasion, NSFW uploads, impersonation.
-- **Competitors / scrapers** — bulk profile/photo harvesting.
-- **Fraudsters** — payment manipulation, free-event creation.
-- **Spammers / toll-fraud actors** — abusing OTP/SMS send to pump premium numbers.
-- **Insiders / supply chain** — compromised dependency, leaked secret, malicious npm package.
+- **Opportunistic attackers / script kiddies** - automated scanning, credential stuffing, default-path probing.
+- **Malicious participants** - scraping other attendees, harassment, ban evasion, NSFW uploads, impersonation.
+- **Competitors / scrapers** - bulk profile/photo harvesting.
+- **Fraudsters** - payment manipulation, free-event creation.
+- **Spammers / toll-fraud actors** - abusing OTP/SMS send to pump premium numbers.
+- **Insiders / supply chain** - compromised dependency, leaked secret, malicious npm package.
 
 ### 3.3 STRIDE summary (with current posture)
 
@@ -142,43 +142,43 @@ None of these indicate poor engineering — they are the normal "next layer" for
 | OTP code | `phone_otps` | High (short-lived) | SHA-256 hashed ✅ | Keep; ensure pepper (§8.3) |
 | Profile photos / chat images | Supabase Storage `photos` (**public**) | High | Moderation ✅ | **Private bucket + signed read URLs** (§8.4) |
 | Sexual orientation (`attracted_to`, `looking_for`), gender | `participants` | **Special category (GDPR Art. 9)** | RLS scoping | Explicit consent record + encryption consideration (§8, §20) |
-| Bio / free text | `participants` | Medium | Sanitization, moderation | — |
+| Bio / free text | `participants` | Medium | Sanitization, moderation | - |
 | Private messages | `messages` | High | RLS, soft-delete | Encryption consideration; retention already 7 d |
 | Email | `event_requests`, order flow | Medium | TLS | Field encryption (§8.3) |
-| Device + hardware fingerprint | `participants`, `banned_devices` | Medium (tracking) | — | Document in privacy policy (§20) |
+| Device + hardware fingerprint | `participants`, `banned_devices` | Medium (tracking) | - | Document in privacy policy (§20) |
 | IP address | Logs, rate-limit keys | Medium | Ephemeral | Redact/hash in persisted logs (§8.5) |
 | Admin credential | `ADMIN_PASSWORD` env | Critical | SHA-256 compare | Move to hash-at-rest + MFA (§5, §10) |
 
-**Action (P1, M):** Produce and maintain this map as a living "Record of Processing Activities" (ROPA) — required under both GDPR Art. 30 and Israeli law.
+**Action (P1, M):** Produce and maintain this map as a living "Record of Processing Activities" (ROPA) - required under both GDPR Art. 30 and Israeli law.
 
 ---
 
 ## 5. Identity, authentication & sessions
 
-### 5.1 Admin account hardening — **P0**
+### 5.1 Admin account hardening - **P0**
 
 | Gap | Recommendation | Effort |
 |---|---|---|
 | Single shared `ADMIN_PASSWORD`, no per-admin identity | Move to per-admin accounts with individually hashed passwords (**Argon2id** or bcrypt, not SHA-256) stored in DB; attribute audit logs to a real admin id | M |
 | No MFA on admin | Add **TOTP-based 2FA** (e.g., `otplib`) as a second factor on `/admin` login, with recovery codes | M |
-| Password is compared via SHA-256 | SHA-256 is fast and unsuitable for password storage — use a memory-hard KDF | S |
+| Password is compared via SHA-256 | SHA-256 is fast and unsuitable for password storage - use a memory-hard KDF | S |
 
 > Even if there is only one operator today, MFA + a proper KDF is the single biggest reduction in "full compromise" risk because the admin panel can ban/delete/export everything.
 
-### 5.2 Session revocation / denylist — **P1, M**
+### 5.2 Session revocation / denylist - **P1, M**
 
 Stateless JWTs cannot be invalidated before `exp`. Today a stolen 30-day session token is valid for 30 days. Add:
 - A lightweight **revocation list** (token `jti` claim → denylist in Supabase/KV) checked in `secureGuard()`, OR
 - A per-participant **`session_epoch`** integer; bump it to invalidate all existing tokens (logout-everywhere, post-ban, post-account-recovery).
 
-### 5.3 OTP / phone-auth hardening — **P0/P1**
+### 5.3 OTP / phone-auth hardening - **P0/P1**
 
-- **Per-phone + per-IP rate limits** on `send-otp` beyond the current cooldown, to stop **SMS toll-fraud / pumping** (a real cost-and-abuse vector). **(P0, S)** — see §19.
-- Add a **CAPTCHA / bot challenge** (Cloudflare Turnstile or hCaptcha — `supabase/config.toml` already references these) before OTP issuance and order submission. **(P1, M)**
+- **Per-phone + per-IP rate limits** on `send-otp` beyond the current cooldown, to stop **SMS toll-fraud / pumping** (a real cost-and-abuse vector). **(P0, S)** - see §19.
+- Add a **CAPTCHA / bot challenge** (Cloudflare Turnstile or hCaptcha - `supabase/config.toml` already references these) before OTP issuance and order submission. **(P1, M)**
 - **Account-takeover via SIM-swap:** document the risk; consider step-up verification for sensitive actions and short OTP validity (already 5 min ✅). **(P3)**
 - Ensure OTP hashing uses a server-side **pepper** in addition to SHA-256. **(P2, S)**
 
-### 5.4 Session cookie review — **P2, S**
+### 5.4 Session cookie review - **P2, S**
 - Confirm `__Host-` cookie prefix feasibility for `ws_admin` (requires `Secure`, `Path=/`, no `Domain`) to harden against subdomain cookie injection.
 - Consider shortening session lifetime or adding idle-timeout for long-lived 30-day sessions (balance against the UX of returning event guests).
 
@@ -198,23 +198,23 @@ Stateless JWTs cannot be invalidated before `exp`. Today a stolen 30-day session
 
 ## 7. API security & abuse prevention
 
-### 7.1 Distributed rate limiting — **P0/P1, M**
-The in-memory limiter (`rate-limit.ts`) does not persist across serverless instances or cold starts, so the effective limit under real Vercel conditions is much weaker than configured. **Move to a shared store** — Upstash Redis (`@upstash/ratelimit`) or Vercel KV — keyed by IP and by identity (participant/phone). This is already flagged in code comments; it should be scheduled, not deferred indefinitely, because it underpins every other abuse control.
+### 7.1 Distributed rate limiting - **P0/P1, M**
+The in-memory limiter (`rate-limit.ts`) does not persist across serverless instances or cold starts, so the effective limit under real Vercel conditions is much weaker than configured. **Move to a shared store** - Upstash Redis (`@upstash/ratelimit`) or Vercel KV - keyed by IP and by identity (participant/phone). This is already flagged in code comments; it should be scheduled, not deferred indefinitely, because it underpins every other abuse control.
 
-### 7.2 Bot / automation defense — **P1, M**
+### 7.2 Bot / automation defense - **P1, M**
 - Add **Cloudflare Turnstile / hCaptcha** to: join, send-OTP, verify-OTP, order form. Invisible challenges keep UX intact.
 - Add **honeypot fields** + minimum-time-to-submit checks on public forms (order). **(P2, S)**
 - Consider Vercel's **Bot Management / Attack Challenge Mode** at the edge. **(P3)**
 
-### 7.3 Edge WAF / request filtering — **P1, M**
+### 7.3 Edge WAF / request filtering - **P1, M**
 - Enable **Vercel Firewall** rules (or front with Cloudflare): block common scanner paths, bad user agents, geo-fence to expected regions if appropriate (Israel-focused audience), and set custom rate rules at the edge (before functions execute = cheaper + faster mitigation).
 
-### 7.4 Input & schema robustness — **P2, S**
+### 7.4 Input & schema robustness - **P2, S**
 - Centralize **max payload sizes** per route (already partially done) and ensure every route parses with Zod `safeParse`.
 - Add explicit limits on **array fields** (e.g., batch photo reorder, guest import row count) to prevent algorithmic-complexity DoS.
 - Validate `Content-Type` on all mutating routes.
 
-### 7.5 Response hygiene — **P2, S**
+### 7.5 Response hygiene - **P2, S**
 - Add `Cache-Control: no-store` to all authenticated/JSON API responses to prevent any intermediary/SW caching of personal data.
 - Confirm no stack traces or internal identifiers leak in error bodies (largely handled via `jsonError`).
 
@@ -222,37 +222,37 @@ The in-memory limiter (`rate-limit.ts`) does not persist across serverless insta
 
 ## 8. Data protection & encryption
 
-### 8.1 Encryption in transit — **Maintain (P2, S to verify)**
+### 8.1 Encryption in transit - **Maintain (P2, S to verify)**
 TLS is terminated by Vercel and Supabase; HSTS preload is set. **Verify** Supabase connections enforce TLS and that no plaintext fallback exists. Add automated header tests (HSTS, CSP) to CI.
 
-### 8.2 Encryption at rest (platform) — **Document (P2, S)**
-Supabase (on AWS) provides **AES-256 at-rest encryption** for the database and storage by default. This covers "disk theft" scenarios but **not** application-layer compromise (a leaked service-role key still reads everything in plaintext). Document this clearly so the limitation is understood — it is necessary but not sufficient for special-category data.
+### 8.2 Encryption at rest (platform) - **Document (P2, S)**
+Supabase (on AWS) provides **AES-256 at-rest encryption** for the database and storage by default. This covers "disk theft" scenarios but **not** application-layer compromise (a leaked service-role key still reads everything in plaintext). Document this clearly so the limitation is understood - it is necessary but not sufficient for special-category data.
 
-### 8.3 Application-level field encryption for PII — **P1, L**
+### 8.3 Application-level field encryption for PII - **P1, L**
 For the most sensitive identifiers, add **application-layer encryption** so that even a DB/key leak (short of the encryption key) does not expose raw PII:
 
 - **Candidates:** phone numbers, email, possibly bio/messages.
-- **Approach — envelope encryption:** a master key in a KMS (AWS KMS, or Vercel/Doppler-managed) encrypts per-record data keys; ciphertext stored in DB. Alternatively Postgres **`pgcrypto`** for simpler symmetric encryption (key still must live outside the DB).
-- **Searchable encryption problem:** phone numbers are used for lookup ("reconnect by phone"). Use a **blind index** — a keyed HMAC of the normalized phone stored in a separate indexed column — for equality lookups, while the displayable value is encrypted. This preserves "find participant by phone" without storing plaintext.
+- **Approach - envelope encryption:** a master key in a KMS (AWS KMS, or Vercel/Doppler-managed) encrypts per-record data keys; ciphertext stored in DB. Alternatively Postgres **`pgcrypto`** for simpler symmetric encryption (key still must live outside the DB).
+- **Searchable encryption problem:** phone numbers are used for lookup ("reconnect by phone"). Use a **blind index** - a keyed HMAC of the normalized phone stored in a separate indexed column - for equality lookups, while the displayable value is encrypted. This preserves "find participant by phone" without storing plaintext.
 - **Special-category data:** `attracted_to` / `looking_for` are GDPR Art. 9 data; evaluate encrypting these columns or at minimum tightening access + audit around them.
 - **Key management:** keys must be rot:able and never in source. See §10.
 
 > This is the work the request specifically calls out ("encrypting the data in the db"). Recommended as **P1** (not P0) only because platform at-rest encryption + RLS already cover the most common scenarios; field encryption defends the "leaked key / insider" tier and is expected for a dating app holding orientation data.
 
-### 8.4 Storage / photo privacy — **P1, M**
-Photos and event backgrounds currently live in **public-read** Supabase buckets — anyone with (or guessing) the URL can fetch them, and they are not event-scoped at the storage layer. Recommended:
-- Move participant/chat photos to **private buckets** and serve via **short-lived signed read URLs** generated by the API (you already do signed *upload* URLs — mirror that for reads).
+### 8.4 Storage / photo privacy - **P1, M**
+Photos and event backgrounds currently live in **public-read** Supabase buckets - anyone with (or guessing) the URL can fetch them, and they are not event-scoped at the storage layer. Recommended:
+- Move participant/chat photos to **private buckets** and serve via **short-lived signed read URLs** generated by the API (you already do signed *upload* URLs - mirror that for reads).
 - Add object-path entropy (already partly via UUIDs) and lifecycle rules to purge orphaned objects.
 - Keep moderation in the upload path (already strong).
 
 > Trade-off: signed read URLs add latency/complexity and interact with `next/image` caching and the service worker. Pilot on chat images first (most sensitive), then profile photos.
 
-### 8.5 Data minimization & log redaction — **P1, S**
-- **Never log raw phone numbers, OTPs, tokens, or message content.** Audit `logger` call sites; mask to last 2–4 digits or hash. (Some redaction exists — make it a lint rule / helper.)
+### 8.5 Data minimization & log redaction - **P1, S**
+- **Never log raw phone numbers, OTPs, tokens, or message content.** Audit `logger` call sites; mask to last 2–4 digits or hash. (Some redaction exists - make it a lint rule / helper.)
 - Hash or truncate IPs in any persisted logs.
 - Strip EXIF/GPS metadata from uploaded images server-side (privacy + de-anonymization risk). **(P2, S)**
 
-### 8.6 Client-side storage — **P2, S**
+### 8.6 Client-side storage - **P2, S**
 - Audit `localStorage`/Zustand-persisted data: ensure no sensitive PII (only event context + own non-sensitive profile bits) is persisted; the cascade-reset on session clear already mitigates cross-event leakage.
 
 ---
@@ -263,10 +263,10 @@ Photos and event backgrounds currently live in **public-read** Supabase buckets 
 |---|---|---|
 | **RLS coverage audit** | Verify every table (incl. newer ones: `phone_otps`, `guest_phones`, `message_log`, `event_requests`, `discount_claims`, moderation tables) has RLS enabled and correct policies; default-deny on writes. Add a CI check that fails if any `public` table has RLS disabled. | P1, M |
 | **Least-privilege DB roles** | Introduce a restricted role for routine writes; reserve `service_role` for admin/cron (see §6). | P2, L |
-| **Connection pooling** | Confirm API routes use Supabase's **transaction pooler** (PgBouncer) endpoint — serverless functions can exhaust direct connections under load. | P1, S |
-| **Statement limits** | Set conservative `statement_timeout` for the API role to prevent runaway queries from holding connections (analytics routes can be heavy — 684-line analytics). | P2, S |
+| **Connection pooling** | Confirm API routes use Supabase's **transaction pooler** (PgBouncer) endpoint - serverless functions can exhaust direct connections under load. | P1, S |
+| **Statement limits** | Set conservative `statement_timeout` for the API role to prevent runaway queries from holding connections (analytics routes can be heavy - 684-line analytics). | P2, S |
 | **Constraints & integrity** | Continue CHECK constraints; add FK `ON DELETE` review so cascades match the documented block/delete flows. | P2, M |
-| **Backups / PITR** | See §13 — confirm Point-In-Time Recovery is enabled on the Supabase plan. | P0/P1 |
+| **Backups / PITR** | See §13 - confirm Point-In-Time Recovery is enabled on the Supabase plan. | P0/P1 |
 | **Audit trail table** | Persist admin + security-relevant events to an append-only `audit_log` table (immutable, never auto-purged) instead of stdout only. | P1, M |
 | **Migration hygiene** | Note duplicate migration numbers (`008_*` appears twice, `012_*` twice). Reconcile numbering to avoid ordering ambiguity in fresh environments. | P2, S |
 | **SQL injection** | PostgREST + explicit columns + UUID validation already strong; keep the search-input allow-list and avoid string-built `.or()` filters. | Maintain |
@@ -307,7 +307,7 @@ Photos and event backgrounds currently live in **public-read** Supabase buckets 
 | Concern | Recommendation | Priority/Effort |
 |---|---|---|
 | **Supabase is a SPOF** | Choose a Supabase plan tier with HA/automatic failover; document behavior during a Supabase incident; add read-replica usage for heavy analytics if needed. | P1, M |
-| **External-dependency failure** (SMS/email/payment/OpenAI) | Wrap each in **timeout + retry-with-backoff + circuit breaker**, so one slow provider can't exhaust the 15 s function budget or cascade failures. You already have a pending-SMS retry backlog — generalize the pattern. | P1, M |
+| **External-dependency failure** (SMS/email/payment/OpenAI) | Wrap each in **timeout + retry-with-backoff + circuit breaker**, so one slow provider can't exhaust the 15 s function budget or cascade failures. You already have a pending-SMS retry backlog - generalize the pattern. | P1, M |
 | **Idempotency** | Make webhook + cron + "send message" handlers idempotent (idempotency keys / dedupe) so retries don't double-charge, double-send, or double-insert. Payment webhook partially does this (checks `paid`); formalize everywhere. | P0/P1, M |
 | **Graceful degradation** | Define UX for "DB unavailable" / "realtime down" (already have polling fallback + NetworkStatus). Ensure the app shows a friendly Hebrew "temporary issue" state rather than crashing, especially mid-event. | P1, S |
 | **Cron reliability** | Vercel Cron has at-least-once semantics and can miss runs. Add: a "last successful run" heartbeat per cron, alerting if a cron hasn't completed in its window, and manual re-trigger endpoints (guarded by `CRON_SECRET`). | P1, M |
@@ -323,7 +323,7 @@ Photos and event backgrounds currently live in **public-read** Supabase buckets 
 | Area | Recommendation | Priority/Effort |
 |---|---|---|
 | **Confirm backups exist** | Verify Supabase automated daily backups + **Point-In-Time Recovery (PITR)** are enabled on your plan (free/lower tiers may not include PITR). | P0, S |
-| **Define RTO / RPO** | Document target Recovery Time Objective and Recovery Point Objective (e.g., RPO ≤ 24 h, RTO ≤ 4 h). A dating event is time-boxed — clarify what recovery even means mid-event vs. post-event. | P1, S |
+| **Define RTO / RPO** | Document target Recovery Time Objective and Recovery Point Objective (e.g., RPO ≤ 24 h, RTO ≤ 4 h). A dating event is time-boxed - clarify what recovery even means mid-event vs. post-event. | P1, S |
 | **Restore drill** | **Actually perform a test restore** to a scratch project at least once. Untested backups are not backups. | P1, M |
 | **Off-platform backup copy** | Periodically export critical business data (orders, payments, analytics snapshots, guest lists) to an independent location (e.g., encrypted object storage) so a Supabase-account-level incident isn't catastrophic. | P2, M |
 | **Storage backup** | Confirm whether Storage objects (photos) are included in backups; if not, decide retention/backup strategy (note: photos are auto-purged at 7 days anyway, lowering urgency). | P2, S |
@@ -340,8 +340,8 @@ Photos and event backgrounds currently live in **public-read** Supabase buckets 
 |---|---|---|
 | **Error tracking** | Add **Sentry** (or equivalent) for server + client. Capture unhandled exceptions, API 5xx, and client render errors (you already have an ErrorBoundary to wire in). Free tier covers early scale. | P0/P1, M |
 | **Uptime monitoring** | External uptime checks (e.g., BetterStack/UptimeRobot/Checkly) hitting `/api/health` from multiple regions, with alerting to phone/email. | P0, S |
-| **Alerting** | Define alert thresholds (you already have `reliability-thresholds.ts`!) and **route them somewhere** — email/Slack/Telegram/PagerDuty. Wire the existing reliability metrics into real notifications. | P0/P1, M |
-| **Structured log drain** | Ship Vercel logs to a queryable store (Datadog/Logtail/Axiom) so logs outlive Vercel's short retention — important for incident forensics and the audit trail. | P1, M |
+| **Alerting** | Define alert thresholds (you already have `reliability-thresholds.ts`!) and **route them somewhere** - email/Slack/Telegram/PagerDuty. Wire the existing reliability metrics into real notifications. | P0/P1, M |
+| **Structured log drain** | Ship Vercel logs to a queryable store (Datadog/Logtail/Axiom) so logs outlive Vercel's short retention - important for incident forensics and the audit trail. | P1, M |
 | **Synthetic monitoring** | A Playwright/Checkly script that performs the critical path (join → set profile → like → message) on a schedule against production. | P2, M |
 | **Security alerting** | Alert on: spikes in 401/403/429, admin `LOGIN_FAILED`/`LOCKED_OUT`, moderation BLOCK/CSAM events, payment webhook anomalies, OTP send spikes. | P1, M |
 | **Dashboards** | A single ops dashboard (errors, latency, realtime health %, SMS failure %, cron status). You already compute many of these. | P2, M |
@@ -357,7 +357,7 @@ Photos and event backgrounds currently live in **public-read** Supabase buckets 
 | **Breach notification readiness** | GDPR requires notification within **72 hours**; Israeli law has its own obligations. Pre-draft notification templates and know your supervisory contacts. | P1, S |
 | **Forensic readiness** | Persist immutable audit logs (§9), keep log drain (§14), and ensure you can answer "what did this account/admin do and when." | P1, M |
 | **Key-compromise runbook** | Step-by-step for "service-role key / JWT secret leaked": rotate, invalidate sessions (needs §5.2), audit access, notify. | P0/P1, S |
-| **Kill switches** | Provide admin-level switches: pause an event, disable OTP sends, enable Attack Challenge Mode, put app in read-only/maintenance mode. (Event pause exists ✅ — extend the concept.) | P2, M |
+| **Kill switches** | Provide admin-level switches: pause an event, disable OTP sends, enable Attack Challenge Mode, put app in read-only/maintenance mode. (Event pause exists ✅ - extend the concept.) | P2, M |
 | **Tabletop exercise** | Once written, run a 1-hour tabletop simulating a breach to validate the plan. | P3, S |
 
 ---
@@ -384,8 +384,8 @@ Photos and event backgrounds currently live in **public-read** Supabase buckets 
 | **Dependency scanning** | Enable **Dependabot** (or Renovate) + `npm audit` in CI; alert on known CVEs. | P0/P1, S |
 | **SBOM** | Generate a Software Bill of Materials on each release for visibility. | P3, S |
 | **Lockfile integrity** | Commit and enforce the lockfile; use `npm ci` in CI; consider provenance/`--ignore-scripts` review for risky installs. | P1, S |
-| **Pin & review** | Watch high-risk deps (`xlsx`, `html2canvas`, `jspdf`, `dompurify`) for advisories; `xlsx` in particular has had prototype-pollution/ReDoS history — validate uploads strictly and consider a maintained fork or server-side parsing limits. | P1, M |
-| **Provider trust** | Document data-processing agreements with all sub-processors (Supabase, Vercel, Invoice4U, SMS, OpenAI, SMTP) — also a GDPR requirement (§20). | P1, M |
+| **Pin & review** | Watch high-risk deps (`xlsx`, `html2canvas`, `jspdf`, `dompurify`) for advisories; `xlsx` in particular has had prototype-pollution/ReDoS history - validate uploads strictly and consider a maintained fork or server-side parsing limits. | P1, M |
+| **Provider trust** | Document data-processing agreements with all sub-processors (Supabase, Vercel, Invoice4U, SMS, OpenAI, SMTP) - also a GDPR requirement (§20). | P1, M |
 | **Third-party scripts** | CSP already restricts script sources; keep external scripts minimal and use SRI where any are added. | Maintain |
 
 ---
@@ -394,8 +394,8 @@ Photos and event backgrounds currently live in **public-read** Supabase buckets 
 
 | Gap | Recommendation | Priority/Effort |
 |---|---|---|
-| **Legacy webhook trusts request body** | The `{ token, status }` branch in `payment/webhook` marks an order **paid** based on unverified POST data — a payment-fraud vector. **Remove/disable it** or require provider-side verification (re-fetch clearing log) on *every* path. Add HMAC signature verification and/or **IP allow-listing** for Invoice4U callbacks. | **P0, S** |
-| **Idempotency** | Ensure duplicate webhook deliveries can't double-process (partial today via `payment_status` check) — use a unique constraint on provider transaction id. | P1, S |
+| **Legacy webhook trusts request body** | The `{ token, status }` branch in `payment/webhook` marks an order **paid** based on unverified POST data - a payment-fraud vector. **Remove/disable it** or require provider-side verification (re-fetch clearing log) on *every* path. Add HMAC signature verification and/or **IP allow-listing** for Invoice4U callbacks. | **P0, S** |
+| **Idempotency** | Ensure duplicate webhook deliveries can't double-process (partial today via `payment_status` check) - use a unique constraint on provider transaction id. | P1, S |
 | **Amount/price integrity** | Verify the charged amount server-side against the expected price; never trust client-sent amounts. | P1, S |
 | **PCI scope** | Confirm card data never touches your servers (hosted payment page / iframe). Keep CSP `frame-src` allow-list tight (already done). | P1, S |
 | **Replay protection** | Reject stale callbacks (timestamp/nonce) where the provider supports it. | P2, S |
@@ -407,12 +407,12 @@ Photos and event backgrounds currently live in **public-read** Supabase buckets 
 
 | Area | Recommendation | Priority/Effort |
 |---|---|---|
-| **SMS toll-fraud / pumping** | Add strict per-phone + per-IP + global daily caps on OTP/SMS sends, anomaly alerting, and optionally geo-restrict destination prefixes (Israeli mobile only — you already validate format). This protects directly against billing abuse. | **P0, M** |
+| **SMS toll-fraud / pumping** | Add strict per-phone + per-IP + global daily caps on OTP/SMS sends, anomaly alerting, and optionally geo-restrict destination prefixes (Israeli mobile only - you already validate format). This protects directly against billing abuse. | **P0, M** |
 | **SPF / DKIM / DMARC** | Configure all three for the sending domain so order/lifecycle emails aren't spoofable and land in inboxes. Start DMARC at `p=none` (monitor) → `quarantine` → `reject`. | P1, S |
 | **Email injection** | Order route escapes HTML ✅; also guard header injection (newlines in name/subject) in Nodemailer inputs. | P1, S |
 | **Link safety** | Signed/expiring tokens for portal & payment links (portal token exists ✅); ensure they're single-purpose and rotatable. | P2, S |
-| **Unsubscribe / consent** | Pre-event/feedback WhatsApp & email must respect consent + provide opt-out (consent fields exist — `015_feedback_consent`). Verify enforcement. | P1, S |
-| **Message audit** | `message_log` exists ✅ — ensure it records delivery status + failures for dispute/abuse investigation, without storing message bodies containing PII unnecessarily. | P2, S |
+| **Unsubscribe / consent** | Pre-event/feedback WhatsApp & email must respect consent + provide opt-out (consent fields exist - `015_feedback_consent`). Verify enforcement. | P1, S |
+| **Message audit** | `message_log` exists ✅ - ensure it records delivery status + failures for dispute/abuse investigation, without storing message bodies containing PII unnecessarily. | P2, S |
 
 ---
 
@@ -426,12 +426,12 @@ Photos and event backgrounds currently live in **public-read** Supabase buckets 
 | **ROPA (Art. 30)** | Maintain the data map in §4 as a formal processing record. | P1, S |
 | **DPA with sub-processors** | Signed Data Processing Agreements with Supabase, Vercel, SMS, Invoice4U, OpenAI, SMTP; list them in the privacy policy. | P1, M |
 | **Data-subject rights (DSAR)** | Provide access/export/erasure. Erasure largely covered by account self-delete + 7-day purge ✅; add **data export** (right to portability) and a documented DSAR process. | P1, M |
-| **Breach notification** | 72-hour GDPR process + Israeli obligations — pre-drafted (§15). | P1, S |
+| **Breach notification** | 72-hour GDPR process + Israeli obligations - pre-drafted (§15). | P1, S |
 | **Privacy policy accuracy** | Ensure the policy discloses: fingerprinting, retention (7 d), AI moderation (incl. sending images to OpenAI/Falconsai), payment processor, SMS. AI moderation of intimate photos via third parties **must** be disclosed. | P0/P1, S |
 | **Data residency** | Confirm OpenAI/Falconsai image-moderation data flows are acceptable under your privacy commitments (images leave the EU?). | P1, S |
-| **DPIA** | A **Data Protection Impact Assessment** is effectively mandatory for large-scale special-category processing — produce one. | P1, M |
+| **DPIA** | A **Data Protection Impact Assessment** is effectively mandatory for large-scale special-category processing - produce one. | P1, M |
 | **Children's data** | Enforce/measure minimum age (§16). | P2, S |
-| **Cookie/consent** | Cookie policy page exists; ensure only strictly-necessary storage is used without consent (you use functional localStorage, not ad trackers — likely fine, but document it). | P2, S |
+| **Cookie/consent** | Cookie policy page exists; ensure only strictly-necessary storage is used without consent (you use functional localStorage, not ad trackers - likely fine, but document it). | P2, S |
 
 ---
 
@@ -443,7 +443,7 @@ Photos and event backgrounds currently live in **public-read** Supabase buckets 
 | **SAST** | Enable **CodeQL** (free for the repo) for static analysis on PRs. | P1, S |
 | **Dependency CI** | `npm audit` / Dependabot gating (also §17). | P1, S |
 | **Build secret check** | CI step that greps the client bundle for service-role key / secret patterns (§10). | P0/P1, S |
-| **Security tests in CI** | Add tests for: cross-event isolation, IDOR, header/CSP presence, auth bypass attempts. You have Vitest+Playwright — extend them. | P1, M |
+| **Security tests in CI** | Add tests for: cross-event isolation, IDOR, header/CSP presence, auth bypass attempts. You have Vitest+Playwright - extend them. | P1, M |
 | **Branch protection** | Require PR review + green CI before merge to `main`; protect `main`. | P1, S |
 | **Pre-commit hooks** | Lint, typecheck, secret-scan locally (the build already runs perf budget + typegen). | P2, S |
 | **Pen test** | Commission an external penetration test before a major launch / B2B contracts; consider a private bug-bounty later. | P2/P3, L |
@@ -457,7 +457,7 @@ Photos and event backgrounds currently live in **public-read** Supabase buckets 
 |---|---|---|
 | **CSP tightening** | Move from `script-src 'unsafe-inline'` toward **nonce/hash-based** script CSP in production to close the residual XSS gap. (Next.js supports nonces via middleware.) | P2, M |
 | **Service worker scope** | API routes are `NetworkOnly` ✅; bound the image cache (max entries/expiry) to avoid unbounded device storage; ensure no authenticated response is ever cached. | P2, S |
-| **Clickjacking** | `X-Frame-Options`/`frame-ancestors` set ✅ — maintain. |  Maintain |
+| **Clickjacking** | `X-Frame-Options`/`frame-ancestors` set ✅ - maintain. |  Maintain |
 | **Sensitive data in client state** | Audit Zustand persistence (§8.6). | P2, S |
 | **Tamper expectations** | Treat all client-side checks (MobileGuard, fingerprint) as **advisory**; never rely on them for authorization (server already does). Document this. | Maintain |
 | **Dependency on `localStorage` UUID** | Fine for UX; ban enforcement correctly also uses the hardware fingerprint server-side. | Maintain |
@@ -466,29 +466,29 @@ Photos and event backgrounds currently live in **public-read** Supabase buckets 
 
 ## 23. Resilience, consistency & connectivity (crowded venues & low signal)
 
-> This is the dimension that decides whether Eventa *feels reliable at a real event*. The defining environment is hostile: **hundreds of phones sharing one congested cell tower / saturated venue Wi-Fi**, walls and bodies attenuating signal, phones constantly backgrounded and resumed, and a hard time-box (the event window) during which everything must "just work." The bar is: **a guest who loses signal for 10 seconds — or 10 minutes — loses nothing, sees no crash, and catches up automatically.**
+> This is the dimension that decides whether Eventa *feels reliable at a real event*. The defining environment is hostile: **hundreds of phones sharing one congested cell tower / saturated venue Wi-Fi**, walls and bodies attenuating signal, phones constantly backgrounded and resumed, and a hard time-box (the event window) during which everything must "just work." The bar is: **a guest who loses signal for 10 seconds - or 10 minutes - loses nothing, sees no crash, and catches up automatically.**
 
 ### 23.0 What is already strong here (build on, don't rebuild)
 
 The codebase is already unusually well-prepared for this. Treat these as "keep & maintain":
 
-- **Resilient fetch** — `fetchWithRetry` wraps API calls with a 12 s per-attempt `AbortController` timeout, exponential backoff + jitter, retries on 5xx/`408`/`429`/network failure, and **never** retries 4xx. Read calls retry freely; mutations only retry when explicitly safe.
-- **Idempotency, server-enforced** — `sendMessage` / `sendLike` / `getOrCreateConversation` send an `Idempotency-Key`; the messages route **deduplicates by `idempotency_key` in the DB**, and likes/conversations are unique-constraint / race-safe. So a retry after a flaky send **cannot create duplicates** — the core requirement for "send during a connection blip."
-- **Optimistic messaging** — chat send renders a `temp-` message immediately and reconciles with the server row on success (rolls back + toasts on failure).
-- **Realtime that survives mobile reality** — `RealtimeHub` does ref-counted channels, **exponential backoff reconnect with jitter**, a **20 s watchdog** that rebuilds channels which went silent for 60 s (catches *silent* TCP drops where the socket looks "joined" but is dead), and reconnect triggers on `visibilitychange`, `pageshow` (iOS app-switcher), and `online`.
-- **Polling safety net** — `RealtimeNotificationListener` polls every 8 s (visible) / 15 s (hidden) / 5 s burst after reconnect trouble, with `seenIds` de-duplication, so a dropped WebSocket event is still caught.
-- **Service worker tuned for venues** — `CacheFirst` for Supabase photos (7 days) explicitly to avoid re-downloading 30 grid images per cold start "the dominant data cost at a crowded venue"; `StaleWhileRevalidate` for grid/conversations (30 s) and messages (10 s) for instant paint; `NetworkOnly` for all mutations/auth.
-- **Bandwidth reduction** — client-side WebP compression before upload; `react-virtual` available for long lists; `prefers-reduced-motion` honored in CSS; graceful `try/catch` fallbacks in fingerprinting (canvas/WebGL/SubtleCrypto).
-- **Heartbeat** — 60 s, paused when hidden, retries once on failure, drives ban/event-status enforcement.
+- **Resilient fetch** - `fetchWithRetry` wraps API calls with a 12 s per-attempt `AbortController` timeout, exponential backoff + jitter, retries on 5xx/`408`/`429`/network failure, and **never** retries 4xx. Read calls retry freely; mutations only retry when explicitly safe.
+- **Idempotency, server-enforced** - `sendMessage` / `sendLike` / `getOrCreateConversation` send an `Idempotency-Key`; the messages route **deduplicates by `idempotency_key` in the DB**, and likes/conversations are unique-constraint / race-safe. So a retry after a flaky send **cannot create duplicates** - the core requirement for "send during a connection blip."
+- **Optimistic messaging** - chat send renders a `temp-` message immediately and reconciles with the server row on success (rolls back + toasts on failure).
+- **Realtime that survives mobile reality** - `RealtimeHub` does ref-counted channels, **exponential backoff reconnect with jitter**, a **20 s watchdog** that rebuilds channels which went silent for 60 s (catches *silent* TCP drops where the socket looks "joined" but is dead), and reconnect triggers on `visibilitychange`, `pageshow` (iOS app-switcher), and `online`.
+- **Polling safety net** - `RealtimeNotificationListener` polls every 8 s (visible) / 15 s (hidden) / 5 s burst after reconnect trouble, with `seenIds` de-duplication, so a dropped WebSocket event is still caught.
+- **Service worker tuned for venues** - `CacheFirst` for Supabase photos (7 days) explicitly to avoid re-downloading 30 grid images per cold start "the dominant data cost at a crowded venue"; `StaleWhileRevalidate` for grid/conversations (30 s) and messages (10 s) for instant paint; `NetworkOnly` for all mutations/auth.
+- **Bandwidth reduction** - client-side WebP compression before upload; `react-virtual` available for long lists; `prefers-reduced-motion` honored in CSS; graceful `try/catch` fallbacks in fingerprinting (canvas/WebGL/SubtleCrypto).
+- **Heartbeat** - 60 s, paused when hidden, retries once on failure, drives ban/event-status enforcement.
 
-The gaps below are the *next* layer — mostly about **durability across longer outages**, **consistency correctness**, **graceful behavior under sustained low bandwidth**, and **verified capacity at venue scale**.
+The gaps below are the *next* layer - mostly about **durability across longer outages**, **consistency correctness**, **graceful behavior under sustained low bandwidth**, and **verified capacity at venue scale**.
 
-### 23.1 Offline tolerance & action durability — *"I lost signal for a moment and nothing happened"*
+### 23.1 Offline tolerance & action durability - *"I lost signal for a moment and nothing happened"*
 
 | Gap | Why it matters at a venue | Recommendation | Priority/Effort |
 |---|---|---|---|
-| **No persistent outbox** | Today, if a message ultimately fails after retries (e.g., 20 s dead zone), the optimistic bubble is **removed** and the text is gone — the user must remember and retype. | Add a **durable outbox**: persist unsent messages/likes (with their idempotency key) to `localStorage`/IndexedDB; show them as "pending"; **auto-flush on reconnect** (`online` event / realtime resubscribe). Because the server already dedupes by idempotency key, replay is safe. | **P1, M** |
-| **Failed send is destructive** | A removed message feels like data loss. | Keep failed messages visible in a **"failed — tap to retry"** state (reuse the same idempotency key) instead of deleting them. | **P1, S** |
+| **No persistent outbox** | Today, if a message ultimately fails after retries (e.g., 20 s dead zone), the optimistic bubble is **removed** and the text is gone - the user must remember and retype. | Add a **durable outbox**: persist unsent messages/likes (with their idempotency key) to `localStorage`/IndexedDB; show them as "pending"; **auto-flush on reconnect** (`online` event / realtime resubscribe). Because the server already dedupes by idempotency key, replay is safe. | **P1, M** |
+| **Failed send is destructive** | A removed message feels like data loss. | Keep failed messages visible in a **"failed - tap to retry"** state (reuse the same idempotency key) instead of deleting them. | **P1, S** |
 | **Composer text not preserved across reload** | A mid-event reload (or iOS killing the tab) loses a half-typed message. | Persist draft input per conversation to `localStorage`; restore on mount. | P2, S |
 | **No queued-action feedback** | User can't tell "sending" from "sent" under lag. | Per-message status ticks (sending / sent / failed), already partially modeled via `temp-` ids. | P2, S |
 
@@ -510,7 +510,7 @@ The gaps below are the *next* layer — mostly about **durability across longer 
 |---|---|---|
 | **No adaptation to link quality** | The app behaves identically on 5G and on a congested 3G cell. Use the **Network Information API** (`navigator.connection.effectiveType` / `saveData`) to degrade gracefully: lower `next/image` quality, defer non-critical prefetch, lengthen poll intervals on `slow-2g`/`2g`, and skip decorative autoplay/heavy animation. | P2, M |
 | **Fixed image quality** | `next.config.js` allows qualities `[75, 90, 100]`. On poor links, force the low end and smaller `sizes`. | P2, S |
-| **Realtime vs poll trade-off under congestion** | When WebSocket can't hold, the app already falls back to polling — but consider lengthening intervals when `saveData` is on to conserve the user's data/battery. | P2, S |
+| **Realtime vs poll trade-off under congestion** | When WebSocket can't hold, the app already falls back to polling - but consider lengthening intervals when `saveData` is on to conserve the user's data/battery. | P2, S |
 | **Timeouts tuned for fast networks** | The 12 s fetch timeout may be too short on a saturated venue link for the first byte. Consider a longer timeout for idempotent GETs (safe to retry) and surfacing a "still working…" state rather than failing. | P2, S |
 
 ### 23.4 Realtime & polling at venue scale (the "crowded place" capacity problem)
@@ -529,7 +529,7 @@ The gaps below are the *next* layer — mostly about **durability across longer 
 
 | Area | Recommendation | Priority/Effort |
 |---|---|---|
-| **Initial payload on cold join** | Audit the bytes a guest downloads on first load at the venue (JS bundle + first grid + photos). Tighten code-splitting; ensure the dating pages stay lean. You already have a perf-budget script — wire a **hard CI budget** specific to the join→grid path. | P1, M |
+| **Initial payload on cold join** | Audit the bytes a guest downloads on first load at the venue (JS bundle + first grid + photos). Tighten code-splitting; ensure the dating pages stay lean. You already have a perf-budget script - wire a **hard CI budget** specific to the join→grid path. | P1, M |
 | **Photo delivery** | Already `CacheFirst` 7 d ✅. Add responsive `sizes`/`srcset` so phones fetch grid-thumb resolution, not full images; prefer AVIF/WebP (already enabled). | P2, S |
 | **Prefetch discipline** | Avoid aggressive route/image prefetch on metered/slow links (ties into §23.3 Save-Data). | P2, S |
 | **Realtime payload size** | `REPLICA IDENTITY FULL` sends full old+new rows. Ensure published columns are minimal (no large text blobs broadcast unnecessarily). | P2, S |
@@ -538,7 +538,7 @@ The gaps below are the *next* layer — mostly about **durability across longer 
 
 | Gap | Recommendation | Priority/Effort |
 |---|---|---|
-| **Uploads are not resumable** | A profile/chat photo upload that drops at 80 % on a weak uplink **fails entirely** and restarts. | Adopt **resumable uploads (TUS)** — Supabase Storage supports the TUS protocol — so an interrupted upload continues instead of restarting. Pilot on profile photos. | P2, M |
+| **Uploads are not resumable** | A profile/chat photo upload that drops at 80 % on a weak uplink **fails entirely** and restarts. | Adopt **resumable uploads (TUS)** - Supabase Storage supports the TUS protocol - so an interrupted upload continues instead of restarting. Pilot on profile photos. | P2, M |
 | **No upload progress/cancel** | Long uploads on slow links feel frozen. | Show progress + allow cancel; already compress client-side ✅ to shrink the payload first. | P2, S |
 | **Upload timeout** | Signed-URL PUT may exceed default timeouts on slow links. | Use generous, upload-specific timeouts and retry the *upload* step (not just the DB record). | P2, S |
 
@@ -551,7 +551,7 @@ The gaps below are the *next* layer — mostly about **durability across longer 
 | **Define a support matrix** | Document min versions (e.g., iOS Safari ≥ 15, Chrome/Android ≥ last 2 yrs) and **test on real low-end Android + in-app browsers**. Decide the message shown to unsupported browsers. | P1, S |
 | **In-app browser quirks** | QR links opened inside WhatsApp/Instagram/Facebook in-app browsers can block `localStorage`, camera, service workers, and "Add to Home Screen." Detect and **prompt "open in Safari/Chrome."** | P1, M |
 | **Feature detection + fallbacks** | Confirm graceful degradation when missing: `localStorage` (Safari Private mode historically threw on write), Web Workers (image compression), `WebSocket` (→ polling already), `crypto.subtle` (fingerprint fallback exists ✅), `backdrop-filter` (glass UI), `100dvh` + `env(safe-area-inset)`, `navigator.sendBeacon` (telemetry fallback exists ✅), `IntersectionObserver`. | P1, M |
-| **PWA storage eviction** | iOS may evict PWA/site data after ~7 days of non-use — usually fine given the 7-day event scope, but document it so a returning guest mid-event isn't surprised by a lost session. | P3, S |
+| **PWA storage eviction** | iOS may evict PWA/site data after ~7 days of non-use - usually fine given the 7-day event scope, but document it so a returning guest mid-event isn't surprised by a lost session. | P3, S |
 | **Camera/photo capture** | Validate the photo picker/capture path across iOS/Android, including permission-denied UX. | P2, S |
 
 ### 23.8 Low-end device performance
@@ -569,7 +569,7 @@ The gaps below are the *next* layer — mostly about **durability across longer 
 |---|---|---|
 | **Realistic load test** | Before any large booking, simulate **N concurrent guests** doing the real mix: join, profile setup, grid scroll + photo loads, likes, matches, realtime + polling, chat. Find the breaking point for Realtime, Postgres connections, and Vercel function concurrency. | P1, M |
 | **Capacity runbook per event size** | Document expected resource use at 50 / 150 / 400 / 1000 guests and which plan tier each requires. | P2, S |
-| **Graceful saturation** | Define what happens at the cap: degrade to polling-only, queue, or shed load with a friendly Hebrew "מתחברים…" state — never a hard crash. | P1, M |
+| **Graceful saturation** | Define what happens at the cap: degrade to polling-only, queue, or shed load with a friendly Hebrew "מתחברים…" state - never a hard crash. | P1, M |
 | **Pre-event readiness check** | A lightweight admin "event readiness" check (DB reachable, Realtime healthy, storage writable, providers up) run shortly before doors open. | P2, S |
 
 ### 23.10 Resilience & consistency summary
@@ -589,16 +589,16 @@ The foundation (retry, idempotency, optimistic UI, realtime+polling, venue-tuned
 
 > Suggested sequencing. Each phase is independently shippable.
 
-### Phase 0 — Critical (before scaling / marketing) — *money, takeover, blindness*
-1. **Harden payment webhook** — remove/secure the legacy body-trust path; provider verification + idempotency on all paths. *(§18, P0, S)*
-2. **SMS/OTP abuse caps** — per-phone/IP/global send limits + alerting (toll-fraud). *(§19, P0, M)*
-3. **Distributed rate limiting** (Upstash/KV) — so limits actually hold. *(§7.1, P0/P1, M)*
-4. **Uptime monitoring + alerting wired to a human** — `/api/health` external checks + route existing reliability thresholds to notifications. *(§14, P0, S–M)*
-5. **Error tracking (Sentry)** — server + client. *(§14, P0/P1, M)*
+### Phase 0 - Critical (before scaling / marketing) - *money, takeover, blindness*
+1. **Harden payment webhook** - remove/secure the legacy body-trust path; provider verification + idempotency on all paths. *(§18, P0, S)*
+2. **SMS/OTP abuse caps** - per-phone/IP/global send limits + alerting (toll-fraud). *(§19, P0, M)*
+3. **Distributed rate limiting** (Upstash/KV) - so limits actually hold. *(§7.1, P0/P1, M)*
+4. **Uptime monitoring + alerting wired to a human** - `/api/health` external checks + route existing reliability thresholds to notifications. *(§14, P0, S–M)*
+5. **Error tracking (Sentry)** - server + client. *(§14, P0/P1, M)*
 6. **Admin MFA + proper password KDF** (Argon2id) + per-admin identity. *(§5.1, P0/P1, M)*
 7. **Secret scanning / push protection + build secret-leak check + confirm PITR backups.** *(§10/§21/§13, P0, S)*
 
-### Phase 1 — High
+### Phase 1 - High
 8. Session revocation/denylist (`session_epoch`). *(§5.2)*
 9. Bot challenge (Turnstile) on auth + order; edge WAF rules. *(§7.2/§7.3)*
 10. Private photo buckets + signed read URLs (pilot on chat images). *(§8.4)*
@@ -614,7 +614,7 @@ The foundation (retry, idempotency, optimistic UI, realtime+polling, venue-tuned
 - **R3.** **Verify Supabase Realtime concurrency limits** + realistic **venue-scale load test** + graceful-saturation UX. *(§23.4/§23.9)*
 - **R4.** **Compatibility matrix** + in-app-browser (WhatsApp/Instagram) detection + feature-fallback audit; confirm list **virtualization**. *(§23.7/§23.8)*
 
-### Phase 2 — Medium
+### Phase 2 - Medium
 18. Application-level field encryption + blind index for phone/email. *(§8.3)* *(can elevate to P1 if a B2B client or auditor requires it)*
 19. Least-privilege DB role; connection-pooler + statement timeouts. *(§6/§9)*
 20. Text moderation + in-app reporting + human-review tooling. *(§16)*
@@ -624,7 +624,7 @@ The foundation (retry, idempotency, optimistic UI, realtime+polling, venue-tuned
 - **R5.** **Connection-aware degradation** (Network Info API / Save-Data) + **resumable (TUS) uploads** + **"lite mode"** for low-end devices. *(§23.3/§23.6/§23.8)*
 - **R6.** Single lightweight **"since" delta endpoint** + **transaction pooler** to cut per-client poll cost at scale. *(§23.4)*
 
-### Phase 3 — Future / at-scale
+### Phase 3 - Future / at-scale
 24. Pen test / bug bounty; SBOM; off-platform backup copies; tabletop exercises; scoped Supabase keys; Vercel Bot Management; SIM-swap step-up. *(various)*
 - **R7.** Per-event **capacity runbook** (50/150/400/1000 guests) + pre-event **readiness check**. *(§23.9)*
 
@@ -632,7 +632,7 @@ The foundation (retry, idempotency, optimistic UI, realtime+polling, venue-tuned
 
 ## 25. Quick wins
 
-> High value, low effort (mostly **S**) — can be done almost immediately:
+> High value, low effort (mostly **S**) - can be done almost immediately:
 
 - [ ] Disable/secure the legacy payment-webhook body-trust branch. *(§18)*
 - [ ] External uptime check on `/api/health` with SMS/email alert. *(§14)*
@@ -654,25 +654,25 @@ The foundation (retry, idempotency, optimistic UI, realtime+polling, venue-tuned
 
 ---
 
-## Appendix A — Secrets & env inventory
+## Appendix A - Secrets & env inventory
 
 > Confirm each is: present in prod, **absent from client bundle**, rotatable, and access-audited.
 
 | Secret | Used by | Rotation impact | Notes |
 |---|---|---|---|
 | `JWT_SECRET` | session + admin JWT signing | Rotating logs everyone out unless dual-key (§5.2) | Lazy-loaded ✅ |
-| `SUPABASE_SERVICE_ROLE_KEY` | all server writes/admin | Full-DB key — highest value | Must never be `NEXT_PUBLIC_*` |
+| `SUPABASE_SERVICE_ROLE_KEY` | all server writes/admin | Full-DB key - highest value | Must never be `NEXT_PUBLIC_*` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client reads (RLS) | Low (read-only via RLS) | Public by design |
 | `ADMIN_PASSWORD` | admin login | Move to hashed per-admin records (§5.1) | SHA-256 compare today |
 | `CRON_SECRET` | Vercel Cron auth | Update Vercel cron config on rotate | Timing-safe ✅ |
 | `INVOICE4U_API_TOKEN` | payments | Coordinate with provider | + webhook verification (§18) |
-| SMTP creds | order/lifecycle email | — | + SPF/DKIM/DMARC (§19) |
-| SMS provider creds | OTP / WA messaging | — | + toll-fraud caps (§19) |
-| OpenAI / Falconsai keys | image moderation | — | Disclose data flow (§20) |
+| SMTP creds | order/lifecycle email | - | + SPF/DKIM/DMARC (§19) |
+| SMS provider creds | OTP / WA messaging | - | + toll-fraud caps (§19) |
+| OpenAI / Falconsai keys | image moderation | - | Disclose data flow (§20) |
 
 ---
 
-## Appendix B — Production readiness checklist
+## Appendix B - Production readiness checklist
 
 **Security**
 - [ ] Admin MFA + KDF + per-admin identity
@@ -732,19 +732,19 @@ The foundation (retry, idempotency, optimistic UI, realtime+polling, venue-tuned
 
 ---
 
-## Appendix C — Incident runbook skeleton
+## Appendix C - Incident runbook skeleton
 
-1. **Detect** — alert fires (error spike / uptime / security signal / report).
-2. **Triage** — assign severity (S1 data breach / S2 outage / S3 degraded / S4 minor).
-3. **Contain** — e.g., rotate leaked key, enable Attack Challenge Mode, pause event, disable OTP sends, put app read-only.
-4. **Eradicate** — fix root cause; deploy or roll back.
-5. **Recover** — restore data if needed (DR runbook); verify integrity.
-6. **Assess breach** — is personal data affected? If yes → GDPR 72-hour clock + Israeli obligations; use templates.
-7. **Notify** — users / authorities / B2B clients as required.
-8. **Post-mortem** — blameless write-up; track follow-up actions to closure.
+1. **Detect** - alert fires (error spike / uptime / security signal / report).
+2. **Triage** - assign severity (S1 data breach / S2 outage / S3 degraded / S4 minor).
+3. **Contain** - e.g., rotate leaked key, enable Attack Challenge Mode, pause event, disable OTP sends, put app read-only.
+4. **Eradicate** - fix root cause; deploy or roll back.
+5. **Recover** - restore data if needed (DR runbook); verify integrity.
+6. **Assess breach** - is personal data affected? If yes → GDPR 72-hour clock + Israeli obligations; use templates.
+7. **Notify** - users / authorities / B2B clients as required.
+8. **Post-mortem** - blameless write-up; track follow-up actions to closure.
 
 ---
 
 ### Closing note
 
-This plan is intentionally broad per the request. The app's existing foundation is strong; the work ahead is primarily **operational maturity** (observability, recovery, abuse resistance) and **handling sensitive data to a dating-app standard** (encryption, privacy compliance, payment integrity). Start with **Phase 0** — those items address direct financial, account-takeover, and "flying blind" risks with modest effort.
+This plan is intentionally broad per the request. The app's existing foundation is strong; the work ahead is primarily **operational maturity** (observability, recovery, abuse resistance) and **handling sensitive data to a dating-app standard** (encryption, privacy compliance, payment integrity). Start with **Phase 0** - those items address direct financial, account-takeover, and "flying blind" risks with modest effort.

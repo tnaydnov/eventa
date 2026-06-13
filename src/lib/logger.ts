@@ -50,7 +50,7 @@ type LogMeta = Record<string, unknown> | unknown;
 /* ── PII / secret redaction ──────────────────────────────────────────
  * Logs are shipped to stdout (Vercel) and, in future, a log drain. This app
  * handles special-category data (phones, OTPs, emails, message text), so we
- * scrub sensitive values centrally here — every logger call is covered, and
+ * scrub sensitive values centrally here - every logger call is covered, and
  * no individual call site has to remember to redact.
  *
  * Two complementary strategies:
@@ -63,7 +63,7 @@ type LogMeta = Record<string, unknown> | unknown;
 const SENSITIVE_KEY_RE =
   /(pass(word|wd)?|secret|token|cookie|authorization|^auth$|otp|\bcode\b|phone|e?mail|\bbio\b|message|\btext\b|content|body|idempotency|fingerprint|jwt|session)/i;
 
-/** Email addresses — mask the local part, keep the domain for debugging. */
+/** Email addresses - mask the local part, keep the domain for debugging. */
 const EMAIL_RE = /([\w.+-])[\w.+-]*(@[\w.-]+\.\w+)/g;
 
 /**

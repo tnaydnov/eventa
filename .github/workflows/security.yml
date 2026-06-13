@@ -26,12 +26,12 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
-      # Full report (all severities, incl. devDependencies) for visibility — never fails.
+      # Full report (all severities, incl. devDependencies) for visibility - never fails.
       - name: Audit (report high+)
         run: npm audit --audit-level=high || true
       # Hard gate: fail only on CRITICAL advisories in PRODUCTION dependencies.
       # `--omit=dev` excludes build/test tooling (e.g. the vitest UI-server advisory),
-      # which never ships to users — gating releases on dev-only criticals is noise.
+      # which never ships to users - gating releases on dev-only criticals is noise.
       # Production critical advisories still fail the build.
       - name: Audit (fail on critical in production deps)
         run: npm audit --omit=dev --audit-level=critical

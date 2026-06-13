@@ -1,5 +1,5 @@
 /**
- * Unit test for lib/report/pdf.ts — verifies the styled Hebrew PDF generates server-side
+ * Unit test for lib/report/pdf.ts - verifies the styled Hebrew PDF generates server-side
  * (jsPDF + embedded Noto Sans Hebrew) and produces a valid, non-trivial single PDF.
  *
  * @vitest-environment node

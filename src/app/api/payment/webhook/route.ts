@@ -14,9 +14,9 @@ import { getClearingLogById, isConfigured } from '@/lib/invoice4u';
  * the event_request accordingly.
  *
  * Accepted body formats:
- *   - { clearingLogId: string }                 (Invoice4U server notification — verified
+ *   - { clearingLogId: string }                 (Invoice4U server notification - verified
  *                                                server-side via getClearingLogById)
- *   - { token: string, status: string }         (manual / internal trigger — REQUIRES a valid
+ *   - { token: string, status: string }         (manual / internal trigger - REQUIRES a valid
  *                                                Authorization: Bearer CRON_SECRET; never trusted
  *                                                from an anonymous caller)
  */
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     // SECURITY: a raw { token, status } body cannot be proven to originate from
     // Invoice4U (the provider sends a clearingLogId, which we verify server-side
     // above). Trusting it would let anyone mark an order "paid" by POSTing a known
-    // payment_link_token — a payment-fraud vector. We therefore only honour this
+    // payment_link_token - a payment-fraud vector. We therefore only honour this
     // path for an authenticated internal caller (Vercel Cron / ops with CRON_SECRET).
     // Unauthenticated callers MUST use the verified clearingLogId path.
     const { token, status } = body;

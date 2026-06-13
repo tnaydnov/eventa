@@ -57,7 +57,7 @@ export async function POST(
     return jsonError(reportResult.error ?? 'Failed to generate report', 500);
   }
 
-  // The report is fully self-contained in the attached PDF — no portal token needed.
+  // The report is fully self-contained in the attached PDF - no portal token needed.
   const sent = await sendReportEmail({
     to,
     eventName: event.name as string,

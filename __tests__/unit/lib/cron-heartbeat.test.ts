@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/cron-heartbeat.ts — heartbeat recording, wrapper, staleness.
+ * Unit tests for lib/cron-heartbeat.ts - heartbeat recording, wrapper, staleness.
  *
  * @vitest-environment node
  */

@@ -7,7 +7,7 @@ import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 4, resetMs: 60000 }),
-  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  // Async (distributed) limiter - routes awaiting it resolve allowed by default.
   checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 4, resetMs: 60000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
@@ -116,7 +116,7 @@ describe('POST /api/order', () => {
 
   it('still returns 200 when email sending fails (email is non-blocking)', async () => {
     // Email delivery is best-effort and wrapped in try/catch so a transient SMTP
-    // failure never loses the order — the request still succeeds.
+    // failure never loses the order - the request still succeeds.
     mockSendMail.mockRejectedValue(new Error('SMTP error'));
     const res = await POST(makeReq(validOrder));
     expect(res.status).toBe(200);

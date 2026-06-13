@@ -8,7 +8,7 @@
  * `withCronHeartbeat` wraps a route handler with zero behaviour change: it times the
  * handler, records success/error/skipped, and returns the original response untouched.
  * Heartbeat writes are awaited (so they persist before the serverless function freezes)
- * but fully guarded and bounded — a heartbeat failure never changes the job's response.
+ * but fully guarded and bounded - a heartbeat failure never changes the job's response.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
@@ -41,7 +41,7 @@ const MIN_STALE_AGE_MS = 10 * 60 * 1000;
 const HEARTBEAT_TIMEOUT_MS = 3_000;
 
 /**
- * Persist a heartbeat for `jobName`. Awaitable, but never throws — a failure here must
+ * Persist a heartbeat for `jobName`. Awaitable, but never throws - a failure here must
  * not affect the cron's own result.
  */
 export async function recordCronHeartbeat(

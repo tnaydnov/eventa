@@ -119,7 +119,7 @@ export async function PATCH(
 
     // On ban, revoke all active sessions for this participant (logout-everywhere).
     // Belt-and-suspenders on top of the ban gate: it also keeps pre-ban tokens dead
-    // after a later unban. Non-blocking and fully guarded — never fails the ban.
+    // after a later unban. Non-blocking and fully guarded - never fails the ban.
     if (is_banned) {
       void bumpSessionEpoch(participantId);
     }

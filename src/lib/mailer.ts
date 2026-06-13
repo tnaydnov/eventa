@@ -1,13 +1,13 @@
 import nodemailer, { type SendMailOptions, type Transporter } from 'nodemailer';
 
 /* ── Email header-injection guard (defense-in-depth) ─────────────────
- * Several emails interpolate user-derived values into header fields — the
+ * Several emails interpolate user-derived values into header fields - the
  * order form's `contactName` appears in the Subject, and `contactEmail`
  * becomes the `to` address. An RFC 5322 header value must be a single line;
  * a CR/LF smuggled into one of those values could otherwise inject extra
  * headers (e.g. a hidden Bcc). Nodemailer already encodes headers, but we
  * scrub these fields at the single send choke-point below so NO individual
- * call site has to remember to — and so a future caller can't reintroduce
+ * call site has to remember to - and so a future caller can't reintroduce
  * the gap. Removing CR/LF from a legitimate subject/address is a no-op, so
  * this never changes what a real recipient sees.
  */
@@ -49,8 +49,8 @@ function sanitizeMailHeaders(options: SendMailOptions): SendMailOptions {
  * Avoids module-scope env-var reads that can break on serverless cold-start
  * when SMTP_* vars are not yet available.
  *
- * The transporter's `sendMail` is wrapped once so that every outbound email —
- * regardless of which route sends it — passes through `sanitizeMailHeaders`.
+ * The transporter's `sendMail` is wrapped once so that every outbound email -
+ * regardless of which route sends it - passes through `sanitizeMailHeaders`.
  */
 let _transporter: Transporter | null = null;
 

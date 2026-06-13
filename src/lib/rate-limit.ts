@@ -5,7 +5,7 @@
  * ⚠️ The in-memory store does NOT persist across serverless function instances
  * (e.g. Vercel). Each cold start gets a fresh Map. For true cross-instance limits,
  * set UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN and call the async
- * `checkRateLimitAsync()` — it transparently uses a distributed Redis sliding
+ * `checkRateLimitAsync()` - it transparently uses a distributed Redis sliding
  * window and falls back to this in-memory limiter if Redis is unreachable.
  */
 
@@ -97,11 +97,11 @@ export function checkRateLimit(
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   Distributed limiter (Upstash Redis REST) — optional, opt-in via env.
+   Distributed limiter (Upstash Redis REST) - optional, opt-in via env.
    ────────────────────────────────────────────────────────────────────
    Activated automatically when UPSTASH_REDIS_REST_URL + _TOKEN are set.
    Implemented as a sorted-set sliding window (same algorithm as the
-   in-memory limiter) over Upstash's REST pipeline API — no extra npm
+   in-memory limiter) over Upstash's REST pipeline API - no extra npm
    dependency, no persistent connection (ideal for serverless).
    On ANY Redis error it degrades gracefully to the in-memory limiter so a
    limiter outage never takes down the API (and never fully removes limits).
@@ -169,8 +169,8 @@ async function checkRateLimitRedis(
  * Rate-limit check that prefers a distributed (cross-instance) backend.
  *
  * Use this on abuse-prone, cross-instance-sensitive endpoints (auth, OTP, order,
- * payments, all participant `secureGuard` calls). When Upstash isn't configured —
- * or is temporarily unreachable — it transparently falls back to the per-instance
+ * payments, all participant `secureGuard` calls). When Upstash isn't configured -
+ * or is temporarily unreachable - it transparently falls back to the per-instance
  * in-memory limiter, so behaviour is always safe and never throws.
  */
 export async function checkRateLimitAsync(

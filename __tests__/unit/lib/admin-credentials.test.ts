@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/admin-credentials.ts — admin password (scrypt + plaintext) and TOTP gate.
+ * Unit tests for lib/admin-credentials.ts - admin password (scrypt + plaintext) and TOTP gate.
  *
  * @vitest-environment node
  */
@@ -47,7 +47,7 @@ describe('hasAdminCredential', () => {
   });
 });
 
-describe('verifyAdminPassword — plaintext fallback', () => {
+describe('verifyAdminPassword - plaintext fallback', () => {
   beforeEach(() => { process.env.ADMIN_PASSWORD = 'super-secret-pw'; });
 
   it('accepts the correct password', () => {
@@ -61,7 +61,7 @@ describe('verifyAdminPassword — plaintext fallback', () => {
   });
 });
 
-describe('verifyAdminPassword — scrypt hash (preferred)', () => {
+describe('verifyAdminPassword - scrypt hash (preferred)', () => {
   it('accepts the correct password against a scrypt hash', () => {
     process.env.ADMIN_PASSWORD_HASH = makeScryptHash('correct horse battery staple');
     expect(verifyAdminPassword('correct horse battery staple')).toBe(true);

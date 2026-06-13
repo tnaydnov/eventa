@@ -89,7 +89,7 @@ const nextConfig = {
         ],
       },
       // Sensitive API namespaces must never be cached by browsers, the service
-      // worker, or any shared/CDN intermediary — responses carry session cookies,
+      // worker, or any shared/CDN intermediary - responses carry session cookies,
       // auth state, and personal data. (The deliberately-cached venue reads under
       // /api/secure/* are handled by the service worker and intentionally excluded.)
       {

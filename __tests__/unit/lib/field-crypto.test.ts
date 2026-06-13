@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/field-crypto.ts — AES-256-GCM field encryption + blind index.
+ * Unit tests for lib/field-crypto.ts - AES-256-GCM field encryption + blind index.
  *
  * @vitest-environment node
  */

@@ -4,8 +4,8 @@
  * At a crowded venue a message can fail to send after all in-flight retries (e.g. a
  * 20s dead zone). Previously the optimistic bubble was removed and the typed text was
  * lost. This outbox persists unsent text messages to localStorage so they survive a
- * reload / iOS tab-kill, can be shown as "failed — tap to retry", and are auto-flushed
- * on reconnect. Each entry carries a STABLE idempotency key, so replaying it is safe —
+ * reload / iOS tab-kill, can be shown as "failed - tap to retry", and are auto-flushed
+ * on reconnect. Each entry carries a STABLE idempotency key, so replaying it is safe -
  * the messages API deduplicates by `Idempotency-Key`, so a resend can never create a
  * duplicate even if the original actually reached the server.
  *
@@ -14,7 +14,7 @@
  */
 
 export interface OutboxEntry {
-  /** Stable idempotency key — reused on every retry so the server dedupes replays. */
+  /** Stable idempotency key - reused on every retry so the server dedupes replays. */
   key: string;
   conversationId: string;
   text: string;
@@ -62,7 +62,7 @@ function writeOutbox(conversationId: string, entries: OutboxEntry[]): void {
       window.localStorage.setItem(storageKey(conversationId), JSON.stringify(trimmed));
     }
   } catch {
-    /* private-mode / quota — non-critical, the in-memory UI state still works */
+    /* private-mode / quota - non-critical, the in-memory UI state still works */
   }
 }
 

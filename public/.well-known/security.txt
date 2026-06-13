@@ -1,4 +1,4 @@
-# Eventa — security disclosure policy (RFC 9116)
+# Eventa - security disclosure policy (RFC 9116)
 # If you believe you've found a security vulnerability, please contact us.
 # We appreciate responsible disclosure and will respond promptly.
 

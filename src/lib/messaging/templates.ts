@@ -26,7 +26,7 @@ export function preEventSmsText(config: EventMessagingConfig): string {
   const joinUrl = buildJoinUrl(config.eventSlug);
   return `מגיע/ה ל${config.eventName}? את/ה רווק/ה? 💍
 
-באירוע תהיה לכם הזדמנות להצטרף לאפליקציית Eventa - ולראות את שאר הרווקים והרווקות שיהיו שם.
+באירוע תהיה לכם הזדמנות להצטרף לאפליקציית Eventa (בלי להוריד שום דבר, אל תדאג/י!) - ולראות את שאר הרווקים והרווקות שיהיו שם.
 
 אל תדאגו - זו אפליקציה ייעודית רק לאירוע זה, וכל הנתונים שלכם יימחקו כשבוע לאחר האירוע. 🔒
 

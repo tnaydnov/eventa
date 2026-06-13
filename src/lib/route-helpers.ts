@@ -76,8 +76,8 @@ function boundedSet<V>(map: Map<string, V>, key: string, value: V): void {
  * so the ban takes effect quickly even if a stale entry was cached.
  *
  * `epoch` is the participant's current `session_epoch` (revocation counter,
- * migration 039). `null` means "unknown" — participant deleted, the column is
- * not present yet (deploy/migration skew), or the DB was unreachable — in which
+ * migration 039). `null` means "unknown" - participant deleted, the column is
+ * not present yet (deploy/migration skew), or the DB was unreachable - in which
  * case epoch-based revocation is skipped (never fail-closed on epoch alone).
  */
 interface GuardState { banned: boolean; epoch: number | null }
@@ -157,7 +157,7 @@ export async function getSessionEpoch(participantId: string): Promise<number> {
  * the secureGuard epoch check. Used for post-ban / logout-everywhere.
  *
  * Fully guarded and non-throwing: a failure here must never break the calling
- * admin action (the action's own effect — e.g. the ban — still stands).
+ * admin action (the action's own effect - e.g. the ban - still stands).
  */
 export async function bumpSessionEpoch(participantId: string): Promise<void> {
   try {

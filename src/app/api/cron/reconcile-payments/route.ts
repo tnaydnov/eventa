@@ -15,7 +15,7 @@ import { getClearingLogById, isConfigured } from '@/lib/invoice4u';
  * Read-only reconciliation: compares each recent order's local payment_status against
  * the provider's (Invoice4U) clearing-log record and records any divergence to the
  * immutable admin_audit_log for human review. It deliberately does NOT mutate payment
- * state — automatically "fixing" money records is risky; surfacing anomalies is the goal.
+ * state - automatically "fixing" money records is risky; surfacing anomalies is the goal.
  *
  * Detects two anomaly classes:
  *   - provider_success_local_unpaid : provider cleared but we never marked it paid (missed webhook)

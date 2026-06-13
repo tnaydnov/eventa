@@ -10,7 +10,7 @@ import { getCronHealth } from '@/lib/cron-heartbeat';
  * Reports per-cron "last successful run" freshness so an external uptime monitor can
  * alert when a scheduled job stops firing (SECURITY_HARDENING_PLAN §12/§14).
  *
- * Returns 200 when every cron is fresh, 503 when any is stale — so a monitor that
+ * Returns 200 when every cron is fresh, 503 when any is stale - so a monitor that
  * alerts on non-2xx works out of the box.
  *
  * Auth: either a `Bearer CRON_SECRET` header (for the monitor) or a valid admin cookie

@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
       return jsonError('Server configuration error', 500);
     }
 
-    // 1. Verify password (scrypt hash preferred, plaintext fallback — both timing-safe).
+    // 1. Verify password (scrypt hash preferred, plaintext fallback - both timing-safe).
     if (!verifyAdminPassword(parsed.data.password)) {
       recordFailedAttempt(ip);
       adminAuditLog('LOGIN_FAILED', { ip }, req);
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
       return jsonError('Unauthorized', 401);
     }
 
-    // 2. Optional second factor — only enforced when ADMIN_TOTP_SECRET is set.
+    // 2. Optional second factor - only enforced when ADMIN_TOTP_SECRET is set.
     if (isAdminTotpEnabled()) {
       const totp = parsed.data.totp;
       if (!totp) {

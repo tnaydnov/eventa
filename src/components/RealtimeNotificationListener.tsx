@@ -326,7 +326,7 @@ export default function RealtimeNotificationListener() {
     const s = sessionRef.current;
     if (!s) return;
     // Capture the cursor once for this poll. We advance it to the SERVER's clock
-    // (returned by the endpoint), never the device clock — a phone with a skewed
+    // (returned by the endpoint), never the device clock - a phone with a skewed
     // clock would otherwise permanently miss or re-deliver events.
     const cursor = lastPollTsRef.current;
 
@@ -336,10 +336,10 @@ export default function RealtimeNotificationListener() {
 
       // Single consolidated delta fetch (one round trip; queries run server-side,
       // connection-pooled). Replaces the previous ~4 direct Supabase queries per poll
-      // — see GET /api/secure/since (§23.4/R6). `seenIds` dedup in handleLike/handleMessage
+      // - see GET /api/secure/since (§23.4/R6). `seenIds` dedup in handleLike/handleMessage
       // makes any cursor-boundary overlap harmless.
       const deltas = await getNotificationDeltas(cursor);
-      if (!deltas) return; // fetch failed — keep the cursor and retry on the next tick
+      if (!deltas) return; // fetch failed - keep the cursor and retry on the next tick
 
       // Refresh my conversation-membership cache from the server's authoritative list
       // (used by realtime INSERT filtering in isMyConversation).
@@ -379,10 +379,10 @@ export default function RealtimeNotificationListener() {
   useEffect(() => {
     if (!session) return;
     // Seed the poll cursor from the SERVER's own row timestamps, not the device
-    // clock — a skewed phone clock could otherwise miss or re-deliver events.
+    // clock - a skewed phone clock could otherwise miss or re-deliver events.
     // We set a synchronous client-time baseline first (so polling can start
     // immediately) and replace it with the newest existing server row timestamp
-    // when the seed query returns — but only if no poll has advanced it meanwhile.
+    // when the seed query returns - but only if no poll has advanced it meanwhile.
     const baseline = new Date().toISOString();
     lastPollTsRef.current = baseline;
     void (async () => {
