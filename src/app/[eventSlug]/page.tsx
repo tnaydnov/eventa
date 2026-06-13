@@ -260,7 +260,9 @@ function EventPageContent({
           if (participant && !matchesCrossAttraction(participant, newP)) return;
           // Fetch their photos via API wrapper
           const photos = await getParticipantPhotos(newP.id);
-          addParticipant({ ...payload.new, photos } as GridParticipant);
+          // Strip encrypted/internal columns before adding to store
+          const { bio_enc, looking_for_enc, phone_enc, phone_bi, bio, looking_for, phone, ...newPSafe } = payload.new as Record<string, unknown>;
+          addParticipant({ ...newPSafe, photos } as GridParticipant);
         },
       },
       {
@@ -283,8 +285,11 @@ function EventPageContent({
           const existsInGrid = useGridStore.getState().participants.some((p) => p.id === updated.id);
 
           if (existsInGrid) {
-            // Just update the existing entry
-            updateParticipant(updated.id, payload.new as Partial<GridParticipant>);
+            // Only update non-PII, non-photos fields from Realtime payload.
+            // Realtime rows don't contain photos or decrypted PII, so we preserve
+            // the existing photos array and ignore _enc/_bi columns.
+            const { photos: _photos, bio, looking_for, phone, bio_enc, looking_for_enc, phone_enc, phone_bi, ...safeFields } = payload.new as Partial<GridParticipant> & Record<string, unknown>;
+            updateParticipant(updated.id, safeFields as Partial<GridParticipant>);
           } else {
             // Participant completed their profile - check if they should be added
             if (!session || updated.id === session.participantId) return;
@@ -298,7 +303,8 @@ function EventPageContent({
 
             // Only add if they have at least one photo
             if (photos && photos.length > 0) {
-              addParticipant({ ...payload.new, photos } as GridParticipant);
+              const { bio_enc, looking_for_enc, phone_enc, phone_bi, bio, looking_for, phone, ...updSafe } = payload.new as Record<string, unknown>;
+              addParticipant({ ...updSafe, photos } as GridParticipant);
             }
           }
         },
