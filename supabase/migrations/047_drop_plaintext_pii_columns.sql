@@ -24,6 +24,11 @@
 -- by blind-index index idx_participants_phone_bi added in migration 046).
 DROP INDEX IF EXISTS idx_participants_phone_event;
 
+-- Remove PII columns from the Realtime publication before dropping them,
+-- otherwise Postgres raises "cannot drop column ... because other objects depend on it".
+ALTER PUBLICATION supabase_realtime DROP TABLE participants;
+ALTER PUBLICATION supabase_realtime ADD TABLE participants;
+
 ALTER TABLE participants
   DROP COLUMN IF EXISTS phone,
   DROP COLUMN IF EXISTS bio,
