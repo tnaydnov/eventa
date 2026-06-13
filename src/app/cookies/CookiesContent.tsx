@@ -8,6 +8,9 @@ export default function CookiesContent() {
     <>
       <LegalSection title="מבוא">
         <LegalText>
+          מדיניות עוגיות זו חלה על שירות Eventa, המופעל על-ידי תומר ניידנוב, עוסק פטור, הפועל תחת השם המסחרי Eventa.
+        </LegalText>
+        <LegalText>
           השירות משתמש ב<strong>עוגיות חיוניות</strong> להפעלת התחברות ואבטחת סשן.
           איננו משתמשים בעוגיות פרסום או מעקב.
         </LegalText>

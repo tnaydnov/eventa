@@ -6,7 +6,8 @@ export default function TermsContent() {
       <LegalSection title="מבוא והגדרות">
         <LegalText>
           תנאי שימוש אלה (&quot;התנאים&quot;) מהווים הסכם מחייב בינך (&quot;המשתמש/ת&quot;) לבין
-          מפעיל השירות של <strong>Eventa</strong> (&quot;המפעיל&quot;, &quot;Eventa&quot;, &quot;השירות&quot;, &quot;האפליקציה&quot;).
+          תומר ניידנוב, עוסק פטור, הפועל תחת השם המסחרי <strong>Eventa</strong>
+          (&quot;המפעיל&quot;, &quot;Eventa&quot;, &quot;השירות&quot;, &quot;האפליקציה&quot;).
         </LegalText>
         <LegalText>
           השירות הוא פלטפורמה אינטרנטית זמנית לשימוש במהלך אירועים (למשל: חתונות, מסיבות, כנסים),
@@ -211,7 +212,7 @@ export default function TermsContent() {
 
       <LegalSection title="18. יצירת קשר">
         <LegalText>
-          לשאלות בנוגע לתנאים או לשירות, ניתן לפנות למפעיל השירות באמצעי הקשר המופיעים בשירות.
+          לשאלות בנוגע לתנאים או לשירות, ניתן לפנות למפעיל: תומר ניידנוב, עוסק פטור, הפועל תחת השם המסחרי Eventa.
         </LegalText>
         <LegalText>
           דוא&quot;ל: <LegalLink href="mailto:contact@eventa.productions">contact@eventa.productions</LegalLink>

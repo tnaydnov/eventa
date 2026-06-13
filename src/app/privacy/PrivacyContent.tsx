@@ -5,7 +5,8 @@ export default function PrivacyContent() {
     <>
       <LegalSection title="מבוא והגדרות">
         <LegalText>
-          מדיניות פרטיות זו מפרטת כיצד מפעיל השירות של <strong>Eventa</strong> (&quot;המפעיל&quot;, &quot;אנחנו&quot;, &quot;השירות&quot;)
+          מדיניות פרטיות זו מפרטת כיצד תומר ניידנוב, עוסק פטור, הפועל תחת השם המסחרי <strong>Eventa</strong>
+          (&quot;המפעיל&quot;, &quot;אנחנו&quot;, &quot;Eventa&quot;, &quot;השירות&quot;)
           אוסף, משתמש, מאחסן ומוחק מידע בעת שימוש באפליקציה.
         </LegalText>
         <LegalText>
@@ -19,7 +20,7 @@ export default function PrivacyContent() {
 
       <LegalSection title="1. מי מפעיל את השירות ופרטי קשר">
         <LegalText>
-          השירות מופעל על-ידי מפעיל השירות (מפעיל פרטי).
+          השירות מופעל על-ידי תומר ניידנוב, עוסק פטור, הפועל תחת השם המסחרי Eventa.
           לשאלות או בקשות בנושא פרטיות ניתן לפנות באמצעי הקשר המוצגים בשירות.
         </LegalText>
         <LegalText>

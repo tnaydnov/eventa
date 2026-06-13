@@ -99,7 +99,10 @@ export default function AccessibilityContent() {
 
       <LegalSection title="יצירת קשר בנושא נגישות">
         <LegalText>
-          בכל שאלה, בקשה או דיווח על ליקוי נגישות ניתן לפנות אל אחראי פניות הנגישות שלנו:
+          אחראי פניות נגישות: תומר ניידנוב, מטעם Eventa.
+        </LegalText>
+        <LegalText>
+          בכל שאלה, בקשה או דיווח על ליקוי נגישות ניתן לפנות אלינו:
         </LegalText>
         <LegalList>
           <li>
