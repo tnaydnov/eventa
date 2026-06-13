@@ -141,7 +141,7 @@ export async function GET(
     // Build guest query with optional search filter
     let guestQuery = supabase
       .from('event_guest_phones')
-      .select('id, phone, phone_enc, guest_name, guest_name_enc, wa_pre_event_sent, created_at', {
+      .select('id, phone_enc, phone_bi, guest_name_enc, wa_pre_event_sent, created_at', {
         count: 'exact',
       })
       .eq('event_id', eventId);
@@ -152,16 +152,14 @@ export async function GET(
       const sanitized = search.replace(/[,.()\\/]/g, '');
       // Normalize local phone input (0505752650 → +972505752650) for DB match
       const normalized = normalizePhone(sanitized);
-      const digits = sanitized.replace(/[^\d]/g, '');
       if (normalized) {
-        // Exact E.164 match or name search
-        guestQuery = guestQuery.or(`guest_name.ilike.%${escapeLike(sanitized)}%,phone.eq.${normalized}`);
-      } else if (digits.length >= 3) {
-        // Partial digit search or name search
-        guestQuery = guestQuery.or(`guest_name.ilike.%${escapeLike(sanitized)}%,phone.like.%${digits}%`);
-      } else {
-        // Name-only search
-        guestQuery = guestQuery.ilike('guest_name', `%${escapeLike(sanitized)}%`);
+        // Exact blind-index match on phone, or name-enc search is not feasible;
+        // search by phone_bi (blind index exact match only after encryption)
+        const { column: pc, value: pv } = phoneLookupFilter(normalized);
+        guestQuery = guestQuery.eq(pc, pv);
+      } else if (sanitized.length >= 2) {
+        // Name search is not possible on encrypted data; skip search
+        // (guest_name is fully encrypted — no ILIKE on ciphertext)
       }
     }
 
@@ -176,9 +174,8 @@ export async function GET(
     const formattedGuests = (guests || []).map(
       (g: {
         id: string;
-        phone: string | null;
         phone_enc?: string | null;
-        guest_name: string | null;
+        phone_bi?: string | null;
         guest_name_enc?: string | null;
         wa_pre_event_sent: boolean;
         created_at: string;
@@ -377,7 +374,6 @@ async function handleFileUpload(
     const rows = result.validGuests.map((g: { phone: string; guest_name: string | null }) => ({
       event_id: eventId,
       ...phoneWriteFields(g.phone),
-      guest_name: g.guest_name || null,
       guest_name_enc: encryptPii(g.guest_name || null),
     }));
 

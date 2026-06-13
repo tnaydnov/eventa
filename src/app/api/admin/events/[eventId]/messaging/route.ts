@@ -8,6 +8,7 @@ import {
   adminMessagingPatchSchema,
   adminMessagingTriggerSchema,
 } from '@/lib/validations';
+import { decryptGuestPhoneRow } from '@/lib/pii';
 import { sendPreEventMessage, sendFeedbackMessage } from '@/lib/messaging';
 import type { EventMessagingConfig } from '@/lib/messaging/types';
 
@@ -274,7 +275,7 @@ async function handleManualPreEvent(
 ) {
   const { data: guests } = await supabase
     .from('event_guest_phones')
-    .select('id, phone, guest_name, wa_pre_event_sent')
+    .select('id, phone_enc, guest_name_enc, wa_pre_event_sent')
     .eq('event_id', eventId)
     .eq('wa_pre_event_sent', false)
     .limit(MAX_MESSAGES_PER_TRIGGER);
@@ -290,9 +291,10 @@ async function handleManualPreEvent(
   let sent = 0;
   let failed = 0;
 
-  for (const guest of guests) {
+  for (const guestRaw of guests) {
+    const guest = decryptGuestPhoneRow(guestRaw);
     const result = await sendPreEventMessage(
-      guest.phone,
+      guest.phone as string,
       config
     );
 

@@ -94,10 +94,11 @@ export async function POST(req: NextRequest) {
       .update({
         deleted_at: new Date().toISOString(),
         display_name: '[מחוק]',
-        bio: null,
+        bio_enc: null,
+        looking_for_enc: null,
+        phone_enc: null,
+        phone_bi: null,
         city: null,
-        looking_for: null,
-        phone: null,
         device_fingerprint: null,
         hardware_fingerprint: null,
       })

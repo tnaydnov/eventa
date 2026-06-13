@@ -5,6 +5,7 @@ import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit'
 import { joinEventSchema } from '@/lib/validations';
 import { jsonError, getSessionEpoch } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
+import { decryptParticipantRow } from '@/lib/pii';
 
 // Fingerprint format: hex string or UUID-like, max 64 chars
 // NOTE: duplicated in /api/auth/verify-otp/route.ts - keep in sync until extracted to shared util.
@@ -128,7 +129,7 @@ export async function POST(req: NextRequest) {
     if (fingerprint) {
       const { data: existing, error: lookupErr } = await supabase
         .from('participants')
-        .select('id, event_id, device_fingerprint, hardware_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at')
+        .select('id, event_id, device_fingerprint, hardware_fingerprint, display_name, gender, attracted_to, bio_enc, age, city, looking_for_enc, is_banned, last_seen_at, created_at')
         .eq('event_id', event.id)
         .eq('device_fingerprint', fingerprint)
         .maybeSingle();
@@ -143,7 +144,7 @@ export async function POST(req: NextRequest) {
           return jsonError('Device is banned from this event', 403);
         }
         participantId = existing.id;
-        participant = existing;
+        participant = decryptParticipantRow(existing);
 
         // Update hardware fingerprint if not already set
         if (hwFingerprint) {
@@ -160,7 +161,7 @@ export async function POST(req: NextRequest) {
     if (!participantId && hwFingerprint) {
       const { data: existing, error: lookupErr } = await supabase
         .from('participants')
-        .select('id, event_id, device_fingerprint, hardware_fingerprint, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at')
+        .select('id, event_id, device_fingerprint, hardware_fingerprint, display_name, gender, attracted_to, bio_enc, age, city, looking_for_enc, is_banned, last_seen_at, created_at')
         .eq('event_id', event.id)
         .eq('hardware_fingerprint', hwFingerprint)
         .maybeSingle();
@@ -175,7 +176,7 @@ export async function POST(req: NextRequest) {
           return jsonError('Device is banned from this event', 403);
         }
         participantId = existing.id;
-        participant = existing;
+        participant = decryptParticipantRow(existing);
 
         // Update localStorage fingerprint to current one
         if (fingerprint) {
@@ -199,7 +200,6 @@ export async function POST(req: NextRequest) {
           display_name: '',
           gender: 'male',
           attracted_to: 'all',
-          bio: null,
           is_banned: false,
         })
         .select('id')

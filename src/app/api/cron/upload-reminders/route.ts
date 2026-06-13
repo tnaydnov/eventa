@@ -11,6 +11,7 @@ import {
   buildClientUploadReminder3DayEmail,
 } from '@/lib/email-templates';
 import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
+import { decryptPii } from '@/lib/pii';
 
 /**
  * Determine which reminder type (if any) should be sent based on days until event.
@@ -63,7 +64,7 @@ async function handler(req: NextRequest) {
     // Find events with messaging enabled but no guest list uploaded
     const { data: events, error: eventError } = await supabase
       .from('events')
-      .select('id, name, slug, starts_at, client_name, client_email')
+      .select('id, name, slug, starts_at, client_name_enc, client_email_enc')
       .eq('wa_messages_enabled', true)
       .eq('guest_list_uploaded', false)
       .in('status', ['active', 'draft'])
@@ -115,18 +116,18 @@ async function handler(req: NextRequest) {
       }
 
       // Use client fields from event table; fallback to event_requests for legacy events
-      let contactName = event.client_name;
-      let contactEmail = event.client_email;
+      let contactName = decryptPii(event.client_name_enc, null);
+      let contactEmail = decryptPii(event.client_email_enc, null);
 
       if (!contactEmail) {
         const { data: request } = await supabase
           .from('event_requests')
-          .select('contact_name, contact_email')
+          .select('contact_name_enc, contact_email_enc')
           .eq('approved_event_id', event.id)
           .maybeSingle();
 
-        contactName = request?.contact_name || null;
-        contactEmail = request?.contact_email || null;
+        contactName = decryptPii(request?.contact_name_enc, null) || null;
+        contactEmail = decryptPii(request?.contact_email_enc, null) || null;
       }
 
       if (!contactEmail) {

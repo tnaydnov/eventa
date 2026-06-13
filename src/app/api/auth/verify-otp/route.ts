@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
     const { data: existing, error: lookupErr } = await supabase
       .from('participants')
       .select(
-        'id, event_id, display_name, gender, attracted_to, attracted_to_enc, bio, bio_enc, age, city, looking_for, looking_for_enc, is_banned, last_seen_at, created_at, phone, phone_enc, sms_consent, feedback_consent, feedback_sent'
+        'id, event_id, display_name, gender, attracted_to, attracted_to_enc, bio_enc, age, city, looking_for_enc, is_banned, last_seen_at, created_at, phone_enc, phone_bi, sms_consent, feedback_consent, feedback_sent'
       )
       .eq('event_id', event.id)
       .eq(phoneCol, phoneVal)
@@ -219,7 +219,6 @@ export async function POST(req: NextRequest) {
           display_name: '',
           gender: 'male',
           attracted_to: 'all',
-          bio: null,
           is_banned: false,
           sms_consent: smsConsent,
           sms_notifications_enabled: smsNotificationsEnabled ?? true,

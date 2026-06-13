@@ -13,11 +13,12 @@ import {
   MAX_UPLOAD_FILE_SIZE,
   isAllowedUploadFile,
 } from '@/lib/guest-upload';
+import { phoneWriteFields, encryptPii, decryptGuestPhoneRow, computeBlindIndex } from '@/lib/pii';
 
 // ─── Column selection ───────────────────────────────────
 
 const GUEST_PHONE_COLUMNS =
-  'id, event_id, phone, guest_name, wa_pre_event_sent, wa_pre_event_sent_at, created_at' as const;
+  'id, event_id, phone_enc, phone_bi, guest_name_enc, wa_pre_event_sent, wa_pre_event_sent_at, created_at' as const;
 
 /**
  * GET /api/admin/events/[eventId]/guests
@@ -48,7 +49,7 @@ export async function GET(
     }
 
     return NextResponse.json({
-      guests: data || [],
+      guests: (data || []).map(decryptGuestPhoneRow),
       total: data?.length ?? 0,
     });
   } catch (err) {
@@ -92,10 +93,10 @@ export async function POST(
     // Load existing phones for duplicate detection
     const { data: existing } = await supabase
       .from('event_guest_phones')
-      .select('phone')
+      .select('phone_bi')
       .eq('event_id', eventId);
 
-    const existingPhones = new Set((existing || []).map((r: { phone: string }) => r.phone));
+    const existingPhones = new Set((existing || []).map((r: { phone_bi: string | null }) => r.phone_bi).filter(Boolean) as string[]);
 
     // Check total limit
     if (existingPhones.size >= MAX_GUEST_PHONES_PER_EVENT) {
@@ -137,10 +138,10 @@ export async function POST(
 
       // Insert valid guests
       if (result.validGuests.length > 0) {
-        const rows = result.validGuests.map((g) => ({
-          event_id: eventId,
-          phone: g.phone,
-          guest_name: g.guest_name,
+const rows = result.validGuests.map((g: { phone: string; guest_name: string | null }) => ({
+        event_id: eventId,
+        ...phoneWriteFields(g.phone),
+        guest_name_enc: encryptPii(g.guest_name),
         }));
 
         const { error: insertErr } = await supabase
@@ -201,7 +202,8 @@ export async function POST(
         duplicates++;
         continue;
       }
-      batchPhones.add(normalized);
+      const bi = computeBlindIndex(normalized) || normalized;
+      batchPhones.add(bi);
       validGuests.push({
         phone: normalized,
         guest_name: guest.name
@@ -213,7 +215,8 @@ export async function POST(
     if (validGuests.length > 0) {
       const rows = validGuests.map((g) => ({
         event_id: eventId,
-        ...g,
+        ...phoneWriteFields(g.phone),
+        guest_name_enc: encryptPii(g.guest_name),
       }));
 
       const { error: insertErr } = await supabase

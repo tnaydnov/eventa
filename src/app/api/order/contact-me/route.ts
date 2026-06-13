@@ -4,6 +4,7 @@ import { logger } from '@/lib/logger';
 import { getServiceClient } from '@/lib/supabase';
 import { buildAdminContactOnlyNotification, escapeHtml } from '@/lib/email-templates';
 import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
+import { decryptPii } from '@/lib/pii';
 
 /**
  * GET /api/order/contact-me?id=<requestId>
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
     // Look up the request
     const { data: req, error } = await supabase
       .from('event_requests')
-      .select('id, event_type, event_name, contact_name, contact_phone, contact_email, contact_preference')
+      .select('id, event_type, event_name, contact_name_enc, contact_phone_enc, contact_email_enc, contact_preference')
       .eq('id', requestId)
       .maybeSingle();
 
@@ -48,9 +49,9 @@ export async function GET(request: NextRequest) {
 
     // Send notification email to admin
     const emailData = buildAdminContactOnlyNotification({
-      contactName: req.contact_name,
-      contactPhone: req.contact_phone,
-      contactEmail: req.contact_email || '',
+      contactName: decryptPii(req.contact_name_enc, null) || '',
+      contactPhone: decryptPii(req.contact_phone_enc, null) || '',
+      contactEmail: decryptPii(req.contact_email_enc, null) || '',
       message: `הלקוח ביקש ליצור קשר במקום לשלם.\nסוג אירוע: ${req.event_type}${req.event_name ? `\nשם אירוע: ${req.event_name}` : ''}\nמזהה בקשה: ${requestId}`,
     });
 
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
 
     return buildConfirmationPage(
       'קיבלנו! נחזור אליכם בהקדם',
-      `תודה ${req.contact_name}, צוות Eventa יצור איתכם קשר תוך 48 שעות.`
+      `תודה ${decryptPii(req.contact_name_enc, null) ?? ''}, צוות Eventa יצור איתכם קשר תוך 48 שעות.`
     );
   } catch (err) {
     logger.error('Contact-me error', { error: err instanceof Error ? err.message : String(err) });

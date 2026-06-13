@@ -127,7 +127,7 @@ describe('GET /api/admin/events/[eventId]/guests', () => {
 });
 
 describe('POST /api/admin/events/[eventId]/guests (JSON)', () => {
-  function mockEventAndExisting(existing: Array<{ phone: string }> = []) {
+  function mockEventAndExisting(existing: Array<{ phone_bi: string | null }> = []) {
     // Event lookup (route uses .maybeSingle())
     mockFrom.mockReturnValueOnce(createQueryMock({
       data: { id: eventId, wa_messages_enabled: true },
@@ -156,7 +156,7 @@ describe('POST /api/admin/events/[eventId]/guests (JSON)', () => {
   });
 
   it('skips duplicates against existing phones', async () => {
-    mockEventAndExisting([{ phone: '+972501234567' }]);
+    mockEventAndExisting([{ phone_bi: '+972501234567' }]);
     // Insert (only 1 new)
     mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
     // Update status

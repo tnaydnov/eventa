@@ -14,6 +14,7 @@ import {
   escapeHtml,
 } from '@/lib/email-templates';
 import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
+import { decryptPii } from '@/lib/pii';
 
 /**
  * POST /api/admin/events/[eventId]/send-email
@@ -41,7 +42,7 @@ export async function POST(
     const { data: event, error: evErr } = await supabase
       .from('events')
       .select(
-        'id, name, slug, event_type, starts_at, ends_at, wa_messages_enabled, guest_list_count, client_name, client_email, client_phone'
+        'id, name, slug, event_type, starts_at, ends_at, wa_messages_enabled, guest_list_count, client_name_enc, client_email_enc'
       )
       .eq('id', eventId)
       .maybeSingle();
@@ -49,21 +50,21 @@ export async function POST(
     if (evErr || !event) return jsonError('Event not found', 404);
 
     // Use client fields from event; fallback to event_requests for legacy events
-    let contactName = event.client_name;
-    let contactEmail = event.client_email;
+    let contactName: string = decryptPii(event.client_name_enc, null) ?? '';
+    let contactEmail: string | null = decryptPii(event.client_email_enc, null);
 
     if (!contactEmail) {
       const { data: request } = await supabase
         .from('event_requests')
-        .select('contact_name, contact_email')
+        .select('contact_name_enc, contact_email_enc')
         .eq('approved_event_id', eventId)
         .maybeSingle();
 
-      if (!request?.contact_email) {
+      if (!decryptPii(request?.contact_email_enc, null)) {
         return jsonError('No contact email found for this event. Add client email in event settings.', 400);
       }
-      contactName = request.contact_name;
-      contactEmail = request.contact_email;
+      contactName = decryptPii(request!.contact_name_enc, null) ?? '';
+      contactEmail = decryptPii(request!.contact_email_enc, null);
     }
 
     // Build portal URL for upload-related emails
@@ -261,7 +262,7 @@ export async function POST(
     // Send email
     await getMailTransporter().sendMail({
       from: getSmtpFrom(),
-      to: contactEmail,
+      to: contactEmail!,
       subject: email.subject,
       html: email.html,
     });

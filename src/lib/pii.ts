@@ -1,14 +1,13 @@
 /**
  * PII encryption helpers — thin wrappers around field-crypto.ts for use in routes.
  *
- * Strategy: dual-column approach (safe zero-downtime rollout).
- *   - Every PII field gains a sibling `<field>_enc` TEXT column (ciphertext)
- *     and, for lookup fields, a `<field>_bi` TEXT column (blind HMAC index).
- *   - OLD plaintext column is kept during transition for safe rollback.
- *   - After the backfill script runs, all rows have `_enc` populated.
- *   - Reads: decrypt `_enc` if present, fall back to plaintext sibling.
- *   - Writes: always write plaintext (old column) + ciphertext (_enc) + blind index (_bi).
- *   - Lookups: use blind index when encryption is configured; fall back to plaintext.
+ * Strategy: encrypted-only (all plaintext PII columns have been dropped).
+ *   - Every PII field is stored in `<field>_enc` TEXT column (AES-256-GCM ciphertext)
+ *     and, for lookup fields, `<field>_bi` TEXT column (HMAC-SHA256 blind index).
+ *   - Reads: decrypt `_enc`. Falls back to plaintext sibling only if `_enc` is null
+ *     (should not happen after migration 047 drops old columns).
+ *   - Writes: write ciphertext to `_enc` + blind index to `_bi` only.
+ *   - Lookups: always use blind index `_bi` column.
  *
  * When FIELD_ENCRYPTION_KEY is NOT set, all helpers are transparent no-ops so the
  * app keeps working normally and the backfill script can be run at any time.
@@ -76,19 +75,16 @@ export function computeBlindIndex(value: string | null | undefined): string | nu
 // ─── Write helpers ────────────────────────────────────────────────────────────
 
 /**
- * Returns the three write-columns for a phone field:
- *   { phone, phone_enc, phone_bi }
- * Writes plaintext to the old column (fallback during transition), ciphertext to
- * `_enc`, and the blind index to `_bi`. The old column value is the E.164 string.
+ * Returns the write-columns for a phone field:
+ *   { phone_enc, phone_bi }
+ * The old plaintext `phone` column has been dropped; only encrypted values are written.
  */
 export function phoneWriteFields(phone: string | null | undefined): {
-  phone: string | null;
   phone_enc: string | null;
   phone_bi: string | null;
 } {
   const p = phone || null;
   return {
-    phone: p,
     phone_enc: encryptPii(p),
     phone_bi: computeBlindIndex(p),
   };
@@ -96,13 +92,11 @@ export function phoneWriteFields(phone: string | null | undefined): {
 
 /** Same as phoneWriteFields but for email. */
 export function emailWriteFields(email: string | null | undefined): {
-  email: string | null;
   email_enc: string | null;
   email_bi: string | null;
 } {
   const e = email || null;
   return {
-    email: e,
     email_enc: encryptPii(e),
     email_bi: computeBlindIndex(e),
   };
@@ -112,19 +106,18 @@ export function emailWriteFields(email: string | null | undefined): {
 export function textWriteFields<K extends string>(
   fieldName: K,
   value: string | null | undefined,
-): Record<K, string | null> & Record<`${K}_enc`, string | null> {
+): Record<`${K}_enc`, string | null> {
   const v = value || null;
   return {
-    [fieldName]: v,
     [`${fieldName}_enc`]: encryptPii(v),
-  } as Record<K, string | null> & Record<`${K}_enc`, string | null>;
+  } as Record<`${K}_enc`, string | null>;
 }
 
 // ─── Read helpers ─────────────────────────────────────────────────────────────
 
 /**
- * Resolve a phone field from a DB row that may have both `phone` (plaintext) and
- * `phone_enc` (ciphertext). Returns decrypted value or plaintext fallback.
+ * Resolve a phone field from a DB row. Reads from `phone_enc` (ciphertext).
+ * Falls back to `phone` plaintext only during migration transition.
  */
 export function readPhone(row: { phone?: string | null; phone_enc?: string | null }): string | null {
   return decryptPii(row.phone_enc, row.phone);
@@ -181,7 +174,7 @@ export function decryptParticipantRow<T extends {
   looking_for_enc?: string | null;
   bio?: string | null;
   bio_enc?: string | null;
-}>(row: T): T {
+}>(row: T): T & { phone: string | null; attracted_to: string | null; looking_for: string | null; bio: string | null } {
   return {
     ...row,
     phone: readPhone(row),
@@ -201,7 +194,7 @@ export function decryptEventRow<T extends {
   client_email_enc?: string | null;
   client_phone?: string | null;
   client_phone_enc?: string | null;
-}>(row: T): T {
+}>(row: T): T & { client_name: string | null; client_email: string | null; client_phone: string | null } {
   return {
     ...row,
     client_name: decryptPii(row.client_name_enc, row.client_name),
@@ -220,7 +213,7 @@ export function decryptRequestRow<T extends {
   contact_email_enc?: string | null;
   contact_phone?: string | null;
   contact_phone_enc?: string | null;
-}>(row: T): T {
+}>(row: T): T & { contact_name: string | null; contact_email: string | null; contact_phone: string | null } {
   return {
     ...row,
     contact_name: decryptPii(row.contact_name_enc, row.contact_name),
@@ -237,7 +230,7 @@ export function decryptGuestPhoneRow<T extends {
   phone_enc?: string | null;
   guest_name?: string | null;
   guest_name_enc?: string | null;
-}>(row: T): T {
+}>(row: T): T & { phone: string | null; guest_name: string | null } {
   return {
     ...row,
     phone: readPhone(row),

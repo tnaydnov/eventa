@@ -133,12 +133,9 @@ export async function POST(request: NextRequest) {
           special_requests: specialReqs || null,
           wants_guest_messages: wantsMessages,
           contact_preference: contactPref,
-          contact_name: contactName,
           contact_name_enc: encryptPii(contactName),
-          contact_phone: contactPhone,
           contact_phone_enc: encryptPii(contactPhone),
           contact_phone_bi: computeBlindIndex(contactPhone),
-          contact_email: contactEmail || null,
           contact_email_enc: encryptPii(contactEmail || null),
           contact_email_bi: computeBlindIndex(contactEmail || null),
           // Payment fields

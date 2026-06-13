@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabase
       .from('event_requests')
-      .select('id, status, event_type, event_name, starts_at, ends_at, wants_custom_background, poster_choice, selected_template_id, special_requests, wants_guest_messages, contact_preference, contact_name, contact_name_enc, contact_phone, contact_phone_enc, contact_email, contact_email_enc, admin_notes, approved_event_id, created_at, reviewed_at, payment_status, payment_method, paid_at, total_price, payment_link_token, payment_link_expires_at, clearing_log_id, clearing_payment_id, clearing_trace_id, invoice4u_customer_id')
+      .select('id, status, event_type, event_name, starts_at, ends_at, wants_custom_background, poster_choice, selected_template_id, special_requests, wants_guest_messages, contact_preference, contact_name_enc, contact_phone_enc, contact_email_enc, admin_notes, approved_event_id, created_at, reviewed_at, payment_status, payment_method, paid_at, total_price, payment_link_token, payment_link_expires_at, clearing_log_id, clearing_payment_id, clearing_trace_id, invoice4u_customer_id')
       .order('created_at', { ascending: false });
 
     if (statusFilter) {
@@ -85,6 +85,9 @@ export async function POST(req: NextRequest) {
     if (fetchErr || !request) {
       return jsonError('Request not found', 404);
     }
+
+    // Decrypt PII fields on the POST handler's request object
+    const reqDecrypted = decryptRequestRow(request);
 
     if (request.status !== 'pending') {
       return jsonError('Request already processed', 400);
@@ -198,9 +201,11 @@ export async function POST(req: NextRequest) {
         ends_at: request.ends_at,
         is_active: true,
         wa_messages_enabled: request.wants_guest_messages || false,
-        client_name: request.contact_name || null,
-        client_email: request.contact_email || null,
-        client_phone: request.contact_phone || null,
+        client_name_enc: encryptPii(reqDecrypted.contact_name || null),
+        client_email_enc: encryptPii(reqDecrypted.contact_email || null),
+        client_email_bi: computeBlindIndex(reqDecrypted.contact_email || null),
+        client_phone_enc: encryptPii(reqDecrypted.contact_phone || null),
+        client_phone_bi: computeBlindIndex(reqDecrypted.contact_phone || null),
         communication_preference: request.contact_preference || 'email',
         payment_status: (chargeSucceeded || request.payment_status === 'paid') ? 'paid' : 'unpaid',
       })
@@ -297,7 +302,7 @@ export async function POST(req: NextRequest) {
     // This prevents SMTP calls from causing 504 gateway timeouts.
     after(async () => {
       // Send C4 approval email to client
-      if (request.contact_email) {
+      if (reqDecrypted.contact_email) {
         try {
           const totalShekel = (BASE_PRICE);
           const eventUrl = `${APP_BASE_URL}/${newEvent.slug}`;
@@ -313,7 +318,7 @@ export async function POST(req: NextRequest) {
             selectedTemplate: request.selected_template_id || '',
             specialRequests: request.special_requests || '',
             wantsGuestMessages: request.wants_guest_messages || false,
-            contactName: request.contact_name || '',
+            contactName: reqDecrypted.contact_name || '',
             totalPriceShekel: totalShekel,
             paymentMethod: chargeSucceeded ? 'credit_card' : (request.payment_method || 'bit'),
             eventUrl,
@@ -322,7 +327,7 @@ export async function POST(req: NextRequest) {
 
           await getMailTransporter().sendMail({
             from: getSmtpFrom(),
-            to: request.contact_email,
+            to: reqDecrypted.contact_email,
             subject: approvalEmail.subject,
             html: approvalEmail.html,
           });
@@ -333,7 +338,7 @@ export async function POST(req: NextRequest) {
             event_id: newEvent.id,
             channel: 'email',
             message_type: 'approval',
-            recipient_email: request.contact_email,
+            recipient_email: reqDecrypted.contact_email,
             status: 'sent',
             sent_at: new Date().toISOString(),
           });
@@ -385,13 +390,16 @@ export async function PATCH(req: NextRequest) {
     const supabase = getServiceClient();
     const { data: request, error: fetchErr } = await supabase
       .from('event_requests')
-      .select('id, payment_status, contact_email, contact_name, contact_phone, event_type, event_name, starts_at, ends_at, wants_custom_background, poster_choice, selected_template_id, special_requests, wants_guest_messages, total_price, payment_link_token')
+      .select('id, payment_status, contact_email_enc, contact_name_enc, contact_phone_enc, event_type, event_name, starts_at, ends_at, wants_custom_background, poster_choice, selected_template_id, special_requests, wants_guest_messages, total_price, payment_link_token')
       .eq('id', requestId)
       .maybeSingle();
 
     if (fetchErr || !request) {
       return jsonError('Request not found', 404);
     }
+
+    // Decrypt PII fields for use in this handler
+    const req_ = decryptRequestRow(request);
 
     if (action === 'mark_paid') {
       const method = paymentMethod || 'other';
@@ -427,18 +435,18 @@ export async function PATCH(req: NextRequest) {
         const i4uPaymentType = PAYMENT_METHOD_TO_INVOICE4U[method] || PaymentType.Other;
 
         const customerResult = await getOrCreateCustomer({
-          Name: request.contact_name || 'לקוח Eventa',
-          Phone: request.contact_phone || undefined,
-          Email: request.contact_email || undefined,
+          Name: req_.contact_name || 'לקוח Eventa',
+          Phone: req_.contact_phone || undefined,
+          Email: req_.contact_email || undefined,
         });
 
         const docResult = await createDocument({
           docType: DocumentType.InvoiceReceipt,
           customer: {
             ID: customerResult.success ? customerResult.data : undefined,
-            Name: request.contact_name || 'לקוח Eventa',
-            Phone: request.contact_phone || undefined,
-            Email: request.contact_email || undefined,
+            Name: req_.contact_name || 'לקוח Eventa',
+            Phone: req_.contact_phone || undefined,
+            Email: req_.contact_email || undefined,
           },
           items,
           payments: [{
@@ -446,7 +454,7 @@ export async function PATCH(req: NextRequest) {
             Amount: totalShekel,
           }],
           subject: `אירוע: ${request.event_name || request.event_type || 'אירוע'}`,
-          sendByEmail: !!request.contact_email,
+          sendByEmail: !!req_.contact_email,
         });
 
         if (docResult.success) {
@@ -504,12 +512,12 @@ export async function PATCH(req: NextRequest) {
       }
 
       // Send the payment email to client
-      if (request.contact_email) {
+      if (req_.contact_email) {
         try {
           const { buildClientPaymentLinkEmail } = await import('@/lib/email-templates');
           const baseUrl = APP_BASE_URL;
           const paymentEmail = buildClientPaymentLinkEmail({
-            contactName: request.contact_name || '',
+            contactName: req_.contact_name || '',
             eventType: request.event_type || '',
             eventName: request.event_name || '',
             startsAt: request.starts_at || '',
@@ -524,7 +532,7 @@ export async function PATCH(req: NextRequest) {
           });
           await getMailTransporter().sendMail({
             from: getSmtpFrom(),
-            to: request.contact_email,
+            to: req_.contact_email,
             subject: paymentEmail.subject,
             html: paymentEmail.html,
           });

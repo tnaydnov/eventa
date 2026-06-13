@@ -7,6 +7,7 @@ import { logger } from '@/lib/logger';
 import { withCronHeartbeat } from '@/lib/cron-heartbeat';
 import { generateReport } from '@/lib/report/generate';
 import { sendReportEmail } from '@/lib/report/email';
+import { decryptPii } from '@/lib/pii';
 
 /**
  * Hours after event ends to generate + send the report.
@@ -56,11 +57,11 @@ async function handler(req: NextRequest) {
   // Find events that ended in the window and haven't had a report email sent
   const { data: events, error: fetchError } = await supabase
     .from('events')
-    .select('id, name, slug, client_email, client_name, send_report_email, ends_at')
+    .select('id, name, slug, client_email_enc, client_name_enc, send_report_email, ends_at')
     .gte('ends_at', windowStart)
     .lte('ends_at', windowEnd)
     .eq('send_report_email', true)
-    .not('client_email', 'is', null);
+    .not('client_email_enc', 'is', null);
 
   if (fetchError) {
     logger.error('[SEND_REPORTS_CRON] fetch events error:', fetchError.message);
@@ -100,12 +101,12 @@ async function handler(req: NextRequest) {
       // Send the report email. The report is fully self-contained in the attached PDF,
       // so it no longer depends on a client-portal token (the portal is guest-list only).
       const emailSent = await sendReportEmail({
-        to: event.client_email as string,
+        to: decryptPii(event.client_email_enc, null) as string,
         eventName: event.name as string,
         eventId: event.id as string,
         payload: result.payload,
         aiSummary: result.ai_summary,
-        clientName: (event.client_name as string) ?? null,
+        clientName: decryptPii(event.client_name_enc, null) ?? null,
         eventDate: (event.ends_at as string) ?? null,
       });
 
@@ -113,7 +114,7 @@ async function handler(req: NextRequest) {
         // Mark email sent
         await supabase
           .from('event_reports')
-          .update({ email_sent_at: new Date().toISOString(), email_sent_to: event.client_email })
+          .update({ email_sent_at: new Date().toISOString(), email_sent_to: decryptPii(event.client_email_enc, null) })
           .eq('event_id', event.id);
         processed++;
       } else {

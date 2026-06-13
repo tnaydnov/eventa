@@ -45,7 +45,6 @@ export async function PATCH(req: NextRequest) {
     }
     if (parsed.data.bio !== undefined) {
       const bioVal = parsed.data.bio ? sanitizeWithLimit(parsed.data.bio, MAX_BIO_LENGTH) : null;
-      allowed.bio = bioVal;
       allowed.bio_enc = encryptPii(bioVal);
     }
     if (parsed.data.age !== undefined) {
@@ -55,7 +54,6 @@ export async function PATCH(req: NextRequest) {
       allowed.city = parsed.data.city ? sanitizeWithLimit(parsed.data.city, MAX_CITY_LENGTH) : null;
     }
     if (parsed.data.looking_for !== undefined) {
-      allowed.looking_for = parsed.data.looking_for;
       allowed.looking_for_enc = encryptPii(parsed.data.looking_for);
     }
 

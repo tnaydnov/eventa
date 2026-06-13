@@ -7,6 +7,7 @@ import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
 import { logger } from '@/lib/logger';
 import { buildClientQrPageEmail } from '@/lib/email-templates';
 import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
+import { decryptPii } from '@/lib/pii';
 
 /** Max number of attachments per email. */
 const MAX_FILES = 5;
@@ -65,25 +66,25 @@ export async function POST(
 
     const { data: event, error: evErr } = await supabase
       .from('events')
-      .select('id, name, slug, client_name, client_email')
+      .select('id, name, slug, client_name_enc, client_email_enc')
       .eq('id', eventId)
       .maybeSingle();
 
     if (evErr || !event) return jsonError('Event not found', 404);
 
     // Use client fields from event; fallback to event_requests for legacy events
-    let contactName = event.client_name;
-    let contactEmail = event.client_email;
+    let contactName = decryptPii(event.client_name_enc, null);
+    let contactEmail = decryptPii(event.client_email_enc, null);
 
     if (!contactEmail) {
       const { data: request } = await supabase
         .from('event_requests')
-        .select('contact_name, contact_email')
+        .select('contact_name_enc, contact_email_enc')
         .eq('approved_event_id', eventId)
         .maybeSingle();
 
-      contactName = request?.contact_name || null;
-      contactEmail = request?.contact_email || null;
+      contactName = decryptPii(request?.contact_name_enc, null) || null;
+      contactEmail = decryptPii(request?.contact_email_enc, null) || null;
     }
 
     if (!contactEmail) {

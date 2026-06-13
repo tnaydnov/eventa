@@ -93,6 +93,10 @@ export async function PATCH(
 
     // Build update payload, adding _enc/_bi siblings for any PII fields present
     const updateData: Record<string, unknown> = { ...parsed.data };
+    // Strip plaintext PII columns — these have been dropped in migration 047
+    delete updateData.client_name;
+    delete updateData.client_email;
+    delete updateData.client_phone;
     if ('client_name' in parsed.data) {
       updateData.client_name_enc = encryptPii(parsed.data.client_name ?? null);
     }

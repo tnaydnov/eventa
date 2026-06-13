@@ -8,6 +8,7 @@ import { generatePrettySlug } from '@/lib/slug';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { APP_BASE_URL, BASE_PRICE } from '@/lib/config';
 import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
+import { decryptPii } from '@/lib/pii';
 
 /**
  * GET /api/payment/callback?rid=<requestId>&src=wizard
@@ -241,7 +242,7 @@ async function handleEventPaymentCallback(eventId: string, req: NextRequest): Pr
   // Load the event
   const { data: event, error: fetchErr } = await supabase
     .from('events')
-    .select('id, name, slug, event_type, starts_at, ends_at, client_name, client_email, client_phone, payment_status')
+    .select('id, name, slug, event_type, starts_at, ends_at, client_name_enc, client_email_enc, client_phone_enc, payment_status')
     .eq('id', eventId)
     .maybeSingle();
 
@@ -270,7 +271,12 @@ async function handleEventPaymentCallback(eventId: string, req: NextRequest): Pr
   // Schedule slow work (invoice + email) after response
   after(async () => {
     try {
-      await sendEventPaymentEmails(event);
+      await sendEventPaymentEmails({
+        ...event,
+        client_name: decryptPii(event.client_name_enc, null),
+        client_email: decryptPii(event.client_email_enc, null),
+        client_phone: decryptPii(event.client_phone_enc, null),
+      });
     } catch (err) {
       logger.error('[PAYMENT_CALLBACK_EVENT_AFTER] Unhandled error', err);
     }

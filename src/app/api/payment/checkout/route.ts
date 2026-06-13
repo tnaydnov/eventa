@@ -5,6 +5,7 @@ import { logger } from '@/lib/logger';
 import { escapeHtml } from '@/lib/email-templates';
 import { createClearingSession, isConfigured } from '@/lib/invoice4u';
 import { APP_BASE_URL, BASE_PRICE } from '@/lib/config';
+import { decryptPii } from '@/lib/pii';
 
 const PAYMENT_PROVIDER_LIVE = process.env.PAYMENT_PROVIDER_LIVE === 'true';
 
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest) {
     // First look in event_requests (order-form-based events)
     const { data: reqRow } = await supabase
       .from('event_requests')
-      .select('id, payment_status, payment_link_expires_at, total_price, event_name, contact_name')
+      .select('id, payment_status, payment_link_expires_at, total_price, event_name, contact_name_enc')
       .eq('payment_link_token', token)
       .maybeSingle();
 
@@ -44,7 +45,7 @@ export async function GET(req: NextRequest) {
     if (!reqRow) {
       const { data: evtCheck } = await supabase
         .from('events')
-        .select('id, payment_status, payment_link_expires_at, name, client_name')
+        .select('id, payment_status, payment_link_expires_at, name, client_name_enc')
         .eq('payment_link_token', token)
         .maybeSingle();
       eventRowFallback = evtCheck;
@@ -57,15 +58,20 @@ export async function GET(req: NextRequest) {
 
     // Normalise to a common shape for the rest of the handler
     const isEventBased = !reqRow && !!eventRowFallback;
-    const request = reqRow ?? {
-      id: eventRowFallback!.id,
-      payment_status: (eventRowFallback!.payment_status === 'paid' ? 'paid'
-        : eventRowFallback!.payment_status === 'waived' ? 'waived'
-        : 'pending_payment') as string,
-      payment_link_expires_at: eventRowFallback!.payment_link_expires_at,
-      total_price: null as number | null,
-      event_name: eventRowFallback!.name,
-      contact_name: eventRowFallback!.client_name,
+    const contactName = reqRow
+      ? decryptPii((reqRow as Record<string, unknown>).contact_name_enc as string | null, null)
+      : decryptPii(eventRowFallback!.client_name_enc, null);
+    const request = {
+      id: (reqRow ?? eventRowFallback)!.id,
+      payment_status: reqRow
+        ? (reqRow.payment_status as string)
+        : (eventRowFallback!.payment_status === 'paid' ? 'paid'
+          : eventRowFallback!.payment_status === 'waived' ? 'waived'
+          : 'pending_payment') as string,
+      payment_link_expires_at: (reqRow ?? eventRowFallback)!.payment_link_expires_at,
+      total_price: reqRow ? reqRow.total_price : null as number | null,
+      event_name: reqRow ? reqRow.event_name : (eventRowFallback!.name as string),
+      contact_name: contactName,
     };
 
     // Already paid?

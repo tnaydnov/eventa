@@ -5,6 +5,7 @@ import { adminGuard, jsonError } from '../../../_helpers';
 import { logger } from '@/lib/logger';
 import { generateReport } from '@/lib/report/generate';
 import { sendReportEmail } from '@/lib/report/email';
+import { decryptPii } from '@/lib/pii';
 
 /**
  * POST /api/admin/reports/[eventId]/send
@@ -35,7 +36,7 @@ export async function POST(
 
   const { data: event, error: eventErr } = await supabase
     .from('events')
-    .select('id, name, client_email, client_name, send_report_email, ends_at')
+    .select('id, name, client_email_enc, client_name_enc, send_report_email, ends_at')
     .eq('id', eventId)
     .maybeSingle();
 
@@ -49,7 +50,7 @@ export async function POST(
     return jsonError('Report email delivery is disabled for this event', 409);
   }
 
-  const to = overrideEmail ?? event.client_email;
+  const to = overrideEmail ?? decryptPii(event.client_email_enc, null);
   if (!to) return jsonError('No recipient email configured', 400);
 
   const reportResult = await generateReport(eventId);
@@ -64,7 +65,7 @@ export async function POST(
     eventId,
     payload: reportResult.payload,
     aiSummary: reportResult.ai_summary,
-    clientName: (event.client_name as string) ?? null,
+    clientName: decryptPii(event.client_name_enc, null),
     eventDate: (event.ends_at as string) ?? null,
   });
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
 import { jsonError } from '@/lib/route-helpers';
+import { decryptPii } from '@/lib/pii';
 import { logger } from '@/lib/logger';
 
 /**
@@ -43,7 +44,7 @@ export async function GET(
   const [eventRes, reportRes] = await Promise.all([
     supabase
       .from('events')
-      .select('id, name, slug, event_type, starts_at, ends_at, client_name, client_email')
+      .select('id, name, slug, event_type, starts_at, ends_at, client_name_enc, client_email_enc')
       .eq('id', eventId)
       .maybeSingle(),
     supabase
@@ -69,7 +70,11 @@ export async function GET(
     .eq('token', token);
 
   return NextResponse.json({
-    event: eventRes.data,
+    event: {
+      ...eventRes.data,
+      client_name: decryptPii(eventRes.data.client_name_enc, null),
+      client_email: decryptPii(eventRes.data.client_email_enc, null),
+    },
     report: reportRes.data ?? null,
     has_report: !!reportRes.data,
   });
