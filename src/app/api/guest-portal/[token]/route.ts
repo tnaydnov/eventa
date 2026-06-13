@@ -6,6 +6,7 @@ import { guestPhoneSchema } from '@/lib/validations';
 import { normalizePhone, isValidIsraeliMobile, formatPhoneDisplay } from '@/lib/messaging/phone-utils';
 import { sanitizeWithLimit } from '@/lib/sanitize';
 import { MAX_GUEST_NAME_LENGTH, MAX_GUEST_PHONES_PER_EVENT } from '@/lib/config';
+import { GUEST_PHONE_CONSENT_VERSION } from '@/lib/legal-versions';
 import {
   processGuestUpload,
   MAX_UPLOAD_FILE_SIZE,
@@ -109,7 +110,7 @@ export async function GET(
     const { data: event, error: evErr } = await supabase
       .from('events')
       .select(
-        'id, name, slug, starts_at, ends_at, status, wa_messages_enabled, guest_list_uploaded, guest_list_count'
+        'id, name, slug, starts_at, ends_at, status, wa_messages_enabled, guest_list_uploaded, guest_list_count, guest_phone_consent_at'
       )
       .eq('id', eventId)
       .maybeSingle();
@@ -225,6 +226,7 @@ export async function GET(
       totalPages,
       uploadStatus,
       isReadOnly,
+      guestPhoneConsentAt: event.guest_phone_consent_at ?? null,
     });
   } catch (err) {
     logger.error('[GUEST_PORTAL_GET] error:', err);
@@ -290,7 +292,12 @@ export async function POST(
       return await handleFileUpload(req, supabase, eventId);
     }
 
-    return await handleSingleAdd(req, supabase, eventId);
+    // JSON branch: either a consent acknowledgement or a single-phone add.
+    const jsonBody = await req.json().catch(() => null);
+    if (jsonBody && (jsonBody as { consent?: unknown }).consent === true) {
+      return await handleGuestPhoneConsent(supabase, eventId);
+    }
+    return await handleSingleAdd(jsonBody, supabase, eventId);
   } catch (err) {
     logger.error('[GUEST_PORTAL_POST] error:', err);
     return jsonError('Server error', 500);
@@ -396,12 +403,43 @@ async function handleFileUpload(
   });
 }
 
-async function handleSingleAdd(
-  req: NextRequest,
+async function handleGuestPhoneConsent(
   supabase: ReturnType<typeof getServiceClient>,
   eventId: string
 ) {
-  const body = await req.json();
+  // Record the customer's authorization to provide guest phone numbers.
+  // Idempotent: the timestamp is stamped once and not overwritten on repeat.
+  const { data: ev } = await supabase
+    .from('events')
+    .select('guest_phone_consent_at')
+    .eq('id', eventId)
+    .maybeSingle();
+
+  const consentAt = ev?.guest_phone_consent_at ?? new Date().toISOString();
+
+  if (!ev?.guest_phone_consent_at) {
+    const { error } = await supabase
+      .from('events')
+      .update({
+        guest_phone_consent_at: consentAt,
+        guest_phone_consent_version: GUEST_PHONE_CONSENT_VERSION,
+      })
+      .eq('id', eventId);
+
+    if (error) {
+      logger.error('[GUEST_PORTAL_CONSENT] update error:', error.message);
+      return jsonError('Failed to record consent', 500);
+    }
+  }
+
+  return NextResponse.json({ success: true, guestPhoneConsentAt: consentAt });
+}
+
+async function handleSingleAdd(
+  body: unknown,
+  supabase: ReturnType<typeof getServiceClient>,
+  eventId: string
+) {
   const parsed = guestPhoneSchema.safeParse(body);
   if (!parsed.success) {
     return jsonError('׳׳¡׳₪׳¨ ׳”׳˜׳׳₪׳•׳ ׳׳ ׳×׳§׳™׳', 400);

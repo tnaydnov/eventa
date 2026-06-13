@@ -26,6 +26,8 @@ export interface PortalData {
   totalPages: number;
   uploadStatus: 'empty' | 'uploaded' | 'sent' | 'started' | 'archived';
   isReadOnly: boolean;
+  /** Timestamp the customer confirmed authorization to provide guest numbers, or null. */
+  guestPhoneConsentAt: string | null;
 }
 
 export interface UploadResult {
@@ -68,6 +70,18 @@ export async function getPortalData(
   const res = await fetch(`${portalUrl(token)}?${params}`);
   const body = await ensureOk(res, 'שגיאה בטעינת הנתונים');
   return body as unknown as PortalData;
+}
+
+/** Record the customer's authorization to provide guest phone numbers. Throws on failure. */
+export async function recordGuestConsent(token: string): Promise<{ guestPhoneConsentAt: string }> {
+  const res = await fetch(portalUrl(token), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ consent: true }),
+  });
+
+  const body = await ensureOk(res, 'שגיאה בשמירת האישור');
+  return { guestPhoneConsentAt: (body.guestPhoneConsentAt as string) ?? new Date().toISOString() };
 }
 
 /** Upload a guest phone file (Excel / CSV). */

@@ -41,6 +41,7 @@ export {
   uploadGuestFile,
   addGuestPhone,
   removeGuestPhone,
+  recordGuestConsent,
   getTemplateDownloadUrl,
 } from './guest-portal';
 export type {

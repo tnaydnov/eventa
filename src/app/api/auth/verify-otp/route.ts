@@ -11,6 +11,8 @@ import { sendWelcomeMessage } from '@/lib/messaging';
 import type { EventMessagingConfig } from '@/lib/messaging';
 import { eventBus } from '@/lib/event-bus';
 import { enqueueAbandonedFunnelSms } from '@/lib/notification-dispatcher';
+import { TERMS_VERSION, PRIVACY_VERSION, COOKIES_VERSION } from '@/lib/legal-versions';
+import { createHash } from 'node:crypto';
 
 /** Fingerprint hex/UUID pattern, max 64 chars for regular, 128 for hardware.
  *  NOTE: duplicated in /api/auth/join/route.ts - keep in sync until extracted to shared util. */
@@ -53,7 +55,6 @@ export async function POST(req: NextRequest) {
     }
 
     const { code, eventSlug, joinCode, smsConsent, smsNotificationsEnabled } = parsed.data;
-
     // Normalize phone to E.164
     const phone = normalizePhone(parsed.data.phone);
     if (!phone || !isValidIsraeliMobile(phone)) {
@@ -245,6 +246,31 @@ export async function POST(req: NextRequest) {
     // Guard: should never happen
     if (!participantId) {
       return jsonError('Failed to resolve participant', 500);
+    }
+
+    // Durable, versioned consent record (fire-and-forget).
+    // The join UI gates entry behind a required terms/privacy/cookies checkbox;
+    // here we persist immutable evidence of which versions were accepted, when,
+    // and a hashed IP + user-agent for audit purposes.
+    {
+      const acceptedAt = parsed.data.consentAcceptedAt ?? new Date().toISOString();
+      const ipHash = ip ? createHash('sha256').update(ip).digest('hex').slice(0, 32) : null;
+      const userAgent = (req.headers.get('user-agent') || '').slice(0, 512) || null;
+      void supabase
+        .from('participant_consents')
+        .insert({
+          event_id: event.id,
+          participant_id: participantId,
+          terms_version: TERMS_VERSION,
+          privacy_version: PRIVACY_VERSION,
+          cookies_version: COOKIES_VERSION,
+          accepted_at: acceptedAt,
+          user_agent: userAgent,
+          ip_hash: ipHash,
+        })
+        .then(({ error }) => {
+          if (error) logger.error('[VERIFY_OTP] consent insert error', { error: error.message });
+        });
     }
 
     // Fire funnel event: otp_verified (fire-and-forget to DB + event bus)

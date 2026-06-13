@@ -323,6 +323,29 @@
   margin: 6px 0;
 }
 
+/* ── Guest phone consent gate ── */
+.portal-consent-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  line-height: 1.7;
+}
+
+.portal-consent-row input[type='checkbox'] {
+  margin-top: 4px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--primary, #b08d7e);
+  cursor: pointer;
+}
+
+.portal-consent-text {
+  font-size: 0.9rem;
+  color: #ddd;
+}
+
 /* ── Guest List Table ── */
 .portal-list-header {
   display: flex;

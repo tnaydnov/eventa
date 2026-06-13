@@ -126,6 +126,7 @@ function JoinPageContent({
   const [phase, setPhase] = useState<Phase>('booting');
   const [step, setStep] = useState<JoinStep>('welcome');
   const [agreed, setAgreed] = useState(false);
+  const consentAcceptedAtRef = useRef<string | null>(null);
   const [legalPage, setLegalPage] = useState<'terms' | 'privacy' | 'cookies' | null>(null);
   const [error, setError] = useState('');
   const [inAppBrowser, setInAppBrowser] = useState(false);
@@ -367,6 +368,7 @@ function JoinPageContent({
           hardwareFingerprint,
           smsConsent,
           smsNotificationsEnabled,
+          consentAcceptedAt: consentAcceptedAtRef.current ?? undefined,
         });
         completeJoin(result);
       } catch (err) {
@@ -532,7 +534,11 @@ function JoinPageContent({
 
             <ConsentRow
               checked={agreed}
-              onToggle={() => setAgreed(!agreed)}
+              onToggle={() => {
+                const next = !agreed;
+                setAgreed(next);
+                if (next) consentAcceptedAtRef.current = new Date().toISOString();
+              }}
               ariaLabel="אני מאשר/ת את תנאי השימוש, מדיניות הפרטיות ומדיניות העוגיות"
             >
               אני מאשר/ת את{' '}

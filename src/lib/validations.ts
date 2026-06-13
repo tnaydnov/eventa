@@ -141,6 +141,8 @@ export const verifyOtpSchema = z.object({
   hardwareFingerprint: z.string().max(128).optional(),
   smsConsent: z.boolean(),
   smsNotificationsEnabled: z.boolean().optional(),
+  /** ISO timestamp of when the user ticked the legal-consent checkbox at join. */
+  consentAcceptedAt: z.string().datetime().optional(),
 });
 
 /* ---- Profile setup schema ---- */

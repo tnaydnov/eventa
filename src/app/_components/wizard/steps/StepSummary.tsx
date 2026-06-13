@@ -211,6 +211,14 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
           </div>
         </div>
       </div>
+
+      <p className="wiz-msg-toggle-hint" style={{ marginTop: 16 }}>
+        שליחת ההזמנה מהווה בקשת הזמנה הכפופה ל
+        <a href="/business-terms" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>
+          תנאי ההזמנה ללקוח
+        </a>
+        .
+      </p>
     </div>
   );
 }

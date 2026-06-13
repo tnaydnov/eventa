@@ -9,6 +9,7 @@ import { useGuestPortal } from './useGuestPortal';
 import UploadZone from './_components/UploadZone';
 import UploadResultDisplay from './_components/UploadResultDisplay';
 import AddPhoneForm from './_components/AddPhoneForm';
+import GuestConsentGate from './_components/GuestConsentGate';
 import GuestListTable from './_components/GuestListTable';
 import MessagePreview from './_components/MessagePreview';
 import TimingInfo from './_components/TimingInfo';
@@ -41,6 +42,7 @@ export default function GuestUploadClient({ slug, token: tokenProp }: { slug: st
     handleUpload,
     handleAddPhone,
     handleRemove,
+    handleConsent,
     handlePageChange,
     handleSearch,
   } = useGuestPortal(slug, token);
@@ -73,6 +75,8 @@ export default function GuestUploadClient({ slug, token: tokenProp }: { slug: st
   const status = STATUS_MAP[data.uploadStatus];
   const isReadOnly = data.isReadOnly;
   const templateUrl = getTemplateDownloadUrl(token);
+  const needsConsent = !isReadOnly && !data.guestPhoneConsentAt;
+  const canEdit = !isReadOnly && !!data.guestPhoneConsentAt;
 
   return (
     <main id="main-content" className="portal-container">
@@ -111,8 +115,11 @@ export default function GuestUploadClient({ slug, token: tokenProp }: { slug: st
         />
       )}
 
+      {/* Consent gate - must authorize before providing numbers */}
+      {needsConsent && <GuestConsentGate onConfirm={handleConsent} />}
+
       {/* Upload zone */}
-      {!isReadOnly && (
+      {canEdit && (
         <UploadZone
           onUpload={handleUpload}
           templateUrl={templateUrl}
@@ -120,7 +127,7 @@ export default function GuestUploadClient({ slug, token: tokenProp }: { slug: st
       )}
 
       {/* Add single phone */}
-      {!isReadOnly && <AddPhoneForm onAdd={handleAddPhone} />}
+      {canEdit && <AddPhoneForm onAdd={handleAddPhone} />}
 
       {/* Guest list */}
       <GuestListTable

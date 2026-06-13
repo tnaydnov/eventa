@@ -201,6 +201,20 @@ export interface EventGuestPhone {
   created_at: string;
 }
 
+/** Durable, versioned consent record captured at participant join (migration 042). */
+export interface ParticipantConsent {
+  id: string;
+  event_id: string;
+  participant_id: string;
+  terms_version: string;
+  privacy_version: string;
+  cookies_version: string | null;
+  accepted_at: string;
+  user_agent: string | null;
+  ip_hash: string | null;
+  created_at: string;
+}
+
 export interface MessageLog {
   id: string;
   event_id: string;

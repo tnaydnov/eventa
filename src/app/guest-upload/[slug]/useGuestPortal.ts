@@ -6,6 +6,7 @@ import {
   uploadGuestFile,
   addGuestPhone,
   removeGuestPhone,
+  recordGuestConsent,
 } from '@/lib/api';
 import type { PortalData, UploadResult } from '@/lib/api/guest-portal';
 
@@ -22,6 +23,7 @@ export interface GuestPortalActions {
   handleUpload: (file: File) => Promise<void>;
   handleAddPhone: (phone: string, name?: string) => Promise<void>;
   handleRemove: (phoneId: string) => Promise<void>;
+  handleConsent: () => Promise<void>;
   handlePageChange: (page: number) => void;
   handleSearch: (query: string) => void;
 }
@@ -126,6 +128,11 @@ export function useGuestPortal(slug: string, token: string): GuestPortalState & 
     [loadData]
   );
 
+  const handleConsent = useCallback(async () => {
+    const { guestPhoneConsentAt } = await recordGuestConsent(token);
+    setData((prev) => (prev ? { ...prev, guestPhoneConsentAt } : prev));
+  }, [token]);
+
   return {
     data,
     loading,
@@ -136,6 +143,7 @@ export function useGuestPortal(slug: string, token: string): GuestPortalState & 
     handleUpload,
     handleAddPhone,
     handleRemove,
+    handleConsent,
     handlePageChange,
     handleSearch,
   };
