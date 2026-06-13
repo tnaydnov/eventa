@@ -47,6 +47,14 @@ export default function CookiesContent() {
         </LegalText>
       </LegalSection>
 
+      <LegalSection title="אחסון מקומי (LocalStorage)">
+        <LegalText>
+          בנוסף לעוגיות, השירות עשוי להשתמש ב-LocalStorage או באמצעי אחסון דפדפן דומים
+          לצורך שמירת מצב התחברות, מזהה טכני, שחזור סשן, שמירת טיוטת הודעה ודגלים פנימיים של השירות.
+          מידע זה אינו משמש לפרסום או מעקב, וניתן למחיקה דרך הגדרות הדפדפן (&quot;ניקוי נתוני אתר&quot;).
+        </LegalText>
+      </LegalSection>
+
       <LegalSection title="ניהול עוגיות">
         <LegalText>
           העוגיות הן פונקציונליות ונדרשות להפעלת השירות. ניתן למחוק עוגיות דרך הגדרות הדפדפן,

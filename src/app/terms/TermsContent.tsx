@@ -1,4 +1,4 @@
-import { LegalSection, LegalText, LegalList, LegalLink } from '@/components/legal';
+import { LegalSection, LegalSubheading, LegalText, LegalList, LegalLink } from '@/components/legal';
 
 export default function TermsContent() {
   return (
@@ -61,15 +61,17 @@ export default function TermsContent() {
         </LegalText>
       </LegalSection>
 
-      <LegalSection title="5. הרשאות מכשיר">
-        <LegalText>חלק מהתכונות עשויות לבקש הרשאות:</LegalText>
+      <LegalSection title="5. הרשאות מכשיר ואימות טלפון">
+        <LegalText>חלק מהתכונות עשויות לבקש הרשאות מהמכשיר:</LegalText>
         <LegalList>
           <li><strong>גלריה / מצלמה</strong> - לצורך העלאת תמונות לפרופיל ולצ&apos;אט.</li>
-          <li><strong>SMS</strong> - לצורך שליחת קוד אימות (OTP) למספר הנייד שלך.</li>
         </LegalList>
         <LegalText>
-          ההרשאות הן מרצון וניתן לבטלן בכל עת בהגדרות המכשיר. סירוב לתת הרשאה ימנע שימוש בתכונה הספציפית בלבד.
-          אימות מספר טלפון הוא תנאי הכרחי לשימוש בשירות.
+          הרשאות אלה הן מרצון וניתן לבטלן בכל עת בהגדרות המכשיר. סירוב לתת הרשאה ימנע שימוש בתכונה הספציפית בלבד.
+        </LegalText>
+        <LegalText>
+          <strong>אימות ב-SMS:</strong> לצורך הכניסה לשירות ישלח קוד אימות חד-פעמי (OTP) בהודעת SMS למספר הנייד שהזנת.
+          מדובר בשליחת הודעה למספר שמסרת, ולא בהרשאת מכשיר לקריאת הודעות. אימות מספר הטלפון הוא תנאי הכרחי לשימוש בשירות.
         </LegalText>
       </LegalSection>
 
@@ -263,9 +265,14 @@ export default function TermsContent() {
 
       <LegalSection title="21. מדיניות ביטולים והחזרים">
         <LegalText>
+          מדיניות זו כפופה להוראות כל דין, לרבות זכויות ביטול החלות על צרכנים לפי חוק הגנת הצרכן.
+          במקרה של סתירה בין מדיניות זו לבין הוראות דין קוגנטיות (שאין להתנות עליהן) — הוראות הדין יגברו.
+        </LegalText>
+        <LegalText>
           השירות מסופק בתשלום חד-פעמי לאירוע.
-          לביטול הזמנה יש לפנות למפעיל בדוא&quot;ל: <LegalLink href="mailto:contact@eventa.productions">contact@eventa.productions</LegalLink>.
-          להלן מדיניות הביטול:
+          לביטול הזמנה יש לפנות למפעיל בדוא&quot;ל: <LegalLink href="mailto:contact@eventa.productions">contact@eventa.productions</LegalLink>,
+          בצירוף שם מלא, מספר טלפון, תאריך האירוע ומספר הזמנה / חשבונית (אם קיים).
+          להלן מדיניות הביטול, בכפוף לאמור לעיל:
         </LegalText>
         <LegalList>
           <li>
@@ -283,6 +290,25 @@ export default function TermsContent() {
         </LegalList>
         <LegalText>
           ההחזר יבוצע באותו אמצעי תשלום בו שולם, תוך 14 ימי עסקים.
+        </LegalText>
+      </LegalSection>
+      <LegalSection title="22. בטיחות בהיכרויות ושימוש מושכל">
+        <LegalText>
+          השירות נועד לאפשר יצירת קשר ראשוני בין משתתפי אותו אירוע, אך אינו מבצע בדיקות רקע,
+          אימות זהות מלא או בדיקה של כוונות המשתמשים. אין לראות בשירות המלצה, שידוך,
+          התחייבות להתאמה, או ערובה להתנהגות של משתמש/ת כלשהו/י.
+        </LegalText>
+        <LegalText>
+          יש להפעיל שיקול דעת בשיחה ובכל מפגש מחוץ לשירות.
+          אין למסור מידע אישי רגיש, פרטי תשלום, כתובת מדויקת או מידע מזהה מיותר למשתמשים אחרים.
+          במקרה של הטרדה, התחזות, איום או תוכן פוגעני — יש להשתמש בחסימה ולפנות למפעיל.
+        </LegalText>
+        <LegalSubheading>הודעות SMS שיווקיות</LegalSubheading>
+        <LegalText>
+          נכון למועד זה איננו שולחים הודעות SMS שיווקיות. הודעות ה-SMS הנשלחות בשירות
+          (קוד אימות, וכן תזכורות / התראות / פידבק בכפוף להסכמה) הן הודעות תפעוליות / שירותיות בלבד.
+          הודעות שיווקיות, ככל שיישלחו בעתיד, יישלחו רק בכפוף להסכמה מפורשת ונפרדת,
+          ויכללו אפשרות הסרה בהתאם לדין.
         </LegalText>
       </LegalSection>
     </>
