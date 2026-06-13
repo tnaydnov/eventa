@@ -67,12 +67,11 @@ export function useAdminData() {
   /* ─── login ─── */
   const login = async (
     password: string,
-    totp?: string,
-  ): Promise<{ ok: boolean; error?: string; totpRequired?: boolean }> => {
+  ): Promise<{ ok: boolean; error?: string }> => {
     try {
       const res = await adminFetch('/api/admin/login', {
         method: 'POST',
-        body: JSON.stringify(totp ? { password, totp } : { password }),
+        body: JSON.stringify({ password }),
       });
       if (res.ok) {
         setAuthed(true);
@@ -80,7 +79,7 @@ export function useAdminData() {
         return { ok: true };
       }
       const data = await res.json().catch(() => ({}));
-      return { ok: false, error: data.error || 'סיסמה שגויה', totpRequired: !!data.totpRequired };
+      return { ok: false, error: data.error || 'סיסמה שגויה' };
     } catch {
       return { ok: false, error: 'שגיאת תקשורת' };
     }

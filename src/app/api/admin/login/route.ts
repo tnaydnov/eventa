@@ -5,8 +5,6 @@ import { signAdminToken, adminCookieHeader, adminAuditLog } from '@/lib/admin-au
 import {
   hasAdminCredential,
   verifyAdminPassword,
-  isAdminTotpEnabled,
-  verifyAdminTotp,
 } from '@/lib/admin-credentials';
 import { jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
@@ -108,25 +106,6 @@ export async function POST(req: NextRequest) {
       adminAuditLog('LOGIN_FAILED', { ip }, req);
       // Constant generic error - don't reveal if password was close
       return jsonError('Unauthorized', 401);
-    }
-
-    // 2. Optional second factor - only enforced when ADMIN_TOTP_SECRET is set.
-    if (isAdminTotpEnabled()) {
-      const totp = parsed.data.totp;
-      if (!totp) {
-        // Password is correct but a 2FA code is still required. This is the normal
-        // two-step flow, not an attack signal, so we don't count it as a failed attempt.
-        adminAuditLog('LOGIN_TOTP_REQUIRED', { ip }, req);
-        return NextResponse.json(
-          { error: 'נדרש קוד אימות דו-שלבי', totpRequired: true },
-          { status: 401 },
-        );
-      }
-      if (!verifyAdminTotp(totp)) {
-        recordFailedAttempt(ip);
-        adminAuditLog('LOGIN_FAILED', { ip, reason: 'totp' }, req);
-        return jsonError('Unauthorized', 401);
-      }
     }
 
     // Success - clear failed attempts and issue token
