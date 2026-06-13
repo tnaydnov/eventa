@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   }
 
   const ip = getClientIp(req.headers);
-  const rl = await checkRateLimitAsync(`send-otp:${ip}`, RATE_LIMITS.auth);
+  const rl = await checkRateLimitAsync(`send-otp:${ip}`, { maxRequests: 15, windowMs: 60_000 });
   if (!rl.allowed) {
     const res = NextResponse.json({ error: 'Too many requests' }, { status: 429 });
     res.headers.set('Retry-After', String(Math.ceil(rl.resetMs / 1000)));
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
 
     // ── Toll-fraud guards (SMS pumping) ──────────────────────────────
     // These hold cross-instance when Upstash is configured; otherwise per-instance.
-    // 1) Per-phone hourly cap — a legitimate user never needs this many codes.
+    // 1) Per-phone hourly cap - a legitimate user never needs this many codes.
     const phoneRl = await checkRateLimitAsync(`send-otp-phone:${phone}`, {
       maxRequests: OTP_MAX_PER_PHONE_PER_HOUR,
       windowMs: 60 * 60_000,
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
         windowMs: 24 * 60 * 60_000,
       });
       if (!globalRl.allowed) {
-        logger.error('[SEND_OTP] GLOBAL daily OTP cap hit — possible SMS pumping attack');
+        logger.error('[SEND_OTP] GLOBAL daily OTP cap hit - possible SMS pumping attack');
         return jsonError('Service temporarily unavailable', 503);
       }
     }

@@ -19,6 +19,16 @@ export async function sendOtp(params: {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params),
     });
+
+    if (res.status === 429) {
+      const retryAfter = res.headers.get('Retry-After');
+      const waitSec = retryAfter ? Math.ceil(Number(retryAfter)) : 60;
+      return {
+        success: false,
+        error: `נשלחו יותר מדי בקשות - נסו שוב בעוד ${waitSec} שניות`,
+      };
+    }
+
     return res.json();
   } catch (err) {
     console.error('[sendOtp] network error:', err);

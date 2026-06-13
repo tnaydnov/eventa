@@ -53,8 +53,13 @@ export default function PhoneInput({ value, onChange, disabled, error }: PhoneIn
 
   const handleChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
-      const raw = e.target.value.replace(DIGITS_RE, '').slice(0, MAX_LOCAL_DIGITS);
-      onChange(raw);
+      let raw = e.target.value.replace(DIGITS_RE, '');
+      // Strip country-code prefixes so any of these work:
+      //   0501234567  → 501234567
+      //   972501234567 (from +972...) → 501234567
+      if (raw.startsWith('972')) raw = raw.slice(3);
+      if (raw.startsWith('0'))   raw = raw.slice(1);
+      onChange(raw.slice(0, MAX_LOCAL_DIGITS));
     },
     [onChange],
   );
