@@ -48,8 +48,8 @@ describe('enum value arrays', () => {
     expect([...messageTypeValues]).toEqual(['text', 'image']);
   });
 
-  it('U-VAL-05: eventTypeValues has 5 entries', () => {
-    expect(eventTypeValues.length).toBe(5);
+  it('U-VAL-05: eventTypeValues has 4 entries', () => {
+    expect(eventTypeValues.length).toBe(4);
     expect([...eventTypeValues]).toContain('wedding');
     expect([...eventTypeValues]).toContain('party');
   });
@@ -422,8 +422,10 @@ describe('joinEventSchema', () => {
     expect(joinEventSchema.safeParse({ eventSlug: 'my-event', joinCode: 'abc123' }).success).toBe(true);
   });
 
-  it('U-VAL-39: rejects short joinCode', () => {
-    expect(joinEventSchema.safeParse({ eventSlug: 'my-event', joinCode: 'ab' }).success).toBe(false);
+  it('U-VAL-39: accepts a short joinCode (join codes are now optional/legacy)', () => {
+    // Join codes were removed from the product; joinCode is now an optional,
+    // length-capped legacy field with no minimum length.
+    expect(joinEventSchema.safeParse({ eventSlug: 'my-event', joinCode: 'ab' }).success).toBe(true);
   });
 
   it('rejects joinCode over 32 chars', () => {
@@ -528,9 +530,11 @@ describe('getEffectiveImageType', () => {
     expect(getEffectiveImageType(file)).toBe('image/webp');
   });
 
-  it('handles heic extension', () => {
+  it('returns empty for an unsupported heic extension (not in the allowlist)', () => {
     const file = new File(['data'], 'photo.heic', { type: '' });
-    expect(getEffectiveImageType(file)).toBe('image/heic');
+    // HEIC is intentionally unsupported; getEffectiveImageType returns '' so
+    // validateImageFile rejects it with the "images only" message.
+    expect(getEffectiveImageType(file)).toBe('');
   });
 
   it('handles uppercase extension', () => {

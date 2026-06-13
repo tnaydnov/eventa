@@ -6,9 +6,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 
 const mockCreateSignedUploadUrl = vi.hoisted(() => vi.fn());
+const mockFrom = vi.hoisted(() => vi.fn());
 
 vi.mock('@/lib/supabase', () => ({
   getServiceClient: () => ({
+    from: mockFrom,
     storage: {
       from: vi.fn().mockReturnValue({
         createSignedUploadUrl: mockCreateSignedUploadUrl,
@@ -19,6 +21,8 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 14, resetMs: 60000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 14, resetMs: 60000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
     upload: { maxRequests: 15, windowMs: 60000 },
@@ -53,9 +57,16 @@ vi.mock('@/lib/logger', () => ({
 
 import { POST } from '@/app/api/secure/upload-url/route';
 import { secureGuard, isSafePath } from '@/lib/route-helpers';
+import { createQueryMock } from '../../helpers/supabase-mock';
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockFrom.mockReset();
+  // Chat-media paths verify conversation membership; default to the session user being a member.
+  mockFrom.mockReturnValue(createQueryMock({
+    data: { a_participant_id: 'p1', b_participant_id: 'p2' },
+    error: null,
+  }));
   vi.mocked(secureGuard).mockResolvedValue(session as any);
   vi.mocked(isSafePath).mockReturnValue(true);
   mockCreateSignedUploadUrl.mockResolvedValue({
@@ -158,7 +169,8 @@ describe('POST /api/secure/upload-url', () => {
   });
 
   it('accepts various allowed extensions', async () => {
-    for (const ext of ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'mp3', 'mp4']) {
+    // HEIC/HEIF are intentionally excluded (iOS converts to JPEG when sharing to web).
+    for (const ext of ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp3', 'mp4']) {
       const req = new NextRequest('http://localhost/api/secure/upload-url', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

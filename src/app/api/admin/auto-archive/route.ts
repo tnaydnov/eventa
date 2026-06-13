@@ -6,6 +6,7 @@ import { adminGuard, jsonError } from '../_helpers';
 import { evictEventStatusCache } from '@/lib/route-helpers';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { logger } from '@/lib/logger';
+import { withCronHeartbeat } from '@/lib/cron-heartbeat';
 
 /**
  * GET|POST /api/admin/auto-archive
@@ -146,4 +147,5 @@ async function handler(req: NextRequest) {
 }
 
 // Vercel Cron sends GET - expose both methods
-export { handler as GET, handler as POST };
+const cronHandler = withCronHeartbeat('auto-archive', handler);
+export { cronHandler as GET, cronHandler as POST };

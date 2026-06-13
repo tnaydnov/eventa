@@ -88,6 +88,17 @@ const nextConfig = {
           },
         ],
       },
+      // Sensitive API namespaces must never be cached by browsers, the service
+      // worker, or any shared/CDN intermediary — responses carry session cookies,
+      // auth state, and personal data. (The deliberately-cached venue reads under
+      // /api/secure/* are handled by the service worker and intentionally excluded.)
+      {
+        source: '/api/:path(admin|auth|account|payment)/:rest*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, max-age=0' },
+          { key: 'Pragma', value: 'no-cache' },
+        ],
+      },
     ];
   },
 

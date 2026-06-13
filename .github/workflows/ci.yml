@@ -25,6 +25,10 @@ jobs:
       - name: TypeScript check
         run: npm run typecheck
 
+      # Hard gate: the full unit + integration suite must pass before build/deploy.
+      - name: Unit tests
+        run: npm run test
+
       - name: Production build
         run: npm run build
         env:

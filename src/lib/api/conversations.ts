@@ -190,19 +190,22 @@ export async function sendMessage(
   conversationId: string,
   text: string,
   type: 'text' | 'image' = 'text',
-  mediaPath?: string
+  mediaPath?: string,
+  idempotencyKey?: string
 ): Promise<Message | null> {
-  // Generate a per-call idempotency key to prevent duplicate messages on retry
-  const idempotencyKey = typeof crypto !== 'undefined' && crypto.randomUUID
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  // Use the caller-supplied idempotency key when provided (durable outbox retries reuse
+  // the SAME key so the server dedupes replays); otherwise generate a per-call key.
+  const key = idempotencyKey
+    ?? (typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
   try {
     const res = await fetchWithRetry(
       '/api/secure/messages',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key },
         body: JSON.stringify({ conversationId, text, type, mediaPath }),
       },
       // Safe to retry: server deduplicates by idempotency key.

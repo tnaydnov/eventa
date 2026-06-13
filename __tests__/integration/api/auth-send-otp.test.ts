@@ -15,6 +15,8 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 4, resetMs: 300000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 4, resetMs: 300000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
     standard: { maxRequests: 30, windowMs: 60000 },
@@ -58,9 +60,10 @@ vi.mock('@/lib/messaging', () => ({
 
 import { POST } from '@/app/api/auth/send-otp/route';
 import { checkCsrf } from '@/lib/session';
-import { checkRateLimit } from '@/lib/rate-limit';
+import { checkRateLimit, checkRateLimitAsync } from '@/lib/rate-limit';
 import { createOtp } from '@/lib/otp';
 import { sendOtp } from '@/lib/messaging';
+import { createQueryMock } from '../../helpers/supabase-mock';
 
 function makeReq(body: Record<string, unknown>) {
   return new NextRequest('http://localhost/api/auth/send-otp', {
@@ -74,8 +77,13 @@ const validBody = { phone: '0501234567', eventSlug: 'summer', joinCode: 'ABCDEFG
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Default from() chain so fire-and-forget inserts (e.g. funnel_events) never
+  // return undefined; per-test mockReturnValueOnce still takes precedence.
+  mockFrom.mockReset();
+  mockFrom.mockReturnValue(createQueryMock({ data: null, error: null }));
   vi.mocked(checkCsrf).mockReturnValue(true);
   vi.mocked(checkRateLimit).mockReturnValue({ allowed: true, remaining: 4, resetMs: 300000 });
+  vi.mocked(checkRateLimitAsync).mockResolvedValue({ allowed: true, remaining: 4, resetMs: 300000 });
   vi.mocked(createOtp).mockResolvedValue({ code: '123456', expiresIn: 300 });
   vi.mocked(sendOtp).mockResolvedValue({ success: true, provider: 'sms', messageId: 'msg-1' });
 });
@@ -89,6 +97,7 @@ describe('POST /api/auth/send-otp', () => {
 
   it('returns 429 when rate limited', async () => {
     vi.mocked(checkRateLimit).mockReturnValue({ allowed: false, remaining: 0, resetMs: 5000 });
+    vi.mocked(checkRateLimitAsync).mockResolvedValue({ allowed: false, remaining: 0, resetMs: 5000 });
     const res = await POST(makeReq(validBody));
     expect(res.status).toBe(429);
   });

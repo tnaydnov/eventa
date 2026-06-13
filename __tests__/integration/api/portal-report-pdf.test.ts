@@ -111,6 +111,6 @@ describe('GET /api/portal/[token]/report/pdf', () => {
     expect(res.status).toBe(200);
     expect(res.headers.get('content-type')).toBe('application/pdf');
     expect(res.headers.get('content-disposition')).toContain('attachment; filename=');
-    expect(body.toString('latin1', 0, 8)).toContain('%PDF-1.4');
+    expect(body.subarray(0, 5).toString('latin1')).toBe('%PDF-');
   });
 });

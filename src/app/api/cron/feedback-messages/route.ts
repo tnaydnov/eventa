@@ -4,6 +4,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
+import { withCronHeartbeat } from '@/lib/cron-heartbeat';
 import { sendFeedbackMessage } from '@/lib/messaging';
 import type { EventMessagingConfig } from '@/lib/messaging';
 
@@ -178,4 +179,5 @@ async function handler(req: NextRequest) {
 }
 
 // Vercel Cron sends GET requests
-export { handler as GET, handler as POST };
+const cronHandler = withCronHeartbeat('feedback-messages', handler);
+export { cronHandler as GET, cronHandler as POST };

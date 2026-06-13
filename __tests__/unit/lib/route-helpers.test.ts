@@ -4,8 +4,41 @@
  *
  * @vitest-environment node
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { jsonError, isSafePath, evictBanCache, evictEventStatusCache } from '@/lib/route-helpers';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { jsonError, isSafePath, evictBanCache, evictEventStatusCache, verifyCronAuth } from '@/lib/route-helpers';
+
+describe('verifyCronAuth', () => {
+  const ORIGINAL = process.env.CRON_SECRET;
+  afterEach(() => { process.env.CRON_SECRET = ORIGINAL; });
+
+  const reqWith = (auth?: string) =>
+    new Request('http://localhost/api/cron', auth ? { headers: { authorization: auth } } : undefined);
+
+  it('returns false (fail-closed) when CRON_SECRET is unset', () => {
+    delete process.env.CRON_SECRET;
+    expect(verifyCronAuth(reqWith('Bearer anything'))).toBe(false);
+  });
+
+  it('returns true for a matching Bearer token', () => {
+    process.env.CRON_SECRET = 'super-secret-value';
+    expect(verifyCronAuth(reqWith('Bearer super-secret-value'))).toBe(true);
+  });
+
+  it('returns false for a wrong token', () => {
+    process.env.CRON_SECRET = 'super-secret-value';
+    expect(verifyCronAuth(reqWith('Bearer wrong-value'))).toBe(false);
+  });
+
+  it('returns false when the Authorization header is missing', () => {
+    process.env.CRON_SECRET = 'super-secret-value';
+    expect(verifyCronAuth(reqWith())).toBe(false);
+  });
+
+  it('does not match a raw token without the Bearer prefix', () => {
+    process.env.CRON_SECRET = 'super-secret-value';
+    expect(verifyCronAuth(reqWith('super-secret-value'))).toBe(false);
+  });
+});
 
 describe('jsonError', () => {
   it('U-RTH-01: returns NextResponse with correct status', () => {
@@ -138,6 +171,8 @@ describe('secureGuard', () => {
 
   // Use dynamic import to have mocks take effect
   let secureGuard: typeof import('@/lib/route-helpers').secureGuard;
+  let getSessionEpoch: typeof import('@/lib/route-helpers').getSessionEpoch;
+  let bumpSessionEpoch: typeof import('@/lib/route-helpers').bumpSessionEpoch;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -150,6 +185,9 @@ describe('secureGuard', () => {
     }));
     vi.doMock('@/lib/rate-limit', () => ({
       checkRateLimit: mockCheckRateLimit,
+      // secureGuard awaits the distributed limiter; point it at the same mock.
+      // Awaiting a plain (non-promise) return value resolves to that value.
+      checkRateLimitAsync: mockCheckRateLimit,
       getClientIp: mockGetClientIp,
     }));
     vi.doMock('@/lib/supabase', () => ({
@@ -165,6 +203,8 @@ describe('secureGuard', () => {
 
     const mod = await import('@/lib/route-helpers');
     secureGuard = mod.secureGuard;
+    getSessionEpoch = mod.getSessionEpoch;
+    bumpSessionEpoch = mod.bumpSessionEpoch;
   });
 
   afterEach(() => {
@@ -197,15 +237,20 @@ describe('secureGuard', () => {
     mockGetClientIp.mockReturnValue('127.0.0.1');
     mockCheckRateLimit.mockReturnValue({ allowed: true });
 
+    // Both the ban check (participants) and the event-status check (events) use
+    // .eq().maybeSingle(); differentiate the resolved row by table name.
     const mockSb = {
-      from: vi.fn().mockReturnValue({
+      from: vi.fn().mockImplementation((table: string) => ({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
-            maybeSingle: vi.fn().mockResolvedValue({ data: { is_banned: false }, error: null }),
-            single: vi.fn().mockResolvedValue({ data: { status: 'active' }, error: null }),
+            maybeSingle: vi.fn().mockResolvedValue(
+              table === 'events'
+                ? { data: { status: 'active' }, error: null }
+                : { data: { is_banned: false }, error: null }
+            ),
           }),
         }),
-      }),
+      })),
     };
     mockGetServiceClient.mockReturnValue(mockSb);
 
@@ -264,21 +309,20 @@ describe('secureGuard', () => {
     mockGetClientIp.mockReturnValue('127.0.0.1');
     mockCheckRateLimit.mockReturnValue({ allowed: true });
 
-    let eqCallCount = 0;
+    // Ban check (participants) returns not-banned; event-status (events) returns paused.
+    // Both use .eq().maybeSingle(); differentiate by table name.
     const mockSb = {
-      from: vi.fn().mockReturnValue({
+      from: vi.fn().mockImplementation((table: string) => ({
         select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockImplementation(() => {
-            eqCallCount++;
-            if (eqCallCount === 1) {
-              // Ban check
-              return { maybeSingle: vi.fn().mockResolvedValue({ data: { is_banned: false }, error: null }) };
-            }
-            // Event status check
-            return { single: vi.fn().mockResolvedValue({ data: { status: 'paused' }, error: null }) };
+          eq: vi.fn().mockReturnValue({
+            maybeSingle: vi.fn().mockResolvedValue(
+              table === 'events'
+                ? { data: { status: 'paused' }, error: null }
+                : { data: { is_banned: false }, error: null }
+            ),
           }),
         }),
-      }),
+      })),
     };
     mockGetServiceClient.mockReturnValue(mockSb);
 
@@ -304,5 +348,81 @@ describe('secureGuard', () => {
 
     const result = await secureGuard(req as any, 'test', rateLimit, { maxBodyBytes: 1024 });
     expect(result).toHaveProperty('status', 413);
+  });
+
+  /* ── session_epoch revocation (migration 039) ── */
+
+  // Builds a service-client mock where participants rows carry is_banned + session_epoch,
+  // and events return a status. When epochColumnMissing is set, the combined
+  // `is_banned, session_epoch` select errors (simulating pre-migration schema) and the
+  // code falls back to an `is_banned`-only select.
+  function makeSbWithEpoch(
+    participantRow: Record<string, unknown>,
+    eventStatus = 'active',
+    epochColumnMissing = false,
+  ) {
+    return {
+      from: vi.fn().mockImplementation((table: string) => ({
+        select: vi.fn().mockImplementation((cols: string) => ({
+          eq: vi.fn().mockReturnValue({
+            maybeSingle: vi.fn().mockImplementation(() => {
+              if (table === 'events') return Promise.resolve({ data: { status: eventStatus }, error: null });
+              if (epochColumnMissing && String(cols).includes('session_epoch')) {
+                return Promise.resolve({ data: null, error: { message: 'column "session_epoch" does not exist' } });
+              }
+              return Promise.resolve({ data: participantRow, error: null });
+            }),
+          }),
+        })),
+      })),
+    };
+  }
+
+  it('revokes a session whose sep is older than the current epoch → 401', async () => {
+    mockCheckCsrf.mockReturnValue(true);
+    mockGetSessionFromRequest.mockReturnValue({ ...validSession, sep: 1 });
+    mockGetClientIp.mockReturnValue('127.0.0.1');
+    mockCheckRateLimit.mockReturnValue({ allowed: true });
+    mockGetServiceClient.mockReturnValue(makeSbWithEpoch({ is_banned: false, session_epoch: 5 }));
+
+    const result = await secureGuard(makeReq() as any, 'test', rateLimit);
+    expect(result).toHaveProperty('status', 401);
+  });
+
+  it('accepts a session whose sep matches the current epoch', async () => {
+    mockCheckCsrf.mockReturnValue(true);
+    mockGetSessionFromRequest.mockReturnValue({ ...validSession, sep: 5 });
+    mockGetClientIp.mockReturnValue('127.0.0.1');
+    mockCheckRateLimit.mockReturnValue({ allowed: true });
+    mockGetServiceClient.mockReturnValue(makeSbWithEpoch({ is_banned: false, session_epoch: 5 }));
+
+    const result = await secureGuard(makeReq() as any, 'test', rateLimit);
+    expect(result).toHaveProperty('sub', validSession.sub);
+  });
+
+  it('does not reject when the session_epoch column is absent (migration skew is fail-open on epoch)', async () => {
+    mockCheckCsrf.mockReturnValue(true);
+    mockGetSessionFromRequest.mockReturnValue({ ...validSession, sep: 1 });
+    mockGetClientIp.mockReturnValue('127.0.0.1');
+    mockCheckRateLimit.mockReturnValue({ allowed: true });
+    mockGetServiceClient.mockReturnValue(makeSbWithEpoch({ is_banned: false }, 'active', true));
+
+    const result = await secureGuard(makeReq() as any, 'test', rateLimit);
+    expect(result).toHaveProperty('sub', validSession.sub);
+  });
+
+  it('getSessionEpoch returns the DB value, defaulting to 1 when absent', async () => {
+    mockGetServiceClient.mockReturnValue(makeSbWithEpoch({ session_epoch: 9 }));
+    expect(await getSessionEpoch('p1')).toBe(9);
+
+    mockGetServiceClient.mockReturnValue(makeSbWithEpoch({}, 'active', true));
+    expect(await getSessionEpoch('p2')).toBe(1);
+  });
+
+  it('bumpSessionEpoch calls the increment_session_epoch RPC', async () => {
+    const mockRpc = vi.fn().mockResolvedValue({ data: 2, error: null });
+    mockGetServiceClient.mockReturnValue({ rpc: mockRpc });
+    await bumpSessionEpoch('p1');
+    expect(mockRpc).toHaveBeenCalledWith('increment_session_epoch', { p_participant_id: 'p1' });
   });
 });

@@ -14,6 +14,8 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 29, resetMs: 60000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 29, resetMs: 60000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
     standard: { maxRequests: 30, windowMs: 60000 },
@@ -48,11 +50,13 @@ vi.mock('@/lib/logger', () => ({
 
 import { GET, DELETE } from '@/app/api/auth/verify/route';
 import { getSessionFromRequest, checkCsrf } from '@/lib/session';
-import { checkRateLimit } from '@/lib/rate-limit';
+import { checkRateLimit, checkRateLimitAsync } from '@/lib/rate-limit';
+import { createQueryMock } from '../../helpers/supabase-mock';
 
 beforeEach(() => {
   vi.restoreAllMocks();
   vi.mocked(checkRateLimit).mockReturnValue({ allowed: true, remaining: 29, resetMs: 60000 });
+  vi.mocked(checkRateLimitAsync).mockResolvedValue({ allowed: true, remaining: 29, resetMs: 60000 });
   vi.mocked(getSessionFromRequest).mockReturnValue(null);
   vi.mocked(checkCsrf).mockReturnValue(true);
 });
@@ -67,6 +71,7 @@ describe('GET /api/auth/verify', () => {
 
   it('returns 429 when rate limited', async () => {
     vi.mocked(checkRateLimit).mockReturnValue({ allowed: false, remaining: 0, resetMs: 5000 });
+    vi.mocked(checkRateLimitAsync).mockResolvedValue({ allowed: false, remaining: 0, resetMs: 5000 });
     const req = new NextRequest('http://localhost/api/auth/verify');
     const res = await GET(req);
     expect(res.status).toBe(429);
@@ -78,11 +83,7 @@ describe('GET /api/auth/verify', () => {
       iss: 'eventa', aud: 'eventa-app', typ: 'session', iat: 0, exp: 999999999999,
     });
 
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { is_banned: true }, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: { is_banned: true }, error: null }));
 
     const req = new NextRequest('http://localhost/api/auth/verify');
     const res = await GET(req);
@@ -96,18 +97,10 @@ describe('GET /api/auth/verify', () => {
     });
 
     // participant lookup
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { is_banned: false }, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: { is_banned: false }, error: null }));
 
     // event lookup
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { status: 'active', is_active: true }, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: { status: 'active', is_active: true }, error: null }));
 
     const req = new NextRequest('http://localhost/api/auth/verify');
     const res = await GET(req);
@@ -123,17 +116,9 @@ describe('GET /api/auth/verify', () => {
       iss: 'eventa', aud: 'eventa-app', typ: 'session', iat: 0, exp: 999999999999,
     });
 
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { is_banned: false }, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: { is_banned: false }, error: null }));
 
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { status: 'paused', is_active: false }, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: { status: 'paused', is_active: false }, error: null }));
 
     const req = new NextRequest('http://localhost/api/auth/verify');
     const res = await GET(req);
@@ -154,17 +139,9 @@ describe('GET /api/auth/verify', () => {
       iss: 'eventa', aud: 'eventa-app', typ: 'session', iat: 0, exp: 999999999999,
     });
 
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { is_banned: false }, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: { is_banned: false }, error: null }));
 
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { status: 'archived', is_active: false }, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: { status: 'archived', is_active: false }, error: null }));
 
     const req = new NextRequest('http://localhost/api/auth/verify');
     const res = await GET(req);

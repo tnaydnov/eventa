@@ -6,6 +6,7 @@
  */
 import crypto from 'crypto';
 import { ADMIN_MAX_AGE_S, JWT_ISSUER, JWT_AUDIENCE, getJwtSecret, IS_PRODUCTION } from '@/lib/config';
+import { getServiceClient } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
 
 const ADMIN_COOKIE = 'ws_admin';
@@ -110,7 +111,13 @@ export function verifyAdminFromRequest(req: Request): boolean {
 
 /**
  * Audit log for admin actions.
- * In production, pipe to a structured logging service (Datadog, etc.).
+ *
+ * Always writes a structured line to the logger (redacted, ships to stdout/log drain),
+ * and additionally persists to the append-only `admin_audit_log` table for durable
+ * forensics. The DB write is fire-and-forget and fully guarded: it never blocks or
+ * throws into the request path, so audit logging can never break an admin action.
+ *
+ * Set `ADMIN_AUDIT_PERSIST=false` to disable the DB write (logger line still emitted).
  */
 export function adminAuditLog(
   action: string,
@@ -121,4 +128,24 @@ export function adminAuditLog(
     || req?.headers.get('x-real-ip')
     || 'unknown';
   logger.info(`[ADMIN_AUDIT] ${action}`, { action, ip, ...details });
+  persistAuditLog(action, ip, details);
+}
+
+/** Best-effort, non-blocking persistence of an audit entry to the DB. */
+function persistAuditLog(action: string, ip: string, details: Record<string, unknown>): void {
+  if (process.env.ADMIN_AUDIT_PERSIST === 'false') return;
+  try {
+    const sb = getServiceClient();
+    void sb
+      .from('admin_audit_log')
+      .insert({ action, ip, details })
+      .then(
+        ({ error }) => {
+          if (error) logger.warn('[ADMIN_AUDIT] DB persist failed', { error: error.message });
+        },
+        () => { /* network/transport error — swallow, the logger line already captured it */ },
+      );
+  } catch {
+    /* service client unavailable (e.g. missing key) — logger line above is the record */
+  }
 }

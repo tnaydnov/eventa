@@ -51,6 +51,20 @@ describe('signSessionToken', () => {
     expect(typeof payload.exp).toBe('number');
     expect(payload.exp).toBeGreaterThan(payload.iat);
   });
+
+  it('embeds the sep (session epoch) claim when sessionEpoch is provided', () => {
+    const token = signSessionToken({ ...VALID_TOKEN_DATA, sessionEpoch: 7 });
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString());
+    expect(payload.sep).toBe(7);
+    // And it round-trips through verification.
+    expect(verifySessionToken(token)!.sep).toBe(7);
+  });
+
+  it('omits the sep claim entirely when sessionEpoch is not provided (byte-compatible with legacy tokens)', () => {
+    const token = signSessionToken(VALID_TOKEN_DATA);
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString());
+    expect('sep' in payload).toBe(false);
+  });
 });
 
 describe('verifySessionToken', () => {
@@ -171,11 +185,19 @@ describe('sessionCookieHeader', () => {
     expect(header).toContain('Max-Age=');
   });
 
-  it('includes Secure flag in production', () => {
-    process.env.NODE_ENV = 'production';
-    const header = sessionCookieHeader('tok');
-    expect(header).toContain('Secure');
-    process.env.NODE_ENV = 'test';
+  it('includes Secure flag in production', async () => {
+    // IS_PRODUCTION is evaluated at config module-load time, so flip NODE_ENV
+    // and re-import the module fresh to pick up the production branch.
+    vi.resetModules();
+    vi.stubEnv('NODE_ENV', 'production');
+    try {
+      const { sessionCookieHeader: prodCookieHeader } = await import('@/lib/session');
+      const header = prodCookieHeader('tok');
+      expect(header).toContain('Secure');
+    } finally {
+      vi.unstubAllEnvs();
+      vi.resetModules();
+    }
   });
 });
 

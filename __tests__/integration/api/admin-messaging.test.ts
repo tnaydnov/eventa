@@ -20,6 +20,8 @@ vi.mock('@/lib/admin-auth', () => ({
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 29, resetMs: 60000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 29, resetMs: 60000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
     standard: { maxRequests: 30, windowMs: 60000 },
@@ -33,6 +35,8 @@ vi.mock('@/lib/session', () => ({
 }));
 
 vi.mock('@/lib/route-helpers', () => ({
+  // adminGuard imports verifyCronAuth; default false = no cron auth (tests authenticate via admin cookie).
+  verifyCronAuth: vi.fn().mockReturnValue(false),
   jsonError: vi.fn((message: string, status: number) =>
     new Response(JSON.stringify({ error: message }), {
       status,
@@ -51,6 +55,7 @@ vi.mock('@/lib/messaging', () => ({
 }));
 
 import { GET, PATCH, POST } from '@/app/api/admin/events/[eventId]/messaging/route';
+import { createQueryMock } from '../../helpers/supabase-mock';
 
 const eventId = '11111111-1111-1111-1111-111111111111';
 const params = Promise.resolve({ eventId });
@@ -63,7 +68,13 @@ function makeReq(method: string, body?: Record<string, unknown>) {
   });
 }
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  // Default benign chain so messaging-send / status-update queries never return
+  // undefined; per-test mockReturnValueOnce still takes precedence.
+  mockFrom.mockReset();
+  mockFrom.mockReturnValue(createQueryMock({ data: null, error: null }));
+});
 
 describe('GET /api/admin/events/[eventId]/messaging', () => {
   it('returns messaging overview on success', async () => {
@@ -140,20 +151,13 @@ describe('PATCH /api/admin/events/[eventId]/messaging', () => {
   });
 
   it('merges messaging_config with existing', async () => {
-    // Fetch existing config
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { messaging_config: { pre_event_hours_before: 3 } },
-        error: null,
-      }),
-    });
+    // Fetch existing config (route uses .maybeSingle())
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { messaging_config: { pre_event_hours_before: 3 } },
+      error: null,
+    }));
     // Update
-    mockFrom.mockReturnValueOnce({
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
 
     const res = await PATCH(
       makeReq('PATCH', { messaging_config: { feedback_hours_after: 5 } }),
@@ -170,31 +174,21 @@ describe('POST /api/admin/events/[eventId]/messaging', () => {
   });
 
   it('triggers pre-event messages', async () => {
-    // Event lookup
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: {
-          id: eventId, slug: 'test', name: 'Test',
-          join_code: 'CODE', wa_messages_enabled: true, starts_at: '2025-08-15',
-        },
-        error: null,
-      }),
-    });
+    // Event lookup (route uses .maybeSingle())
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: {
+        id: eventId, slug: 'test', name: 'Test',
+        join_code: 'CODE', wa_messages_enabled: true, starts_at: '2025-08-15',
+      },
+      error: null,
+    }));
     // Unsent guests
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue({
-        data: [{ id: 'g1', phone: '+972501234567', guest_name: 'Dana', wa_pre_event_sent: false }],
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: [{ id: 'g1', phone: '+972501234567', guest_name: 'Dana', wa_pre_event_sent: false }],
+      error: null,
+    }));
     // Mark sent
-    mockFrom.mockReturnValueOnce({
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
 
     const res = await POST(makeReq('POST', { action: 'send_pre_event' }), { params });
     expect(res.status).toBe(200);
@@ -204,18 +198,14 @@ describe('POST /api/admin/events/[eventId]/messaging', () => {
   });
 
   it('returns 400 when WA not enabled', async () => {
-    // Event lookup → WA disabled
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: {
-          id: eventId, slug: 'test', name: 'Test',
-          join_code: 'CODE', wa_messages_enabled: false, starts_at: '2025-08-15',
-        },
-        error: null,
-      }),
-    });
+    // Event lookup → WA disabled (route uses .maybeSingle())
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: {
+        id: eventId, slug: 'test', name: 'Test',
+        join_code: 'CODE', wa_messages_enabled: false, starts_at: '2025-08-15',
+      },
+      error: null,
+    }));
 
     const res = await POST(makeReq('POST', { action: 'send_pre_event' }), { params });
     expect(res.status).toBe(400);

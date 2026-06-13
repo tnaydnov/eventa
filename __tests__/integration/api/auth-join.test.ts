@@ -15,6 +15,8 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 29, resetMs: 60000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 29, resetMs: 60000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
     standard: { maxRequests: 30, windowMs: 60000 },
@@ -36,6 +38,7 @@ vi.mock('@/lib/route-helpers', () => ({
       headers: { 'Content-Type': 'application/json' },
     })
   ),
+  getSessionEpoch: vi.fn().mockResolvedValue(1),
 }));
 
 vi.mock('@/lib/logger', () => ({
@@ -44,7 +47,8 @@ vi.mock('@/lib/logger', () => ({
 
 import { POST } from '@/app/api/auth/join/route';
 import { checkCsrf } from '@/lib/session';
-import { checkRateLimit } from '@/lib/rate-limit';
+import { checkRateLimit, checkRateLimitAsync } from '@/lib/rate-limit';
+import { createQueryMock } from '../../helpers/supabase-mock';
 
 function makeReq(body: Record<string, unknown>) {
   return new NextRequest('http://localhost/api/auth/join', {
@@ -56,8 +60,12 @@ function makeReq(body: Record<string, unknown>) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Reset the from() queue each test so unconsumed/fire-and-forget
+  // mockReturnValueOnce entries can't bleed into the next test.
+  mockFrom.mockReset();
   vi.mocked(checkCsrf).mockReturnValue(true);
   vi.mocked(checkRateLimit).mockReturnValue({ allowed: true, remaining: 29, resetMs: 60000 });
+  vi.mocked(checkRateLimitAsync).mockResolvedValue({ allowed: true, remaining: 29, resetMs: 60000 });
 });
 
 describe('POST /api/auth/join', () => {
@@ -69,31 +77,25 @@ describe('POST /api/auth/join', () => {
 
   it('returns 429 when rate limited', async () => {
     vi.mocked(checkRateLimit).mockReturnValue({ allowed: false, remaining: 0, resetMs: 5000 });
+    vi.mocked(checkRateLimitAsync).mockResolvedValue({ allowed: false, remaining: 0, resetMs: 5000 });
     const res = await POST(makeReq({ eventSlug: 'e', joinCode: '123456789012' }));
     expect(res.status).toBe(429);
   });
 
-  it('returns 400 for invalid input (missing joinCode)', async () => {
-    const res = await POST(makeReq({ eventSlug: 'e' }));
+  it('returns 400 for invalid input (missing eventSlug)', async () => {
+    // joinCode is now an optional legacy field; eventSlug remains required.
+    const res = await POST(makeReq({ joinCode: '123456789012' }));
     expect(res.status).toBe(400);
   });
 
   it('returns 500 when event lookup DB errors', async () => {
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: { message: 'DB error' } }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: { message: 'DB error' } }));
     const res = await POST(makeReq({ eventSlug: 'test', joinCode: 'ABCDEFGHIJKL' }));
     expect(res.status).toBe(500);
   });
 
   it('returns 404 when event not found', async () => {
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
     const res = await POST(makeReq({ eventSlug: 'nope', joinCode: 'XXXXXXXXXXXX' }));
     // The route returns 500 on eventError or 404 on no event
     expect([404, 500]).toContain(res.status);
@@ -101,24 +103,14 @@ describe('POST /api/auth/join', () => {
 
   it('creates new participant when no fingerprint match', async () => {
     // Event lookup
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { id: 'e1', slug: 'test', name: 'Test', join_code: 'ABCDEFGHIJKL', status: 'active', is_active: true, background_image: null },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { id: 'e1', slug: 'test', name: 'Test', join_code: 'ABCDEFGHIJKL', status: 'active', is_active: true, background_image: null },
+      error: null,
+    }));
     // New participant insert
-    mockFrom.mockReturnValueOnce({
-      insert: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { id: 'p-new' }, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: { id: 'p-new' }, error: null }));
     // Activity log (fire-and-forget)
-    mockFrom.mockReturnValueOnce({
-      insert: vi.fn().mockResolvedValue({ error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
 
     const res = await POST(makeReq({ eventSlug: 'test', joinCode: 'ABCDEFGHIJKL' }));
     expect(res.status).toBe(200);
@@ -129,33 +121,21 @@ describe('POST /api/auth/join', () => {
 
   it('reconnects existing participant by device fingerprint', async () => {
     // Event lookup
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { id: 'e1', slug: 'test', name: 'Test', join_code: 'ABCDEFGHIJKL', status: 'active', is_active: true, background_image: null },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { id: 'e1', slug: 'test', name: 'Test', join_code: 'ABCDEFGHIJKL', status: 'active', is_active: true, background_image: null },
+      error: null,
+    }));
     // Ban check (device fingerprint)
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
     // Reconnect by fingerprint
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: {
-          id: 'p-existing', event_id: 'e1', device_fingerprint: 'abc123', hardware_fingerprint: null,
-          display_name: 'Test User', gender: 'female', attracted_to: 'all', bio: null,
-          age: 25, city: null, looking_for: 'relationship', is_banned: false, last_seen_at: null, created_at: '2025-01-01',
-        },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: {
+        id: 'p-existing', event_id: 'e1', device_fingerprint: 'abc123', hardware_fingerprint: null,
+        display_name: 'Test User', gender: 'female', attracted_to: 'all', bio: null,
+        age: 25, city: null, looking_for: 'relationship', is_banned: false, last_seen_at: null, created_at: '2025-01-01',
+      },
+      error: null,
+    }));
 
     const res = await POST(makeReq({ eventSlug: 'test', joinCode: 'ABCDEFGHIJKL', fingerprint: 'abc123' }));
     expect(res.status).toBe(200);
@@ -168,20 +148,12 @@ describe('POST /api/auth/join', () => {
 
   it('returns 403 when device is banned', async () => {
     // Event lookup
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { id: 'e1', slug: 'test', name: 'Test', join_code: 'ABCDEFGHIJKL', status: 'active', is_active: true, background_image: null },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { id: 'e1', slug: 'test', name: 'Test', join_code: 'ABCDEFGHIJKL', status: 'active', is_active: true, background_image: null },
+      error: null,
+    }));
     // Ban check - device is banned
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'ban1' }, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: { id: 'ban1' }, error: null }));
 
     const res = await POST(makeReq({ eventSlug: 'test', joinCode: 'ABCDEFGHIJKL', fingerprint: 'aabb00ccddee' }));
     expect(res.status).toBe(403);
@@ -189,33 +161,21 @@ describe('POST /api/auth/join', () => {
 
   it('returns 403 when reconnected participant is banned', async () => {
     // Event lookup
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { id: 'e1', slug: 'test', name: 'Test', join_code: 'ABCDEFGHIJKL', status: 'active', is_active: true, background_image: null },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { id: 'e1', slug: 'test', name: 'Test', join_code: 'ABCDEFGHIJKL', status: 'active', is_active: true, background_image: null },
+      error: null,
+    }));
     // Ban check - not banned at device level
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
     // Reconnect by fingerprint - but participant is banned
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: {
-          id: 'p-banned', event_id: 'e1', device_fingerprint: 'abc', hardware_fingerprint: null,
-          display_name: 'Banned User', gender: 'male', attracted_to: 'all', bio: null,
-          age: 30, city: null, looking_for: null, is_banned: true, last_seen_at: null, created_at: '2025-01-01',
-        },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: {
+        id: 'p-banned', event_id: 'e1', device_fingerprint: 'abc', hardware_fingerprint: null,
+        display_name: 'Banned User', gender: 'male', attracted_to: 'all', bio: null,
+        age: 30, city: null, looking_for: null, is_banned: true, last_seen_at: null, created_at: '2025-01-01',
+      },
+      error: null,
+    }));
 
     const res = await POST(makeReq({ eventSlug: 'test', joinCode: 'ABCDEFGHIJKL', fingerprint: 'abc' }));
     expect(res.status).toBe(403);
@@ -223,20 +183,12 @@ describe('POST /api/auth/join', () => {
 
   it('returns 500 when participant creation fails', async () => {
     // Event lookup
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { id: 'e1', slug: 'test', name: 'Test', join_code: 'ABCDEFGHIJKL', status: 'active', is_active: true, background_image: null },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { id: 'e1', slug: 'test', name: 'Test', join_code: 'ABCDEFGHIJKL', status: 'active', is_active: true, background_image: null },
+      error: null,
+    }));
     // New participant insert - fails
-    mockFrom.mockReturnValueOnce({
-      insert: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: { message: 'insert failed' } }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: { message: 'insert failed' } }));
 
     const res = await POST(makeReq({ eventSlug: 'test', joinCode: 'ABCDEFGHIJKL' }));
     expect(res.status).toBe(500);
@@ -244,24 +196,14 @@ describe('POST /api/auth/join', () => {
 
   it('sanitizes invalid fingerprints to null', async () => {
     // Event lookup
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { id: 'e1', slug: 'test', name: 'Test', join_code: 'ABCDEFGHIJKL', status: 'active', is_active: true, background_image: null },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { id: 'e1', slug: 'test', name: 'Test', join_code: 'ABCDEFGHIJKL', status: 'active', is_active: true, background_image: null },
+      error: null,
+    }));
     // New participant insert (no fingerprint used)
-    mockFrom.mockReturnValueOnce({
-      insert: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { id: 'p-new' }, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: { id: 'p-new' }, error: null }));
     // Activity log
-    mockFrom.mockReturnValueOnce({
-      insert: vi.fn().mockResolvedValue({ error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
 
     // Invalid fingerprint with special chars should be sanitized to null
     const res = await POST(makeReq({
@@ -271,20 +213,19 @@ describe('POST /api/auth/join', () => {
     expect(res.status).toBe(200);
   });
 
-  it('I-JOIN-03: invalid join code format → 400', async () => {
-    const res = await POST(makeReq({ eventSlug: 'test', joinCode: 'AB' })); // too short
-    expect(res.status).toBe(400);
+  it('I-JOIN-03: short joinCode is now accepted (legacy optional field)', async () => {
+    // Join codes were removed; a short joinCode no longer fails validation, so the
+    // request proceeds to the event lookup (which finds nothing here → 404).
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
+    const res = await POST(makeReq({ eventSlug: 'test', joinCode: 'AB' }));
+    expect(res.status).toBe(404);
   });
 
   it('I-JOIN-05: event not active (ended) → rejects', async () => {
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { id: 'e1', slug: 'test', name: 'Test', join_code: 'ABCDEFGHIJKL', status: 'ended', is_active: false, background_image: null },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { id: 'e1', slug: 'test', name: 'Test', join_code: 'ABCDEFGHIJKL', status: 'ended', is_active: false, background_image: null },
+      error: null,
+    }));
     const res = await POST(makeReq({ eventSlug: 'test', joinCode: 'ABCDEFGHIJKL' }));
     // Route should reject inactive events (403 or 410)
     expect(res.status).toBeGreaterThanOrEqual(400);
@@ -292,14 +233,7 @@ describe('POST /api/auth/join', () => {
 
   it('I-JOIN-06: wrong join code → rejects with 404', async () => {
     // Wrong join code means .eq('join_code', ...) returns no rows → data: null
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: null,
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
     const res = await POST(makeReq({ eventSlug: 'test', joinCode: 'WRONGCODEXXX' }));
     expect(res.status).toBe(404);
   });

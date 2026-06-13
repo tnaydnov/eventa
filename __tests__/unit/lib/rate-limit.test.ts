@@ -5,7 +5,7 @@
  * @vitest-environment node
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimit, checkRateLimitAsync, isDistributedRateLimitEnabled, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 
 // Each test uses a unique key to avoid cross-test pollution
 let keyCounter = 0;
@@ -145,5 +145,30 @@ describe('RATE_LIMITS config', () => {
   it('has strict config (3/min)', () => {
     expect(RATE_LIMITS.strict.maxRequests).toBe(3);
     expect(RATE_LIMITS.strict.windowMs).toBe(60_000);
+  });
+});
+
+describe('checkRateLimitAsync (distributed adapter)', () => {
+  it('is disabled when Upstash env vars are absent', () => {
+    // No UPSTASH_REDIS_REST_URL/_TOKEN in the test env.
+    expect(isDistributedRateLimitEnabled()).toBe(false);
+  });
+
+  it('falls back to the in-memory limiter and matches its semantics', async () => {
+    const key = uniqueKey();
+    const config = { maxRequests: 2, windowMs: 60_000 };
+    expect((await checkRateLimitAsync(key, config)).allowed).toBe(true);
+    expect((await checkRateLimitAsync(key, config)).allowed).toBe(true);
+    const blocked = await checkRateLimitAsync(key, config);
+    expect(blocked.allowed).toBe(false);
+    expect(blocked.remaining).toBe(0);
+    expect(blocked.resetMs).toBeGreaterThan(0);
+  });
+
+  it('returns the standard result shape', async () => {
+    const result = await checkRateLimitAsync(uniqueKey());
+    expect(result).toHaveProperty('allowed');
+    expect(result).toHaveProperty('remaining');
+    expect(result).toHaveProperty('resetMs');
   });
 });

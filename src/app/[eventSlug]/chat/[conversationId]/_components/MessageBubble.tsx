@@ -6,8 +6,11 @@ import { getPhotoUrl } from '@/lib/api';
 import { PHOTO_BLUR_DATA_URL } from '@/lib/image-placeholder';
 import type { Message } from '@/lib/database.types';
 
+/** A rendered message, optionally carrying a client-only send status (outbox). */
+type ChatMessage = Message & { _status?: 'sending' | 'failed' };
+
 interface MessageBubbleProps {
-  msg: Message;
+  msg: ChatMessage;
   isMine: boolean;
   deleteMenuMsgId: string | null;
   onDelete: (msgId: string) => void;
@@ -15,6 +18,8 @@ interface MessageBubbleProps {
   onTouchEnd: () => void;
   onShowDeleteMenu: () => void;
   onImageClick?: (src: string) => void;
+  /** Retry a failed (outbox) message; receives the temp message id. */
+  onRetry?: (msgId: string) => void;
 }
 
 function MessageBubbleInner({
@@ -26,6 +31,7 @@ function MessageBubbleInner({
   onTouchEnd,
   onShowDeleteMenu,
   onImageClick,
+  onRetry,
 }: MessageBubbleProps) {
   const isSystem = msg.type === 'system';
 
@@ -110,6 +116,30 @@ function MessageBubbleInner({
           </>
         )}
       </div>
+      {/* Send status (own outbox messages only): pending or failed → tap to retry. */}
+      {isMine && msg._status === 'sending' && (
+        <span style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '2px 4px 0' }}>
+          שולח…
+        </span>
+      )}
+      {isMine && msg._status === 'failed' && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onRetry?.(msg.id); }}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--danger)',
+            cursor: 'pointer',
+            fontSize: '11px',
+            fontWeight: 600,
+            margin: '2px 4px 0',
+            padding: 0,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          לא נשלח · הקש לשליחה חוזרת
+        </button>
+      )}
       {/* Delete popup */}
       {deleteMenuMsgId === msg.id && isMine && !msg.is_deleted && (
         <div

@@ -13,6 +13,7 @@ import {
   getParticipant,
   blockParticipant,
   markConversationRead,
+  getBlockedIds,
 } from '@/lib/api';
 import { useRealtimeHub } from '@/hooks/useRealtimeHub';
 import { useAppResume } from '@/hooks/useAppResume';
@@ -20,6 +21,12 @@ import MobileGuard from '@/components/MobileGuard';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import type { Message, PublicParticipant, ParticipantPhoto } from '@/lib/database.types';
 import { validateImageFile } from '@/lib/validations';
+import {
+  loadOutbox, addToOutbox, removeFromOutbox, newOutboxKey, type OutboxEntry,
+} from '@/lib/chat-outbox';
+
+/** A rendered chat message, optionally carrying a client-only send status. */
+type ChatMessage = Message & { _status?: 'sending' | 'failed' };
 
 import ChatHeader from './_components/ChatHeader';
 import MessageBubble from './_components/MessageBubble';
@@ -45,8 +52,14 @@ export default function ChatRoomPage({
   const cachedConv = useChatsStore((s) => s.conversations.find((c) => c.id === conversationId));
   const cachedOther = cachedConv?.otherParticipant ?? null;
 
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [text, setText] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // Composer draft is persisted per conversation (§23.1) so a mid-event reload or an
+  // iOS tab-kill never loses a half-typed message. Restored lazily on mount; the effect
+  // below keeps localStorage in sync and clears it once the message is sent (text → '').
+  const [text, setText] = useState<string>(() => {
+    if (typeof window === 'undefined') return '';
+    try { return window.localStorage.getItem(`chat-draft:${conversationId}`) ?? ''; } catch { return ''; }
+  });
   const [loading, setLoading] = useState(!cachedOther);
   const [otherUser, setOtherUser] = useState<(PublicParticipant & { photos: ParticipantPhoto[] }) | null>(cachedOther);
   const [showMenu, setShowMenu] = useState(false);
@@ -99,6 +112,14 @@ export default function ChatRoomPage({
     }
   };
 
+  // Persist / clear the composer draft as it changes (§23.1). Empty text removes the key.
+  useEffect(() => {
+    try {
+      if (text) window.localStorage.setItem(`chat-draft:${conversationId}`, text);
+      else window.localStorage.removeItem(`chat-draft:${conversationId}`);
+    } catch { /* private-mode / quota — non-critical */ }
+  }, [text, conversationId]);
+
   // ─── Scroll to bottom only on NEW messages (not history load) ──
   const prevMsgCountRef = useRef(0);
   useEffect(() => {
@@ -141,7 +162,13 @@ export default function ChatRoomPage({
         getParticipant(otherId!),
       ]);
 
-      setMessages(msgs);
+      // Preserve any optimistic/outbox temp messages (pending or failed sends) that
+      // are not yet on the server, so a refresh mid-send never drops them.
+      setMessages((prev) => {
+        const ids = new Set(msgs.map((m) => m.id));
+        const temps = prev.filter((m) => m.id.startsWith('temp-') && !ids.has(m.id));
+        return [...msgs, ...temps];
+      });
       if (other) setOtherUser(other);
       setLoading(false);
 
@@ -215,44 +242,121 @@ export default function ChatRoomPage({
   // ─── Refresh on app resume ────────────────────────────────────
   useAppResume(async () => {
     if (!session) return;
+    // Reconcile block status first: a block placed while we were backgrounded would
+    // have been missed by the realtime handler (the socket may have been dead). Re-check
+    // and redirect out of the conversation if we're now blocked — mirrors the realtime path.
+    if (otherUser) {
+      const blockedIds = await getBlockedIds(session.eventId, session.participantId);
+      if (blockedIds.has(otherUser.id)) {
+        toast('השיחה הוסרה עקב חסימה');
+        router.replace(`/${eventSlug}`);
+        return;
+      }
+    }
     const fresh = await getMessages(conversationId);
     setMessages((prev) => {
       const ids = new Set(fresh.map((m) => m.id));
       const temps = prev.filter((m) => m.id.startsWith('temp-') && !ids.has(m.id));
       return [...fresh, ...temps];
     });
+    // Resend anything still queued in the durable outbox now that we're back.
+    flushOutbox();
   }, !!session);
 
   // ─── Handlers ─────────────────────────────────────────────────
 
+  // Build an optimistic message object from an outbox entry.
+  const buildTempMessage = (entry: OutboxEntry, status: 'sending' | 'failed'): ChatMessage => ({
+    id: `temp-${entry.key}`,
+    event_id: session?.eventId ?? '',
+    conversation_id: entry.conversationId,
+    sender_participant_id: session?.participantId ?? '',
+    type: 'text',
+    text: entry.text,
+    media_path: null,
+    is_deleted: false,
+    created_at: new Date(entry.createdAt).toISOString(),
+    _status: status,
+  });
+
+  // Tracks outbox keys currently being sent, so a flush can't double-fire the same entry.
+  const inFlightRef = useRef<Set<string>>(new Set());
+
+  // Send (or resend) a single durable-outbox entry. Reuses the entry's stable
+  // idempotency key, so the server dedupes replays — a resend can never duplicate.
+  const sendOutboxEntry = useCallback(async (entry: OutboxEntry) => {
+    if (inFlightRef.current.has(entry.key)) return;
+    inFlightRef.current.add(entry.key);
+    const tempId = `temp-${entry.key}`;
+    setMessages((prev) => prev.map((m) => (m.id === tempId ? { ...m, _status: 'sending' } : m)));
+    try {
+      const msg = await sendMessage(entry.conversationId, entry.text, 'text', undefined, entry.key);
+      if (msg) {
+        removeFromOutbox(entry.conversationId, entry.key);
+        setMessages((prev) => {
+          const withoutTemp = prev.filter((m) => m.id !== tempId);
+          // Avoid a duplicate if the realtime INSERT already delivered this row.
+          if (withoutTemp.some((m) => m.id === msg.id)) return withoutTemp;
+          return [...withoutTemp, msg];
+        });
+      } else {
+        // Keep the message visible as "failed — tap to retry" (never delete the text).
+        setMessages((prev) => prev.map((m) => (m.id === tempId ? { ...m, _status: 'failed' } : m)));
+      }
+    } finally {
+      inFlightRef.current.delete(entry.key);
+    }
+  }, [session]);
+
+  // Flush every queued entry — called on mount, on reconnect (`online`), and on resume.
+  const flushOutbox = useCallback(() => {
+    for (const entry of loadOutbox(conversationId)) {
+      void sendOutboxEntry(entry);
+    }
+  }, [conversationId, sendOutboxEntry]);
+
+  // Retry a single failed message (tap on the "failed" bubble).
+  const retryMessage = useCallback((tempId: string) => {
+    if (!tempId.startsWith('temp-')) return;
+    const key = tempId.slice('temp-'.length);
+    const entry = loadOutbox(conversationId).find((e) => e.key === key);
+    if (entry) void sendOutboxEntry(entry);
+  }, [conversationId, sendOutboxEntry]);
+
+  // Restore any persisted outbox entries on mount as "failed" bubbles, then try to flush
+  // them (auto-recover a send that was interrupted by a reload / tab-kill).
+  useEffect(() => {
+    const entries = loadOutbox(conversationId);
+    if (entries.length === 0) return;
+    setMessages((prev) => {
+      const existing = new Set(prev.map((m) => m.id));
+      const temps = entries
+        .filter((e) => !existing.has(`temp-${e.key}`))
+        .map((e) => buildTempMessage(e, 'failed'));
+      return temps.length ? [...prev, ...temps] : prev;
+    });
+    flushOutbox();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId]);
+
+  // Auto-flush the outbox when connectivity returns.
+  useEffect(() => {
+    const onOnline = () => flushOutbox();
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, [flushOutbox]);
+
   const handleSend = async () => {
-    if (!session || !text.trim() || sending) return;
+    if (!session || !text.trim()) return;
     const msgText = text.trim();
     setText('');
-    setSending(true);
 
-    const tempId = `temp-${Date.now()}`;
-    const tempMsg: Message = {
-      id: tempId,
-      event_id: session.eventId,
-      conversation_id: conversationId,
-      sender_participant_id: session.participantId,
-      type: 'text',
-      text: msgText,
-      media_path: null,
-      is_deleted: false,
-      created_at: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, tempMsg]);
-
-    const msg = await sendMessage(conversationId, msgText);
-    if (msg) {
-      setMessages((prev) => prev.map((m) => (m.id === tempId ? msg : m)));
-    } else {
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      toast('שגיאה בשליחת ההודעה - נסו שוב');
-    }
-    setSending(false);
+    // Persist to the durable outbox first (survives reload), then optimistically render.
+    const key = newOutboxKey();
+    const entry: OutboxEntry = { key, conversationId, text: msgText, createdAt: Date.now() };
+    addToOutbox(entry);
+    setMessages((prev) => [...prev, buildTempMessage(entry, 'sending')]);
+    await sendOutboxEntry(entry);
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -451,6 +555,7 @@ export default function ChatRoomPage({
               onTouchEnd={handleMsgTouchEnd}
               onShowDeleteMenu={() => setDeleteMenuMsgId(msg.id)}
               onImageClick={setFullscreenImage}
+              onRetry={retryMessage}
             />
           ))}
           <div ref={messagesEndRef} />

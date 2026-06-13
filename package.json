@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "perf:budget": "node scripts/check-performance-budget.cjs",
     "perf:regression": "node scripts/check-performance-regression.cjs",
+    "check:rls": "node scripts/check-rls-coverage.cjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

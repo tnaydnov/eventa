@@ -87,6 +87,8 @@ export interface Participant {
   sms_notifications_enabled: boolean;
   feedback_consent: boolean;
   feedback_sent: boolean;
+  /** Session-revocation counter (see migration 039). Optional so inserts can rely on the DB default. */
+  session_epoch?: number;
 }
 
 /** Participant without internal fingerprint fields - safe for client-side use. */

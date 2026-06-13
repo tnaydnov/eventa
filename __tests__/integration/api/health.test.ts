@@ -18,6 +18,8 @@ vi.mock('@/lib/supabase', () => ({
 // Mock rate limit (allow by default)
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 19, resetMs: 60000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 19, resetMs: 60000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
 }));
 

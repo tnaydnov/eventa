@@ -1,0 +1,8 @@
+# Eventa — security disclosure policy (RFC 9116)
+# If you believe you've found a security vulnerability, please contact us.
+# We appreciate responsible disclosure and will respond promptly.
+
+Contact: mailto:contact@eventa.productions
+Expires: 2027-06-12T00:00:00.000Z
+Preferred-Languages: he, en
+Canonical: https://eventa.productions/.well-known/security.txt

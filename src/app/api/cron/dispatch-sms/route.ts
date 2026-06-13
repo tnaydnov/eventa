@@ -4,6 +4,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
+import { withCronHeartbeat } from '@/lib/cron-heartbeat';
 import { sendSms } from '@/lib/messaging/sms-provider';
 
 /** Maximum SMS messages to dispatch per cron invocation (fits in 15s Vercel timeout). */
@@ -358,5 +359,5 @@ async function handler(req: NextRequest) {
   return NextResponse.json({ dispatched, failed });
 }
 
-export const GET = handler;
-export const POST = handler;
+const cronHandler = withCronHeartbeat('dispatch-sms', handler);
+export { cronHandler as GET, cronHandler as POST };

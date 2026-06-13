@@ -3,11 +3,14 @@
 import { useState } from 'react';
 
 interface AdminLoginProps {
-  onLogin: (password: string) => Promise<{ ok: boolean; error?: string }>;
+  onLogin: (password: string, totp?: string) => Promise<{ ok: boolean; error?: string; totpRequired?: boolean }>;
 }
 
 export default function AdminLogin({ onLogin }: AdminLoginProps) {
   const [password, setPassword] = useState('');
+  const [totp, setTotp] = useState('');
+  // Revealed only after the server reports that 2FA is enabled for this admin.
+  const [totpRequired, setTotpRequired] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -15,9 +18,16 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const result = await onLogin(password);
+    const result = await onLogin(password, totpRequired ? totp : undefined);
     setLoading(false);
-    if (!result.ok) setError(result.error || 'סיסמה שגויה');
+    if (result.ok) return;
+    if (result.totpRequired) {
+      // Password accepted; progressively reveal the 2FA code field.
+      setTotpRequired(true);
+      setError(totpRequired ? (result.error || 'קוד אימות שגוי') : '');
+      return;
+    }
+    setError(result.error || 'סיסמה שגויה');
   };
 
   return (
@@ -89,6 +99,32 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
           />
         </div>
 
+        {/* 2FA code — revealed only when the server requires it (ADMIN_TOTP_SECRET set) */}
+        {totpRequired && (
+          <div>
+            <label
+              htmlFor="admin-totp"
+              style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--admin-text-dim)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.4px' }}
+            >
+              קוד אימות דו-שלבי
+            </label>
+            <input
+              id="admin-totp"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder="000000"
+              maxLength={6}
+              value={totp}
+              onChange={e => { setTotp(e.target.value.replace(/\D/g, '')); setError(''); }}
+              className="admin-input"
+              dir="ltr"
+              // eslint-disable-next-line jsx-a11y/no-autofocus
+              autoFocus
+            />
+          </div>
+        )}
+
         {/* Error */}
         {error && (
           <div style={{
@@ -107,10 +143,10 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
         <button
           type="submit"
           className="admin-btn admin-btn--primary"
-          disabled={loading || !password}
+          disabled={loading || !password || (totpRequired && totp.length < 6)}
           style={{ width: '100%', justifyContent: 'center', padding: '11px 16px', fontSize: 14 }}
         >
-          {loading ? 'כניסה...' : 'כניסה למערכת'}
+          {loading ? 'כניסה...' : totpRequired ? 'אימות והתחברות' : 'כניסה למערכת'}
         </button>
       </form>
     </div>

@@ -2,11 +2,13 @@
  * Integration tests for POST /api/admin/login
  * @vitest-environment node
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 9, resetMs: 300000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 9, resetMs: 300000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
     auth: { maxRequests: 10, windowMs: 300000 },
@@ -35,7 +37,8 @@ vi.mock('@/lib/logger', () => ({
 }));
 
 import { POST } from '@/app/api/admin/login/route';
-import { checkRateLimit } from '@/lib/rate-limit';
+import { checkRateLimit, checkRateLimitAsync } from '@/lib/rate-limit';
+import { generateTotp } from '@/lib/totp';
 
 let LoginPOST: typeof POST;
 
@@ -54,12 +57,14 @@ beforeEach(async () => {
   const mod = await import('@/app/api/admin/login/route');
   LoginPOST = mod.POST;
   vi.mocked(checkRateLimit).mockReturnValue({ allowed: true, remaining: 9, resetMs: 300000 });
+  vi.mocked(checkRateLimitAsync).mockResolvedValue({ allowed: true, remaining: 9, resetMs: 300000 });
   process.env.ADMIN_PASSWORD = 'test-admin-password-secure';
 });
 
 describe('POST /api/admin/login', () => {
   it('returns 429 when rate limited', async () => {
     vi.mocked(checkRateLimit).mockReturnValue({ allowed: false, remaining: 0, resetMs: 5000 });
+    vi.mocked(checkRateLimitAsync).mockResolvedValue({ allowed: false, remaining: 0, resetMs: 5000 });
     const res = await LoginPOST(makeReq({ password: 'x' }));
     expect(res.status).toBe(429);
   });
@@ -112,5 +117,44 @@ describe('POST /api/admin/login', () => {
       const r = await LoginPOST(makeReq({ password: `wrong-again-${i}` }));
       expect(r.status).toBe(401); // 401 = wrong password, NOT 429 = locked out
     }
+  });
+
+  describe('opt-in TOTP 2FA (ADMIN_TOTP_SECRET set)', () => {
+    const SECRET = 'JBSWY3DPEHPK3PXP'; // valid base32 test secret
+
+    beforeEach(() => { process.env.ADMIN_TOTP_SECRET = SECRET; });
+    afterEach(() => { delete process.env.ADMIN_TOTP_SECRET; });
+
+    it('returns 401 + totpRequired when password is correct but code is missing', async () => {
+      const res = await LoginPOST(makeReq({ password: 'test-admin-password-secure' }));
+      expect(res.status).toBe(401);
+      const body = await res.json();
+      expect(body.totpRequired).toBe(true);
+    });
+
+    it('returns 401 for a wrong TOTP code', async () => {
+      const code = generateTotp(SECRET);
+      const wrong = code === '000000' ? '111111' : '000000';
+      const res = await LoginPOST(makeReq({ password: 'test-admin-password-secure', totp: wrong }));
+      expect(res.status).toBe(401);
+      const body = await res.json();
+      expect(body.totpRequired).toBeUndefined();
+    });
+
+    it('returns 200 + cookie for correct password AND correct TOTP code', async () => {
+      const code = generateTotp(SECRET);
+      const res = await LoginPOST(makeReq({ password: 'test-admin-password-secure', totp: code }));
+      expect(res.status).toBe(200);
+      expect(res.headers.get('Set-Cookie')).toContain('ws_admin');
+    });
+
+    it('rejects with 401 when the password is wrong, regardless of TOTP', async () => {
+      const code = generateTotp(SECRET);
+      const res = await LoginPOST(makeReq({ password: 'wrong', totp: code }));
+      expect(res.status).toBe(401);
+      const body = await res.json();
+      // Password is checked first; never reveals that the password stage passed.
+      expect(body.totpRequired).toBeUndefined();
+    });
   });
 });

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
-import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 
 /**
@@ -13,7 +13,7 @@ import { logger } from '@/lib/logger';
  */
 export async function GET(req: NextRequest) {
   const ip = getClientIp(req.headers);
-  const rl = checkRateLimit(`event-status:${ip}`, RATE_LIMITS.standard);
+  const rl = await checkRateLimitAsync(`event-status:${ip}`, RATE_LIMITS.standard);
   if (!rl.allowed) {
     return NextResponse.json({ status: 'rate_limited' }, { status: 429 });
   }

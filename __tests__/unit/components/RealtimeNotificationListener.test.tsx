@@ -42,6 +42,7 @@ vi.mock('@/lib/store', () => ({
         setInitialized: mockSetInitialized,
         addUnreadConvo: mockAddUnreadConvo,
         removeGridHighlightByType: vi.fn(),
+        setRealtimeStale: vi.fn(),
       }),
     },
   ),

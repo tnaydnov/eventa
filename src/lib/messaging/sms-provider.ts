@@ -12,11 +12,19 @@
  */
 import { SMS_PROVIDER_LIVE } from '@/lib/config';
 import { logger } from '@/lib/logger';
+import { withTimeout } from '@/lib/resilience';
 import { maskPhone } from './phone-utils';
 import type { SendSmsParams, SendSmsResult } from './types';
 
 /** TextMe Send-SMS endpoint (same for XML and JSON) */
 const API_URL = 'https://my.textme.co.il/api';
+
+/**
+ * Max time to wait for TextMe before giving up. Bounds a hung provider so it cannot
+ * consume the whole 15 s serverless budget; the caller treats a timeout as a normal
+ * send failure (and the pending-SMS retry backlog will pick it up later).
+ */
+const SMS_TIMEOUT_MS = 10_000;
 
 /**
  * TextMe error-code map (non-zero = failure).
@@ -103,14 +111,19 @@ export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
   });
 
   try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
-    });
+    const response = await withTimeout(
+      (signal) => fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+        signal,
+      }),
+      SMS_TIMEOUT_MS,
+      'textme-sms',
+    );
 
     const responseText = await response.text();
 

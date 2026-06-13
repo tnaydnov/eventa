@@ -30,9 +30,11 @@ vi.mock('@/lib/logger', () => ({
 import { POST } from '@/app/api/secure/heartbeat/route';
 import { secureGuard } from '@/lib/route-helpers';
 import { NextRequest, NextResponse } from 'next/server';
+import { createQueryMock } from '../../helpers/supabase-mock';
 
 describe('POST /api/secure/heartbeat', () => {
   const mockSession = { sub: 'p1', eid: 'e1', role: 'participant' };
+  let participantsBuilder: ReturnType<typeof createQueryMock>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -41,25 +43,16 @@ describe('POST /api/secure/heartbeat', () => {
     // Default: secureGuard passes
     (secureGuard as ReturnType<typeof vi.fn>).mockResolvedValue(mockSession);
 
-    // Default from() behavior
+    // Default from() behavior. The route selects via .maybeSingle() and fires a
+    // thenable .update().eq() chain, so use the shared builder. We expose the
+    // participants builder so a test can assert whether .update() was called.
+    participantsBuilder = createQueryMock({
+      data: { last_seen_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(), tab_visible: false },
+      error: null,
+    });
     mockFrom.mockImplementation((table: string) => {
-      if (table === 'participants') {
-        return {
-          select: () => ({
-            eq: () => ({
-              single: () => Promise.resolve({
-                data: { last_seen_at: new Date(Date.now() - 5 * 60 * 1000).toISOString() },
-                error: null,
-              }),
-            }),
-          }),
-          update: mockUpdate,
-        };
-      }
-      if (table === 'activity_log') {
-        return { insert: () => Promise.resolve({ error: null }) };
-      }
-      return {};
+      if (table === 'participants') return participantsBuilder;
+      return createQueryMock({ data: null, error: null });
     });
   });
 
@@ -75,32 +68,22 @@ describe('POST /api/secure/heartbeat', () => {
   });
 
   it('I-HRT-02: recent last_seen_at (within 2 min) → no update fired', async () => {
+    // Recent + tab_visible already false (matches no tabVisible in body) → no update.
+    participantsBuilder = createQueryMock({
+      data: { last_seen_at: new Date().toISOString(), tab_visible: false },
+      error: null,
+    });
     mockFrom.mockImplementation((table: string) => {
-      if (table === 'participants') {
-        return {
-          select: () => ({
-            eq: () => ({
-              single: () => Promise.resolve({
-                data: { last_seen_at: new Date().toISOString() }, // Just now
-                error: null,
-              }),
-            }),
-          }),
-          update: mockUpdate,
-        };
-      }
-      if (table === 'activity_log') {
-        return { insert: () => Promise.resolve({ error: null }) };
-      }
-      return {};
+      if (table === 'participants') return participantsBuilder;
+      return createQueryMock({ data: null, error: null });
     });
 
     const req = new NextRequest('http://localhost/api/secure/heartbeat', { method: 'POST' });
     const res = await POST(req);
 
     expect(res.status).toBe(200);
-    // update should NOT be called since participant is recent
-    expect(mockUpdate).not.toHaveBeenCalled();
+    // update should NOT be called since participant is recent and tab state unchanged
+    expect(participantsBuilder.update).not.toHaveBeenCalled();
   });
 
   it('I-HRT-03: no session → returns guard response', async () => {

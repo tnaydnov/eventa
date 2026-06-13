@@ -5,6 +5,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 
+// The photos route schedules post-response work via next/server `after()`, which
+// throws outside a real request context. Keep the real exports but no-op `after`.
+vi.mock('next/server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/server')>();
+  return { ...actual, after: (fn: () => unknown) => { void fn; } };
+});
+
 const mockFrom = vi.hoisted(() => vi.fn());
 const mockStorageRemove = vi.hoisted(() => vi.fn().mockResolvedValue({ error: null }));
 
@@ -17,6 +24,8 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 14, resetMs: 60000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 14, resetMs: 60000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
     standard: { maxRequests: 30, windowMs: 60000 },
@@ -60,8 +69,15 @@ vi.mock('@/lib/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
 }));
 
+// Photo upload runs synchronous AI moderation before insert; stub it so tests
+// never hit the network and default to "allowed".
+vi.mock('@/lib/moderation', () => ({
+  preModerationCheck: vi.fn().mockResolvedValue({ blocked: false }),
+  moderateProfilePhoto: vi.fn().mockResolvedValue({ verdict: 'allowed' }),
+}));
 import { POST, DELETE, PATCH } from '@/app/api/secure/photos/route';
 import { secureGuard, isSafePath } from '@/lib/route-helpers';
+import { createQueryMock } from '../../helpers/supabase-mock';
 import { isValidUUID } from '@/lib/session';
 
 beforeEach(() => {
@@ -75,27 +91,14 @@ beforeEach(() => {
 describe('POST /api/secure/photos', () => {
   it('creates photo record successfully', async () => {
     // Existing photo lookup
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
     // Photo count
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ count: 2 }),
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null, count: 2 }));
     // Insert
-    mockFrom.mockReturnValueOnce({
-      insert: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { id: 'photo1', storage_path: 'e1/p1/1.jpg', order_index: 0 },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { id: 'photo1', storage_path: 'e1/p1/1.jpg', order_index: 0 },
+      error: null,
+    }));
 
     const req = new NextRequest('http://localhost/api/secure/photos', {
       method: 'POST',

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
 import { checkCsrf } from '@/lib/session';
-import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { OTP_MAX_PER_PHONE_PER_HOUR, OTP_GLOBAL_MAX_PER_DAY } from '@/lib/config';
 import { sendOtpSchema } from '@/lib/validations';
 import { jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
   }
 
   const ip = getClientIp(req.headers);
-  const rl = checkRateLimit(`send-otp:${ip}`, RATE_LIMITS.auth);
+  const rl = await checkRateLimitAsync(`send-otp:${ip}`, RATE_LIMITS.auth);
   if (!rl.allowed) {
     const res = NextResponse.json({ error: 'Too many requests' }, { status: 429 });
     res.headers.set('Retry-After', String(Math.ceil(rl.resetMs / 1000)));
@@ -49,6 +50,31 @@ export async function POST(req: NextRequest) {
     const phone = normalizePhone(parsed.data.phone);
     if (!phone || !isValidIsraeliMobile(phone)) {
       return jsonError('Invalid phone number', 400);
+    }
+
+    // ── Toll-fraud guards (SMS pumping) ──────────────────────────────
+    // These hold cross-instance when Upstash is configured; otherwise per-instance.
+    // 1) Per-phone hourly cap — a legitimate user never needs this many codes.
+    const phoneRl = await checkRateLimitAsync(`send-otp-phone:${phone}`, {
+      maxRequests: OTP_MAX_PER_PHONE_PER_HOUR,
+      windowMs: 60 * 60_000,
+    });
+    if (!phoneRl.allowed) {
+      logger.warn('[SEND_OTP] per-phone cap hit', { phone: maskPhone(phone) });
+      const res = NextResponse.json({ error: 'Too many requests for this number' }, { status: 429 });
+      res.headers.set('Retry-After', String(Math.ceil(phoneRl.resetMs / 1000)));
+      return res;
+    }
+    // 2) Optional global daily backstop across ALL phones (bounds attack blast radius).
+    if (OTP_GLOBAL_MAX_PER_DAY > 0) {
+      const globalRl = await checkRateLimitAsync('send-otp-global', {
+        maxRequests: OTP_GLOBAL_MAX_PER_DAY,
+        windowMs: 24 * 60 * 60_000,
+      });
+      if (!globalRl.allowed) {
+        logger.error('[SEND_OTP] GLOBAL daily OTP cap hit — possible SMS pumping attack');
+        return jsonError('Service temporarily unavailable', 503);
+      }
     }
 
     const supabase = getServiceClient();

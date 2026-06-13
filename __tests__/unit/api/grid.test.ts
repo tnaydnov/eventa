@@ -15,16 +15,12 @@ vi.mock('@/lib/api/helpers', () => ({
 
 import { getGridParticipants } from '@/lib/api/grid';
 import { getBlockedIds } from '@/lib/api/helpers';
+import { createQueryMock } from '../../helpers/supabase-mock';
 
 function makeChain(data: unknown, error: unknown = null) {
-  return {
-    select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    neq: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockResolvedValue({ data, error }),
-    maybeSingle: vi.fn().mockResolvedValue({ data, error }),
-  };
+  // Delegates to the shared chainable builder so every PostgREST method
+  // (incl. .is() used by the soft-delete filter) is supported.
+  return createQueryMock({ data, error });
 }
 
 beforeEach(() => {
@@ -50,11 +46,7 @@ describe('getGridParticipants', () => {
 
   it('returns empty on myProfile query error', async () => {
     mockFrom
-      .mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: { message: 'err' } }),
-      })
+      .mockReturnValueOnce(createQueryMock({ data: null, error: { message: 'err' } }))
       .mockReturnValueOnce(makeChain([]));
 
     const result = await getGridParticipants('e1', 'me');
@@ -65,27 +57,17 @@ describe('getGridParticipants', () => {
     vi.mocked(getBlockedIds).mockResolvedValue(new Set(['p2']));
 
     mockFrom
-      .mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({
-          data: { gender: 'male', attracted_to: 'women' },
-          error: null,
-        }),
-      })
-      .mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        neq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue({
-          data: [
-            { id: 'p2', display_name: 'Blocked', gender: 'female', attracted_to: 'men', age: 25, participant_photos: [] },
-            { id: 'p3', display_name: 'Visible', gender: 'female', attracted_to: 'men', age: 25, participant_photos: [] },
-          ],
-          error: null,
-        }),
-      });
+      .mockReturnValueOnce(createQueryMock({
+        data: { gender: 'male', attracted_to: 'women' },
+        error: null,
+      }))
+      .mockReturnValueOnce(createQueryMock({
+        data: [
+          { id: 'p2', display_name: 'Blocked', gender: 'female', attracted_to: 'men', age: 25, participant_photos: [] },
+          { id: 'p3', display_name: 'Visible', gender: 'female', attracted_to: 'men', age: 25, participant_photos: [] },
+        ],
+        error: null,
+      }));
 
     const result = await getGridParticipants('e1', 'me');
     expect(result).toHaveLength(1);
@@ -94,28 +76,18 @@ describe('getGridParticipants', () => {
 
   it('filters by cross-attraction (male→women only sees women→men)', async () => {
     mockFrom
-      .mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({
-          data: { gender: 'male', attracted_to: 'women' },
-          error: null,
-        }),
-      })
-      .mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        neq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue({
-          data: [
-            { id: 'p1', display_name: 'F1', gender: 'female', attracted_to: 'men', age: 22, participant_photos: [] },
-            { id: 'p2', display_name: 'F2', gender: 'female', attracted_to: 'women', age: 22, participant_photos: [] },
-            { id: 'p3', display_name: 'M1', gender: 'male', attracted_to: 'men', age: 22, participant_photos: [] },
-          ],
-          error: null,
-        }),
-      });
+      .mockReturnValueOnce(createQueryMock({
+        data: { gender: 'male', attracted_to: 'women' },
+        error: null,
+      }))
+      .mockReturnValueOnce(createQueryMock({
+        data: [
+          { id: 'p1', display_name: 'F1', gender: 'female', attracted_to: 'men', age: 22, participant_photos: [] },
+          { id: 'p2', display_name: 'F2', gender: 'female', attracted_to: 'women', age: 22, participant_photos: [] },
+          { id: 'p3', display_name: 'M1', gender: 'male', attracted_to: 'men', age: 22, participant_photos: [] },
+        ],
+        error: null,
+      }));
 
     const result = await getGridParticipants('e1', 'me');
     // F1 is female attracted_to men → cross-match ✓
@@ -127,27 +99,17 @@ describe('getGridParticipants', () => {
 
   it('attracted_to "all" matches anyone', async () => {
     mockFrom
-      .mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({
-          data: { gender: 'female', attracted_to: 'all' },
-          error: null,
-        }),
-      })
-      .mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        neq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue({
-          data: [
-            { id: 'p1', display_name: 'M', gender: 'male', attracted_to: 'all', age: 25, participant_photos: [] },
-            { id: 'p2', display_name: 'F', gender: 'female', attracted_to: 'all', age: 25, participant_photos: [] },
-          ],
-          error: null,
-        }),
-      });
+      .mockReturnValueOnce(createQueryMock({
+        data: { gender: 'female', attracted_to: 'all' },
+        error: null,
+      }))
+      .mockReturnValueOnce(createQueryMock({
+        data: [
+          { id: 'p1', display_name: 'M', gender: 'male', attracted_to: 'all', age: 25, participant_photos: [] },
+          { id: 'p2', display_name: 'F', gender: 'female', attracted_to: 'all', age: 25, participant_photos: [] },
+        ],
+        error: null,
+      }));
 
     const result = await getGridParticipants('e1', 'me');
     expect(result).toHaveLength(2);
@@ -155,28 +117,18 @@ describe('getGridParticipants', () => {
 
   it('filters out participants with empty name or no age', async () => {
     mockFrom
-      .mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({
-          data: { gender: 'male', attracted_to: 'all' },
-          error: null,
-        }),
-      })
-      .mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        neq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue({
-          data: [
-            { id: 'p1', display_name: '', gender: 'male', attracted_to: 'all', age: 25, participant_photos: [] },
-            { id: 'p2', display_name: 'Good', gender: 'female', attracted_to: 'all', age: null, participant_photos: [] },
-            { id: 'p3', display_name: 'OK', gender: 'female', attracted_to: 'all', age: 30, participant_photos: [] },
-          ],
-          error: null,
-        }),
-      });
+      .mockReturnValueOnce(createQueryMock({
+        data: { gender: 'male', attracted_to: 'all' },
+        error: null,
+      }))
+      .mockReturnValueOnce(createQueryMock({
+        data: [
+          { id: 'p1', display_name: '', gender: 'male', attracted_to: 'all', age: 25, participant_photos: [] },
+          { id: 'p2', display_name: 'Good', gender: 'female', attracted_to: 'all', age: null, participant_photos: [] },
+          { id: 'p3', display_name: 'OK', gender: 'female', attracted_to: 'all', age: 30, participant_photos: [] },
+        ],
+        error: null,
+      }));
 
     const result = await getGridParticipants('e1', 'me');
     expect(result).toHaveLength(1);
@@ -185,31 +137,21 @@ describe('getGridParticipants', () => {
 
   it('maps participant_photos to photos field', async () => {
     mockFrom
-      .mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({
-          data: { gender: 'female', attracted_to: 'all' },
-          error: null,
-        }),
-      })
-      .mockReturnValueOnce({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        neq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue({
-          data: [{
-            id: 'p1',
-            display_name: 'Test',
-            gender: 'male',
-            attracted_to: 'all',
-            age: 25,
-            participant_photos: [{ id: 'ph1', storage_path: 'a.jpg' }],
-          }],
-          error: null,
-        }),
-      });
+      .mockReturnValueOnce(createQueryMock({
+        data: { gender: 'female', attracted_to: 'all' },
+        error: null,
+      }))
+      .mockReturnValueOnce(createQueryMock({
+        data: [{
+          id: 'p1',
+          display_name: 'Test',
+          gender: 'male',
+          attracted_to: 'all',
+          age: 25,
+          participant_photos: [{ id: 'ph1', storage_path: 'a.jpg' }],
+        }],
+        error: null,
+      }));
 
     const result = await getGridParticipants('e1', 'me');
     expect(result[0].photos).toEqual([{ id: 'ph1', storage_path: 'a.jpg' }]);

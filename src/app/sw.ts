@@ -58,7 +58,9 @@ const runtimeCaching = [
     handler: new StaleWhileRevalidate({
       cacheName: 'secure-reads-v1',
       plugins: [
-        new ExpirationPlugin({ maxAgeSeconds: 30, maxEntries: 60 }),
+        // purgeOnQuotaError: if the device hits its storage limit, drop this cache
+        // rather than letting the write fail (graceful behaviour on low-end phones).
+        new ExpirationPlugin({ maxAgeSeconds: 30, maxEntries: 60, purgeOnQuotaError: true }),
       ],
     }),
   },
@@ -72,7 +74,7 @@ const runtimeCaching = [
     handler: new StaleWhileRevalidate({
       cacheName: 'secure-messages-v1',
       plugins: [
-        new ExpirationPlugin({ maxAgeSeconds: 10, maxEntries: 120 }),
+        new ExpirationPlugin({ maxAgeSeconds: 10, maxEntries: 120, purgeOnQuotaError: true }),
       ],
     }),
   },
@@ -92,7 +94,9 @@ const runtimeCaching = [
     handler: new CacheFirst({
       cacheName: 'supabase-photos-v1',
       plugins: [
-        new ExpirationPlugin({ maxAgeSeconds: 7 * 24 * 60 * 60, maxEntries: 200 }),
+        // Bounded to 200 objects / 7 days; purge the cache on quota errors so a
+        // storage-constrained device degrades gracefully instead of failing writes.
+        new ExpirationPlugin({ maxAgeSeconds: 7 * 24 * 60 * 60, maxEntries: 200, purgeOnQuotaError: true }),
       ],
     }),
   },

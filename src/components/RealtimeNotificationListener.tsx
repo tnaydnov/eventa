@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useRealtimeHub } from '@/hooks/useRealtimeHub';
 import { useAppResume } from '@/hooks/useAppResume';
 import { useSessionStore, useNotificationStore, useToastStore, useMatchStore } from '@/lib/store';
-import { getUnseenLikes, getUnreadConversations, getPhotoUrl } from '@/lib/api';
+import { getUnseenLikes, getUnreadConversations, getPhotoUrl, getNotificationDeltas } from '@/lib/api';
 import { isSubscribed } from '@/lib/realtimeHub';
 import type { Like, Message } from '@/lib/database.types';
 
@@ -20,6 +20,22 @@ const POLL_INTERVAL_BURST_MS = 5_000;
 const POLL_BURST_DURATION_MS = 3 * 60_000;
 /** How long to wait before showing the stale-connection indicator (ms). */
 const STALE_THRESHOLD_MS = 60_000;
+
+/**
+ * Fractional jitter applied to every poll interval (±20%).
+ * At a crowded venue hundreds of clients can drop to polling at once; without
+ * jitter they would all query Postgres on the same cadence, creating synchronized
+ * load spikes ("thundering herd"). Randomising each interval spreads that load.
+ */
+const POLL_JITTER_PCT = 0.2;
+/** Max random delay (ms) before the immediate catch-up poll on resume/reconnect,
+ * so a venue-wide reconnect doesn't fire every client's poll in the same instant. */
+const CATCHUP_SPREAD_MS = 800;
+
+/** Return `base` ms scaled by ±POLL_JITTER_PCT. */
+function jitter(base: number): number {
+  return Math.round(base * (1 + (Math.random() * 2 - 1) * POLL_JITTER_PCT));
+}
 
 type DeliverySource = 'ws' | 'poll';
 
@@ -309,83 +325,110 @@ export default function RealtimeNotificationListener() {
   pollRef.current = async () => {
     const s = sessionRef.current;
     if (!s) return;
-    const now = new Date().toISOString();
+    // Capture the cursor once for this poll. We advance it to the SERVER's clock
+    // (returned by the endpoint), never the device clock — a phone with a skewed
+    // clock would otherwise permanently miss or re-deliver events.
+    const cursor = lastPollTsRef.current;
 
     try {
       // Prune old dedup entries to prevent unbounded memory growth
       pruneSeenIds();
 
-      // Fire independent queries in parallel
-      const [{ data: newLikes }, freshConvoIds] = await Promise.all([
-        supabase
-          .from('likes').select('id, from_participant_id')
-          .eq('event_id', s.eventId).eq('to_participant_id', s.participantId)
-          .gt('created_at', lastPollTsRef.current).order('created_at', { ascending: true }),
-        refreshMyConvoIds(),
-      ]);
+      // Single consolidated delta fetch (one round trip; queries run server-side,
+      // connection-pooled). Replaces the previous ~4 direct Supabase queries per poll
+      // — see GET /api/secure/since (§23.4/R6). `seenIds` dedup in handleLike/handleMessage
+      // makes any cursor-boundary overlap harmless.
+      const deltas = await getNotificationDeltas(cursor);
+      if (!deltas) return; // fetch failed — keep the cursor and retry on the next tick
 
-      if (newLikes) for (const like of newLikes) handleLike(like.id, like.from_participant_id, 'poll');
+      // Refresh my conversation-membership cache from the server's authoritative list
+      // (used by realtime INSERT filtering in isMyConversation).
+      myConvoIdsRef.current = new Set(deltas.myConversationIds);
 
-      const myConvoIds = [...freshConvoIds];
+      for (const like of deltas.likes) {
+        handleLike(like.id, like.from_participant_id, 'poll');
+      }
 
-      // Messages + reconciliation in parallel
-      const [msgResult, reconcileResult] = await Promise.all([
-        myConvoIds.length > 0
-          ? supabase
-              .from('messages').select('id, sender_participant_id, conversation_id, text, type')
-              .eq('event_id', s.eventId).neq('sender_participant_id', s.participantId)
-              .in('conversation_id', myConvoIds)
-              .gt('created_at', lastPollTsRef.current).order('created_at', { ascending: true })
-          : Promise.resolve({ data: null }),
-        // Reconcile: remove stale like highlights
-        (async () => {
-          const store = useNotificationStore.getState();
-          const likeHighlights = store.gridHighlights.filter((h) => h.type === 'like');
-          if (likeHighlights.length === 0) return;
-          const { data: currentLikes } = await supabase
-            .from('likes')
-            .select('from_participant_id')
-            .eq('event_id', s.eventId)
-            .eq('to_participant_id', s.participantId)
-            .is('seen_at', null);
-          const activeLikerIds = new Set((currentLikes || []).map((l) => l.from_participant_id));
-          for (const h of likeHighlights) {
-            if (!activeLikerIds.has(h.participantId)) {
-              useNotificationStore.getState().removeGridHighlightByType(h.participantId, 'like');
-              useNotificationStore.getState().decrementLikes();
-            }
+      for (const msg of deltas.messages) {
+        handleMessage(msg.id, msg.sender_participant_id, msg.conversation_id, msg.text, msg.type, 'poll');
+      }
+
+      // Reconcile: drop stale "like" highlights for likes that are no longer unseen.
+      // Skip entirely when the server couldn't compute the unseen set (null) so we
+      // never wrongly clear a highlight.
+      if (deltas.unseenLikeSenders !== null) {
+        const activeLikerIds = new Set(deltas.unseenLikeSenders);
+        const likeHighlights = useNotificationStore.getState().gridHighlights.filter((h) => h.type === 'like');
+        for (const h of likeHighlights) {
+          if (!activeLikerIds.has(h.participantId)) {
+            useNotificationStore.getState().removeGridHighlightByType(h.participantId, 'like');
+            useNotificationStore.getState().decrementLikes();
           }
-        })(),
-      ]);
-
-      if (msgResult?.data) {
-        for (const msg of msgResult.data) {
-          handleMessage(msg.id, msg.sender_participant_id, msg.conversation_id, msg.text, msg.type, 'poll');
         }
       }
 
-      lastPollTsRef.current = now;
+      // Advance to the server's clock. If the fetch returned nothing new, this simply
+      // moves the window forward to "now" so the next poll covers only newer rows.
+      lastPollTsRef.current = deltas.serverNow;
     } catch (err) {
       console.error('[RealtimeNotificationListener] poll error:', err);
-      // Don't update lastPollTsRef so the next poll retries from the same timestamp
+      // Don't update lastPollTsRef so the next poll retries from the same cursor
     }
   };
 
   useEffect(() => {
     if (!session) return;
-    lastPollTsRef.current = new Date().toISOString();
+    // Seed the poll cursor from the SERVER's own row timestamps, not the device
+    // clock — a skewed phone clock could otherwise miss or re-deliver events.
+    // We set a synchronous client-time baseline first (so polling can start
+    // immediately) and replace it with the newest existing server row timestamp
+    // when the seed query returns — but only if no poll has advanced it meanwhile.
+    const baseline = new Date().toISOString();
+    lastPollTsRef.current = baseline;
+    void (async () => {
+      const s = sessionRef.current;
+      if (!s) return;
+      try {
+        const [{ data: lk }, { data: mg }] = await Promise.all([
+          supabase.from('likes').select('created_at')
+            .eq('event_id', s.eventId).eq('to_participant_id', s.participantId)
+            .order('created_at', { ascending: false }).limit(1),
+          supabase.from('messages').select('created_at')
+            .eq('event_id', s.eventId)
+            .order('created_at', { ascending: false }).limit(1),
+        ]);
+        const candidates = [lk?.[0]?.created_at, mg?.[0]?.created_at].filter(Boolean) as string[];
+        if (candidates.length && lastPollTsRef.current === baseline) {
+          candidates.sort();
+          lastPollTsRef.current = candidates[candidates.length - 1];
+        }
+      } catch {
+        /* keep the client-clock baseline on error */
+      }
+    })();
 
-    // Poll every 8s when visible, 15s when hidden (realtime handles most updates; this is a safety net).
-    let interval: ReturnType<typeof setInterval> | null = null;
+    // Self-rescheduling, jittered poll loop (setTimeout, not setInterval): each
+    // client polls on a slightly different cadence so a venue-wide drop to polling
+    // doesn't create synchronized DB load spikes. Realtime handles most updates;
+    // this is the safety net.
+    let pollTimer: ReturnType<typeof setTimeout> | null = null;
+    let stopped = false;
 
     const startPolling = (visible: boolean) => {
-      if (interval) clearInterval(interval);
-      const now = Date.now();
-      const inBurst = visible && burstUntilRef.current > now;
-      const period = inBurst
-        ? POLL_INTERVAL_BURST_MS
-        : (visible ? POLL_INTERVAL_VISIBLE_MS : POLL_INTERVAL_HIDDEN_MS);
-      interval = setInterval(() => pollRef.current?.(), period);
+      if (pollTimer) { clearTimeout(pollTimer); pollTimer = null; }
+      const schedule = () => {
+        if (stopped) return;
+        const now = Date.now();
+        const inBurst = visible && burstUntilRef.current > now;
+        const base = inBurst
+          ? POLL_INTERVAL_BURST_MS
+          : (visible ? POLL_INTERVAL_VISIBLE_MS : POLL_INTERVAL_HIDDEN_MS);
+        pollTimer = setTimeout(async () => {
+          await pollRef.current?.();
+          schedule(); // reschedule with fresh jitter each tick
+        }, jitter(base));
+      };
+      schedule();
     };
     restartPollingRef.current = startPolling;
 
@@ -412,7 +455,8 @@ export default function RealtimeNotificationListener() {
     window.addEventListener('pageshow', handlePageShow);
 
     return () => {
-      if (interval) clearInterval(interval);
+      stopped = true;
+      if (pollTimer) clearTimeout(pollTimer);
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('pagehide', handlePageHide);
       window.removeEventListener('pageshow', handlePageShow);
@@ -447,7 +491,10 @@ export default function RealtimeNotificationListener() {
           burstUntilRef.current = Date.now() + POLL_BURST_DURATION_MS;
           if (document.visibilityState === 'visible') {
             restartPollingRef.current?.(true);
-            pollRef.current?.();
+            // Stale detection fires across many clients at once when a venue tower
+            // drops; spread the immediate catch-up poll over a short random window
+            // so they don't all hit Postgres in the same instant.
+            setTimeout(() => pollRef.current?.(), Math.random() * CATCHUP_SPREAD_MS);
           }
         }
       } else {

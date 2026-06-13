@@ -3,11 +3,10 @@
  * Eliminates repeated auth/rate-limit/UUID-validation boilerplate.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
 import { verifyAdminFromRequest } from '@/lib/admin-auth';
 import { isValidUUID, checkCsrf } from '@/lib/session';
 import { checkRateLimit, getClientIp, type RateLimitConfig } from '@/lib/rate-limit';
-import { jsonError } from '@/lib/route-helpers';
+import { jsonError, verifyCronAuth } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 
 export { jsonError };
@@ -17,15 +16,10 @@ const ADMIN_MAX_BODY_BYTES = 512 * 1024;
 
 /**
  * Verify CRON_SECRET from Authorization header (for Vercel Cron).
+ * Delegates to the shared, timing-safe implementation in route-helpers.
  */
 function hasCronAuth(req: NextRequest): boolean {
-  const authHeader = req.headers.get('authorization') || '';
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) return false;
-  const expected = `Bearer ${cronSecret}`;
-  const authHash = crypto.createHash('sha256').update(authHeader).digest();
-  const expectedHash = crypto.createHash('sha256').update(expected).digest();
-  return crypto.timingSafeEqual(authHash, expectedHash);
+  return verifyCronAuth(req);
 }
 
 /**

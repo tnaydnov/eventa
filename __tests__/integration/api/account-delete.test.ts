@@ -43,6 +43,8 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 4, resetMs: 60000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 4, resetMs: 60000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
     strict: { maxRequests: 5, windowMs: 60000 },
@@ -115,24 +117,15 @@ describe('POST /api/account/delete', () => {
   });
 
   it('completes cascade delete successfully', async () => {
-    // Call 0: pre-check participant exists
+    // Call 0: pre-check participant exists (route uses .maybeSingle())
     fromCallOverrides[0] = makeChain({
-      single: vi.fn().mockResolvedValue({ data: { id: 'p1' }, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'p1' }, error: null }),
     });
-    // Call 1: fetch photos → empty (no photos to delete from storage)
-    // Call 2: delete photo records
-    // Call 3: select conversations → empty
-    // Calls 4-7 (Promise.all): likes, blocks, notifications, activity_log
-    // Call 8: get device fingerprints
-    fromCallOverrides[8] = makeChain({
-      single: vi.fn().mockResolvedValue({
-        data: { device_fingerprint: 'fp1', hardware_fingerprint: null },
-        error: null,
-      }),
+    // Call 4: selfParticipant fingerprint lookup → none (skip banned_devices)
+    fromCallOverrides[4] = makeChain({
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
     });
-    // Call 9: delete banned device for fp1
-    // Call 10: final participant delete → success
-
+    // Final call: participants soft-delete update → success (default chain)
     const res = await POST(makeReq());
     expect(res.status).toBe(200);
   });
@@ -140,17 +133,16 @@ describe('POST /api/account/delete', () => {
   it('returns 500 when final participant delete fails', async () => {
     // Call 0: pre-check - participant exists
     fromCallOverrides[0] = makeChain({
-      single: vi.fn().mockResolvedValue({ data: { id: 'p1' }, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'p1' }, error: null }),
     });
-    // Calls 1-7: default success chains
-    // Call 8: get device fingerprints → no fingerprints (skip banned_devices)
-    fromCallOverrides[8] = makeChain({
-      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+    // Call 4: no fingerprints → skip banned_devices
+    fromCallOverrides[4] = makeChain({
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
     });
-    // Call 9: final participant delete → FAILS
+    // Call 5: participants soft-delete update → FAILS
     const failChain = makeChain();
     failChain.then = (resolve: Function) => resolve({ data: null, error: { message: 'delete failed' } });
-    fromCallOverrides[9] = failChain;
+    fromCallOverrides[5] = failChain;
 
     const res = await POST(makeReq());
     expect(res.status).toBe(500);
@@ -158,7 +150,7 @@ describe('POST /api/account/delete', () => {
 
   it('I-DEL-02: deletes photos from storage', async () => {
     fromCallOverrides[0] = makeChain({
-      single: vi.fn().mockResolvedValue({ data: { id: 'p1' }, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'p1' }, error: null }),
     });
     // Call 1: fetch photos → has photo paths
     const photosChain = makeChain();
@@ -167,8 +159,9 @@ describe('POST /api/account/delete', () => {
       error: null,
     });
     fromCallOverrides[1] = photosChain;
-    fromCallOverrides[8] = makeChain({
-      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+    // Call 4: no fingerprints
+    fromCallOverrides[4] = makeChain({
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
     });
 
     const res = await POST(makeReq());
@@ -180,10 +173,10 @@ describe('POST /api/account/delete', () => {
 
   it('I-DEL-11: clears session cookie in response', async () => {
     fromCallOverrides[0] = makeChain({
-      single: vi.fn().mockResolvedValue({ data: { id: 'p1' }, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'p1' }, error: null }),
     });
-    fromCallOverrides[8] = makeChain({
-      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+    fromCallOverrides[4] = makeChain({
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
     });
 
     const res = await POST(makeReq());
@@ -194,11 +187,11 @@ describe('POST /api/account/delete', () => {
 
   it('I-DEL-08: cleans up banned_devices entries', async () => {
     fromCallOverrides[0] = makeChain({
-      single: vi.fn().mockResolvedValue({ data: { id: 'p1' }, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'p1' }, error: null }),
     });
-    // Call 8: device fingerprints found
-    fromCallOverrides[8] = makeChain({
-      single: vi.fn().mockResolvedValue({
+    // Call 4: device fingerprints found
+    fromCallOverrides[4] = makeChain({
+      maybeSingle: vi.fn().mockResolvedValue({
         data: { device_fingerprint: 'fp1', hardware_fingerprint: 'hw1' },
         error: null,
       }),

@@ -31,6 +31,7 @@ export {
   getUnreadConversations,
 } from './conversations';
 export { blockParticipant } from './blocks';
+export { getBlockedIds } from './helpers';
 export {
   getMatches,
 } from './matches';
@@ -50,3 +51,5 @@ export type {
 } from './guest-portal';
 export { fetchWithRetry } from './fetch-retry';
 export type { FetchRetryOptions } from './fetch-retry';
+export { getNotificationDeltas } from './deltas';
+export type { NotificationDeltas, DeltaLike, DeltaMessage } from './deltas';

@@ -2,9 +2,10 @@
  * Shared helpers for API route handlers.
  * Eliminates repeated guard boilerplate across secure routes.
  */
+import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest, checkCsrf, type SessionPayload } from '@/lib/session';
-import { checkRateLimit, getClientIp, type RateLimitConfig } from '@/lib/rate-limit';
+import { checkRateLimitAsync, getClientIp, type RateLimitConfig } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
 import {
@@ -23,6 +24,26 @@ const UPLOAD_MAX_BODY_BYTES = 1024;
 /** Shorthand for JSON error response. */
 export function jsonError(error: string, status: number): NextResponse {
   return NextResponse.json({ error }, { status });
+}
+
+/**
+ * Verify a Vercel Cron / internal caller via the `Authorization: Bearer <CRON_SECRET>`
+ * header using a timing-safe comparison.
+ *
+ * Centralised here so every caller (admin guard, cron jobs, payment webhook manual
+ * trigger) shares one implementation. Returns `false` when `CRON_SECRET` is unset
+ * (fail-closed) so a missing secret never silently authorises a request.
+ */
+export function verifyCronAuth(req: Request): boolean {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) return false;
+  const authHeader = req.headers.get('authorization') || '';
+  const expected = `Bearer ${cronSecret}`;
+  // Hash both sides to a fixed 32-byte digest before comparing so the length
+  // of the supplied header can never leak via the timing-safe length check.
+  const authHash = crypto.createHash('sha256').update(authHeader).digest();
+  const expectedHash = crypto.createHash('sha256').update(expected).digest();
+  return crypto.timingSafeEqual(authHash, expectedHash);
 }
 
 /**
@@ -48,45 +69,110 @@ function boundedSet<V>(map: Map<string, V>, key: string, value: V): void {
   }
 }
 
-/* ── Ban-check cache ─────────────────────────────────────────
- * Checking `is_banned` on every API call adds 50-200 ms. Since bans
- * change rarely, cache the "not-banned" result for 5 minutes.
+/* ── Guard-state cache (ban + session epoch) ─────────────────
+ * Checking `is_banned` on every API call adds 50-200 ms. Since bans and
+ * session-epoch bumps change rarely, cache the result for 5 minutes.
  * When a participant IS banned the cache is very short-lived (10 s)
  * so the ban takes effect quickly even if a stale entry was cached.
+ *
+ * `epoch` is the participant's current `session_epoch` (revocation counter,
+ * migration 039). `null` means "unknown" — participant deleted, the column is
+ * not present yet (deploy/migration skew), or the DB was unreachable — in which
+ * case epoch-based revocation is skipped (never fail-closed on epoch alone).
  */
-const _banCache = new Map<string, { banned: boolean; ts: number }>();
+interface GuardState { banned: boolean; epoch: number | null }
+const _banCache = new Map<string, { banned: boolean; epoch: number | null; ts: number }>();
 
-async function isBanned(participantId: string): Promise<boolean> {
+async function getGuardState(participantId: string): Promise<GuardState> {
   const cached = _banCache.get(participantId);
   if (cached) {
     const ttl = cached.banned ? BAN_CACHE_TTL_BANNED_MS : BAN_CACHE_TTL_MS;
-    if (Date.now() - cached.ts < ttl) return cached.banned;
+    if (Date.now() - cached.ts < ttl) return { banned: cached.banned, epoch: cached.epoch };
   }
   const sb = getServiceClient();
-  const { data, error } = await sb
+  let { data, error } = await sb
     .from('participants')
-    .select('is_banned')
+    .select('is_banned, session_epoch')
     .eq('id', participantId)
     .maybeSingle();
 
+  // Deploy/migration skew: if `session_epoch` doesn't exist yet the select errors.
+  // Retry with the always-present `is_banned` column so a missing column can never
+  // turn into a fail-closed ban (which would lock everyone out).
   if (error) {
-    logger.error('Ban check DB error - failing closed (treating as banned)', {
-      participantId, error: error.message,
-    });
-    return true; // fail closed: deny access when DB is unreachable
+    const fb = await sb
+      .from('participants')
+      .select('is_banned')
+      .eq('id', participantId)
+      .maybeSingle();
+    if (fb.error) {
+      logger.error('Ban check DB error - failing closed (treating as banned)', {
+        participantId, error: fb.error.message,
+      });
+      return { banned: true, epoch: null }; // fail closed: deny access when DB is unreachable
+    }
+    data = fb.data as typeof data;
+    error = null;
   }
 
   // Participant deleted (self-deletion) - not banned, session is stale
-  if (!data) return false;
+  if (!data) return { banned: false, epoch: null };
 
   const banned = !!data.is_banned;
-  boundedSet(_banCache, participantId, { banned, ts: Date.now() });
-  return banned;
+  const rawEpoch = (data as { session_epoch?: number }).session_epoch;
+  const epoch = typeof rawEpoch === 'number' ? rawEpoch : null;
+  boundedSet(_banCache, participantId, { banned, epoch, ts: Date.now() });
+  return { banned, epoch };
 }
 
 /** Immediately mark a participant as banned in the cache (called from admin routes). */
 export function evictBanCache(participantId: string): void {
-  _banCache.set(participantId, { banned: true, ts: Date.now() });
+  _banCache.set(participantId, { banned: true, epoch: null, ts: Date.now() });
+}
+
+/**
+ * Read a participant's current session epoch, for embedding in a freshly signed
+ * token (the `sep` claim). Defaults to `1` when the row/column is absent so both
+ * brand-new participants and pre-migration rows get a valid baseline.
+ */
+export async function getSessionEpoch(participantId: string): Promise<number> {
+  try {
+    const sb = getServiceClient();
+    const { data, error } = await sb
+      .from('participants')
+      .select('session_epoch')
+      .eq('id', participantId)
+      .maybeSingle();
+    if (error) return 1; // column missing (migration skew) or transient error → safe baseline
+    const epoch = (data as { session_epoch?: number } | null)?.session_epoch;
+    return typeof epoch === 'number' && epoch > 0 ? epoch : 1;
+  } catch {
+    return 1;
+  }
+}
+
+/**
+ * Revoke every existing session for a participant by atomically incrementing
+ * their session epoch (migration 039). Any JWT signed with an older `sep` fails
+ * the secureGuard epoch check. Used for post-ban / logout-everywhere.
+ *
+ * Fully guarded and non-throwing: a failure here must never break the calling
+ * admin action (the action's own effect — e.g. the ban — still stands).
+ */
+export async function bumpSessionEpoch(participantId: string): Promise<void> {
+  try {
+    const sb = getServiceClient();
+    const { error } = await sb.rpc('increment_session_epoch', { p_participant_id: participantId });
+    if (error) {
+      logger.warn('Session epoch bump failed', { participantId, error: error.message });
+      return;
+    }
+    _banCache.delete(participantId); // force a fresh epoch read on the next guard check (this instance)
+  } catch (err) {
+    logger.warn('Session epoch bump threw', {
+      participantId, error: err instanceof Error ? err.message : String(err),
+    });
+  }
 }
 
 /* ── Event-status cache ──────────────────────────────────────
@@ -151,6 +237,19 @@ export async function secureGuard(
     return jsonError('Payload too large', 413);
   }
 
+  // Content-Type guard: any mutating request carrying a body must be JSON.
+  // Rejects form-encoded / multipart payloads that could be used for CSRF-style
+  // content confusion. (File uploads go straight to Supabase Storage via signed
+  // URLs and never pass through this guard, so requiring JSON here is safe.)
+  const method = req.method.toUpperCase();
+  if (method !== 'GET' && method !== 'HEAD' && contentLength && parseInt(contentLength, 10) > 0) {
+    const ctype = (req.headers.get('content-type') || '').toLowerCase();
+    if (!ctype.includes('application/json')) {
+      logger.warn('Unsupported Content-Type', { requestId, route: rateLimitKey, ctype });
+      return jsonError('Unsupported Media Type', 415);
+    }
+  }
+
   if (!checkCsrf(req)) {
     logger.warn('CSRF check failed', { requestId, route: rateLimitKey });
     return jsonError('Forbidden', 403);
@@ -160,7 +259,7 @@ export async function secureGuard(
   if (!session) return jsonError('Unauthorized', 401);
 
   const ip = getClientIp(req.headers);
-  const rl = checkRateLimit(`${rateLimitKey}:${ip}`, limit);
+  const rl = await checkRateLimitAsync(`${rateLimitKey}:${ip}`, limit);
   if (!rl.allowed) {
     logger.warn('Rate limited', { requestId, route: rateLimitKey, ip, participantId: session.sub });
     const res = NextResponse.json({ error: 'Too many requests' }, { status: 429 });
@@ -168,9 +267,19 @@ export async function secureGuard(
     return res;
   }
 
-  if (await isBanned(session.sub)) {
+  const guardState = await getGuardState(session.sub);
+  if (guardState.banned) {
     logger.info('Banned user blocked', { requestId, participantId: session.sub, route: rateLimitKey });
     return jsonError('Account banned', 403);
+  }
+
+  // Session revocation: a bumped session_epoch invalidates all tokens issued
+  // before the bump (logout-everywhere / post-ban). Enforced only when the token
+  // actually carries a `sep` claim and the current epoch is known, so legacy
+  // tokens and migration-skew windows are never falsely rejected.
+  if (typeof session.sep === 'number' && guardState.epoch !== null && session.sep < guardState.epoch) {
+    logger.info('Session revoked (stale epoch)', { requestId, participantId: session.sub, route: rateLimitKey });
+    return jsonError('Session expired', 401);
   }
 
   // Check event status - block API usage for paused/archived/deleted events

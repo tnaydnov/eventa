@@ -2,15 +2,26 @@
  * Simple in-memory rate limiter for API routes.
  * Uses a sliding window approach per IP.
  *
- * ⚠️ PRODUCTION NOTE: This in-memory store does NOT persist across
- * serverless function instances (e.g. Vercel). Each cold start gets
- * a fresh Map. For production, replace with a distributed store like
- * Upstash Redis (@upstash/ratelimit) or Vercel KV.
+ * ⚠️ The in-memory store does NOT persist across serverless function instances
+ * (e.g. Vercel). Each cold start gets a fresh Map. For true cross-instance limits,
+ * set UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN and call the async
+ * `checkRateLimitAsync()` — it transparently uses a distributed Redis sliding
+ * window and falls back to this in-memory limiter if Redis is unreachable.
  */
 
 interface RateLimitEntry {
   timestamps: number[];
   windowMs: number; // track which window this key uses
+}
+
+/** Result shape shared by the sync (in-memory) and async (distributed) limiters. */
+export interface RateLimitResult {
+  /** `true` if the request is ALLOWED, `false` if rate-limited. */
+  allowed: boolean;
+  /** Approximate remaining requests in the current window. */
+  remaining: number;
+  /** Milliseconds until the window frees up (used for the `Retry-After` header). */
+  resetMs: number;
 }
 
 const store = new Map<string, RateLimitEntry>();
@@ -48,7 +59,7 @@ const DEFAULT_CONFIG: RateLimitConfig = {
 export function checkRateLimit(
   identifier: string,
   config: RateLimitConfig = DEFAULT_CONFIG
-): { allowed: boolean; remaining: number; resetMs: number } {
+): RateLimitResult {
   const now = Date.now();
   const entry = store.get(identifier) || { timestamps: [], windowMs: config.windowMs };
 
@@ -83,6 +94,98 @@ export function checkRateLimit(
     remaining: config.maxRequests - entry.timestamps.length,
     resetMs: 0,
   };
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Distributed limiter (Upstash Redis REST) — optional, opt-in via env.
+   ────────────────────────────────────────────────────────────────────
+   Activated automatically when UPSTASH_REDIS_REST_URL + _TOKEN are set.
+   Implemented as a sorted-set sliding window (same algorithm as the
+   in-memory limiter) over Upstash's REST pipeline API — no extra npm
+   dependency, no persistent connection (ideal for serverless).
+   On ANY Redis error it degrades gracefully to the in-memory limiter so a
+   limiter outage never takes down the API (and never fully removes limits).
+   ════════════════════════════════════════════════════════════════════ */
+
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const UPSTASH_TIMEOUT_MS = 2_000;
+
+/** True when a distributed backend is configured. */
+export function isDistributedRateLimitEnabled(): boolean {
+  return !!(UPSTASH_URL && UPSTASH_TOKEN);
+}
+
+/** Execute a pipeline of Redis commands via the Upstash REST API. */
+async function upstashPipeline(commands: (string | number)[][]): Promise<unknown[]> {
+  const res = await fetch(`${UPSTASH_URL}/pipeline`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${UPSTASH_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(commands),
+    // Never let a slow limiter stall the request path.
+    signal: AbortSignal.timeout(UPSTASH_TIMEOUT_MS),
+  });
+  if (!res.ok) throw new Error(`Upstash HTTP ${res.status}`);
+  const json = (await res.json()) as Array<{ result?: unknown; error?: string }>;
+  return json.map((r) => {
+    if (r.error) throw new Error(`Upstash cmd error: ${r.error}`);
+    return r.result;
+  });
+}
+
+/** Distributed sliding-window check backed by a Redis sorted set. */
+async function checkRateLimitRedis(
+  identifier: string,
+  config: RateLimitConfig
+): Promise<RateLimitResult> {
+  const key = `rl:${identifier}`;
+  const now = Date.now();
+  const windowStart = now - config.windowMs;
+  // Member must be unique per request so concurrent requests in the same ms
+  // don't collide in the sorted set.
+  const member = `${now}-${Math.random().toString(36).slice(2)}`;
+
+  const results = await upstashPipeline([
+    ['ZREMRANGEBYSCORE', key, 0, windowStart], // drop entries older than the window
+    ['ZADD', key, now, member],                // record this request
+    ['ZCARD', key],                            // count requests in the window
+    ['PEXPIRE', key, config.windowMs],         // auto-expire the key when idle
+  ]);
+
+  const count = Number(results[2] ?? 0);
+  const allowed = count <= config.maxRequests;
+  return {
+    allowed,
+    remaining: Math.max(0, config.maxRequests - count),
+    // Conservative upper bound for Retry-After (full window); avoids an extra round-trip.
+    resetMs: allowed ? 0 : config.windowMs,
+  };
+}
+
+/**
+ * Rate-limit check that prefers a distributed (cross-instance) backend.
+ *
+ * Use this on abuse-prone, cross-instance-sensitive endpoints (auth, OTP, order,
+ * payments, all participant `secureGuard` calls). When Upstash isn't configured —
+ * or is temporarily unreachable — it transparently falls back to the per-instance
+ * in-memory limiter, so behaviour is always safe and never throws.
+ */
+export async function checkRateLimitAsync(
+  identifier: string,
+  config: RateLimitConfig = DEFAULT_CONFIG
+): Promise<RateLimitResult> {
+  if (isDistributedRateLimitEnabled()) {
+    try {
+      return await checkRateLimitRedis(identifier, config);
+    } catch {
+      // Degrade to in-memory rather than failing open: still some protection
+      // per instance, and never blocks legitimate traffic on a limiter outage.
+    }
+  }
+  return checkRateLimit(identifier, config);
 }
 
 /**

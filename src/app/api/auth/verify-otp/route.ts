@@ -1,9 +1,9 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
 import { signSessionToken, sessionCookieHeader, checkCsrf } from '@/lib/session';
-import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { verifyOtpSchema } from '@/lib/validations';
-import { jsonError } from '@/lib/route-helpers';
+import { jsonError, getSessionEpoch } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 import { normalizePhone, isValidIsraeliMobile } from '@/lib/messaging';
 import { verifyOtp } from '@/lib/otp';
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   }
 
   const ip = getClientIp(req.headers);
-  const rl = checkRateLimit(`verify-otp:${ip}`, RATE_LIMITS.auth);
+  const rl = await checkRateLimitAsync(`verify-otp:${ip}`, RATE_LIMITS.auth);
   if (!rl.allowed) {
     const res = NextResponse.json({ error: 'Too many requests' }, { status: 429 });
     res.headers.set('Retry-After', String(Math.ceil(rl.resetMs / 1000)));
@@ -266,12 +266,15 @@ export async function POST(req: NextRequest) {
     // Will be cancelled if user completes profile before then
     void enqueueAbandonedFunnelSms(participantId, event.id);
 
-    // Sign session JWT
+    // Sign session JWT.
+    // Embed the participant's current session epoch for revocation support (migration 039).
+    const sessionEpoch = await getSessionEpoch(participantId);
     const token = signSessionToken({
       participantId,
       eventId: event.id,
       eventSlug,
       eventName: event.name,
+      sessionEpoch,
     });
 
     // Fire-and-forget: send welcome SMS to every guest who consented

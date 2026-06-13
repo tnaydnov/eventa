@@ -182,6 +182,8 @@ export type ProfileSetupData = z.infer<typeof profileSetupSchema>;
 /* ---- Admin login schema ---- */
 export const adminLoginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
+  // Optional TOTP 2FA code — only required when ADMIN_TOTP_SECRET is configured.
+  totp: z.string().trim().max(12).optional(),
 });
 
 /* ---- Admin create event schema ---- */

@@ -7,16 +7,16 @@ import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('@/lib/config', () => ({
   APP_BASE_URL: 'https://eventa.test',
+  OTP_EXPIRY_S: 300,
 }));
 
 import {
   buildJoinUrl,
   buildFeedbackUrl,
   otpSmsText,
-  WA_TEMPLATES,
-  preEventVars,
-  welcomeVars,
-  feedbackVars,
+  preEventSmsText,
+  welcomeSmsText,
+  feedbackSmsText,
 } from '@/lib/messaging/templates';
 import type { EventMessagingConfig } from '@/lib/messaging/types';
 
@@ -26,30 +26,18 @@ const mockConfig: EventMessagingConfig = {
   eventId: 'evt-001',
   eventName: 'מסיבת קיץ',
   eventSlug: 'summer-party',
-  joinCode: 'ABC123',
-  eventDate: '2025-08-15',
-  organizerName: 'דניאל',
+  messagesEnabled: true,
 };
 
 // ─── buildJoinUrl ───────────────────────────────────────
 
 describe('buildJoinUrl', () => {
-  it('builds correct join URL', () => {
-    expect(buildJoinUrl('summer-party', 'ABC123')).toBe(
-      'https://eventa.test/summer-party/join?k=ABC123'
-    );
+  it('builds the join URL from the slug (no join code)', () => {
+    expect(buildJoinUrl('summer-party')).toBe('https://eventa.test/summer-party');
   });
 
   it('handles slugs with special characters', () => {
-    expect(buildJoinUrl('my-event-2025', 'XY99')).toBe(
-      'https://eventa.test/my-event-2025/join?k=XY99'
-    );
-  });
-
-  it('handles empty join code', () => {
-    expect(buildJoinUrl('event', '')).toBe(
-      'https://eventa.test/event/join?k='
-    );
+    expect(buildJoinUrl('my-event-2025')).toBe('https://eventa.test/my-event-2025');
   });
 });
 
@@ -85,58 +73,32 @@ describe('otpSmsText', () => {
   });
 });
 
-// ─── WA_TEMPLATES ───────────────────────────────────────
+// ─── preEventSmsText ────────────────────────────────────
 
-describe('WA_TEMPLATES', () => {
-  it('has expected template names', () => {
-    expect(WA_TEMPLATES.PRE_EVENT).toBe('eventa_pre_reminder');
-    expect(WA_TEMPLATES.WELCOME).toBe('eventa_welcome');
-    expect(WA_TEMPLATES.FEEDBACK).toBe('eventa_feedback_v2');
+describe('preEventSmsText', () => {
+  it('includes the event name and the join URL', () => {
+    const text = preEventSmsText(mockConfig);
+    expect(text).toContain('מסיבת קיץ');
+    expect(text).toContain('https://eventa.test/summer-party');
   });
 });
 
-// ─── preEventVars ───────────────────────────────────────
+// ─── welcomeSmsText ─────────────────────────────────────
 
-describe('preEventVars', () => {
-  it('builds 2 params: eventName, joinUrl', () => {
-    const vars = preEventVars(mockConfig);
-    expect(vars).toHaveLength(2);
-    expect(vars[0]).toEqual({ type: 'text', text: 'מסיבת קיץ' });
-    expect(vars[1]).toEqual({
-      type: 'text',
-      text: 'https://eventa.test/summer-party/join?k=ABC123',
-    });
+describe('welcomeSmsText', () => {
+  it('includes the event name and the join URL', () => {
+    const text = welcomeSmsText(mockConfig);
+    expect(text).toContain('מסיבת קיץ');
+    expect(text).toContain('https://eventa.test/summer-party');
   });
 });
 
-// ─── welcomeVars ────────────────────────────────────────
+// ─── feedbackSmsText ────────────────────────────────────
 
-describe('welcomeVars', () => {
-  it('builds 2 params: eventName, joinUrl', () => {
-    const vars = welcomeVars(mockConfig);
-    expect(vars).toHaveLength(2);
-    expect(vars[0]).toEqual({ type: 'text', text: 'מסיבת קיץ' });
-    expect(vars[1]).toEqual({
-      type: 'text',
-      text: 'https://eventa.test/summer-party/join?k=ABC123',
-    });
-  });
-});
-
-// ─── feedbackVars ───────────────────────────────────────
-
-describe('feedbackVars', () => {
-  it('builds 3 params: eventName, feedbackUrl, websiteUrl', () => {
-    const vars = feedbackVars(mockConfig);
-    expect(vars).toHaveLength(3);
-    expect(vars[0]).toEqual({ type: 'text', text: 'מסיבת קיץ' });
-    expect(vars[1]).toEqual({
-      type: 'text',
-      text: 'https://eventa.test/summer-party/feedback',
-    });
-    expect(vars[2]).toEqual({
-      type: 'text',
-      text: 'https://eventa.test',
-    });
+describe('feedbackSmsText', () => {
+  it('includes the event name and the feedback URL', () => {
+    const text = feedbackSmsText(mockConfig);
+    expect(text).toContain('מסיבת קיץ');
+    expect(text).toContain('https://eventa.test/summer-party/feedback');
   });
 });

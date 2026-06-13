@@ -47,6 +47,74 @@ function formatEntry(entry: LogEntry): string {
 
 type LogMeta = Record<string, unknown> | unknown;
 
+/* ── PII / secret redaction ──────────────────────────────────────────
+ * Logs are shipped to stdout (Vercel) and, in future, a log drain. This app
+ * handles special-category data (phones, OTPs, emails, message text), so we
+ * scrub sensitive values centrally here — every logger call is covered, and
+ * no individual call site has to remember to redact.
+ *
+ * Two complementary strategies:
+ *   1. Key-based: any object key whose name looks sensitive has its value masked.
+ *   2. Pattern-based: email and phone-number shapes are masked inside ANY string
+ *      value (catches PII that leaks through error messages, URLs, etc.).
+ */
+
+/** Object keys whose values must never be logged in the clear. */
+const SENSITIVE_KEY_RE =
+  /(pass(word|wd)?|secret|token|cookie|authorization|^auth$|otp|\bcode\b|phone|e?mail|\bbio\b|message|\btext\b|content|body|idempotency|fingerprint|jwt|session)/i;
+
+/** Email addresses — mask the local part, keep the domain for debugging. */
+const EMAIL_RE = /([\w.+-])[\w.+-]*(@[\w.-]+\.\w+)/g;
+
+/**
+ * Phone-shaped runs of 7–14 digits (optional + and separators), bounded by
+ * non-word / non-hyphen chars so UUID segments (which are hyphen-delimited)
+ * are never mistaken for phone numbers.
+ */
+const PHONE_RE = /(?<![\w-])(\+?\d[\d\s().-]{5,12}\d)(?![\w-])/g;
+
+const MAX_STRING_LEN = 2_000;
+const MAX_REDACT_DEPTH = 6;
+
+/** Mask phone/email patterns inside a free-text string. */
+function maskPatterns(value: string): string {
+  let out = value.length > MAX_STRING_LEN ? `${value.slice(0, MAX_STRING_LEN)}…[truncated]` : value;
+  out = out.replace(EMAIL_RE, (_m, first, domain) => `${first}***${domain}`);
+  out = out.replace(PHONE_RE, (m) => {
+    const digits = m.replace(/\D/g, '');
+    if (digits.length < 7) return m; // not actually phone-like
+    return `***${digits.slice(-2)}`; // keep last 2 digits for correlation
+  });
+  return out;
+}
+
+/** Mask a value flagged as sensitive by its key name. */
+function maskSensitive(value: unknown): unknown {
+  if (typeof value === 'string') {
+    if (value.length <= 4) return '[redacted]';
+    return `${value.slice(0, 2)}…[redacted]`; // short prefix aids correlation
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') return '[redacted]';
+  return value === null || value === undefined ? value : '[redacted]';
+}
+
+/** Recursively redact a log-meta object. Returns a new object (never mutates). */
+function redact(value: unknown, depth = 0): unknown {
+  if (value == null) return value;
+  if (depth >= MAX_REDACT_DEPTH) return '[depth-limit]';
+  if (typeof value === 'string') return maskPatterns(value);
+  if (typeof value === 'number' || typeof value === 'boolean') return value;
+  if (Array.isArray(value)) return value.map((v) => redact(v, depth + 1));
+  if (typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      out[k] = SENSITIVE_KEY_RE.test(k) ? maskSensitive(v) : redact(v, depth + 1);
+    }
+    return out;
+  }
+  return value;
+}
+
 /**
  * Normalize the meta argument.
  * - If it's a Record, spread it directly.
@@ -63,11 +131,14 @@ function normalizeMeta(meta: LogMeta): Record<string, unknown> {
 function log(level: LogLevel, msg: string, meta?: LogMeta): void {
   if (!shouldLog(level)) return;
 
+  // Redact PII/secrets from both the message and the structured meta before output.
+  // `stack` is preserved as-is (file paths/line numbers, not PII) but still pattern-masked.
+  const safeMeta = redact(normalizeMeta(meta)) as Record<string, unknown>;
   const entry: LogEntry = {
     level,
-    msg,
+    msg: maskPatterns(msg),
     ts: new Date().toISOString(),
-    ...normalizeMeta(meta),
+    ...safeMeta,
   };
 
   const formatted = formatEntry(entry);

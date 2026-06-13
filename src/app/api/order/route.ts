@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import crypto from 'crypto';
 import { checkCsrf } from '@/lib/session';
-import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { getServiceClient } from '@/lib/supabase';
 import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
 
   // Rate limit by IP - use strict config (3/min) to prevent spam
   const ip = getClientIp(request.headers);
-  const rl = checkRateLimit(`order:${ip}`, RATE_LIMITS.strict);
+  const rl = await checkRateLimitAsync(`order:${ip}`, RATE_LIMITS.strict);
   if (!rl.allowed) {
     logger.warn('Order form rate limited', { ip });
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });

@@ -42,7 +42,7 @@ export async function GET(
   const [eventRes, reportRes] = await Promise.all([
     supabase
       .from('events')
-      .select('name')
+      .select('name, ends_at')
       .eq('id', eventId)
       .maybeSingle(),
     supabase
@@ -76,7 +76,7 @@ export async function GET(
     eventId,
     payload,
     aiSummary,
-    portalUrl: `${process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.eventa.productions'}/portal/${token}/report`,
+    eventDate: (eventRes.data.ends_at as string) ?? null,
   });
 
   return new NextResponse(new Uint8Array(pdf), {

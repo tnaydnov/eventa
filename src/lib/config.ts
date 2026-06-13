@@ -81,6 +81,20 @@ export const OTP_MAX_ATTEMPTS = parseInt(process.env.OTP_MAX_ATTEMPTS || '5', 10
 /** Minimum seconds between OTP resend requests. */
 export const OTP_RESEND_COOLDOWN_S = parseInt(process.env.OTP_RESEND_COOLDOWN_SECONDS || '60', 10);
 
+/**
+ * Toll-fraud guards for OTP/SMS sending (SMS pumping protection).
+ * These complement the per-IP rate limit and per-phone cooldown.
+ */
+/** Max OTP sends per phone per rolling hour. Generous for legit use, blocks pumping. */
+export const OTP_MAX_PER_PHONE_PER_HOUR = parseInt(process.env.OTP_MAX_PER_PHONE_PER_HOUR || '8', 10);
+/**
+ * Optional GLOBAL cap on OTP sends per rolling 24h across ALL phones — a backstop
+ * that bounds the blast radius (and cost) of a mass SMS-pumping attack.
+ * `0` disables it (default) so it can never block a legitimately busy event until
+ * an operator tunes it for their expected volume.
+ */
+export const OTP_GLOBAL_MAX_PER_DAY = parseInt(process.env.OTP_GLOBAL_MAX_PER_DAY || '0', 10);
+
 // ─── Messaging Configuration ────────────────────────────────
 
 /** Base URL for building join/feedback links. */

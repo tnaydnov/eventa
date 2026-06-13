@@ -13,6 +13,8 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 29, resetMs: 60000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 29, resetMs: 60000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
     standard: { maxRequests: 30, windowMs: 60000 },
@@ -62,6 +64,7 @@ vi.mock('@/lib/logger', () => ({
 }));
 
 import { secureGuard } from '@/lib/route-helpers';
+import { createQueryMock } from '../../helpers/supabase-mock';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -210,21 +213,12 @@ describe('POST /api/secure/heartbeat', () => {
   });
 
   it('returns 200 on successful heartbeat', async () => {
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { last_seen_at: new Date(Date.now() - 5 * 60000).toISOString() },
-        error: null,
-      }),
-    });
-    mockFrom.mockReturnValueOnce({
-      insert: vi.fn().mockResolvedValue({ error: null }),
-    });
-    mockFrom.mockReturnValueOnce({
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { last_seen_at: new Date(Date.now() - 5 * 60000).toISOString() },
+      error: null,
+    }));
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
 
     const req = new NextRequest('http://localhost/api/secure/heartbeat', { method: 'POST' });
     const res = await HEARTBEAT_POST(req);

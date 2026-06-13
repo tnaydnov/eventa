@@ -4,6 +4,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
+import { withCronHeartbeat } from '@/lib/cron-heartbeat';
 import { generateReport } from '@/lib/report/generate';
 import { sendReportEmail } from '@/lib/report/email';
 
@@ -55,7 +56,7 @@ async function handler(req: NextRequest) {
   // Find events that ended in the window and haven't had a report email sent
   const { data: events, error: fetchError } = await supabase
     .from('events')
-    .select('id, name, slug, client_email, client_name, send_report_email')
+    .select('id, name, slug, client_email, client_name, send_report_email, ends_at')
     .gte('ends_at', windowStart)
     .lte('ends_at', windowEnd)
     .eq('send_report_email', true)
@@ -96,29 +97,16 @@ async function handler(req: NextRequest) {
         continue;
       }
 
-      // Get portal token for this event
-      const { data: tokenRow } = await supabase
-        .from('client_portal_tokens')
-        .select('token')
-        .eq('event_id', event.id)
-        .eq('is_active', true)
-        .limit(1)
-        .maybeSingle();
-
-      if (!tokenRow?.token) {
-        logger.warn(`[SEND_REPORTS_CRON] No portal token for event ${event.id} - skipping email`);
-        failed++;
-        continue;
-      }
-
-      // Send email
+      // Send the report email. The report is fully self-contained in the attached PDF,
+      // so it no longer depends on a client-portal token (the portal is guest-list only).
       const emailSent = await sendReportEmail({
         to: event.client_email as string,
         eventName: event.name as string,
         eventId: event.id as string,
-        portalToken: tokenRow.token as string,
         payload: result.payload,
         aiSummary: result.ai_summary,
+        clientName: (event.client_name as string) ?? null,
+        eventDate: (event.ends_at as string) ?? null,
       });
 
       if (emailSent) {
@@ -141,5 +129,5 @@ async function handler(req: NextRequest) {
   return NextResponse.json({ processed, failed });
 }
 
-export const GET = handler;
-export const POST = handler;
+const cronHandler = withCronHeartbeat('send-reports', handler);
+export { cronHandler as GET, cronHandler as POST };

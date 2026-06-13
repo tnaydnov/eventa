@@ -29,7 +29,7 @@ describe('MobileGuard', () => {
     });
 
     render(<MobileGuard><div>App content</div></MobileGuard>);
-    expect(screen.getByText(/האפליקציה זמינה לנייד בלבד/)).toBeTruthy();
+    expect(screen.getByText(/זמינה לנייד בלבד/)).toBeTruthy();
   });
 
   it('allows mobile UA even with wider screen', () => {
@@ -63,7 +63,7 @@ describe('MobileGuard', () => {
     });
 
     render(<MobileGuard><div>App content</div></MobileGuard>);
-    expect(screen.getByText(/האפליקציה זמינה לנייד בלבד/)).toBeTruthy();
+    expect(screen.getByText(/זמינה לנייד בלבד/)).toBeTruthy();
 
     // Resize to mobile (debounced - advance timers to flush)
     act(() => {

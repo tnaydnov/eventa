@@ -5,6 +5,15 @@
  * @vitest-environment node
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// Mock the Supabase service client so adminAuditLog's fire-and-forget DB persist
+// is controllable (and never makes a real network call in unit tests).
+const mockAuditInsert = vi.hoisted(() => vi.fn().mockResolvedValue({ error: null }));
+const mockAuditFrom = vi.hoisted(() => vi.fn().mockReturnValue({ insert: mockAuditInsert }));
+vi.mock('@/lib/supabase', () => ({
+  getServiceClient: vi.fn(() => ({ from: mockAuditFrom })),
+}));
+
 import {
   signAdminToken,
   verifyAdminToken,
@@ -19,6 +28,8 @@ import { ADMIN_MAX_AGE_S } from '@/lib/config';
 beforeEach(() => {
   process.env.JWT_SECRET = 'test-jwt-secret-that-is-at-least-32-characters-long';
   process.env.NODE_ENV = 'test';
+  mockAuditInsert.mockClear();
+  mockAuditFrom.mockClear();
 });
 
 describe('signAdminToken', () => {
@@ -143,11 +154,19 @@ describe('adminCookieHeader', () => {
     expect(header).toContain(`Max-Age=${ADMIN_MAX_AGE_S}`);
   });
 
-  it('includes Secure in production', () => {
-    process.env.NODE_ENV = 'production';
-    const header = adminCookieHeader('tok');
-    expect(header).toContain('Secure');
-    process.env.NODE_ENV = 'test';
+  it('includes Secure in production', async () => {
+    // IS_PRODUCTION is evaluated at config module-load time, so flip NODE_ENV
+    // and re-import the module fresh to pick up the production branch.
+    vi.resetModules();
+    vi.stubEnv('NODE_ENV', 'production');
+    try {
+      const { adminCookieHeader: prodCookieHeader } = await import('@/lib/admin-auth');
+      const header = prodCookieHeader('tok');
+      expect(header).toContain('Secure');
+    } finally {
+      vi.unstubAllEnvs();
+      vi.resetModules();
+    }
   });
 });
 
@@ -221,5 +240,25 @@ describe('adminAuditLog', () => {
     });
     adminAuditLog('BAN_USER', { userId: '123' }, req);
     expect(consoleSpy).toHaveBeenCalled();
+  });
+
+  it('persists the entry to the admin_audit_log table (fire-and-forget)', () => {
+    adminAuditLog('EVENT_DELETE', { eventId: 'e1' });
+    expect(mockAuditFrom).toHaveBeenCalledWith('admin_audit_log');
+    expect(mockAuditInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'EVENT_DELETE', details: { eventId: 'e1' } }),
+    );
+  });
+
+  it('does not persist when ADMIN_AUDIT_PERSIST=false', () => {
+    const prev = process.env.ADMIN_AUDIT_PERSIST;
+    process.env.ADMIN_AUDIT_PERSIST = 'false';
+    try {
+      adminAuditLog('EVENT_UPDATE', { eventId: 'e2' });
+      expect(mockAuditInsert).not.toHaveBeenCalled();
+    } finally {
+      if (prev === undefined) delete process.env.ADMIN_AUDIT_PERSIST;
+      else process.env.ADMIN_AUDIT_PERSIST = prev;
+    }
   });
 });

@@ -15,6 +15,8 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 4, resetMs: 300000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 4, resetMs: 300000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
     auth: { maxRequests: 5, windowMs: 300000 },
@@ -34,6 +36,7 @@ vi.mock('@/lib/route-helpers', () => ({
       headers: { 'Content-Type': 'application/json' },
     })
   ),
+  getSessionEpoch: vi.fn().mockResolvedValue(1),
 }));
 
 vi.mock('@/lib/logger', () => ({
@@ -57,8 +60,9 @@ vi.mock('@/lib/messaging', () => ({
 
 import { POST } from '@/app/api/auth/verify-otp/route';
 import { checkCsrf } from '@/lib/session';
-import { checkRateLimit } from '@/lib/rate-limit';
+import { checkRateLimit, checkRateLimitAsync } from '@/lib/rate-limit';
 import { verifyOtp } from '@/lib/otp';
+import { createQueryMock } from '../../helpers/supabase-mock';
 
 function makeReq(body: Record<string, unknown>) {
   return new NextRequest('http://localhost/api/auth/verify-otp', {
@@ -78,8 +82,14 @@ const validBody = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Default from() chain so fire-and-forget inserts (activity_log, funnel_events)
+  // and the always-present phone ban check never return undefined; per-test
+  // mockReturnValueOnce still takes precedence.
+  mockFrom.mockReset();
+  mockFrom.mockReturnValue(createQueryMock({ data: null, error: null }));
   vi.mocked(checkCsrf).mockReturnValue(true);
   vi.mocked(checkRateLimit).mockReturnValue({ allowed: true, remaining: 4, resetMs: 300000 });
+  vi.mocked(checkRateLimitAsync).mockResolvedValue({ allowed: true, remaining: 4, resetMs: 300000 });
   vi.mocked(verifyOtp).mockResolvedValue({ valid: true });
 });
 
@@ -120,6 +130,7 @@ describe('POST /api/auth/verify-otp', () => {
 
   it('returns 429 when rate limited', async () => {
     vi.mocked(checkRateLimit).mockReturnValue({ allowed: false, remaining: 0, resetMs: 5000 });
+    vi.mocked(checkRateLimitAsync).mockResolvedValue({ allowed: false, remaining: 0, resetMs: 5000 });
     const res = await POST(makeReq(validBody));
     expect(res.status).toBe(429);
   });
@@ -159,32 +170,16 @@ describe('POST /api/auth/verify-otp', () => {
     mockEventLookup(eventData);
 
     // Ban check (phone) → not banned
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockReturnValue({
-        then: vi.fn().mockResolvedValue(false),
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
 
     // Find existing participant → none
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
 
     // Create new participant
-    mockFrom.mockReturnValueOnce({
-      insert: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { id: 'p-new' }, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: { id: 'p-new' }, error: null }));
 
     // Activity log (fire-and-forget)
-    mockFrom.mockReturnValueOnce({
-      insert: vi.fn().mockResolvedValue({ error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
 
     const res = await POST(makeReq(validBody));
     expect(res.status).toBe(200);
@@ -198,35 +193,23 @@ describe('POST /api/auth/verify-otp', () => {
     mockEventLookup(eventData);
 
     // Ban check → not banned
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockReturnValue({
-        then: vi.fn().mockResolvedValue(false),
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
 
     // Find existing participant → found
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
-        data: {
-          id: 'p-existing', event_id: 'e1', phone: '+972501234567',
-          display_name: 'Dana', gender: 'female', attracted_to: 'all',
-          bio: null, age: 25, city: 'Tel Aviv', looking_for: null,
-          is_banned: false, last_seen_at: null, created_at: '2025-01-01',
-          device_fingerprint: null, hardware_fingerprint: null,
-          sms_consent: true, feedback_sent: false,
-        },
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: {
+        id: 'p-existing', event_id: 'e1', phone: '+972501234567',
+        display_name: 'Dana', gender: 'female', attracted_to: 'all',
+        bio: null, age: 25, city: 'Tel Aviv', looking_for: null,
+        is_banned: false, last_seen_at: null, created_at: '2025-01-01',
+        device_fingerprint: null, hardware_fingerprint: null,
+        sms_consent: true, feedback_sent: false,
+      },
+      error: null,
+    }));
 
     // Update participant (fire-and-forget)
-    mockFrom.mockReturnValueOnce({
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
 
     const res = await POST(makeReq(validBody));
     expect(res.status).toBe(200);

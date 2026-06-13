@@ -15,6 +15,7 @@ export interface SessionPayload {
   eid: string;    // eventId
   esl: string;    // eventSlug
   enm: string;    // eventName
+  sep?: number;   // session epoch - revocation counter (see migration 039); optional for legacy tokens
   iat: number;
   exp: number;
 }
@@ -25,6 +26,8 @@ export function signSessionToken(data: {
   eventId: string;
   eventSlug: string;
   eventName: string;
+  /** Current session epoch for revocation support. Omit for legacy callers (treated as no `sep`). */
+  sessionEpoch?: number;
 }): string {
   const secret = getJwtSecret();
   const now = Math.floor(Date.now() / 1000);
@@ -40,6 +43,8 @@ export function signSessionToken(data: {
     iat: now,
     exp: now + SESSION_MAX_AGE_S,
   };
+  // Only embed the epoch claim when provided, so legacy/omitted callers stay byte-compatible.
+  if (typeof data.sessionEpoch === 'number') payload.sep = data.sessionEpoch;
   const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
   const sig = crypto.createHmac('sha256', secret).update(`${header}.${body}`).digest('base64url');
   return `${header}.${body}.${sig}`;

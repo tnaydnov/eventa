@@ -13,7 +13,7 @@ import {
   ORDER_EMAIL_MAX_LENGTH,
 } from '@/lib/config';
 import { checkCsrf } from '@/lib/session';
-import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 
 const sessionSchema = z.object({
   contactName: z.string().min(1).max(ORDER_NAME_MAX_LENGTH),
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
   }
 
   const ip = getClientIp(req.headers);
-  const rl = checkRateLimit(`payment-session:${ip}`, RATE_LIMITS.strict);
+  const rl = await checkRateLimitAsync(`payment-session:${ip}`, RATE_LIMITS.strict);
   if (!rl.allowed) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }

@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
 import { adminLoginSchema } from '@/lib/validations';
-import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { signAdminToken, adminCookieHeader, adminAuditLog } from '@/lib/admin-auth';
+import {
+  hasAdminCredential,
+  verifyAdminPassword,
+  isAdminTotpEnabled,
+  verifyAdminTotp,
+} from '@/lib/admin-credentials';
 import { jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 
@@ -66,7 +71,7 @@ export async function POST(req: NextRequest) {
 
   // Rate limit: 5 attempts per minute
   const ip = getClientIp(req.headers);
-  const rl = checkRateLimit(`admin-login:${ip}`, RATE_LIMITS.auth);
+  const rl = await checkRateLimitAsync(`admin-login:${ip}`, RATE_LIMITS.auth);
   if (!rl.allowed) {
     return NextResponse.json(
       { error: 'Too many attempts, try again later' },
@@ -91,21 +96,37 @@ export async function POST(req: NextRequest) {
       return jsonError('Invalid request', 400);
     }
 
-    const adminPassword = process.env.ADMIN_PASSWORD;
-    if (!adminPassword) {
-      logger.error('ADMIN_PASSWORD environment variable is not set');
+    // Fail closed if no admin credential is configured at all.
+    if (!hasAdminCredential()) {
+      logger.error('No admin credential configured (set ADMIN_PASSWORD_HASH or ADMIN_PASSWORD)');
       return jsonError('Server configuration error', 500);
     }
 
-    // Timing-safe comparison: hash both to SHA-256 (fixed 32 bytes) before comparing.
-    // Comparing raw buffers would leak password length via the length check.
-    const inputHash = crypto.createHash('sha256').update(parsed.data.password).digest();
-    const secretHash = crypto.createHash('sha256').update(adminPassword).digest();
-    if (!crypto.timingSafeEqual(inputHash, secretHash)) {
+    // 1. Verify password (scrypt hash preferred, plaintext fallback — both timing-safe).
+    if (!verifyAdminPassword(parsed.data.password)) {
       recordFailedAttempt(ip);
       adminAuditLog('LOGIN_FAILED', { ip }, req);
       // Constant generic error - don't reveal if password was close
       return jsonError('Unauthorized', 401);
+    }
+
+    // 2. Optional second factor — only enforced when ADMIN_TOTP_SECRET is set.
+    if (isAdminTotpEnabled()) {
+      const totp = parsed.data.totp;
+      if (!totp) {
+        // Password is correct but a 2FA code is still required. This is the normal
+        // two-step flow, not an attack signal, so we don't count it as a failed attempt.
+        adminAuditLog('LOGIN_TOTP_REQUIRED', { ip }, req);
+        return NextResponse.json(
+          { error: 'נדרש קוד אימות דו-שלבי', totpRequired: true },
+          { status: 401 },
+        );
+      }
+      if (!verifyAdminTotp(totp)) {
+        recordFailedAttempt(ip);
+        adminAuditLog('LOGIN_FAILED', { ip, reason: 'totp' }, req);
+        return jsonError('Unauthorized', 401);
+      }
     }
 
     // Success - clear failed attempts and issue token

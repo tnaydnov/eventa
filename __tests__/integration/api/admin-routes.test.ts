@@ -6,6 +6,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
+import { createQueryMock } from '../../helpers/supabase-mock';
 
 /* ─────── shared mocks ─────── */
 const mockFrom = vi.hoisted(() => vi.fn());
@@ -26,6 +27,8 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 29, resetMs: 60000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 29, resetMs: 60000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
     standard: { maxRequests: 30, windowMs: 60000 },
@@ -44,6 +47,8 @@ vi.mock('@/lib/session', () => ({
 }));
 
 vi.mock('@/lib/route-helpers', () => ({
+  // adminGuard imports verifyCronAuth; default false = no cron auth (tests authenticate via admin cookie).
+  verifyCronAuth: vi.fn().mockReturnValue(false),
   jsonError: vi.fn((message: string, status: number) =>
     new Response(JSON.stringify({ error: message }), {
       status,
@@ -52,6 +57,7 @@ vi.mock('@/lib/route-helpers', () => ({
   ),
   evictEventStatusCache: vi.fn(),
   evictBanCache: vi.fn(),
+  bumpSessionEpoch: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('@/lib/constants', () => ({
@@ -83,6 +89,9 @@ const params = (eventId: string) => ({ params: Promise.resolve({ eventId }) });
 beforeEach(async () => {
   vi.clearAllMocks();
   mockFrom.mockReset();
+  // Benign default so overflow / fire-and-forget / analytics-compute queries
+  // never return undefined; per-test mockReturnValueOnce always takes precedence.
+  mockFrom.mockReturnValue(createQueryMock({ data: [], error: null }));
 
   // Re-set module mocks to defaults (clearAllMocks preserves impl but tests change them)
   const rl = await import('@/lib/rate-limit');
@@ -320,15 +329,10 @@ describe('PATCH /api/admin/events/[eventId]', () => {
     const { isValidUUID } = await import('@/lib/session');
     vi.mocked(isValidUUID).mockReturnValue(true);
 
-    mockFrom.mockReturnValueOnce({
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { id: 'e1', name: 'Updated Name', status: 'active' },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { id: 'e1', name: 'Updated Name', status: 'active' },
+      error: null,
+    }));
 
     const req = new NextRequest('http://localhost/api/admin/events/e1', {
       method: 'PATCH',
@@ -346,15 +350,10 @@ describe('PATCH /api/admin/events/[eventId]', () => {
     vi.mocked(isValidUUID).mockReturnValue(true);
     const { evictEventStatusCache } = await import('@/lib/route-helpers');
 
-    mockFrom.mockReturnValueOnce({
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { id: 'e1', status: 'ended' },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { id: 'e1', status: 'ended' },
+      error: null,
+    }));
 
     const req = new NextRequest('http://localhost/api/admin/events/e1', {
       method: 'PATCH',
@@ -401,15 +400,10 @@ describe('POST /api/admin/events/[eventId]/rotate', () => {
     const { isValidUUID } = await import('@/lib/session');
     vi.mocked(isValidUUID).mockReturnValue(true);
 
-    mockFrom.mockReturnValueOnce({
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { id: 'e1', join_code: 'NEWCODE' },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { id: 'e1', join_code: 'NEWCODE' },
+      error: null,
+    }));
 
     const req = new NextRequest('http://localhost/api/admin/events/e1/rotate', { method: 'POST' });
     const res = await handler(req, params('e1'));
@@ -571,21 +565,13 @@ describe('participants management', () => {
       }),
     });
     // select participant fingerprints
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { device_fingerprint: 'fp1', hardware_fingerprint: 'hw1' },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { device_fingerprint: 'fp1', hardware_fingerprint: 'hw1' },
+      error: null,
+    }));
     // upsert banned_devices (2 fingerprints)
-    mockFrom.mockReturnValueOnce({
-      upsert: vi.fn().mockResolvedValue({ error: null }),
-    });
-    mockFrom.mockReturnValueOnce({
-      upsert: vi.fn().mockResolvedValue({ error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
 
     const req = new NextRequest('http://localhost/api/admin/events/e1/participants', {
       method: 'PATCH',
@@ -636,11 +622,7 @@ describe('POST /api/admin/events/[eventId]/archive', () => {
     const { isValidUUID } = await import('@/lib/session');
     vi.mocked(isValidUUID).mockReturnValue(true);
 
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: { message: 'not found' } }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: { message: 'not found' } }));
 
     const req = new NextRequest('http://localhost/api/admin/events/e1/archive', { method: 'POST' });
     const res = await handler(req, params('e1'));
@@ -651,14 +633,10 @@ describe('POST /api/admin/events/[eventId]/archive', () => {
     const { isValidUUID } = await import('@/lib/session');
     vi.mocked(isValidUUID).mockReturnValue(true);
 
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { id: 'e1', status: 'archived', name: 'Done Event' },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { id: 'e1', status: 'archived', name: 'Done Event' },
+      error: null,
+    }));
 
     const req = new NextRequest('http://localhost/api/admin/events/e1/archive', { method: 'POST' });
     const res = await handler(req, params('e1'));
@@ -908,23 +886,15 @@ describe('GET /api/admin/events/[eventId]/analytics', () => {
     vi.mocked(isValidUUID).mockReturnValue(true);
 
     // event lookup → archived
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { status: 'archived' },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { status: 'archived' },
+      error: null,
+    }));
     // snapshot lookup
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { snapshot: { totalParticipants: 42, totalLikes: 100 } },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { snapshot: { totalParticipants: 42, totalLikes: 100 } },
+      error: null,
+    }));
 
     const req = new NextRequest('http://localhost/api/admin/events/e1/analytics');
     const res = await handler(req, params('e1'));
@@ -937,16 +907,8 @@ describe('GET /api/admin/events/[eventId]/analytics', () => {
     const { isValidUUID } = await import('@/lib/session');
     vi.mocked(isValidUUID).mockReturnValue(true);
 
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { status: 'archived' }, error: null }),
-    });
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { snapshot: null }, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: { status: 'archived' }, error: null }));
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: { snapshot: null }, error: null }));
 
     const req = new NextRequest('http://localhost/api/admin/events/e1/analytics');
     const res = await handler(req, params('e1'));
@@ -973,11 +935,7 @@ describe('GET /api/admin/events/[eventId]/analytics', () => {
     vi.mocked(isValidUUID).mockReturnValue(true);
 
     // event lookup → active
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { status: 'active' }, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: { status: 'active' }, error: null }));
 
     // 7 parallel queries (participants, photos, likes, conversations, messages, blocks, activity_log)
     const emptyQuery = () => ({

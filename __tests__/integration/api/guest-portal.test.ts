@@ -15,6 +15,8 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 9, resetMs: 60000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 9, resetMs: 60000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
     standard: { maxRequests: 30, windowMs: 60000 },
@@ -53,12 +55,17 @@ vi.mock('@/lib/messaging/phone-utils', () => ({
 
 import { GET, POST } from '@/app/api/guest-portal/[token]/route';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { createQueryMock } from '../../helpers/supabase-mock';
 
 const token = 'valid-portal-token-123';
 const eventId = '11111111-1111-1111-1111-111111111111';
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Reset the from() queue + benign default so unconsumed/extra queries (e.g. the
+  // sentCount status query) never return undefined; per-test Once mocks win.
+  mockFrom.mockReset();
+  mockFrom.mockReturnValue(createQueryMock({ data: null, error: null }));
   vi.mocked(checkRateLimit).mockReturnValue({ allowed: true, remaining: 9, resetMs: 60000 });
 });
 
@@ -108,31 +115,23 @@ describe('GET /api/guest-portal/[token]', () => {
 
   it('returns portal data on valid token', async () => {
     mockTokenValid();
-    // Event lookup
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: {
-          id: eventId, name: 'Summer', starts_at: '2025-08-15',
-          ends_at: '2025-08-16', status: 'active',
-          wa_messages_enabled: true, guest_list_uploaded: true, guest_list_count: 2,
-        },
-        error: null,
-      }),
-    });
+    // Event lookup (route uses .maybeSingle())
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: {
+        id: eventId, name: 'Summer', starts_at: '2099-08-15',
+        ends_at: '2099-08-16', status: 'active',
+        wa_messages_enabled: true, guest_list_uploaded: true, guest_list_count: 2,
+      },
+      error: null,
+    }));
     // Paginated guests
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      range: vi.fn().mockResolvedValue({
-        data: [
-          { id: 'g1', phone: '+972501234567', guest_name: 'Dana', wa_pre_event_sent: false, created_at: '2025-01-01' },
-        ],
-        count: 1,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: [
+        { id: 'g1', phone: '+972501234567', guest_name: 'Dana', wa_pre_event_sent: false, created_at: '2025-01-01' },
+      ],
+      error: null,
+      count: 1,
+    }));
 
     const req = new NextRequest(`http://localhost/api/guest-portal/${token}?page=1`);
     const res = await GET(req, { params });
@@ -159,12 +158,11 @@ describe('POST /api/guest-portal/[token] (single add)', () => {
 
   it('adds a single phone successfully', async () => {
     mockTokenValid();
-    // Event status check
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { id: eventId, status: 'active' }, error: null }),
-    });
+    // Event status check (route uses .maybeSingle()); messaging on + future date so not read-only
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { id: eventId, status: 'active', wa_messages_enabled: true, starts_at: '2099-08-15' },
+      error: null,
+    }));
     // handleSingleAdd: count check (select with count: 'exact', head: true)
     mockFrom.mockReturnValueOnce({
       select: vi.fn().mockReturnThis(),
@@ -210,12 +208,8 @@ describe('POST /api/guest-portal/[token] (single add)', () => {
 
   it('returns 400 when event is archived', async () => {
     mockTokenValid();
-    // Event → archived
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { id: eventId, status: 'archived' }, error: null }),
-    });
+    // Event → archived (route uses .maybeSingle())
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: { id: eventId, status: 'archived' }, error: null }));
 
     const req = new NextRequest(`http://localhost/api/guest-portal/${token}`, {
       method: 'POST',
@@ -226,3 +220,5 @@ describe('POST /api/guest-portal/[token] (single add)', () => {
     expect(res.status).toBe(400);
   });
 });
+
+

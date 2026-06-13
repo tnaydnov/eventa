@@ -4,6 +4,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
+import { withCronHeartbeat } from '@/lib/cron-heartbeat';
 import { moderateProfilePhoto } from '@/lib/moderation';
 
 /** Max photos to recheck per run. */
@@ -72,5 +73,5 @@ async function handler(req: NextRequest) {
   return NextResponse.json({ processed });
 }
 
-export const GET = handler;
-export const POST = handler;
+const cronHandler = withCronHeartbeat('recheck-moderation', handler);
+export { cronHandler as GET, cronHandler as POST };

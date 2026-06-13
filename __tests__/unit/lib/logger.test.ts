@@ -105,4 +105,63 @@ describe('logger', () => {
     expect(output).toContain('userId');
     expect(output).toContain('123');
   });
+
+  // ── PII / secret redaction ──────────────────────────────────────
+  describe('redaction', () => {
+    it('masks the value of a sensitive key (otp)', () => {
+      logger.info('verify', { otp: '123456' });
+      const output = infoSpy.mock.calls[0][0] as string;
+      expect(output).not.toContain('123456');
+      expect(output).toContain('redacted');
+    });
+
+    it('masks sensitive keys: phone, token, password, authorization', () => {
+      logger.info('sensitive', {
+        phone: '+972501234567',
+        token: 'abcdef123456',
+        password: 'hunter2pass',
+        authorization: 'Bearer xyz',
+      });
+      const output = infoSpy.mock.calls[0][0] as string;
+      expect(output).not.toContain('+972501234567');
+      expect(output).not.toContain('abcdef123456');
+      expect(output).not.toContain('hunter2pass');
+      expect(output).not.toContain('Bearer xyz');
+    });
+
+    it('masks an email inside a NON-sensitive key, keeping the domain', () => {
+      logger.info('note', { note: 'reach me at john.doe@example.com please' });
+      const output = infoSpy.mock.calls[0][0] as string;
+      expect(output).not.toContain('john.doe@example.com');
+      expect(output).toContain('@example.com');
+    });
+
+    it('masks a phone number inside a NON-sensitive key, keeping last 2 digits', () => {
+      logger.info('note', { note: 'call 0501234567 now' });
+      const output = infoSpy.mock.calls[0][0] as string;
+      expect(output).not.toContain('0501234567');
+      expect(output).toContain('***67');
+    });
+
+    it('masks PII embedded in the log message itself', () => {
+      logger.warn('OTP sent to 0521112233');
+      const output = warnSpy.mock.calls[0][0] as string;
+      expect(output).not.toContain('0521112233');
+    });
+
+    it('does NOT mangle UUIDs (no false phone match across hyphens)', () => {
+      const uuid = '550e8400-e29b-41d4-a716-446655440000';
+      logger.info('lookup', { participantId: uuid });
+      const output = infoSpy.mock.calls[0][0] as string;
+      expect(output).toContain(uuid);
+    });
+
+    it('preserves short non-sensitive values and ids', () => {
+      logger.info('ctx', { status: 200, route: '/api/secure/likes', requestId: 'a1b2c3d4' });
+      const output = infoSpy.mock.calls[0][0] as string;
+      expect(output).toContain('200');
+      expect(output).toContain('/api/secure/likes');
+      expect(output).toContain('a1b2c3d4');
+    });
+  });
 });

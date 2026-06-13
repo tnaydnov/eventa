@@ -13,6 +13,8 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 29, resetMs: 60000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 29, resetMs: 60000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
     standard: { maxRequests: 30, windowMs: 60000 },
@@ -61,6 +63,7 @@ vi.mock('@/lib/logger', () => ({
 import { POST, PATCH } from '@/app/api/secure/messages/route';
 import { secureGuard } from '@/lib/route-helpers';
 import { isValidUUID } from '@/lib/session';
+import { createQueryMock } from '../../helpers/supabase-mock';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -82,14 +85,10 @@ describe('POST /api/secure/messages', () => {
 
   it('returns 403 when sender is not in conversation', async () => {
     // Conversation lookup - user NOT a participant
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { a_participant_id: 'other1', b_participant_id: 'other2' },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { a_participant_id: 'other1', b_participant_id: 'other2' },
+      error: null,
+    }));
 
     const req = new NextRequest('http://localhost/api/secure/messages', {
       method: 'POST',
@@ -106,20 +105,12 @@ describe('POST /api/secure/messages', () => {
 
   it('returns 403 when blocked', async () => {
     // Conversation lookup - user IS a participant
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { a_participant_id: 'p1', b_participant_id: 'p2' },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { a_participant_id: 'p1', b_participant_id: 'p2' },
+      error: null,
+    }));
     // Block check - blocked
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      or: vi.fn().mockResolvedValue({ count: 1, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null, count: 1 }));
 
     const req = new NextRequest('http://localhost/api/secure/messages', {
       method: 'POST',
@@ -136,20 +127,12 @@ describe('POST /api/secure/messages', () => {
 
   it('returns 400 for empty text message', async () => {
     // Conversation lookup
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { a_participant_id: 'p1', b_participant_id: 'p2' },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { a_participant_id: 'p1', b_participant_id: 'p2' },
+      error: null,
+    }));
     // Block check - not blocked
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      or: vi.fn().mockResolvedValue({ count: 0, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null, count: 0 }));
 
     const req = new NextRequest('http://localhost/api/secure/messages', {
       method: 'POST',
@@ -166,38 +149,21 @@ describe('POST /api/secure/messages', () => {
 
   it('sends message successfully', async () => {
     // Conversation lookup
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { a_participant_id: 'p1', b_participant_id: 'p2' },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { a_participant_id: 'p1', b_participant_id: 'p2' },
+      error: null,
+    }));
     // Block check - not blocked
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      or: vi.fn().mockResolvedValue({ count: 0, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null, count: 0 }));
     // Conversation timestamp update
-    mockFrom.mockReturnValueOnce({
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
     // Message insert
-    mockFrom.mockReturnValueOnce({
-      insert: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { id: 'msg1', text: 'Hello', type: 'text', sender_participant_id: 'p1' },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { id: 'msg1', text: 'Hello', type: 'text', sender_participant_id: 'p1' },
+      error: null,
+    }));
     // Activity log + notification (fire-and-forget)
-    mockFrom.mockReturnValue({
-      insert: vi.fn().mockResolvedValue({ error: null }),
-    });
+    mockFrom.mockReturnValue(createQueryMock({ data: null, error: null }));
 
     const req = new NextRequest('http://localhost/api/secure/messages', {
       method: 'POST',
@@ -215,35 +181,20 @@ describe('POST /api/secure/messages', () => {
   it('I-MSG-04: text is sanitized (XSS stripped)', async () => {
     const { sanitizeWithLimit } = await import('@/lib/sanitize');
     // Conversation lookup
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { a_participant_id: 'p1', b_participant_id: 'p2' },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { a_participant_id: 'p1', b_participant_id: 'p2' },
+      error: null,
+    }));
     // Block check
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      or: vi.fn().mockResolvedValue({ count: 0, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null, count: 0 }));
     // Conversation timestamp update
-    mockFrom.mockReturnValueOnce({
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
     // Message insert
-    mockFrom.mockReturnValueOnce({
-      insert: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { id: 'msg1', text: 'safe', type: 'text', sender_participant_id: 'p1' },
-        error: null,
-      }),
-    });
-    mockFrom.mockReturnValue({ insert: vi.fn().mockResolvedValue({ error: null }) });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { id: 'msg1', text: 'safe', type: 'text', sender_participant_id: 'p1' },
+      error: null,
+    }));
+    mockFrom.mockReturnValue(createQueryMock({ data: null, error: null }));
 
     const req = new NextRequest('http://localhost/api/secure/messages', {
       method: 'POST',
@@ -261,14 +212,7 @@ describe('POST /api/secure/messages', () => {
 
   it('I-MSG-09: conversation does not exist → 403', async () => {
     // Conversation lookup returns null data (no matching row)
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: null,
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
 
     const req = new NextRequest('http://localhost/api/secure/messages', {
       method: 'POST',
@@ -316,14 +260,10 @@ describe('PATCH /api/secure/messages (soft delete)', () => {
 
   it('returns 403 when trying to delete someone elses message', async () => {
     vi.mocked(isValidUUID).mockReturnValue(true);
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { sender_participant_id: 'other-person' },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { sender_participant_id: 'other-person' },
+      error: null,
+    }));
 
     const req = new NextRequest('http://localhost/api/secure/messages', {
       method: 'PATCH',
@@ -337,19 +277,12 @@ describe('PATCH /api/secure/messages (soft delete)', () => {
   it('soft deletes own message', async () => {
     vi.mocked(isValidUUID).mockReturnValue(true);
     // Message lookup - sender matches
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { sender_participant_id: 'p1' },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { sender_participant_id: 'p1' },
+      error: null,
+    }));
     // Soft delete update
-    mockFrom.mockReturnValueOnce({
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
 
     const req = new NextRequest('http://localhost/api/secure/messages', {
       method: 'PATCH',

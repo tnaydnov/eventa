@@ -13,6 +13,8 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 29, resetMs: 60000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 29, resetMs: 60000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
     standard: { maxRequests: 30, windowMs: 60000 },
@@ -46,6 +48,7 @@ vi.mock('@/lib/logger', () => ({
 
 import { secureGuard } from '@/lib/route-helpers';
 import { isValidUUID } from '@/lib/session';
+import { createQueryMock } from '../../helpers/supabase-mock';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -89,11 +92,7 @@ describe('POST /api/secure/likes', () => {
   it('returns 403 when blocked', async () => {
     vi.mocked(isValidUUID).mockReturnValue(true);
     // Block check - blocked
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      or: vi.fn().mockResolvedValue({ count: 1, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null, count: 1 }));
 
     const req = new NextRequest('http://localhost/api/secure/likes', {
       method: 'POST',
@@ -107,30 +106,16 @@ describe('POST /api/secure/likes', () => {
   it('creates like and checks for match', async () => {
     vi.mocked(isValidUUID).mockReturnValue(true);
     // Block check - not blocked
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      or: vi.fn().mockResolvedValue({ count: 0, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null, count: 0 }));
     // Like insert
-    mockFrom.mockReturnValueOnce({
-      insert: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { id: 'like1', from_participant_id: 'p1', to_participant_id: 'p2', created_at: '2025-01-01' },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { id: 'like1', from_participant_id: 'p1', to_participant_id: 'p2', created_at: '2025-01-01' },
+      error: null,
+    }));
     // Reciprocal check - it's a match!
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'like2' }, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: { id: 'like2' }, error: null }));
     // Activity log + notifications (fire-and-forget)
-    mockFrom.mockReturnValue({
-      insert: vi.fn().mockResolvedValue({ error: null }),
-    });
+    mockFrom.mockReturnValue(createQueryMock({ data: null, error: null }));
 
     const req = new NextRequest('http://localhost/api/secure/likes', {
       method: 'POST',
@@ -146,35 +131,19 @@ describe('POST /api/secure/likes', () => {
   it('handles duplicate like (23505 code) gracefully', async () => {
     vi.mocked(isValidUUID).mockReturnValue(true);
     // Block check - not blocked
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      or: vi.fn().mockResolvedValue({ count: 0, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null, count: 0 }));
     // Like insert - unique constraint violation
-    mockFrom.mockReturnValueOnce({
-      insert: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: null,
-        error: { code: '23505', message: 'duplicate key' },
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: null,
+      error: { code: '23505', message: 'duplicate key' },
+    }));
     // Fetch existing like
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { id: 'like1', event_id: 'e1', from_participant_id: 'p1', to_participant_id: 'p2', created_at: '2025-01-01', seen_at: null },
-        error: null,
-      }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({
+      data: { id: 'like1', event_id: 'e1', from_participant_id: 'p1', to_participant_id: 'p2', created_at: '2025-01-01', seen_at: null },
+      error: null,
+    }));
     // Reciprocal check
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: null, error: null }));
 
     const req = new NextRequest('http://localhost/api/secure/likes', {
       method: 'POST',

@@ -1,9 +1,9 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
 import { signSessionToken, sessionCookieHeader, checkCsrf } from '@/lib/session';
-import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { joinEventSchema } from '@/lib/validations';
-import { jsonError } from '@/lib/route-helpers';
+import { jsonError, getSessionEpoch } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 
 // Fingerprint format: hex string or UUID-like, max 64 chars
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   }
 
   const ip = getClientIp(req.headers);
-  const rl = checkRateLimit(`join:${ip}`, RATE_LIMITS.auth);
+  const rl = await checkRateLimitAsync(`join:${ip}`, RATE_LIMITS.auth);
   if (!rl.allowed) {
     return jsonError('Too many requests', 429);
   }
@@ -224,12 +224,16 @@ export async function POST(req: NextRequest) {
       return jsonError('Failed to resolve participant', 500);
     }
 
-    // Sign session JWT and set as httpOnly cookie
+    // Sign session JWT and set as httpOnly cookie.
+    // Embed the participant's current session epoch so the token can be revoked
+    // later (logout-everywhere / post-ban) by bumping the epoch (migration 039).
+    const sessionEpoch = await getSessionEpoch(participantId);
     const token = signSessionToken({
       participantId,
       eventId: event.id,
       eventSlug,
       eventName: event.name,
+      sessionEpoch,
     });
 
     const response = NextResponse.json({

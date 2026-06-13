@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
-import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { escapeHtml } from '@/lib/email-templates';
 import { createClearingSession, isConfigured } from '@/lib/invoice4u';
@@ -18,7 +18,7 @@ const PAYMENT_PROVIDER_LIVE = process.env.PAYMENT_PROVIDER_LIVE === 'true';
  */
 export async function GET(req: NextRequest) {
   const ip = getClientIp(req.headers);
-  const rl = checkRateLimit(`payment-checkout:${ip}`, RATE_LIMITS.standard);
+  const rl = await checkRateLimitAsync(`payment-checkout:${ip}`, RATE_LIMITS.standard);
   if (!rl.allowed) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }

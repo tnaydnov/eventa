@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { getServiceClient } from '@/lib/supabase';
 import { buildAdminContactOnlyNotification, escapeHtml } from '@/lib/email-templates';
@@ -14,7 +14,7 @@ import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
  */
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request.headers);
-  const rl = checkRateLimit(`contact-me:${ip}`, RATE_LIMITS.standard);
+  const rl = await checkRateLimitAsync(`contact-me:${ip}`, RATE_LIMITS.standard);
   if (!rl.allowed) {
     return new NextResponse('Too many requests', { status: 429 });
   }

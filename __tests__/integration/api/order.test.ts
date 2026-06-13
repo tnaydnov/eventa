@@ -7,6 +7,8 @@ import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 4, resetMs: 60000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 4, resetMs: 60000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
     strict: { maxRequests: 5, windowMs: 60000 },
@@ -46,7 +48,7 @@ vi.mock('nodemailer', () => ({
 
 import { POST } from '@/app/api/order/route';
 import { checkCsrf } from '@/lib/session';
-import { checkRateLimit } from '@/lib/rate-limit';
+import { checkRateLimit, checkRateLimitAsync } from '@/lib/rate-limit';
 
 function makeReq(body: Record<string, unknown>) {
   return new NextRequest('http://localhost/api/order', {
@@ -68,6 +70,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(checkCsrf).mockReturnValue(true);
   vi.mocked(checkRateLimit).mockReturnValue({ allowed: true, remaining: 4, resetMs: 60000 });
+  vi.mocked(checkRateLimitAsync).mockResolvedValue({ allowed: true, remaining: 4, resetMs: 60000 });
   mockSendMail.mockResolvedValue({ messageId: '123' });
 });
 
@@ -80,6 +83,7 @@ describe('POST /api/order', () => {
 
   it('returns 429 when rate limited', async () => {
     vi.mocked(checkRateLimit).mockReturnValue({ allowed: false, remaining: 0, resetMs: 5000 });
+    vi.mocked(checkRateLimitAsync).mockResolvedValue({ allowed: false, remaining: 0, resetMs: 5000 });
     const res = await POST(makeReq(validOrder));
     expect(res.status).toBe(429);
   });
@@ -99,7 +103,9 @@ describe('POST /api/order', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.success).toBe(true);
-    expect(mockSendMail).toHaveBeenCalledOnce();
+    // Simple order with a contact email sends BOTH an admin notification and a
+    // client confirmation email.
+    expect(mockSendMail).toHaveBeenCalledTimes(2);
   });
 
   it('accepts order without email', async () => {
@@ -108,10 +114,12 @@ describe('POST /api/order', () => {
     expect(res.status).toBe(200);
   });
 
-  it('returns 500 when email sending fails', async () => {
+  it('still returns 200 when email sending fails (email is non-blocking)', async () => {
+    // Email delivery is best-effort and wrapped in try/catch so a transient SMTP
+    // failure never loses the order — the request still succeeds.
     mockSendMail.mockRejectedValue(new Error('SMTP error'));
     const res = await POST(makeReq(validOrder));
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(200);
   });
 
   it('escapes HTML in email template', async () => {

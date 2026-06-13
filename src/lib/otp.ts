@@ -29,6 +29,19 @@ export function generateOtpCode(length: number = OTP_LENGTH): string {
 }
 
 /**
+ * Hash an OTP code for storage / comparison (SECURITY_HARDENING_PLAN §5.3/§8.3).
+ *
+ * Codes are stored as a SHA-256 hash (hex, 64 chars) rather than plaintext, so a DB/
+ * service-role leak does not expose live verification codes. A server-side `OTP_PEPPER`
+ * (set once, never rotated mid-flight) is mixed in so the hash can't be brute-forced from
+ * the DB alone — a 6-digit space is otherwise trivially reversible.
+ */
+function hashOtpCode(code: string): string {
+  const pepper = process.env.OTP_PEPPER || '';
+  return crypto.createHash('sha256').update(`${code}${pepper}`).digest('hex');
+}
+
+/**
  * Create and store a new OTP for a phone + event.
  * Invalidates any existing unused OTPs for the same phone + event.
  *
@@ -69,14 +82,15 @@ export async function createOtp(
     .eq('event_id', eventId)
     .eq('is_used', false);
 
-  // Generate and store new OTP
+  // Generate and store new OTP. The plaintext code is returned to the caller (to send
+  // via SMS) but only its SHA-256+pepper hash is persisted (never the raw code).
   const code = generateOtpCode();
   const expiresAt = new Date(Date.now() + OTP_EXPIRY_S * 1000).toISOString();
 
   const { error } = await supabase.from('otp_verifications').insert({
     phone,
     event_id: eventId,
-    code,
+    code: hashOtpCode(code),
     attempts: 0,
     is_used: false,
     expires_at: expiresAt,
@@ -151,9 +165,14 @@ export async function verifyOtp(
     .update({ attempts: otp.attempts + 1 })
     .eq('id', otp.id);
 
-  // Timing-safe comparison to prevent timing attacks
-  const padLength = Math.max(code.length, otp.code.length, 10);
-  const codeBuffer = Buffer.from(code.padEnd(padLength, '\0'));
+  // Timing-safe comparison to prevent timing attacks.
+  // Stored value is a SHA-256 hex hash (64 chars) for codes created after the hashing
+  // rollout; any older row (≤5 min TTL) may still hold a plaintext code. Detect by length
+  // so the transition needs no migration and never rejects a valid in-flight code.
+  const storedIsHash = otp.code.length === 64;
+  const candidate = storedIsHash ? hashOtpCode(code) : code;
+  const padLength = Math.max(candidate.length, otp.code.length, 10);
+  const codeBuffer = Buffer.from(candidate.padEnd(padLength, '\0'));
   const otpBuffer = Buffer.from(otp.code.padEnd(padLength, '\0'));
 
   if (

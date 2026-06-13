@@ -4,6 +4,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
+import { withCronHeartbeat } from '@/lib/cron-heartbeat';
 import { APP_BASE_URL, MSG_TIMING } from '@/lib/config';
 import {
   buildClientUploadReminder7DayEmail,
@@ -242,4 +243,5 @@ async function handler(req: NextRequest) {
 }
 
 // Vercel Cron sends GET requests - expose both methods
-export { handler as GET, handler as POST };
+const cronHandler = withCronHeartbeat('upload-reminders', handler);
+export { cronHandler as GET, cronHandler as POST };

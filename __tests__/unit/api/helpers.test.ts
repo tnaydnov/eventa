@@ -21,6 +21,7 @@ vi.mock('@/lib/supabase', () => ({
 
 import { getPhotoUrl, invalidateBlockedCache, getBlockedIds, buildParticipantPhotoMaps } from '@/lib/api/helpers';
 import { supabase } from '@/lib/supabase';
+import { createQueryMock } from '../../helpers/supabase-mock';
 
 const mockFrom = supabase.from as ReturnType<typeof vi.fn>;
 
@@ -141,16 +142,10 @@ describe('buildParticipantPhotoMaps', () => {
     const mockParticipant = { id: 'p1', display_name: 'User1', gender: 'male' };
     const mockPhoto = { id: 'ph1', participant_id: 'p1', storage_path: 'x.jpg', order_index: 0 };
 
-    const mockChain = {
-      select: vi.fn().mockReturnThis(),
-      in: vi.fn().mockReturnThis(),
-      order: vi.fn().mockResolvedValue({ data: [mockPhoto], error: null }),
-    };
-    // For participants query (no .order)
-    const mockParticipantChain = {
-      select: vi.fn().mockReturnThis(),
-      in: vi.fn().mockResolvedValue({ data: [mockParticipant], error: null }),
-    };
+    // Use the shared chainable builder so any filter chained after .in()
+    // (e.g. the soft-delete .is('deleted_at', null) guard) is supported.
+    const mockChain = createQueryMock({ data: [mockPhoto], error: null });
+    const mockParticipantChain = createQueryMock({ data: [mockParticipant], error: null });
 
     let callCount = 0;
     mockFrom.mockImplementation(() => {

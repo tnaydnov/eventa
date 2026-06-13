@@ -3,7 +3,7 @@ import { adminAuditLog } from '@/lib/admin-auth';
 import { isValidUUID } from '@/lib/session';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
-import { evictBanCache } from '@/lib/route-helpers';
+import { evictBanCache, bumpSessionEpoch } from '@/lib/route-helpers';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
 import { logger } from '@/lib/logger';
 
@@ -116,6 +116,13 @@ export async function PATCH(
 
     // Immediately evict the ban cache so subsequent API calls reflect the change
     evictBanCache(participantId);
+
+    // On ban, revoke all active sessions for this participant (logout-everywhere).
+    // Belt-and-suspenders on top of the ban gate: it also keeps pre-ban tokens dead
+    // after a later unban. Non-blocking and fully guarded — never fails the ban.
+    if (is_banned) {
+      void bumpSessionEpoch(participantId);
+    }
 
     adminAuditLog(is_banned ? 'PARTICIPANT_BAN' : 'PARTICIPANT_UNBAN', { eventId, participantId }, req);
 

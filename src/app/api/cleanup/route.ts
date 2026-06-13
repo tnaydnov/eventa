@@ -6,6 +6,7 @@ import { RETENTION_DAYS, STORAGE_BATCH_SIZE } from '@/lib/constants';
 import { jsonError } from '@/lib/route-helpers';
 import { computeEventAnalytics } from '@/lib/compute-event-analytics';
 import { logger } from '@/lib/logger';
+import { withCronHeartbeat } from '@/lib/cron-heartbeat';
 import { cleanupExpiredOtps } from '@/lib/otp';
 
 /**
@@ -291,4 +292,5 @@ async function handler(req: NextRequest) {
 }
 
 // Vercel Cron sends GET requests - expose both methods
-export { handler as GET, handler as POST };
+const cronHandler = withCronHeartbeat('cleanup', handler);
+export { cronHandler as GET, cronHandler as POST };

@@ -5,6 +5,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
+// The create route defers email via next/server `after()`, which throws outside
+// a real request context. Keep the real exports but no-op `after`.
+vi.mock('next/server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/server')>();
+  return { ...actual, after: (fn: () => unknown) => { void fn; } };
+});
+
 const mockFrom = vi.fn();
 
 vi.mock('@/lib/supabase', () => ({
@@ -14,6 +21,8 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 29, resetMs: 60000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 29, resetMs: 60000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
     standard: { maxRequests: 30, windowMs: 60000 },
@@ -32,6 +41,8 @@ vi.mock('@/lib/session', () => ({
 }));
 
 vi.mock('@/lib/route-helpers', () => ({
+  // adminGuard imports verifyCronAuth; default false = no cron auth (tests authenticate via admin cookie).
+  verifyCronAuth: vi.fn().mockReturnValue(false),
   jsonError: vi.fn((message: string, status: number) =>
     new Response(JSON.stringify({ error: message }), {
       status,

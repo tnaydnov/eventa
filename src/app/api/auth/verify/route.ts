@@ -1,6 +1,6 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest, clearSessionCookieHeader, checkCsrf } from '@/lib/session';
-import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
@@ -13,7 +13,7 @@ import { logger } from '@/lib/logger';
  */
 export async function GET(req: NextRequest) {
   const ip = getClientIp(req.headers);
-  const rl = checkRateLimit(`verify:${ip}`, RATE_LIMITS.standard);
+  const rl = await checkRateLimitAsync(`verify:${ip}`, RATE_LIMITS.standard);
   if (!rl.allowed) {
     return jsonError('Too many requests', 429);
   }
@@ -108,7 +108,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   const ip = getClientIp(req.headers);
-  const rl = checkRateLimit(`logout:${ip}`, RATE_LIMITS.standard);
+  const rl = await checkRateLimitAsync(`logout:${ip}`, RATE_LIMITS.standard);
   if (!rl.allowed) {
     return jsonError('Too many requests', 429);
   }

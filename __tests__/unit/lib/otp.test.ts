@@ -282,3 +282,81 @@ describe('cleanupExpiredOtps', () => {
     expect(result).toBe(0);
   });
 });
+
+// ─── OTP hashing at rest (§5.3/§8.3) ────────────────────
+import crypto from 'crypto';
+
+function sha256(input: string) {
+  return crypto.createHash('sha256').update(input).digest('hex');
+}
+
+describe('OTP hashing at rest', () => {
+  const phone = '+972501234567';
+  const eventId = '123e4567-e89b-12d3-a456-426614174000';
+
+  beforeEach(() => { delete process.env.OTP_PEPPER; });
+
+  function captureCreateInsert() {
+    const captured: { payload?: Record<string, unknown> } = {};
+    let callCount = 0;
+    mockFrom.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        // cooldown check → no recent OTP
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ gte: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ limit: vi.fn().mockReturnValue({ maybeSingle: vi.fn().mockResolvedValue({ data: null }) }) }) }) }) }) }) };
+      }
+      if (callCount === 2) {
+        // invalidate previous
+        return { update: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) }) }) }) };
+      }
+      // insert — capture
+      return { insert: vi.fn((payload: Record<string, unknown>) => { captured.payload = payload; return Promise.resolve({ error: null }); }) };
+    });
+    return captured;
+  }
+
+  it('stores a 64-char SHA-256 hash, never the plaintext code', async () => {
+    const captured = captureCreateInsert();
+    const result = await createOtp(phone, eventId);
+    const code = (result as { code: string }).code;
+    const stored = captured.payload!.code as string;
+    expect(stored).toHaveLength(64);
+    expect(stored).not.toBe(code);
+    expect(stored).toBe(sha256(code));
+  });
+
+  it('mixes in OTP_PEPPER when configured', async () => {
+    process.env.OTP_PEPPER = 'super-pepper';
+    const captured = captureCreateInsert();
+    const result = await createOtp(phone, eventId);
+    const code = (result as { code: string }).code;
+    expect(captured.payload!.code).toBe(sha256(`${code}super-pepper`));
+  });
+
+  it('verifies a correct code against a stored hash', async () => {
+    const code = '654321';
+    const otpRecord = { id: 'o1', code: sha256(code), attempts: 0, expires_at: new Date(Date.now() + 60000).toISOString() };
+    let callCount = 0;
+    mockFrom.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnThis(), gt: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis(), limit: vi.fn().mockReturnThis(), maybeSingle: vi.fn().mockResolvedValue({ data: otpRecord, error: null }) }) };
+      }
+      return { update: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) }) };
+    });
+    expect(await verifyOtp(phone, eventId, code)).toEqual({ valid: true });
+  });
+
+  it('rejects a wrong code against a stored hash', async () => {
+    const otpRecord = { id: 'o1', code: sha256('111111'), attempts: 0, expires_at: new Date(Date.now() + 60000).toISOString() };
+    let callCount = 0;
+    mockFrom.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnThis(), gt: vi.fn().mockReturnThis(), order: vi.fn().mockReturnThis(), limit: vi.fn().mockReturnThis(), maybeSingle: vi.fn().mockResolvedValue({ data: otpRecord, error: null }) }) };
+      }
+      return { update: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) }) };
+    });
+    expect((await verifyOtp(phone, eventId, '222222')).valid).toBe(false);
+  });
+});

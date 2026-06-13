@@ -26,6 +26,9 @@ let mockLikedIds = new Set<string>();
 let mockLikedIdsLoaded = true;
 const mockDismiss = vi.fn((id: string) => { mockDismissedIds.add(id); });
 const mockAddLiked = vi.fn();
+const mockRemoveLiked = vi.fn();
+const mockStartPendingLike = vi.fn();
+const mockFinishPendingLike = vi.fn();
 const mockSetLikedIds = vi.fn();
 const mockResetPool = vi.fn();
 const mockShowToast = vi.fn();
@@ -34,16 +37,29 @@ const mockSetPendingMatch = vi.fn();
 vi.mock('@/lib/store', () => ({
   useSessionStore: (sel: (s: Record<string, unknown>) => unknown) =>
     sel({ session: mockSession }),
-  useSwipeStore: (sel: (s: Record<string, unknown>) => unknown) =>
-    sel({
-      dismissedIds: mockDismissedIds,
-      likedIds: mockLikedIds,
-      likedIdsLoaded: mockLikedIdsLoaded,
-      dismiss: mockDismiss,
-      addLiked: mockAddLiked,
-      setLikedIds: mockSetLikedIds,
-      resetPool: mockResetPool,
-    }),
+  useSwipeStore: Object.assign(
+    (sel: (s: Record<string, unknown>) => unknown) =>
+      sel({
+        dismissedIds: mockDismissedIds,
+        likedIds: mockLikedIds,
+        likedIdsLoaded: mockLikedIdsLoaded,
+        dismiss: mockDismiss,
+        addLiked: mockAddLiked,
+        removeLiked: mockRemoveLiked,
+        startPendingLike: mockStartPendingLike,
+        finishPendingLike: mockFinishPendingLike,
+        setLikedIds: mockSetLikedIds,
+        resetPool: mockResetPool,
+      }),
+    {
+      // SwipeView guards double-likes via useSwipeStore.getState().isPendingLike(id).
+      getState: () => ({
+        isPendingLike: () => false,
+        startPendingLike: mockStartPendingLike,
+        finishPendingLike: mockFinishPendingLike,
+      }),
+    },
+  ),
   useToastStore: (sel: (s: Record<string, unknown>) => unknown) =>
     sel({ show: mockShowToast }),
   useMatchStore: Object.assign(

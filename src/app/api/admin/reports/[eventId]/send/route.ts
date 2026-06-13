@@ -35,7 +35,7 @@ export async function POST(
 
   const { data: event, error: eventErr } = await supabase
     .from('events')
-    .select('id, name, client_email, send_report_email')
+    .select('id, name, client_email, client_name, send_report_email, ends_at')
     .eq('id', eventId)
     .maybeSingle();
 
@@ -57,27 +57,15 @@ export async function POST(
     return jsonError(reportResult.error ?? 'Failed to generate report', 500);
   }
 
-  const { data: tokenRow, error: tokenErr } = await supabase
-    .from('client_portal_tokens')
-    .select('token')
-    .eq('event_id', eventId)
-    .eq('is_active', true)
-    .limit(1)
-    .maybeSingle();
-
-  if (tokenErr) {
-    logger.error('[ADMIN_REPORTS_SEND] token fetch error:', tokenErr.message);
-    return jsonError('Server error', 500);
-  }
-  if (!tokenRow?.token) return jsonError('No active portal token for event', 409);
-
+  // The report is fully self-contained in the attached PDF — no portal token needed.
   const sent = await sendReportEmail({
     to,
     eventName: event.name as string,
     eventId,
-    portalToken: tokenRow.token as string,
     payload: reportResult.payload,
     aiSummary: reportResult.ai_summary,
+    clientName: (event.client_name as string) ?? null,
+    eventDate: (event.ends_at as string) ?? null,
   });
 
   if (!sent) return jsonError('Failed to send report email', 500);

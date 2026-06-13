@@ -9,15 +9,25 @@ vi.stubGlobal('fetch', mockFetch);
 
 import OrderForm from '@/app/_components/OrderForm';
 
+/**
+ * OrderForm is a simplified lead-capture form: name, phone, optional email.
+ * (The earlier event-type/date version was replaced by the multi-step wizard;
+ * this landing-page form only collects contact details and POSTs to /api/order.)
+ */
 describe('OrderForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('U-DAT-02: renders all form fields', () => {
+  /** Fill the three lead fields. */
+  async function fillLeadFields(user: ReturnType<typeof userEvent.setup>) {
+    await user.type(screen.getByPlaceholderText('השם שלכם'), 'Test User');
+    await user.type(screen.getByPlaceholderText('050-0000000'), '0501234567');
+    await user.type(screen.getByPlaceholderText('you@example.com'), 'test@example.com');
+  }
+
+  it('U-DAT-02: renders all lead form fields', () => {
     render(<OrderForm />);
-    expect(screen.getByText('סוג האירוע *')).toBeInTheDocument();
-    expect(screen.getByText('תאריך האירוע *')).toBeInTheDocument();
     expect(screen.getByText('שם מלא *')).toBeInTheDocument();
     expect(screen.getByText('טלפון *')).toBeInTheDocument();
     expect(screen.getByText('אימייל')).toBeInTheDocument();
@@ -29,25 +39,21 @@ describe('OrderForm', () => {
     const user = userEvent.setup();
     const { container } = render(<OrderForm />);
 
-    // Fill event type
-    await user.selectOptions(screen.getByRole('combobox'), 'wedding');
-    // Fill date
-    const dateInput = container.querySelector('input[type="date"]')!;
-    fireEvent.change(dateInput, { target: { value: '2026-06-15' } });
-    // Fill name
-    await user.type(screen.getByPlaceholderText('השם שלכם'), 'Test User');
-    // Fill phone
-    await user.type(screen.getByPlaceholderText('050-0000000'), '0501234567');
-
-    // Submit form
-    const form = container.querySelector('form')!;
-    fireEvent.submit(form);
+    await fillLeadFields(user);
+    fireEvent.submit(container.querySelector('form')!);
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/order', expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       }));
+    });
+    // Body carries the contact fields
+    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(body).toMatchObject({
+      contactName: 'Test User',
+      contactPhone: '0501234567',
+      contactEmail: 'test@example.com',
     });
   });
 
@@ -56,12 +62,7 @@ describe('OrderForm', () => {
     const user = userEvent.setup();
     const { container } = render(<OrderForm />);
 
-    // Fill required fields
-    await user.selectOptions(screen.getByRole('combobox'), 'wedding');
-    fireEvent.change(container.querySelector('input[type="date"]')!, { target: { value: '2026-06-15' } });
-    await user.type(screen.getByPlaceholderText('השם שלכם'), 'Test User');
-    await user.type(screen.getByPlaceholderText('050-0000000'), '0501234567');
-
+    await fillLeadFields(user);
     fireEvent.submit(container.querySelector('form')!);
 
     await waitFor(() => {
@@ -74,12 +75,7 @@ describe('OrderForm', () => {
     const user = userEvent.setup();
     const { container } = render(<OrderForm />);
 
-    // Fill required fields
-    await user.selectOptions(screen.getByRole('combobox'), 'wedding');
-    fireEvent.change(container.querySelector('input[type="date"]')!, { target: { value: '2026-06-15' } });
-    await user.type(screen.getByPlaceholderText('השם שלכם'), 'Test User');
-    await user.type(screen.getByPlaceholderText('050-0000000'), '0501234567');
-
+    await fillLeadFields(user);
     fireEvent.submit(container.querySelector('form')!);
 
     await waitFor(() => {
@@ -92,12 +88,7 @@ describe('OrderForm', () => {
     const user = userEvent.setup();
     const { container } = render(<OrderForm />);
 
-    // Fill required fields
-    await user.selectOptions(screen.getByRole('combobox'), 'wedding');
-    fireEvent.change(container.querySelector('input[type="date"]')!, { target: { value: '2026-06-15' } });
-    await user.type(screen.getByPlaceholderText('השם שלכם'), 'Test User');
-    await user.type(screen.getByPlaceholderText('050-0000000'), '0501234567');
-
+    await fillLeadFields(user);
     fireEvent.submit(container.querySelector('form')!);
 
     await waitFor(() => {
@@ -105,13 +96,24 @@ describe('OrderForm', () => {
     });
   });
 
-  it('event type select has all options', () => {
-    render(<OrderForm />);
-    const select = screen.getByRole('combobox');
-    expect(select).toBeInTheDocument();
-    expect(screen.getByText('חתונה')).toBeInTheDocument();
-    expect(screen.getByText('מסיבה')).toBeInTheDocument();
-    expect(screen.getByText('מיטאפ')).toBeInTheDocument();
-    expect(screen.getByText('אחר')).toBeInTheDocument();
+  it('disables the submit button while sending', async () => {
+    // Keep the request pending so we can observe the in-flight state.
+    let resolveFetch: (v: { ok: boolean }) => void;
+    mockFetch.mockReturnValueOnce(new Promise((r) => { resolveFetch = r; }));
+    const user = userEvent.setup();
+    const { container } = render(<OrderForm />);
+
+    await fillLeadFields(user);
+    fireEvent.submit(container.querySelector('form')!);
+
+    await waitFor(() => {
+      expect(screen.getByText('שולח...')).toBeInTheDocument();
+    });
+    expect(screen.getByRole('button')).toBeDisabled();
+
+    resolveFetch!({ ok: true });
+    await waitFor(() => {
+      expect(screen.getByText(/הפרטים נשלחו בהצלחה/)).toBeInTheDocument();
+    });
   });
 });

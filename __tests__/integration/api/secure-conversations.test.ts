@@ -13,6 +13,8 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 29, resetMs: 60000 }),
+  // Async (distributed) limiter — routes awaiting it resolve allowed by default.
+  checkRateLimitAsync: vi.fn().mockResolvedValue({ allowed: true, remaining: 29, resetMs: 60000 }),
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
   RATE_LIMITS: {
     standard: { maxRequests: 30, windowMs: 60000 },
@@ -46,6 +48,7 @@ vi.mock('@/lib/logger', () => ({
 
 import { secureGuard } from '@/lib/route-helpers';
 import { isValidUUID } from '@/lib/session';
+import { createQueryMock } from '../../helpers/supabase-mock';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -231,17 +234,11 @@ describe('POST /api/secure/conversations/read', () => {
   it('marks conversation as read successfully', async () => {
     vi.mocked(isValidUUID).mockReturnValue(true);
     // a_participant update matches
-    mockFrom.mockReturnValueOnce({
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      select: vi.fn().mockResolvedValue({ data: [{ id: 'conv1' }], error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: [{ id: 'conv1' }], error: null }));
     // b_participant update doesn't match
-    mockFrom.mockReturnValueOnce({
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      select: vi.fn().mockResolvedValue({ data: [], error: null }),
-    });
+    mockFrom.mockReturnValueOnce(createQueryMock({ data: [], error: null }));
+    // Fire-and-forget pending_sms cancel (3rd from() call) + any further calls.
+    mockFrom.mockReturnValue(createQueryMock({ data: null, error: null }));
 
     const req = new NextRequest('http://localhost/api/secure/conversations/read', {
       method: 'POST',

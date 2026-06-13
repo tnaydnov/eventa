@@ -226,10 +226,17 @@ function EventPageContent({
 
   // Load grid (skip if recently fetched - Realtime keeps data fresh)
   useEffect(() => {
-    if (session) {
-      if (Date.now() - _lastGridFetchTime < SWR_STALE_MS) return;
-      loadGrid();
+    if (!session) return;
+    // If data was fetched recently we skip the network call — but we MUST still clear
+    // the loading flag. `loading` is initialised from `participants.length === 0`, so a
+    // remount (e.g. switching tabs back to the grid) with an empty store + a fresh
+    // fetch timestamp would otherwise leave the skeletons stuck on screen until a full
+    // page refresh resets the module-level timer. Clearing it here fixes that.
+    if (Date.now() - _lastGridFetchTime < SWR_STALE_MS) {
+      setLoading(false);
+      return;
     }
+    loadGrid();
   }, [session, eventSlug, loadGrid]);
 
   // Reload grid when user returns from background / switches back to app
