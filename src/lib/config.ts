@@ -86,7 +86,7 @@ export const OTP_RESEND_COOLDOWN_S = parseInt(process.env.OTP_RESEND_COOLDOWN_SE
  * These complement the per-IP rate limit and per-phone cooldown.
  */
 /** Max OTP sends per phone per rolling hour. Generous for legit use, blocks pumping. */
-export const OTP_MAX_PER_PHONE_PER_HOUR = parseInt(process.env.OTP_MAX_PER_PHONE_PER_HOUR || '8', 10);
+export const OTP_MAX_PER_PHONE_PER_HOUR = parseInt(process.env.OTP_MAX_PER_PHONE_PER_HOUR || '20', 10);
 /**
  * Optional GLOBAL cap on OTP sends per rolling 24h across ALL phones - a backstop
  * that bounds the blast radius (and cost) of a mass SMS-pumping attack.

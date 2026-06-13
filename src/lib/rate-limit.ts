@@ -153,15 +153,27 @@ async function checkRateLimitRedis(
     ['ZADD', key, now, member],                // record this request
     ['ZCARD', key],                            // count requests in the window
     ['PEXPIRE', key, config.windowMs],         // auto-expire the key when idle
+    ['ZRANGE', key, 0, 0, 'WITHSCORES'],      // oldest remaining entry (to compute actual reset time)
   ]);
 
   const count = Number(results[2] ?? 0);
   const allowed = count <= config.maxRequests;
+
+  // Compute the ACTUAL remaining ms until the oldest entry exits the window.
+  // This prevents Retry-After from always being the full window duration.
+  let resetMs = 0;
+  if (!allowed) {
+    const rangeResult = results[4] as string[] | null;
+    // ZRANGE WITHSCORES returns [member, score, ...] - score is the timestamp
+    const oldestScore = rangeResult && rangeResult.length >= 2 ? Number(rangeResult[1]) : now;
+    const expiresAt = oldestScore + config.windowMs;
+    resetMs = Math.max(1, expiresAt - now);
+  }
+
   return {
     allowed,
     remaining: Math.max(0, config.maxRequests - count),
-    // Conservative upper bound for Retry-After (full window); avoids an extra round-trip.
-    resetMs: allowed ? 0 : config.windowMs,
+    resetMs,
   };
 }
 
