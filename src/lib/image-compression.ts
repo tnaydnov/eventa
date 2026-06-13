@@ -81,8 +81,10 @@ export async function compressImage(
     const compressed = await imageCompression(file, {
       maxSizeMB: options.maxSizeMB,
       maxWidthOrHeight: options.maxSizePx,
-      // Offload compression to a worker when available to keep UI responsive.
-      useWebWorker: true,
+      // useWebWorker: false — the worker mode dynamically injects a <script> tag
+      // from cdn.jsdelivr.net which violates our CSP (script-src 'self' ...).
+      // Main-thread compression is fast enough for ≤20 MB files.
+      useWebWorker: false,
       initialQuality: 0.92,
     });
 
