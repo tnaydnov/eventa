@@ -153,20 +153,22 @@ async function checkRateLimitRedis(
     ['ZADD', key, now, member],                // record this request
     ['ZCARD', key],                            // count requests in the window
     ['PEXPIRE', key, config.windowMs],         // auto-expire the key when idle
-    ['ZRANGE', key, 0, 0, 'WITHSCORES'],      // oldest remaining entry (to compute actual reset time)
+    ['ZRANGE', key, 0, 0],                     // oldest remaining member (its name encodes the timestamp)
   ]);
 
   const count = Number(results[2] ?? 0);
   const allowed = count <= config.maxRequests;
 
   // Compute the ACTUAL remaining ms until the oldest entry exits the window.
-  // This prevents Retry-After from always being the full window duration.
+  // Member names are `${timestamp}-${random}`, so we can extract the timestamp
+  // without WITHSCORES (avoids compatibility issues with older Redis versions).
   let resetMs = 0;
   if (!allowed) {
     const rangeResult = results[4] as string[] | null;
-    // ZRANGE WITHSCORES returns [member, score, ...] - score is the timestamp
-    const oldestScore = rangeResult && rangeResult.length >= 2 ? Number(rangeResult[1]) : now;
-    const expiresAt = oldestScore + config.windowMs;
+    const firstMember = Array.isArray(rangeResult) ? rangeResult[0] : (rangeResult as unknown as string | null);
+    // member format: "1700000000000-abc123"
+    const oldestScore = firstMember ? Number(String(firstMember).split('-')[0]) : now;
+    const expiresAt = (isNaN(oldestScore) ? now : oldestScore) + config.windowMs;
     resetMs = Math.max(1, expiresAt - now);
   }
 

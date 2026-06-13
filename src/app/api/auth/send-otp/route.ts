@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     });
     if (!phoneRl.allowed) {
       logger.warn('[SEND_OTP] per-phone cap hit', { phone: maskPhone(phone) });
-      const res = NextResponse.json({ error: 'Too many requests for this number' }, { status: 429 });
+      const res = NextResponse.json({ error: 'Too many requests for this number', reason: 'per-phone-cap' }, { status: 429 });
       res.headers.set('Retry-After', String(Math.ceil(phoneRl.resetMs / 1000)));
       return res;
     }
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
     const otpResult = await createOtp(phone, event.id);
     if ('error' in otpResult) {
       logger.warn('[SEND_OTP] OTP cooldown hit', { phone: maskPhone(phone) });
-      const res = NextResponse.json({ error: otpResult.error }, { status: 429 });
+      const res = NextResponse.json({ error: otpResult.error, reason: 'otp-cooldown' }, { status: 429 });
       res.headers.set('Retry-After', String(otpResult.retryAfterS));
       return res;
     }
