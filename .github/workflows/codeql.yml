@@ -37,5 +37,12 @@ jobs:
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v3
+        # The SARIF upload fails until "Code scanning" is enabled in the repo settings
+        # (Settings → Code security and analysis → Code scanning → Set up → Default/Advanced,
+        # or, for private repos, requires GitHub Advanced Security). The analysis itself
+        # still runs and reports to the Security tab once enabled. continue-on-error keeps
+        # this from red-X'ing CI while the feature is being turned on; remove it once
+        # code scanning is enabled if you want upload failures to gate the build.
+        continue-on-error: true
         with:
           category: "/language:javascript-typescript"
