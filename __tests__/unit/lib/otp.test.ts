@@ -81,8 +81,10 @@ describe('createOtp', () => {
         eq: vi.fn().mockReturnValue({
           gte: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              limit: vi.fn().mockReturnValue({
-                maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+              order: vi.fn().mockReturnValue({
+                limit: vi.fn().mockReturnValue({
+                  maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+                }),
               }),
             }),
           }),
@@ -130,9 +132,11 @@ describe('createOtp', () => {
         eq: vi.fn().mockReturnValue({
           gte: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              limit: vi.fn().mockReturnValue({
-                maybeSingle: vi.fn().mockResolvedValue({
-                  data: { id: 'existing-otp-id' },
+              order: vi.fn().mockReturnValue({
+                limit: vi.fn().mockReturnValue({
+                  maybeSingle: vi.fn().mockResolvedValue({
+                    data: { id: 'existing-otp-id', created_at: new Date(Date.now() - 5000).toISOString() },
+                  }),
                 }),
               }),
             }),
@@ -146,7 +150,7 @@ describe('createOtp', () => {
     const result = await createOtp(phone, eventId);
     expect(result).toHaveProperty('error');
     if ('error' in result) {
-      expect(result.error).toContain('45 seconds');
+      expect(result.error).toContain('seconds');
     }
   });
 });
@@ -303,7 +307,7 @@ describe('OTP hashing at rest', () => {
       callCount++;
       if (callCount === 1) {
         // cooldown check → no recent OTP
-        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ gte: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ limit: vi.fn().mockReturnValue({ maybeSingle: vi.fn().mockResolvedValue({ data: null }) }) }) }) }) }) }) };
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ gte: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ order: vi.fn().mockReturnValue({ limit: vi.fn().mockReturnValue({ maybeSingle: vi.fn().mockResolvedValue({ data: null }) }) }) }) }) }) }) }) };
       }
       if (callCount === 2) {
         // invalidate previous
