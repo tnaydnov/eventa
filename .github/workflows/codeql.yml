@@ -15,6 +15,9 @@ on:
 permissions:
   contents: read
   security-events: write
+  # Required by github/codeql-action to read workflow-run metadata when uploading
+  # the SARIF results (otherwise: "Resource not accessible by integration").
+  actions: read
 
 jobs:
   analyze:
