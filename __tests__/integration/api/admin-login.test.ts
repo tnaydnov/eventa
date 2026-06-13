@@ -122,8 +122,8 @@ describe('POST /api/admin/login', () => {
   describe('opt-in TOTP 2FA (ADMIN_TOTP_SECRET set)', () => {
     const SECRET = 'JBSWY3DPEHPK3PXP'; // valid base32 test secret
 
-    beforeEach(() => { process.env.ADMIN_TOTP_SECRET = SECRET; });
-    afterEach(() => { delete process.env.ADMIN_TOTP_SECRET; });
+    beforeEach(() => { process.env.ADMIN_TOTP_ENABLED = 'true'; process.env.ADMIN_TOTP_SECRET = SECRET; });
+    afterEach(() => { delete process.env.ADMIN_TOTP_ENABLED; delete process.env.ADMIN_TOTP_SECRET; });
 
     it('returns 401 + totpRequired when password is correct but code is missing', async () => {
       const res = await LoginPOST(makeReq({ password: 'test-admin-password-secure' }));
