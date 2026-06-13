@@ -19,7 +19,7 @@ interface GridState {
 export const useGridStore = create<GridState>((set) => ({
   participants: [],
   filter: 'all',
-  setParticipants: (participants) => set({ participants }),
+  setParticipants: (participants) => set({ participants: participants.map((p) => ({ ...p, photos: p.photos ?? [] })) }),
   setFilter: (filter) => set({ filter }),
   removeParticipant: (id) =>
     set((s) => ({ participants: s.participants.filter((p) => p.id !== id) })),
@@ -27,13 +27,19 @@ export const useGridStore = create<GridState>((set) => ({
     set((s) => {
       // Avoid duplicates
       if (s.participants.some((existing) => existing.id === p.id)) return s;
-      return { participants: [...s.participants, p] };
+      // Ensure photos is always an array (defensive guard against malformed data)
+      const safe = { ...p, photos: p.photos ?? [] };
+      return { participants: [...s.participants, safe] };
     }),
   updateParticipant: (id, data) =>
     set((s) => ({
-      participants: s.participants.map((p) =>
-        p.id === id ? { ...p, ...data } : p
-      ),
+      participants: s.participants.map((p) => {
+        if (p.id !== id) return p;
+        const merged = { ...p, ...data };
+        // Always ensure photos stays an array
+        if (merged.photos == null) merged.photos = p.photos ?? [];
+        return merged;
+      }),
     })),
   reset: () => set({ participants: [], filter: 'all' }),
 }));

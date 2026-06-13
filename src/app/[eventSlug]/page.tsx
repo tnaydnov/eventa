@@ -89,9 +89,9 @@ const GridCard = memo(function GridCard({
       tabIndex={0}
       aria-label={p.display_name}
     >
-      {p.photos.length > 0 ? (
+      {(p.photos?.length ?? 0) > 0 ? (
         <Image
-          src={getPhotoUrl(p.photos[0].storage_path, { width: 360, height: 480, quality: 75 })}
+          src={getPhotoUrl(p.photos![0].storage_path, { width: 360, height: 480, quality: 75 })}
           alt={p.display_name}
           fill
           sizes="(max-width: 480px) 33vw, 33vw"
@@ -374,7 +374,7 @@ function EventPageContent({
   const preloadUrls = useMemo(
     () => filteredParticipants
       .slice(0, ABOVE_FOLD_PRELOAD_COUNT)
-      .flatMap((p) => (p.photos[0]
+      .flatMap((p) => (p.photos?.[0]
         ? [getPhotoUrl(p.photos[0].storage_path, { width: 360, height: 480, quality: 75 })]
         : [])),
     [filteredParticipants],

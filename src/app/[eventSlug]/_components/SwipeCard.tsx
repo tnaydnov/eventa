@@ -50,7 +50,7 @@ export default function SwipeCard({
 }: SwipeCardProps) {
   const [exiting, setExiting] = useState(false);
   const [photoIndex, setPhotoIndex] = useState(0);
-  const photos = participant.photos;
+  const photos = participant.photos ?? [];
 
   /* ── Drag / motion values ──────────────────────────────────── */
   const x = useMotionValue(0);

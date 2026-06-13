@@ -205,44 +205,42 @@ export default function UserProfilePage({
           tabIndex={0}
           role="region"
           aria-roledescription="קרוסלה"
-          aria-label={`תמונות של ${user.display_name}, ${photoIndex + 1} מתוך ${user.photos.length}`}
+          aria-label={`תמונות של ${user.display_name}, ${photoIndex + 1} מתוך ${(user.photos ?? []).length}`}
           onKeyDown={(e) => {
-            if (user.photos.length <= 1) return;
+            if ((user.photos ?? []).length <= 1) return;
             if (e.key === 'ArrowLeft') {
               e.preventDefault();
-              setPhotoIndex((i) => (i + 1) % user.photos.length);
+              setPhotoIndex((i) => (i + 1) % (user.photos ?? []).length);
             } else if (e.key === 'ArrowRight') {
               e.preventDefault();
-              setPhotoIndex((i) => (i - 1 + user.photos.length) % user.photos.length);
+              setPhotoIndex((i) => (i - 1 + (user.photos ?? []).length) % (user.photos ?? []).length);
             }
           }}
           onTouchStart={(e) => {
             touchStartX.current = e.touches[0].clientX;
           }}
           onTouchEnd={(e) => {
-            if (touchStartX.current === null || user.photos.length <= 1) return;
+            if (touchStartX.current === null || (user.photos ?? []).length <= 1) return;
             const diff = touchStartX.current - e.changedTouches[0].clientX;
             if (Math.abs(diff) > 50) {
+              const len = (user.photos ?? []).length;
               if (diff > 0) {
-                // swipe left = next
-                setPhotoIndex((i) => (i + 1) % user.photos.length);
+                setPhotoIndex((i) => (i + 1) % len);
               } else {
-                // swipe right = prev
-                setPhotoIndex((i) => (i - 1 + user.photos.length) % user.photos.length);
+                setPhotoIndex((i) => (i - 1 + len) % len);
               }
             }
             touchStartX.current = null;
           }}
           onClick={(e) => {
-            if (user.photos.length <= 1) return;
+            const len = (user.photos ?? []).length;
+            if (len <= 1) return;
             const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
             const x = e.clientX - rect.left;
             if (x < rect.width / 2) {
-              // tap left = prev
-              setPhotoIndex((i) => (i - 1 + user.photos.length) % user.photos.length);
+              setPhotoIndex((i) => (i - 1 + len) % len);
             } else {
-              // tap right = next
-              setPhotoIndex((i) => (i + 1) % user.photos.length);
+              setPhotoIndex((i) => (i + 1) % len);
             }
           }}
         >
