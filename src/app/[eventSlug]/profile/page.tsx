@@ -81,7 +81,7 @@ export default function ProfileEditPage({
         });
         setOriginalGender(p.gender);
         setOriginalAttractedTo(p.attracted_to);
-        setExistingPhotos(p.photos);
+        setExistingPhotos(p.photos ?? []);
         setSmsEnabled(p.sms_notifications_enabled ?? true);
       }
       setLoading(false);

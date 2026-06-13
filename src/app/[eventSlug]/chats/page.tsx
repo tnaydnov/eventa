@@ -37,8 +37,8 @@ const ChatListItem = memo(function ChatListItem({
   onClick: (convId: string) => void;
 }) {
   const other = conv.otherParticipant;
-  const photoUrl = other.photos.length > 0
-    ? getPhotoUrl(other.photos[0].storage_path, { width: 96, height: 96, quality: 70 })
+  const photoUrl = (other.photos ?? []).length > 0
+    ? getPhotoUrl(other.photos![0].storage_path, { width: 96, height: 96, quality: 70 })
     : null;
   const hasUnread = conv.unreadCount > 0;
   return (

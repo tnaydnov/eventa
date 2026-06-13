@@ -54,19 +54,17 @@ export async function GET(req: NextRequest) {
 
   // ── Own profile ────────────────────────────────────────────────────────────
   if (url.searchParams.has('me')) {
-    const { data, error } = await supabase
-      .from('participants')
-      .select(OWN_PROFILE_COLS)
-      .eq('id', session.sub)
-      .maybeSingle();
-    if (error) {
-      logger.error('[PARTICIPANTS_GET_ME] query error:', error.message);
+    const [participantRes, photosRes] = await Promise.all([
+      supabase.from('participants').select(OWN_PROFILE_COLS).eq('id', session.sub).maybeSingle(),
+      supabase.from('participant_photos').select('id, event_id, participant_id, storage_path, order_index, created_at, moderation_status').eq('participant_id', session.sub).order('order_index'),
+    ]);
+    if (participantRes.error) {
+      logger.error('[PARTICIPANTS_GET_ME] query error:', participantRes.error.message);
       return jsonError('Failed to load profile', 500);
     }
-    if (!data) return jsonError('Participant not found', 404);
-    const dec = decryptParticipantRow(data);
-    // Expose decrypted phone in the expected field name
-    return NextResponse.json({ ...dec, phone: readPhone(data) });
+    if (!participantRes.data) return jsonError('Participant not found', 404);
+    const dec = decryptParticipantRow(participantRes.data);
+    return NextResponse.json({ ...dec, phone: readPhone(participantRes.data), photos: photosRes.data || [] });
   }
 
   // ── Single participant ─────────────────────────────────────────────────────
