@@ -23,9 +23,6 @@ export async function sendOtp(params: {
     if (res.status === 429) {
       const retryAfter = res.headers.get('Retry-After');
       const waitSec = retryAfter ? Math.ceil(Number(retryAfter)) : 60;
-      // Log body so the developer can see which check is actually blocking
-      const body = await res.json().catch(() => ({})) as Record<string, unknown>;
-      console.warn('[sendOtp] 429 body:', body, 'Retry-After:', retryAfter);
       return {
         success: false,
         error: `נשלחו יותר מדי בקשות - נסו שוב בעוד ${waitSec} שניות`,
