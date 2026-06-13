@@ -13,6 +13,7 @@ import { eventBus } from '@/lib/event-bus';
 import { enqueueAbandonedFunnelSms } from '@/lib/notification-dispatcher';
 import { TERMS_VERSION, PRIVACY_VERSION, COOKIES_VERSION } from '@/lib/legal-versions';
 import { createHash } from 'node:crypto';
+import { phoneWriteFields, phoneLookupFilter, decryptParticipantRow } from '@/lib/pii';
 
 /** Fingerprint hex/UUID pattern, max 64 chars for regular, 128 for hardware.
  *  NOTE: duplicated in /api/auth/join/route.ts - keep in sync until extracted to shared util. */
@@ -168,13 +169,14 @@ export async function POST(req: NextRequest) {
     let participantId: string | null = null;
     let participant: Record<string, unknown> | null = null;
 
+    const { column: phoneCol, value: phoneVal } = phoneLookupFilter(phone);
     const { data: existing, error: lookupErr } = await supabase
       .from('participants')
       .select(
-        'id, event_id, display_name, gender, attracted_to, bio, age, city, looking_for, is_banned, last_seen_at, created_at, phone, sms_consent, feedback_consent, feedback_sent'
+        'id, event_id, display_name, gender, attracted_to, attracted_to_enc, bio, bio_enc, age, city, looking_for, looking_for_enc, is_banned, last_seen_at, created_at, phone, phone_enc, sms_consent, feedback_consent, feedback_sent'
       )
       .eq('event_id', event.id)
-      .eq('phone', phone)
+      .eq(phoneCol, phoneVal)
       .maybeSingle();
 
     if (lookupErr) {
@@ -183,13 +185,14 @@ export async function POST(req: NextRequest) {
     }
 
     if (existing) {
-      // Reconnect
-      if (existing.is_banned) {
+      // Reconnect — decrypt PII fields
+      const decrypted = decryptParticipantRow(existing);
+      if (decrypted.is_banned) {
         return jsonError('Phone is banned from this event', 403);
       }
 
       participantId = existing.id as string;
-      participant = existing;
+      participant = decrypted;
 
       // Update fingerprints + sms_consent + sms_notifications_enabled + last_seen_at
       const updates: Record<string, unknown> = {
@@ -210,7 +213,7 @@ export async function POST(req: NextRequest) {
         .from('participants')
         .insert({
           event_id: event.id,
-          phone,
+          ...phoneWriteFields(phone),
           device_fingerprint: fingerprint,
           hardware_fingerprint: hwFingerprint,
           display_name: '',

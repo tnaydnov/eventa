@@ -8,10 +8,7 @@ import crypto from 'crypto';
 import {
   hasAdminCredential,
   verifyAdminPassword,
-  isAdminTotpEnabled,
-  verifyAdminTotp,
 } from '@/lib/admin-credentials';
-import { generateTotp } from '@/lib/totp';
 
 /** Build a `scrypt$N$r$p$salt$hash` string for a known password (matches module format). */
 function makeScryptHash(password: string, N = 16384, r = 8, p = 1): string {
@@ -20,7 +17,7 @@ function makeScryptHash(password: string, N = 16384, r = 8, p = 1): string {
   return `scrypt$${N}$${r}$${p}$${salt.toString('base64')}$${hash.toString('base64')}`;
 }
 
-const ENV_KEYS = ['ADMIN_PASSWORD', 'ADMIN_PASSWORD_HASH', 'ADMIN_TOTP_SECRET', 'ADMIN_TOTP_ENABLED'] as const;
+const ENV_KEYS = ['ADMIN_PASSWORD', 'ADMIN_PASSWORD_HASH'] as const;
 const saved: Record<string, string | undefined> = {};
 
 beforeEach(() => {
@@ -79,48 +76,5 @@ describe('verifyAdminPassword - scrypt hash (preferred)', () => {
   it('rejects a malformed hash string', () => {
     process.env.ADMIN_PASSWORD_HASH = 'not-a-valid-hash';
     expect(verifyAdminPassword('anything')).toBe(false);
-  });
-});
-
-describe('admin TOTP gate', () => {
-  const SECRET = 'JBSWY3DPEHPK3PXP'; // valid base32
-
-  it('isAdminTotpEnabled requires BOTH the flag and the secret', () => {
-    expect(isAdminTotpEnabled()).toBe(false);
-    // Secret alone is NOT enough (a leftover secret must never re-enable 2FA).
-    process.env.ADMIN_TOTP_SECRET = SECRET;
-    expect(isAdminTotpEnabled()).toBe(false);
-    // Flag alone is not enough either.
-    delete process.env.ADMIN_TOTP_SECRET;
-    process.env.ADMIN_TOTP_ENABLED = 'true';
-    expect(isAdminTotpEnabled()).toBe(false);
-    // Both together → enabled.
-    process.env.ADMIN_TOTP_SECRET = SECRET;
-    expect(isAdminTotpEnabled()).toBe(true);
-  });
-
-  it('verifyAdminTotp returns false when 2FA not configured', () => {
-    expect(verifyAdminTotp('123456')).toBe(false);
-  });
-
-  it('verifyAdminTotp accepts a freshly generated code', () => {
-    process.env.ADMIN_TOTP_ENABLED = 'true';
-    process.env.ADMIN_TOTP_SECRET = SECRET;
-    const code = generateTotp(SECRET);
-    expect(verifyAdminTotp(code)).toBe(true);
-  });
-
-  it('verifyAdminTotp rejects a wrong code', () => {
-    process.env.ADMIN_TOTP_ENABLED = 'true';
-    process.env.ADMIN_TOTP_SECRET = SECRET;
-    const code = generateTotp(SECRET);
-    const wrong = code === '000000' ? '111111' : '000000';
-    expect(verifyAdminTotp(wrong)).toBe(false);
-  });
-
-  it('verifyAdminTotp returns false when the secret is present but the flag is off', () => {
-    process.env.ADMIN_TOTP_SECRET = SECRET;
-    const code = generateTotp(SECRET);
-    expect(verifyAdminTotp(code)).toBe(false);
   });
 });

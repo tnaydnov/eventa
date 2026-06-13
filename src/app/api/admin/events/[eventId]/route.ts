@@ -7,6 +7,7 @@ import { adminGuard, validateEventId, jsonError } from '../../_helpers';
 import { evictEventStatusCache } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 import { isReservedSlug } from '@/lib/slug';
+import { encryptPii, computeBlindIndex, decryptEventRow } from '@/lib/pii';
 
 /**
  * PATCH /api/admin/events/[eventId]
@@ -90,9 +91,23 @@ export async function PATCH(
       }
     }
 
+    // Build update payload, adding _enc/_bi siblings for any PII fields present
+    const updateData: Record<string, unknown> = { ...parsed.data };
+    if ('client_name' in parsed.data) {
+      updateData.client_name_enc = encryptPii(parsed.data.client_name ?? null);
+    }
+    if ('client_email' in parsed.data) {
+      updateData.client_email_enc = encryptPii(parsed.data.client_email ?? null);
+      updateData.client_email_bi  = computeBlindIndex(parsed.data.client_email ?? null);
+    }
+    if ('client_phone' in parsed.data) {
+      updateData.client_phone_enc = encryptPii(parsed.data.client_phone ?? null);
+      updateData.client_phone_bi  = computeBlindIndex(parsed.data.client_phone ?? null);
+    }
+
     const { data, error } = await supabase
       .from('events')
-      .update(parsed.data)
+      .update(updateData)
       .eq('id', eventId)
       .select()
       .maybeSingle();
@@ -105,6 +120,8 @@ export async function PATCH(
     if (!data) {
       return jsonError('Event not found', 404);
     }
+
+    const decrypted = decryptEventRow(data);
 
     // Evict event status cache if status or is_active changed
     if ('status' in parsed.data || 'is_active' in parsed.data) {
@@ -123,7 +140,7 @@ export async function PATCH(
     }
 
     adminAuditLog('EVENT_UPDATE', { eventId, changes: Object.keys(parsed.data) }, req);
-    return NextResponse.json({ event: data, preEventSentCount });
+    return NextResponse.json({ event: decrypted, preEventSentCount });
   } catch (err) {
     logger.error('[ADMIN_EVENT_PATCH] error:', err);
     return jsonError('Server error', 500);

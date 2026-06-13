@@ -14,6 +14,7 @@ import { generatePrettySlug } from '@/lib/slug';
 import { chargeWithToken, createDocument, DocumentType, PaymentType, getOrCreateCustomer, PAYMENT_METHOD_TO_INVOICE4U } from '@/lib/invoice4u';
 import { evictEventStatusCache } from '@/lib/route-helpers';
 import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
+import { encryptPii, computeBlindIndex, decryptRequestRow, decryptEventRow } from '@/lib/pii';
 
 /**
  * GET /api/admin/requests
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabase
       .from('event_requests')
-      .select('id, status, event_type, event_name, starts_at, ends_at, wants_custom_background, poster_choice, selected_template_id, special_requests, wants_guest_messages, contact_preference, contact_name, contact_phone, contact_email, admin_notes, approved_event_id, created_at, reviewed_at, payment_status, payment_method, paid_at, total_price, payment_link_token, payment_link_expires_at, clearing_log_id, clearing_payment_id, clearing_trace_id, invoice4u_customer_id')
+      .select('id, status, event_type, event_name, starts_at, ends_at, wants_custom_background, poster_choice, selected_template_id, special_requests, wants_guest_messages, contact_preference, contact_name, contact_name_enc, contact_phone, contact_phone_enc, contact_email, contact_email_enc, admin_notes, approved_event_id, created_at, reviewed_at, payment_status, payment_method, paid_at, total_price, payment_link_token, payment_link_expires_at, clearing_log_id, clearing_payment_id, clearing_trace_id, invoice4u_customer_id')
       .order('created_at', { ascending: false });
 
     if (statusFilter) {
@@ -44,7 +45,9 @@ export async function GET(req: NextRequest) {
       return jsonError('Failed to load requests', 500);
     }
 
-    return NextResponse.json({ requests: data || [] });
+    // Decrypt PII before returning to admin UI
+    const decrypted = (data || []).map(decryptRequestRow);
+    return NextResponse.json({ requests: decrypted });
   } catch (err) {
     logger.error('[ADMIN_REQUESTS_GET] error:', err);
     return jsonError('Failed to load requests', 500);

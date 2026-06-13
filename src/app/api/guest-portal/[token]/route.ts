@@ -13,6 +13,7 @@ import {
   isAllowedUploadFile,
 } from '@/lib/guest-upload';
 import { jsonError } from '@/lib/route-helpers';
+import { phoneWriteFields, phoneLookupFilter, decryptGuestPhoneRow, encryptPii } from '@/lib/pii';
 
 // ─── Constants ────────────────────────────────────────────────
 
@@ -140,7 +141,7 @@ export async function GET(
     // Build guest query with optional search filter
     let guestQuery = supabase
       .from('event_guest_phones')
-      .select('id, phone, guest_name, wa_pre_event_sent, created_at', {
+      .select('id, phone, phone_enc, guest_name, guest_name_enc, wa_pre_event_sent, created_at', {
         count: 'exact',
       })
       .eq('event_id', eventId);
@@ -171,21 +172,26 @@ export async function GET(
     const total = count ?? 0;
     const totalPages = Math.ceil(total / PAGE_SIZE);
 
-    // Format phone numbers for display (no masking - client uploaded these)
+    // Format phone numbers for display (decrypt first, then format for display)
     const formattedGuests = (guests || []).map(
       (g: {
         id: string;
-        phone: string;
+        phone: string | null;
+        phone_enc?: string | null;
         guest_name: string | null;
+        guest_name_enc?: string | null;
         wa_pre_event_sent: boolean;
         created_at: string;
-      }) => ({
-        id: g.id,
-        phone: formatPhoneDisplay(g.phone),
-        name: g.guest_name || null,
-        sent: g.wa_pre_event_sent,
-        createdAt: g.created_at,
-      })
+      }) => {
+        const decrypted = decryptGuestPhoneRow(g);
+        return {
+          id: g.id,
+          phone: decrypted.phone ? formatPhoneDisplay(decrypted.phone) : '',
+          name: decrypted.guest_name || null,
+          sent: g.wa_pre_event_sent,
+          createdAt: g.created_at,
+        };
+      }
     );
 
     // Determine upload status
@@ -366,12 +372,13 @@ async function handleFileUpload(
     });
   }
 
-  // Insert valid rows
+  // Insert valid rows (with encryption)
   if (result.validGuests.length > 0) {
     const rows = result.validGuests.map((g: { phone: string; guest_name: string | null }) => ({
       event_id: eventId,
-      phone: g.phone,
+      ...phoneWriteFields(g.phone),
       guest_name: g.guest_name || null,
+      guest_name_enc: encryptPii(g.guest_name || null),
     }));
 
     const { error: insertErr } = await supabase
@@ -463,12 +470,13 @@ async function handleSingleAdd(
     );
   }
 
-  // Check for duplicate
+  // Check for duplicate (use blind index if encryption is active)
+  const { column: phoneCol, value: phoneVal } = phoneLookupFilter(normalized);
   const { data: dup } = await supabase
     .from('event_guest_phones')
     .select('id')
     .eq('event_id', eventId)
-    .eq('phone', normalized)
+    .eq(phoneCol, phoneVal)
     .maybeSingle();
 
   if (dup) {
@@ -484,8 +492,9 @@ async function handleSingleAdd(
     .from('event_guest_phones')
     .insert({
       event_id: eventId,
-      phone: normalized,
+      ...phoneWriteFields(normalized),
       guest_name: guestName,
+      guest_name_enc: encryptPii(guestName),
     });
 
   if (insertErr) {

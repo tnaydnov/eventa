@@ -7,6 +7,7 @@ import { logger } from '@/lib/logger';
 import { withCronHeartbeat } from '@/lib/cron-heartbeat';
 import { sendPreEventMessage } from '@/lib/messaging';
 import type { EventMessagingConfig } from '@/lib/messaging';
+import { decryptGuestPhoneRow } from '@/lib/pii';
 
 /** Maximum guests to message per cron invocation (15s Vercel timeout). */
 const MAX_MESSAGES_PER_RUN = 50;
@@ -96,7 +97,7 @@ async function handler(req: NextRequest) {
       const remaining = MAX_MESSAGES_PER_RUN - totalProcessed;
       const { data: guests, error: guestError } = await supabase
         .from('event_guest_phones')
-        .select('id, phone, guest_name')
+        .select('id, phone, phone_enc, guest_name, guest_name_enc')
         .eq('event_id', event.id)
         .eq('wa_pre_event_sent', false)
         .limit(remaining);
@@ -121,8 +122,14 @@ async function handler(req: NextRequest) {
       };
 
       for (const guest of guests) {
+        const decrypted = decryptGuestPhoneRow(guest);
+        if (!decrypted.phone) {
+          logger.warn('[PRE_EVENT_CRON] guest has no decryptable phone', { guestId: guest.id });
+          totalProcessed++;
+          continue;
+        }
         const result = await sendPreEventMessage(
-          guest.phone,
+          decrypted.phone,
           config
         );
 

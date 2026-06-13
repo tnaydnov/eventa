@@ -19,6 +19,7 @@ import type {
   MessageChannel,
   MessagePurpose,
 } from './types';
+import { phoneWriteFields } from '@/lib/pii';
 
 // ── Internal: log to message_log table ──
 
@@ -35,7 +36,7 @@ async function logMessage(params: {
     const supabase = getServiceClient();
     await supabase.from('message_log').insert({
       event_id: params.eventId,
-      phone: params.phone,
+      ...phoneWriteFields(params.phone),
       channel: params.channel,
       message_type: params.messageType,
       status: params.status,

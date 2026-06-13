@@ -15,6 +15,7 @@ import {
   APP_BASE_URL,
 } from '@/lib/config';
 import { BUSINESS_TERMS_VERSION } from '@/lib/legal-versions';
+import { encryptPii, computeBlindIndex } from '@/lib/pii';
 import {
   buildAdminCallMeBackNotification,
   buildAdminContactOnlyNotification,
@@ -133,8 +134,13 @@ export async function POST(request: NextRequest) {
           wants_guest_messages: wantsMessages,
           contact_preference: contactPref,
           contact_name: contactName,
+          contact_name_enc: encryptPii(contactName),
           contact_phone: contactPhone,
+          contact_phone_enc: encryptPii(contactPhone),
+          contact_phone_bi: computeBlindIndex(contactPhone),
           contact_email: contactEmail || null,
+          contact_email_enc: encryptPii(contactEmail || null),
+          contact_email_bi: computeBlindIndex(contactEmail || null),
           // Payment fields
           payment_status: paymentStatus,
           total_price: totalPrice,

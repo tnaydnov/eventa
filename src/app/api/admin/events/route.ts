@@ -10,6 +10,7 @@ import { APP_BASE_URL } from '@/lib/config';
 import { buildEventCreatedEmail } from '@/lib/email-templates';
 import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
 import { isReservedSlug } from '@/lib/slug';
+import { phoneWriteFields, encryptPii, computeBlindIndex, decryptEventRow } from '@/lib/pii';
 
 /** Default event duration when no end date is provided (24 hours). */
 const DEFAULT_DURATION_MS = 86_400_000;
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
     const order = url.searchParams.get('order') || 'desc';
 
     const supabase = getServiceClient();
-    let query = supabase.from('events').select('id, slug, name, event_type, status, description, starts_at, ends_at, is_active, background_image, archived_at, created_at, wa_messages_enabled, guest_list_uploaded, guest_list_uploaded_at, guest_list_count, qr_page_sent, client_name, client_email, client_phone, communication_preference, send_report_email, payment_status');
+    let query = supabase.from('events').select('id, slug, name, event_type, status, description, starts_at, ends_at, is_active, background_image, archived_at, created_at, wa_messages_enabled, guest_list_uploaded, guest_list_uploaded_at, guest_list_count, qr_page_sent, client_name, client_name_enc, client_email, client_email_enc, client_phone, client_phone_enc, communication_preference, send_report_email, payment_status');
 
     // Status filter
     if (status) {
@@ -77,7 +78,9 @@ export async function GET(req: NextRequest) {
       return jsonError('Failed to load events', 500);
     }
 
-    return NextResponse.json({ events });
+    // Decrypt PII fields before returning to admin UI
+    const decrypted = (events || []).map(decryptEventRow);
+    return NextResponse.json({ events: decrypted });
   } catch (err) {
     logger.error('[ADMIN_EVENTS_GET] error:', err);
     return jsonError('Failed to load events', 500);
@@ -177,8 +180,13 @@ export async function POST(req: NextRequest) {
         is_active: true,
         wa_messages_enabled: parsed.data.wa_messages_enabled || false,
         client_name: parsed.data.client_name || null,
+        client_name_enc: encryptPii(parsed.data.client_name || null),
         client_email: parsed.data.client_email || null,
+        client_email_enc: encryptPii(parsed.data.client_email || null),
+        client_email_bi: computeBlindIndex(parsed.data.client_email || null),
         client_phone: parsed.data.client_phone || null,
+        client_phone_enc: encryptPii(parsed.data.client_phone || null),
+        client_phone_bi: computeBlindIndex(parsed.data.client_phone || null),
         communication_preference: parsed.data.communication_preference || 'email',
         send_report_email: parsed.data.send_report_email ?? true,
       })

@@ -13,6 +13,7 @@ import {
   OTP_MAX_ATTEMPTS,
   OTP_RESEND_COOLDOWN_S,
 } from '@/lib/config';
+import { phoneWriteFields, phoneLookupFilter, readPhone } from '@/lib/pii';
 
 /**
  * Generate a cryptographically secure N-digit OTP.
@@ -58,10 +59,12 @@ export async function createOtp(
     Date.now() - OTP_RESEND_COOLDOWN_S * 1000
   ).toISOString();
 
+  const { column: phoneCol, value: phoneVal } = phoneLookupFilter(phone);
+
   const { data: recent } = await supabase
     .from('otp_verifications')
     .select('created_at')
-    .eq('phone', phone)
+    .eq(phoneCol, phoneVal)
     .eq('event_id', eventId)
     .gte('created_at', cooldownCutoff)
     .eq('is_used', false)
@@ -85,7 +88,7 @@ export async function createOtp(
   await supabase
     .from('otp_verifications')
     .update({ is_used: true })
-    .eq('phone', phone)
+    .eq(phoneCol, phoneVal)
     .eq('event_id', eventId)
     .eq('is_used', false);
 
@@ -95,7 +98,7 @@ export async function createOtp(
   const expiresAt = new Date(Date.now() + OTP_EXPIRY_S * 1000).toISOString();
 
   const { error } = await supabase.from('otp_verifications').insert({
-    phone,
+    ...phoneWriteFields(phone),
     event_id: eventId,
     code: hashOtpCode(code),
     attempts: 0,
@@ -129,10 +132,11 @@ export async function verifyOtp(
 
   // Find the latest unused, non-expired OTP for this phone + event
   const now = new Date().toISOString();
+  const { column: verifyPhoneCol, value: verifyPhoneVal } = phoneLookupFilter(phone);
   const { data: otp, error: fetchError } = await supabase
     .from('otp_verifications')
     .select('id, code, attempts, expires_at')
-    .eq('phone', phone)
+    .eq(verifyPhoneCol, verifyPhoneVal)
     .eq('event_id', eventId)
     .eq('is_used', false)
     .gt('expires_at', now)

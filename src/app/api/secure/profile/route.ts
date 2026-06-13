@@ -8,6 +8,7 @@ import { secureGuard, jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 import { eventBus } from '@/lib/event-bus';
 import { enqueueInactivitySms } from '@/lib/notification-dispatcher';
+import { encryptPii } from '@/lib/pii';
 
 /**
  * PATCH /api/secure/profile
@@ -40,9 +41,12 @@ export async function PATCH(req: NextRequest) {
     }
     if (parsed.data.attracted_to !== undefined) {
       allowed.attracted_to = parsed.data.attracted_to;
+      allowed.attracted_to_enc = encryptPii(parsed.data.attracted_to);
     }
     if (parsed.data.bio !== undefined) {
-      allowed.bio = parsed.data.bio ? sanitizeWithLimit(parsed.data.bio, MAX_BIO_LENGTH) : null;
+      const bioVal = parsed.data.bio ? sanitizeWithLimit(parsed.data.bio, MAX_BIO_LENGTH) : null;
+      allowed.bio = bioVal;
+      allowed.bio_enc = encryptPii(bioVal);
     }
     if (parsed.data.age !== undefined) {
       allowed.age = parsed.data.age; // Already validated by Zod (18-120, required)
@@ -51,7 +55,8 @@ export async function PATCH(req: NextRequest) {
       allowed.city = parsed.data.city ? sanitizeWithLimit(parsed.data.city, MAX_CITY_LENGTH) : null;
     }
     if (parsed.data.looking_for !== undefined) {
-      allowed.looking_for = parsed.data.looking_for; // Already validated by Zod enum
+      allowed.looking_for = parsed.data.looking_for;
+      allowed.looking_for_enc = encryptPii(parsed.data.looking_for);
     }
 
     // sms_notifications_enabled is not part of profileSetupSchema - handle separately
