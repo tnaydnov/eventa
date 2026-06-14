@@ -285,11 +285,33 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
   }
 
   async function handleSendReport() {
-    if (!selectedEventId) return;
+    if (!reportRef.current || !selectedEventId) return;
     setSendingReport(true); setError(null);
     try {
+      // Generate the same PDF as the download button (screenshot of the dark dashboard)
+      const [{ default: html2canvas }, { default: jsPDF }, { calcSinglePage }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+        import('@/lib/report/pdf-layout'),
+      ]);
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        backgroundColor: '#0e0d18',
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+      });
+      const { pageW, pageH } = calcSinglePage(canvas.width, canvas.height);
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pageW, pageH] });
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, pageW, pageH);
+      // Send as base64 so the server can attach it directly without regenerating
+      const pdfBase64 = pdf.output('datauristring').split(',')[1]; // strip "data:application/pdf;base64,"
+
       const res = await fetch(`/api/admin/reports/${selectedEventId}/send`, {
-        method: 'POST', credentials: 'include',
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pdfBase64 }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error ?? 'שגיאה בשליחת הדוח');

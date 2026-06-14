@@ -23,13 +23,17 @@ export async function POST(
   if (!eventId) return jsonError('Missing eventId', 400);
 
   let overrideEmail: string | null = null;
+  let clientPdfBase64: string | null = null;
   try {
     const body = await req.json().catch(() => ({}));
     if (typeof body?.email === 'string' && body.email.trim()) {
       overrideEmail = body.email.trim();
     }
+    if (typeof body?.pdfBase64 === 'string' && body.pdfBase64.length > 0) {
+      clientPdfBase64 = body.pdfBase64;
+    }
   } catch {
-    // ignore parse errors - email override is optional
+    // ignore parse errors
   }
 
   const supabase = getServiceClient();
@@ -67,6 +71,8 @@ export async function POST(
     aiSummary: reportResult.ai_summary,
     clientName: decryptPii(event.client_name_enc, null),
     eventDate: (event.ends_at as string) ?? null,
+    // If the client sent a pre-rendered PDF (html2canvas screenshot), use it directly.
+    pdfBuffer: clientPdfBase64 ? Buffer.from(clientPdfBase64, 'base64') : null,
   });
 
   if (!sent) return jsonError('Failed to send report email', 500);

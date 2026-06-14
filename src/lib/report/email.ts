@@ -28,19 +28,23 @@ export async function sendReportEmail(opts: {
   clientName?: string | null;
   /** Event date (ISO) for the email + PDF. */
   eventDate?: string | null;
+  /** Pre-built PDF buffer (e.g. client-generated html2canvas screenshot). When provided,
+   *  skips server-side jsPDF generation and attaches this directly. */
+  pdfBuffer?: Buffer | null;
 }): Promise<boolean> {
-  const { to, eventName, eventId, payload, aiSummary, clientName, eventDate } = opts;
+  const { to, eventName, eventId, payload, aiSummary, clientName, eventDate, pdfBuffer } = opts;
 
   try {
     const transporter = getMailTransporter();
 
-    // Build the one-page styled Hebrew PDF (defensive: never let a PDF error block the email).
+    // Use the client-provided PDF (html2canvas screenshot) if available,
+    // otherwise fall back to server-side jsPDF generation.
     let attachments: Array<{ filename: string; content: Buffer; contentType: string }> = [];
     try {
-      const pdfBuffer = generateReportPdf({ eventName, eventId, payload, aiSummary, eventDate });
+      const buffer = pdfBuffer ?? generateReportPdf({ eventName, eventId, payload, aiSummary, eventDate });
       attachments = [{
         filename: toReportPdfFilename(eventName),
-        content: pdfBuffer,
+        content: buffer,
         contentType: 'application/pdf',
       }];
     } catch (pdfErr) {
