@@ -140,7 +140,7 @@ describe('adminGuard (_helpers.ts)', () => {
 
   it('returns 429 when rate limited', async () => {
     const { checkRateLimitAsync } = await import('@/lib/rate-limit');
-    vi.mocked(checkRateLimitAsync).mockResolvedValue({ allowed: false, remaining: 0, resetMs: 30000 });
+    vi.mocked(checkRateLimitAsync).mockResolvedValueOnce({ allowed: false, remaining: 0, resetMs: 30000 });
 
     const req = new NextRequest('http://localhost/api/admin/test');
     const result = await adminGuard(req, 'test', { maxRequests: 10, windowMs: 60000 });
