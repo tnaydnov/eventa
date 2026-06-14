@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import type { CuratedReportPayload } from '@/lib/report/curate';
@@ -51,6 +51,35 @@ export default function PortalReportPage() {
   const [data, setData] = useState<PortalResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
+
+  async function handleDownloadPdf() {
+    if (!reportRef.current || !data) return;
+    setExportingPdf(true);
+    try {
+      const [{ default: html2canvas }, { default: jsPDF }, { calcSinglePage }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+        import('@/lib/report/pdf-layout'),
+      ]);
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        backgroundColor: '#0A0A0A',
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+      });
+      const { pageW, pageH } = calcSinglePage(canvas.width, canvas.height);
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pageW, pageH] });
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, pageW, pageH);
+      pdf.save(`דוח-${data.event.name}.pdf`);
+    } catch {
+      // silently fail - user can retry
+    } finally {
+      setExportingPdf(false);
+    }
+  }
 
   useEffect(() => {
     fetch(`/api/portal/${token}/report`)
@@ -114,7 +143,7 @@ export default function PortalReportPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white" dir="rtl">
+    <div ref={reportRef} className="min-h-screen bg-[#0A0A0A] text-white" dir="rtl">
       {/* Header */}
       <div className="border-b border-white/10 px-6 py-4 flex items-center justify-between">
         <div>
@@ -135,13 +164,13 @@ export default function PortalReportPage() {
         <Link href={`/portal/${token}/report`} className="px-4 py-3 text-sm font-medium text-[#D4A59A] border-b-2 border-[#D4A59A]">
           דוח מפורט
         </Link>
-        <a
-          href={`/api/portal/${token}/report/pdf`}
-          className="me-auto px-4 py-3 text-sm font-medium text-white/60 hover:text-white transition-colors"
-          download
+        <button
+          onClick={handleDownloadPdf}
+          disabled={exportingPdf}
+          className="me-auto px-4 py-3 text-sm font-medium text-white/60 hover:text-white transition-colors disabled:opacity-50"
         >
-          הורדת PDF
-        </a>
+          {exportingPdf ? 'מייצא...' : 'הורדת PDF'}
+        </button>
       </nav>
 
       <div className="px-4 py-6 max-w-2xl mx-auto space-y-8">
