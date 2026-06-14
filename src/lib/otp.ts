@@ -156,7 +156,7 @@ export async function verifyOtp(
   if (!otp) {
     return {
       valid: false,
-      error: 'Code expired or not found. Request a new code.',
+      error: 'Invalid or expired code. Request a new code.',
     };
   }
 
@@ -190,7 +190,8 @@ export async function verifyOtp(
     codeBuffer.length !== otpBuffer.length ||
     !crypto.timingSafeEqual(codeBuffer, otpBuffer)
   ) {
-    return { valid: false, error: 'Incorrect code' };
+    // Generic message — same text as "not found" to prevent user enumeration
+    return { valid: false, error: 'Invalid or expired code. Request a new code.' };
   }
 
   // Mark OTP as used

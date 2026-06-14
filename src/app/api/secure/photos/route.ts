@@ -7,6 +7,8 @@ import { secureGuard, jsonError, isSafePath } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 import { photoReorderSchema } from '@/lib/validations';
 import { preModerationCheck, moderateProfilePhoto } from '@/lib/moderation';
+import { validateImageMagicBytes } from '@/lib/image-magic';
+import { alertInvalidFileUpload } from '@/lib/security-alert';
 
 /**
  * POST /api/secure/photos
@@ -36,6 +38,22 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = getServiceClient();
+
+    // Server-side magic bytes validation — verify the file is actually an image,
+    // regardless of extension or Content-Type. Defends against direct API calls
+    // that bypass the client-side upload UI.
+    const magicCheck = await validateImageMagicBytes(storagePath, supabase);
+    if (!magicCheck.valid) {
+      logger.warn('[PHOTOS_POST] magic bytes check failed', {
+        storagePath,
+        reason: magicCheck.reason,
+        participantId: session.sub,
+      });
+      // Clean up the invalid file from storage
+      void supabase.storage.from('photos').remove([storagePath]);
+      alertInvalidFileUpload(session.sub, storagePath, magicCheck.reason);
+      return jsonError('Invalid image file', 422);
+    }
 
     // Idempotency-by-storage_path: retries should return the same photo row.
     const { data: existingPhoto, error: existingPhotoError } = await supabase

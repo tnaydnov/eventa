@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminFromRequest } from '@/lib/admin-auth';
 import { isValidUUID, checkCsrf } from '@/lib/session';
-import { checkRateLimit, getClientIp, type RateLimitConfig } from '@/lib/rate-limit';
+import { checkRateLimitAsync, getClientIp, type RateLimitConfig } from '@/lib/rate-limit';
 import { jsonError, verifyCronAuth } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
 
@@ -26,13 +26,16 @@ function hasCronAuth(req: NextRequest): boolean {
  * Admin auth guard: body size → rate-limit → admin cookie OR cron secret.
  * Returns an error response if any check fails, or null if authorized.
  * Rate-limit runs first (cheap) to avoid crypto work on spam requests.
+ *
+ * Async so it can use the distributed (Upstash) rate limiter when configured,
+ * falling back gracefully to in-memory when Redis is not available.
  */
-export function adminGuard(
+export async function adminGuard(
   req: NextRequest,
   rateLimitKey: string,
   limit: RateLimitConfig,
   options?: { maxBodyBytes?: number }
-): NextResponse | null {
+): Promise<NextResponse | null> {
   // Body size guard - reject oversized payloads early
   const maxBody = options?.maxBodyBytes ?? ADMIN_MAX_BODY_BYTES;
   const cl = req.headers.get('content-length');
@@ -41,7 +44,7 @@ export function adminGuard(
   }
 
   const ip = getClientIp(req.headers);
-  const rl = checkRateLimit(`${rateLimitKey}:${ip}`, limit);
+  const rl = await checkRateLimitAsync(`${rateLimitKey}:${ip}`, limit);
   if (!rl.allowed) return jsonError('Too many requests', 429);
 
   // Accept either admin cookie auth or cron secret auth

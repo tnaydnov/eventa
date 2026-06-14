@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { RETENTION_DAYS } from '@/lib/constants';
 import { getServiceClient } from '@/lib/supabase';
@@ -18,7 +18,7 @@ import { withCronHeartbeat } from '@/lib/cron-heartbeat';
  * Auth: Admin cookie (POST from dashboard) OR CRON_SECRET bearer (GET from Vercel Cron).
  */
 async function handler(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-auto-archive', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-auto-archive', RATE_LIMITS.standard);
   if (denied) return denied;
 
   // Dry-run mode: log what would be archived without actually changing anything
@@ -28,7 +28,7 @@ async function handler(req: NextRequest) {
     const supabase = getServiceClient();
     const now = new Date();
 
-    // ── Step 1: Auto-end events past their ends_at ──
+    // ג”€ג”€ Step 1: Auto-end events past their ends_at ג”€ג”€
     const endCutoff = now.toISOString();
     const { data: endableEvents, error: endError } = await supabase
       .from('events')
@@ -64,7 +64,7 @@ async function handler(req: NextRequest) {
       }
     }
 
-    // ── Step 2: Find events eligible for archiving ──
+    // ג”€ג”€ Step 2: Find events eligible for archiving ג”€ג”€
     // Events in 'ended' status where ends_at + RETENTION_DAYS < now
     const archiveCutoff = new Date(now.getTime() - RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
 

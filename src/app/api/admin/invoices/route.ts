@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, jsonError } from '../_helpers';
@@ -28,7 +28,7 @@ import {
  *   ?action=summary      - Get payment summary stats
  */
 export async function GET(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-invoices-get', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-invoices-get', RATE_LIMITS.standard);
   if (denied) return denied;
 
   const url = new URL(req.url);
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
  *   { action: 'verify_auth' }           - Verify Invoice4U API token
  */
 export async function POST(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-invoices-post', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-invoices-post', RATE_LIMITS.standard);
   if (denied) return denied;
 
   try {
@@ -85,9 +85,9 @@ export async function POST(req: NextRequest) {
   }
 }
 
-/* ────────────────────────────────
+/* ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
    GET Handlers
-   ──────────────────────────────── */
+   ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ */
 
 async function handleGetStatus() {
   const config = getConfigStatus();
@@ -214,9 +214,9 @@ async function handleGetSummary() {
   });
 }
 
-/* ────────────────────────────────
+/* ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
    POST Handlers
-   ──────────────────────────────── */
+   ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ */
 
 async function handleCreateDocument(body: Record<string, unknown>, req: NextRequest) {
   if (!isConfigured()) {

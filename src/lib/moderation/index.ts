@@ -18,6 +18,7 @@ import { logger } from '@/lib/logger';
 import { moderateImageUrl } from './moderator';
 import { PROFILE_THRESHOLDS, CHAT_THRESHOLDS, type SurfaceThresholds } from './thresholds';
 import { secondOpinion } from './falconsai';
+import { alertCsamDetected } from '@/lib/security-alert';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const PHOTOS_BUCKET = 'photos';
@@ -280,6 +281,10 @@ export async function moderateProfilePhoto(
       // Check for repeat-offender pattern
       if (verdict === 'blocked' && participantId && eventId) {
         await checkRepeatOffender(participantId, eventId);
+        // Alert on CSAM hard blocks immediately
+        if (reason && (reason.includes('csam') || reason.includes('child'))) {
+          alertCsamDetected(participantId, eventId, storagePath);
+        }
       }
     }
 

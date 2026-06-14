@@ -22,7 +22,7 @@ import { encryptPii, computeBlindIndex, decryptRequestRow, decryptEventRow } fro
  * Optionally filter by ?status=pending|approved|denied
  */
 export async function GET(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-requests-get', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-requests-get', RATE_LIMITS.standard);
   if (denied) return denied;
 
   try {
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
  * On approve: creates a new event with all the data from the request.
  */
 export async function POST(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-requests-post', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-requests-post', RATE_LIMITS.standard);
   if (denied) return denied;
 
   try {
@@ -376,7 +376,7 @@ export async function POST(req: NextRequest) {
  * Body: { requestId, action: 'mark_paid' | 'waive' | 'resend_link', paymentMethod?: string }
  */
 export async function PATCH(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-requests-patch', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-requests-patch', RATE_LIMITS.standard);
   if (denied) return denied;
 
   try {
@@ -565,7 +565,7 @@ export async function PATCH(req: NextRequest) {
  * Body: { requestId: string }
  */
 export async function DELETE(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-requests-delete', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-requests-delete', RATE_LIMITS.standard);
   if (denied) return denied;
 
   try {

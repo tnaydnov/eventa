@@ -1,5 +1,6 @@
 import { supabase } from '../supabase';
 import type { PublicParticipant, ParticipantPhoto } from '../database.types';
+import { getSignedUrl } from '@/lib/signed-photo-cache';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
@@ -9,13 +10,42 @@ export interface PhotoUrlOptions {
   quality?: number;
 }
 
-/** Build the public URL for a participant photo. */
+/**
+ * Build a URL for a participant photo.
+ *
+ * When a signed URL is available in the client-side cache (populated by
+ * prefetchSignedUrls), it is used — this is required when the Supabase
+ * "photos" bucket is set to PRIVATE.
+ *
+ * Falls back to the public CDN URL while the bucket is still public.
+ * No visual difference; transforms (width/height/quality) work in both modes.
+ */
 export function getPhotoUrl(storagePath: string, options?: PhotoUrlOptions): string {
   if (!SUPABASE_URL) {
     console.error('NEXT_PUBLIC_SUPABASE_URL is not set - photo URLs will be broken');
     return '';
   }
+  if (!storagePath) return '';
 
+  // Prefer signed URL from cache (required for private bucket, harmless for public)
+  const cached = typeof window !== 'undefined' ? getSignedUrl(storagePath) : null;
+  if (cached) {
+    if (!options) return cached;
+    // Supabase signed URLs for image transforms: replace /object/sign/ with /render/image/sign/
+    const transformBase = cached.includes('/object/sign/')
+      ? cached.replace('/object/sign/', '/render/image/sign/')
+      : cached;
+    const separator = transformBase.includes('?') ? '&' : '?';
+    const params = new URLSearchParams();
+    if (typeof options.width === 'number' && options.width > 0) params.set('width', String(options.width));
+    if (typeof options.height === 'number' && options.height > 0) params.set('height', String(options.height));
+    if (typeof options.quality === 'number' && options.quality > 0) params.set('quality', String(options.quality));
+    if (params.has('width') || params.has('height')) params.set('resize', 'cover');
+    const query = params.toString();
+    return query ? `${transformBase}${separator}${query}` : cached;
+  }
+
+  // Fallback: public URL (works while bucket is public; will 403 after private)
   const base = `${SUPABASE_URL}/storage/v1/object/public/photos/${storagePath}`;
   if (!options) return base;
 

@@ -67,18 +67,22 @@ export function useAdminData() {
   /* ─── login ─── */
   const login = async (
     password: string,
-  ): Promise<{ ok: boolean; error?: string }> => {
+    totp?: string,
+  ): Promise<{ ok: boolean; error?: string; requireTotp?: boolean }> => {
     try {
+      const body: Record<string, string> = { password };
+      if (totp) body.totp = totp;
       const res = await adminFetch('/api/admin/login', {
         method: 'POST',
-        body: JSON.stringify({ password }),
+        body: JSON.stringify(body),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
+        if (data.requireTotp) return { ok: false, requireTotp: true };
         setAuthed(true);
         loadEvents();
         return { ok: true };
       }
-      const data = await res.json().catch(() => ({}));
       return { ok: false, error: data.error || 'סיסמה שגויה' };
     } catch {
       return { ok: false, error: 'שגיאת תקשורת' };

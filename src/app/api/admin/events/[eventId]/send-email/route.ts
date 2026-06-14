@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
@@ -24,7 +24,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
-  const denied = adminGuard(req, 'admin-send-email', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-send-email', RATE_LIMITS.standard);
   if (denied) return denied;
 
   const { eventId } = await params;

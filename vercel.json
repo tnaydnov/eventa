@@ -18,6 +18,9 @@
     },
     "src/app/api/admin/auto-archive/route.ts": {
       "maxDuration": 60
+    },
+    "src/app/api/cron/cleanup-orphan-photos/route.ts": {
+      "maxDuration": 60
     }
   },
   "crons": [
@@ -56,6 +59,10 @@
     {
       "path": "/api/cron/reconcile-payments",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-orphan-photos",
+      "schedule": "0 */6 * * *"
     }
   ],
   "headers": [

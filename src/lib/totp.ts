@@ -100,3 +100,22 @@ export function verifyTotp(
   }
   return false;
 }
+
+/** True when ADMIN_TOTP_SECRET is set and non-empty. */
+export function isTotpConfigured(): boolean {
+  return !!(process.env.ADMIN_TOTP_SECRET?.trim());
+}
+
+/** Get the TOTP secret from env (null if not configured). */
+export function getTotpSecret(): string | null {
+  return process.env.ADMIN_TOTP_SECRET?.trim() || null;
+}
+
+/**
+ * Build an otpauth:// URI for QR code generation during initial setup.
+ * Paste the result into a QR code generator and scan with an authenticator app.
+ */
+export function buildTotpUri(secret: string, label = 'Eventa Admin', issuer = 'Eventa'): string {
+  const params = new URLSearchParams({ secret, issuer, algorithm: 'SHA1', digits: '6', period: '30' });
+  return `otpauth://totp/${encodeURIComponent(label)}?${params.toString()}`;
+}

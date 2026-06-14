@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
 import { checkCsrf } from '@/lib/session';
-import { checkRateLimitAsync, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { OTP_MAX_PER_PHONE_PER_HOUR, OTP_GLOBAL_MAX_PER_DAY } from '@/lib/config';
 import { sendOtpSchema } from '@/lib/validations';
 import { jsonError } from '@/lib/route-helpers';
@@ -9,6 +9,7 @@ import { logger } from '@/lib/logger';
 import { normalizePhone, isValidIsraeliMobile, maskPhone } from '@/lib/messaging';
 import { createOtp } from '@/lib/otp';
 import { sendOtp as sendOtpSms } from '@/lib/messaging';
+import { alertOtpRateLimit } from '@/lib/security-alert';
 
 /**
  * POST /api/auth/send-otp
@@ -29,12 +30,19 @@ export async function POST(req: NextRequest) {
     return jsonError('Forbidden', 403);
   }
 
-  // Note: no per-IP per-minute limit here.
-  // Protection against SMS pumping comes from the per-phone hourly cap below
-  // (OTP_MAX_PER_PHONE_PER_HOUR) and the optional global daily cap. A tight
-  // per-IP per-minute window caused legitimate first attempts to be rejected
-  // because the Upstash Redis counter accumulated entries during development
-  // and testing (same developer IP). CSRF already prevents automated browser scripts.
+  // Per-IP hourly cap — secondary defense against mass phone enumeration from a single IP.
+  // A legitimate user never needs more than a handful of OTP sends per hour.
+  // RATE_LIMITS.auth (5/min) was too tight for normal use; 20/hour is a softer cap
+  // that blocks bulk attackers without affecting real users.
+  const ip = getClientIp(req.headers);
+  const ipRl = await checkRateLimitAsync(`send-otp-ip:${ip}`, { maxRequests: 20, windowMs: 60 * 60_000 });
+  if (!ipRl.allowed) {
+    logger.warn('[SEND_OTP] per-IP hourly cap hit', { ip });
+    alertOtpRateLimit(ip, 'ip');
+    const res = NextResponse.json({ error: 'Too many requests', reason: 'ip-cap' }, { status: 429 });
+    res.headers.set('Retry-After', String(Math.ceil(ipRl.resetMs / 1000)));
+    return res;
+  }
 
   try {
     const body = await req.json();
@@ -60,6 +68,7 @@ export async function POST(req: NextRequest) {
     });
     if (!phoneRl.allowed) {
       logger.warn('[SEND_OTP] per-phone cap hit', { phone: maskPhone(phone) });
+      alertOtpRateLimit(maskPhone(phone), 'phone');
       const res = NextResponse.json({ error: 'Too many requests for this number', reason: 'per-phone-cap' }, { status: 429 });
       res.headers.set('Retry-After', String(Math.ceil(phoneRl.resetMs / 1000)));
       return res;
@@ -72,6 +81,7 @@ export async function POST(req: NextRequest) {
       });
       if (!globalRl.allowed) {
         logger.error('[SEND_OTP] GLOBAL daily OTP cap hit - possible SMS pumping attack');
+        alertOtpRateLimit('global', 'global');
         return jsonError('Service temporarily unavailable', 503);
       }
     }

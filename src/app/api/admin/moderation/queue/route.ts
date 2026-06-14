@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { adminGuard, jsonError } from '../../_helpers';
@@ -9,7 +9,7 @@ import { logger } from '@/lib/logger';
  * Returns pending moderation items with joined photo/message data.
  */
 export async function GET(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-moderation-queue', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-moderation-queue', RATE_LIMITS.standard);
   if (denied) return denied;
 
   const supabase = getServiceClient();

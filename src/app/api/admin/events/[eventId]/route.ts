@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { updateEventSchema } from '@/lib/validations';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
@@ -17,7 +17,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
-  const denied = adminGuard(req, 'admin-patch', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-patch', RATE_LIMITS.standard);
   if (denied) return denied;
 
   const { eventId } = await params;

@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useSessionStore, useGridStore, useNotificationStore, useSwipeStore } from '@/lib/store';
 import { getGridParticipants, getPhotoUrl, markLikeSeen, getParticipant, getParticipantPhotos, matchesCrossAttraction } from '@/lib/api';
 import { PHOTO_BLUR_DATA_URL } from '@/lib/image-placeholder';
+import { prefetchSignedUrls } from '@/lib/signed-photo-cache';
 import { useRealtimeHub } from '@/hooks/useRealtimeHub';
 import { LEGACY_LOCAL_ID_KEY, PROFILE_SETUP_KEY_PREFIX, SWR_STALE_MS } from '@/lib/constants';
 import { useAppResume } from '@/hooks/useAppResume';
@@ -178,6 +179,9 @@ function EventPageContent({
       if (currentIds !== newIds || data.length !== current.length) {
         setParticipants(data);
       }
+      // Prefetch signed URLs for all visible photos (background, non-blocking)
+      const photoPaths = data.flatMap((p) => p.photos?.map((ph) => ph.storage_path) ?? []);
+      void prefetchSignedUrls(photoPaths);
       _lastGridFetchTime = Date.now();
     } catch {
       // Silently fail - stale data is better than a stuck spinner
@@ -260,6 +264,8 @@ function EventPageContent({
           if (participant && !matchesCrossAttraction(participant, newP)) return;
           // Fetch their photos via API wrapper
           const photos = await getParticipantPhotos(newP.id);
+          // Prefetch signed URL for new participant's photos (background)
+          void prefetchSignedUrls(photos.map((ph) => ph.storage_path));
           // Strip encrypted/internal columns before adding to store
           const { bio_enc, looking_for_enc, phone_enc, phone_bi, bio, looking_for, phone, ...newPSafe } = payload.new as Record<string, unknown>;
           addParticipant({ ...newPSafe, photos } as GridParticipant);

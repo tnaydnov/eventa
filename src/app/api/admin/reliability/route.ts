@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, jsonError } from '../_helpers';
@@ -20,7 +20,7 @@ function percentile(sorted: number[], pct: number): number {
  * and client error counts per day - for the admin Reliability tab.
  */
 export async function GET(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-reliability', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-reliability', RATE_LIMITS.standard);
   if (denied) return denied;
 
   try {

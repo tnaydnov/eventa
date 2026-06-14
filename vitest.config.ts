@@ -29,6 +29,7 @@ export default defineConfig({
       ['__tests__/unit/lib/phone-utils.test.ts', 'node'],
       ['__tests__/unit/lib/otp.test.ts', 'node'],
       ['__tests__/unit/lib/guest-upload.test.ts', 'node'],
+      ['__tests__/unit/lib/security-attacks.test.ts', 'node'],
       ['__tests__/unit/lib/messaging/**', 'node'],
       ['__tests__/integration/**', 'node'],
     ],

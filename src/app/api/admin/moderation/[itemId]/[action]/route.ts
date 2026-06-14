@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { getServiceClient } from '@/lib/supabase';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { adminGuard, jsonError } from '../../../_helpers';
@@ -13,7 +13,7 @@ type RouteParams = { params: Promise<{ itemId: string; action: string }> };
  * Updates the queue item status and applies result to source photo/message.
  */
 export async function POST(req: NextRequest, { params }: RouteParams) {
-  const denied = adminGuard(req, 'admin-moderation-action', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-moderation-action', RATE_LIMITS.standard);
   if (denied) return denied;
 
   const { itemId, action } = await params;

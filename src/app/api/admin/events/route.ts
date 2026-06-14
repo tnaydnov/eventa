@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse, after } from 'next/server';
+﻿import { NextRequest, NextResponse, after } from 'next/server';
 import crypto from 'crypto';
 import { createEventSchema } from '@/lib/validations';
 import { adminAuditLog } from '@/lib/admin-auth';
@@ -32,7 +32,7 @@ function randomSuffix(): string {
  *   order    - asc | desc - default: desc
  */
 export async function GET(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-events-get', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-events-get', RATE_LIMITS.standard);
   if (denied) return denied;
 
   try {
@@ -96,7 +96,7 @@ export async function GET(req: NextRequest) {
  * Supports event_type and description fields.
  */
 export async function POST(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-events-post', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-events-post', RATE_LIMITS.standard);
   if (denied) return denied;
 
   try {
@@ -119,15 +119,15 @@ export async function POST(req: NextRequest) {
       const fieldErrors = parsed.error.flatten().fieldErrors;
       // Build a human-readable summary of which fields failed
       const fieldLabels: Record<string, string> = {
-        name: 'שם אירוע',
-        slug: 'כתובת',
-        event_type: 'סוג אירוע',
-        starts_at: 'תחילת אירוע',
-        ends_at: 'סיום אירוע',
-        client_name: 'שם לקוח',
-        client_email: 'אימייל',
-        client_phone: 'טלפון',
-        communication_preference: 'העדפת תקשורת',
+        name: '׳©׳ ׳׳™׳¨׳•׳¢',
+        slug: '׳›׳×׳•׳‘׳×',
+        event_type: '׳¡׳•׳’ ׳׳™׳¨׳•׳¢',
+        starts_at: '׳×׳—׳™׳׳× ׳׳™׳¨׳•׳¢',
+        ends_at: '׳¡׳™׳•׳ ׳׳™׳¨׳•׳¢',
+        client_name: '׳©׳ ׳׳§׳•׳—',
+        client_email: '׳׳™׳׳™׳™׳',
+        client_phone: '׳˜׳׳₪׳•׳',
+        communication_preference: '׳”׳¢׳“׳₪׳× ׳×׳§׳©׳•׳¨׳×',
       };
       const summary = Object.entries(fieldErrors)
         .filter(([, msgs]) => msgs?.length)
@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
     // Reject reserved slugs
     if (isReservedSlug(parsed.data.slug)) {
       return NextResponse.json(
-        { error: 'כתובת זו שמורה למערכת ולא ניתן להשתמש בה', details: { slug: ['Reserved slug'] } },
+        { error: '׳›׳×׳•׳‘׳× ׳–׳• ׳©׳׳•׳¨׳” ׳׳׳¢׳¨׳›׳× ׳•׳׳ ׳ ׳™׳×׳ ׳׳”׳©׳×׳׳© ׳‘׳”', details: { slug: ['Reserved slug'] } },
         { status: 400 }
       );
     }
@@ -197,7 +197,7 @@ export async function POST(req: NextRequest) {
 
     adminAuditLog('EVENT_CREATE', { eventId: data.id, slug, eventType: parsed.data.event_type }, req);
 
-    // ── Auto-setup for messaging addon ──
+    // ג”€ג”€ Auto-setup for messaging addon ג”€ג”€
     let portalUrl: string | undefined;
     if (data.wa_messages_enabled) {
       try {
@@ -213,7 +213,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ── Defer email sending to run AFTER the response is returned ──
+    // ג”€ג”€ Defer email sending to run AFTER the response is returned ג”€ג”€
     after(async () => {
       if (!data.client_email) return;
       try {

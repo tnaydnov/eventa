@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, jsonError } from '../_helpers';
@@ -11,13 +11,13 @@ import { logger } from '@/lib/logger';
  * including archived events via event_analytics_snapshots.
  */
 export async function GET(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-global-analytics', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-global-analytics', RATE_LIMITS.standard);
   if (denied) return denied;
 
   try {
     const supabase = getServiceClient();
 
-    /* ── Run all independent queries in parallel ── */
+    /* ג”€ג”€ Run all independent queries in parallel ג”€ג”€ */
     // NOTE: PostgREST defaults to 1000 rows. We set an explicit high limit
     // for analytics queries that need ALL rows for accurate aggregation.
     const ANALYTICS_LIMIT = 100_000;
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
       supabase.from('event_analytics_snapshots').select('event_id, snapshot').limit(ANALYTICS_LIMIT),
     ]);
 
-    // ── Check for query errors ──
+    // ג”€ג”€ Check for query errors ג”€ג”€
     const queryErrors = [
       eventsRes.error && `events: ${eventsRes.error.message}`,
       participantsRes.error && `participants: ${participantsRes.error.message}`,
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
     const eventNameMap = new Map<string, { name: string; eventType: string; status: string }>();
     for (const e of events) eventNameMap.set(e.id, { name: e.name, eventType: e.event_type, status: e.status });
 
-    /* ═══ Event breakdowns ═══ */
+    /* ג•ג•ג• Event breakdowns ג•ג•ג• */
     const totalEvents    = events.length;
     const activeEvents   = events.filter(e => e.status === 'active').length;
     const archivedEvents = events.filter(e => e.status === 'archived').length;
@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
       eventsByType[e.event_type]   = (eventsByType[e.event_type] || 0) + 1;
     }
 
-    /* ═══ Per-event live data aggregation ═══ */
+    /* ג•ג•ג• Per-event live data aggregation ג•ג•ג• */
     interface LiveBucket {
       participants: number; men: number; women: number;
       likes: number; matches: number; conversations: number; messages: number; blocks: number;
@@ -106,7 +106,7 @@ export async function GET(req: NextRequest) {
       return liveData.get(eid)!;
     };
 
-    /* ── Participants ── */
+    /* ג”€ג”€ Participants ג”€ג”€ */
     // Split complete vs incomplete registrations (complete = has display_name)
     const allParticipants = participantsRes.data || [];
     const liveIncompleteRegistrations = allParticipants.filter(
@@ -118,7 +118,7 @@ export async function GET(req: NextRequest) {
 
     const attractionCounts: Record<string, number> = {};
     const ageBuckets: Record<string, number> = {};
-    const pEventMap = new Map<string, string>(); // pid → event_id
+    const pEventMap = new Map<string, string>(); // pid ג†’ event_id
 
     for (const p of participants) {
       const d = initLive(p.event_id);
@@ -127,9 +127,9 @@ export async function GET(req: NextRequest) {
       if (p.gender === 'male') d.men++;
       else if (p.gender === 'female') d.women++;
 
-      const gLabel = p.gender === 'male' ? 'גברים' : 'נשים';
-      const aLabel = p.attracted_to === 'men' ? 'גברים' : p.attracted_to === 'women' ? 'נשים' : 'הכל';
-      const key = `${gLabel} ← ${aLabel}`;
+      const gLabel = p.gender === 'male' ? '׳’׳‘׳¨׳™׳' : '׳ ׳©׳™׳';
+      const aLabel = p.attracted_to === 'men' ? '׳’׳‘׳¨׳™׳' : p.attracted_to === 'women' ? '׳ ׳©׳™׳' : '׳”׳›׳';
+      const key = `${gLabel} ג† ${aLabel}`;
       attractionCounts[key] = (attractionCounts[key] || 0) + 1;
 
       if (p.age != null) {
@@ -138,7 +138,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    /* ── Photos ── */
+    /* ג”€ג”€ Photos ג”€ג”€ */
     const pidsWithPhoto = new Set<string>();
     for (const ph of photos) {
       const d = initLive(ph.event_id);
@@ -146,7 +146,7 @@ export async function GET(req: NextRequest) {
       if (!pidsWithPhoto.has(ph.participant_id)) { pidsWithPhoto.add(ph.participant_id); d.participantsWithPhoto++; }
     }
 
-    /* ── Likes + Matches ── */
+    /* ג”€ג”€ Likes + Matches ג”€ג”€ */
     const likesByEvent = new Map<string, Set<string>>();
     const likeSenderSet = new Set<string>();
     const getIsraelHour = (iso: string) =>
@@ -159,7 +159,7 @@ export async function GET(req: NextRequest) {
       likeSenderSet.add(l.from_participant_id);
       if (l.seen_at) d.likesSeen++; else d.likesUnseen++;
       if (!likesByEvent.has(l.event_id)) likesByEvent.set(l.event_id, new Set());
-      likesByEvent.get(l.event_id)!.add(`${l.from_participant_id}→${l.to_participant_id}`);
+      likesByEvent.get(l.event_id)!.add(`${l.from_participant_id}ג†’${l.to_participant_id}`);
 
       const h = getIsraelHour(l.created_at);
       hourCounts[h] = (hourCounts[h] || 0) + 1;
@@ -172,8 +172,8 @@ export async function GET(req: NextRequest) {
       let eventMatches = 0;
       const matchedPairs = new Set<string>();
       for (const key of likeSet) {
-        const [from, to] = key.split('→');
-        if (likeSet.has(`${to}→${from}`)) {
+        const [from, to] = key.split('ג†’');
+        if (likeSet.has(`${to}ג†’${from}`)) {
           const pair = [from, to].sort().join('|');
           if (!matchedPairs.has(pair)) {
             matchedPairs.add(pair);
@@ -185,13 +185,13 @@ export async function GET(req: NextRequest) {
       }
       d.matches = eventMatches;
       const uniquePairs = new Set(
-        [...likeSet].map(k => { const [a, b] = k.split('→'); return [a, b].sort().join('|'); })
+        [...likeSet].map(k => { const [a, b] = k.split('ג†’'); return [a, b].sort().join('|'); })
       ).size;
       d.likePairs = uniquePairs;
       d.matchRate = uniquePairs > 0 ? Math.round((eventMatches / uniquePairs) * 100) : 0;
     }
 
-    /* ── Conversations & Messages ── */
+    /* ג”€ג”€ Conversations & Messages ג”€ג”€ */
     const msgSenderSet = new Set<string>();
     const msgCountByConvo = new Map<string, Set<string>>();
     const msgCountByPid  = new Map<string, number>();
@@ -220,7 +220,7 @@ export async function GET(req: NextRequest) {
     for (const [, senders] of msgCountByConvo) { if (senders.size < 2) ghostedConvos++; }
     const convosWithMessages = msgCountByConvo.size;
 
-    /* ── Blocks ── */
+    /* ג”€ג”€ Blocks ג”€ג”€ */
     for (const b of blocks) {
       const d = initLive(b.event_id);
       d.blocks++;
@@ -229,7 +229,7 @@ export async function GET(req: NextRequest) {
       else d.blocksNoInteraction++;
     }
 
-    /* ═══ Archived event snapshot data ═══ */
+    /* ג•ג•ג• Archived event snapshot data ג•ג•ג• */
     const archivedRows: EventComparisonRow[] = [];
     for (const e of events) {
       if (e.status === 'archived' && snapshotMap.has(e.id)) {
@@ -247,7 +247,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    /* ═══ Grand totals (live + archived) ═══ */
+    /* ג•ג•ג• Grand totals (live + archived) ג•ג•ג• */
     let gP = 0, gMen = 0, gWomen = 0;
     let gLikes = 0, gMatches = 0, gConvos = 0, gMessages = 0, gBlocks = 0;
     let gPhotos = 0;
@@ -309,7 +309,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    /* ═══ Event comparison table ═══ */
+    /* ג•ג•ג• Event comparison table ג•ג•ג• */
     const eventComparison: EventComparisonRow[] = [];
     for (const e of liveEvents) {
       const d = liveData.get(e.id);
@@ -324,7 +324,7 @@ export async function GET(req: NextRequest) {
     eventComparison.push(...archivedRows);
     eventComparison.sort((a, b) => b.participants - a.participants);
 
-    /* ═══ Global rates ═══ */
+    /* ג•ג•ג• Global rates ג•ג•ג• */
     const overallMatchRate    = mRateN > 0 ? Math.round(mRateSum / mRateN) : 0;
     const overallGhostRate    = convosWithMessages > 0 ? Math.round((ghostedConvos / convosWithMessages) * 100) : 0;
     const overallLikeSeenRate = gLikesTotal > 0 ? Math.round((gLikesSeen / gLikesTotal) * 100) : 0;
@@ -350,7 +350,7 @@ export async function GET(req: NextRequest) {
     }
     const photoImpactDelta = piN > 0 ? Math.round(piSum / piN * 10) / 10 : 0;
 
-    /* ═══ Response rate & time ═══ */
+    /* ג•ג•ג• Response rate & time ג•ג•ג• */
     const msgsByConvoArr = new Map<string, { sid: string; t: string }[]>();
     for (const m of messages) {
       if (!msgsByConvoArr.has(m.conversation_id)) msgsByConvoArr.set(m.conversation_id, []);
@@ -384,7 +384,7 @@ export async function GET(req: NextRequest) {
     const overallResponseRate    = rrN > 0 ? Math.round(rrSum / rrN) : 0;
     const avgResponseTimeMinutes = rtN > 0 ? Math.round(rtSum / rtN) : 0;
 
-    /* ═══ Timing ═══ */
+    /* ג•ג•ג• Timing ג•ג•ג• */
     let tLikeSum = 0, tLikeN = 0, tMsgSum = 0, tMsgN = 0;
     for (const snap of snapshots.map(s => s.snapshot)) {
       if (snap?.avgTimeToFirstLikeMinutes > 0) { tLikeSum += snap.avgTimeToFirstLikeMinutes; tLikeN++; }
@@ -420,10 +420,10 @@ export async function GET(req: NextRequest) {
     const avgTimeToFirstLikeMinutes    = tLikeN > 0 ? Math.round(tLikeSum / tLikeN) : 0;
     const avgTimeToFirstMessageMinutes = tMsgN  > 0 ? Math.round(tMsgSum / tMsgN) : 0;
 
-    /* ═══ Cross-event averages ═══ */
+    /* ג•ג•ג• Cross-event averages ג•ג•ג• */
     const n = totalEvents || 1;
 
-    /* ═══ Top events rankings ═══ */
+    /* ג•ג•ג• Top events rankings ג•ג•ג• */
     const makeRank = (rows: EventComparisonRow[], field: keyof EventComparisonRow): EventRankItem[] =>
       [...rows].sort((a, b) => (b[field] as number) - (a[field] as number))
         .slice(0, 5)
@@ -444,7 +444,7 @@ export async function GET(req: NextRequest) {
       .slice(0, 5)
       .map(e => ({ eventId: e.eventId, name: e.name, eventType: e.eventType, value: e.eng }));
 
-    /* ═══ Growth timelines ═══ */
+    /* ג•ג•ג• Growth timelines ג•ג•ג• */
     const eventsCreatedByMonth       = buildMonthlyTimeline(events.map(e => e.created_at));
     const participantsJoinedByMonth  = buildMonthlyTimeline(participants.map(p => p.created_at));
 
@@ -455,7 +455,7 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => a[0].localeCompare(b[0])).slice(-12)
       .map(([month, d]) => ({ month, ...d }));
 
-    /* ═══ Breakdowns ═══ */
+    /* ג•ג•ג• Breakdowns ג•ג•ג• */
     const attractionBreakdown = Object.entries(attractionCounts)
       .map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count);
 
@@ -467,17 +467,17 @@ export async function GET(req: NextRequest) {
     }));
 
     const messageTypes = [
-      { type: 'טקסט', count: gText },
-      { type: 'תמונה', count: gImage },
+      { type: '׳˜׳§׳¡׳˜', count: gText },
+      { type: '׳×׳׳•׳ ׳”', count: gImage },
     ];
 
     const blockReasons = [
-      { reason: 'אחרי שיחה', count: gBlocksConvo },
-      { reason: 'אחרי לייק', count: gBlocksLike },
-      { reason: 'ללא אינטראקציה', count: gBlocksNone },
+      { reason: '׳׳—׳¨׳™ ׳©׳™׳—׳”', count: gBlocksConvo },
+      { reason: '׳׳—׳¨׳™ ׳׳™׳™׳§', count: gBlocksLike },
+      { reason: '׳׳׳ ׳׳™׳ ׳˜׳¨׳׳§׳¦׳™׳”', count: gBlocksNone },
     ].filter(b => b.count > 0);
 
-    /* ═══ Assemble response ═══ */
+    /* ג•ג•ג• Assemble response ג•ג•ג• */
     // Aggregate incomplete registrations (live + archived snapshots)
     let totalIncompleteRegistrations = liveIncompleteRegistrations;
     for (const snap of snapshots.map(s => s.snapshot)) {
@@ -520,7 +520,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-/* ── Helpers ── */
+/* ג”€ג”€ Helpers ג”€ג”€ */
 
 function monthKey(ts: string): string {
   try { const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; }

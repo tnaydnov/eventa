@@ -6,8 +6,10 @@ import {
   hasAdminCredential,
   verifyAdminPassword,
 } from '@/lib/admin-credentials';
+import { verifyTotp, isTotpConfigured, getTotpSecret } from '@/lib/totp';
 import { jsonError } from '@/lib/route-helpers';
 import { logger } from '@/lib/logger';
+import { alertAdminLoginFailures, alertAdminTotpFailures } from '@/lib/security-alert';
 
 /**
  * Brute-force lockout: after 10 failed attempts in 15 minutes,
@@ -22,6 +24,11 @@ const LOCKOUT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const MAX_ENTRIES = 10_000;
 let lastCleanup = Date.now();
 const CLEANUP_INTERVAL_MS = 600_000; // 10 minutes
+
+/** Separate TOTP failure counter — 5 bad TOTP codes in 5 min triggers alert + lockout. */
+const totpFailures = new Map<string, { count: number; firstAttempt: number }>();
+const TOTP_LOCKOUT_THRESHOLD = 5;
+const TOTP_LOCKOUT_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
 
 /** Purge stale entries from the failedAttempts map. */
 function purgeStaleEntries(): void {
@@ -61,6 +68,31 @@ function recordFailedAttempt(ip: string): void {
 
 function clearFailedAttempts(ip: string): void {
   failedAttempts.delete(ip);
+  totpFailures.delete(ip);
+}
+
+function recordTotpFailure(ip: string): void {
+  const entry = totpFailures.get(ip);
+  const now = Date.now();
+  if (!entry || now - entry.firstAttempt > TOTP_LOCKOUT_WINDOW_MS) {
+    totpFailures.set(ip, { count: 1, firstAttempt: now });
+  } else {
+    entry.count++;
+    // Alert when threshold is crossed
+    if (entry.count >= TOTP_LOCKOUT_THRESHOLD) {
+      alertAdminTotpFailures(ip, entry.count);
+    }
+  }
+}
+
+function isTotpLockedOut(ip: string): boolean {
+  const entry = totpFailures.get(ip);
+  if (!entry) return false;
+  if (Date.now() - entry.firstAttempt > TOTP_LOCKOUT_WINDOW_MS) {
+    totpFailures.delete(ip);
+    return false;
+  }
+  return entry.count >= TOTP_LOCKOUT_THRESHOLD;
 }
 
 export async function POST(req: NextRequest) {
@@ -104,11 +136,42 @@ export async function POST(req: NextRequest) {
     if (!verifyAdminPassword(parsed.data.password)) {
       recordFailedAttempt(ip);
       adminAuditLog('LOGIN_FAILED', { ip }, req);
+      // Alert at 3, 5, 10 failures
+      const entry = failedAttempts.get(ip);
+      if (entry && (entry.count === 3 || entry.count === 5 || entry.count >= 10)) {
+        alertAdminLoginFailures(ip, entry.count);
+      }
       // Constant generic error - don't reveal if password was close
       return jsonError('Unauthorized', 401);
     }
 
-    // Success - clear failed attempts and issue token
+    // 2. Verify TOTP second factor (if ADMIN_TOTP_SECRET is configured).
+    //    If TOTP is configured but no code was provided → inform the client that TOTP is required.
+    //    This lets the UI present a TOTP field after password is accepted.
+    if (isTotpConfigured()) {
+      const totpToken = parsed.data.totp;
+      if (!totpToken) {
+        // Password correct but TOTP not yet provided — signal to the UI to ask for it.
+        // We do NOT increment failed attempts here (password was correct).
+        return NextResponse.json({ requireTotp: true }, { status: 200 });
+      }
+      // Check TOTP lockout (separate from password lockout)
+      if (isTotpLockedOut(ip)) {
+        adminAuditLog('LOGIN_TOTP_LOCKED_OUT', { ip }, req);
+        return NextResponse.json(
+          { error: 'Too many TOTP attempts. Try again later.' },
+          { status: 429, headers: { 'Retry-After': String(Math.ceil(TOTP_LOCKOUT_WINDOW_MS / 1000)) } }
+        );
+      }
+      const secret = getTotpSecret()!;
+      if (!verifyTotp(totpToken, secret)) {
+        recordTotpFailure(ip);
+        adminAuditLog('LOGIN_TOTP_FAILED', { ip }, req);
+        return jsonError('Invalid TOTP code', 401);
+      }
+    }
+
+    // All factors verified — clear failed attempts and issue token.
     clearFailedAttempts(ip);
     const token = signAdminToken();
     const res = NextResponse.json({ success: true });

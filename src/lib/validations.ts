@@ -184,6 +184,8 @@ export type ProfileSetupData = z.infer<typeof profileSetupSchema>;
 /* ---- Admin login schema ---- */
 export const adminLoginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
+  /** 6-digit TOTP code — required when ADMIN_TOTP_SECRET is configured. */
+  totp: z.string().regex(/^\d{6}$/, 'Invalid TOTP code').optional(),
 });
 
 /* ---- Admin create event schema ---- */

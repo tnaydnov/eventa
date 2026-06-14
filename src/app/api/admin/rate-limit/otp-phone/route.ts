@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { adminGuard, jsonError } from '../../_helpers';
 import { RATE_LIMITS, isDistributedRateLimitEnabled } from '@/lib/rate-limit';
 import { normalizePhone, isValidIsraeliMobile } from '@/lib/messaging';
@@ -17,7 +17,7 @@ const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
  * Body: { phone: string }  — accepts any format (0501234567, +972501234567, etc.)
  */
 export async function DELETE(req: NextRequest) {
-  const denied = adminGuard(req, 'admin-rate-limit-flush', RATE_LIMITS.strict);
+  const denied = await adminGuard(req, 'admin-rate-limit-flush', RATE_LIMITS.strict);
   if (denied) return denied;
 
   if (!isDistributedRateLimitEnabled()) {

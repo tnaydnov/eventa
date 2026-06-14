@@ -25,6 +25,18 @@ const nextConfig = {
         hostname: '*.supabase.co',
         pathname: '/storage/v1/object/public/**',
       },
+      {
+        // Signed object URLs (private bucket)
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        pathname: '/storage/v1/object/sign/**',
+      },
+      {
+        // Signed + transformed image URLs (private bucket with resize)
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        pathname: '/storage/v1/render/image/sign/**',
+      },
       ...(isDev
         ? [
             {
@@ -84,6 +96,7 @@ const nextConfig = {
               "base-uri 'self'",
               "form-action 'self'",
               "upgrade-insecure-requests",
+              "report-uri /api/csp-report",
             ].join('; '),
           },
         ],

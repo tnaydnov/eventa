@@ -3,11 +3,13 @@
 import { useState } from 'react';
 
 interface AdminLoginProps {
-  onLogin: (password: string) => Promise<{ ok: boolean; error?: string }>;
+  onLogin: (password: string, totp?: string) => Promise<{ ok: boolean; error?: string; requireTotp?: boolean }>;
 }
 
 export default function AdminLogin({ onLogin }: AdminLoginProps) {
   const [password, setPassword] = useState('');
+  const [totp, setTotp] = useState('');
+  const [showTotp, setShowTotp] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -15,8 +17,13 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const result = await onLogin(password);
+    const result = await onLogin(password, showTotp ? totp : undefined);
     setLoading(false);
+    if (result.requireTotp) {
+      // Server says password OK but needs TOTP — show the TOTP field
+      setShowTotp(true);
+      return;
+    }
     if (result.ok) return;
     setError(result.error || 'סיסמה שגויה');
   };
@@ -84,9 +91,38 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
             onChange={e => { setPassword(e.target.value); setError(''); }}
             className="admin-input"
             autoComplete="current-password"
-            autoFocus
+            autoFocus={!showTotp}
+            disabled={showTotp}
+            style={showTotp ? { opacity: 0.5 } : undefined}
           />
         </div>
+
+        {showTotp && (
+          <div>
+            <label
+              htmlFor="admin-totp"
+              style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--admin-text-dim)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.4px' }}
+            >
+              קוד אימות (TOTP)
+            </label>
+            <input
+              id="admin-totp"
+              type="text"
+              inputMode="numeric"
+              placeholder="000000"
+              value={totp}
+              onChange={e => { setTotp(e.target.value.replace(/\D/g, '').slice(0, 6)); setError(''); }}
+              className="admin-input"
+              autoComplete="one-time-code"
+              autoFocus
+              maxLength={6}
+              style={{ letterSpacing: '0.3em', textAlign: 'center', fontSize: 20 }}
+            />
+            <p style={{ fontSize: 12, color: 'var(--admin-text-muted)', marginTop: 6 }}>
+              פתחו את אפליקציית האימות (Google Authenticator / Authy) והזינו את הקוד
+            </p>
+          </div>
+        )}
 
         {error && (
           <div style={{
@@ -104,11 +140,21 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
         <button
           type="submit"
           className="admin-btn admin-btn--primary"
-          disabled={loading || !password}
+          disabled={loading || !password || (showTotp && totp.length !== 6)}
           style={{ width: '100%', justifyContent: 'center', padding: '11px 16px', fontSize: 14 }}
         >
-          {loading ? 'כניסה...' : 'כניסה למערכת'}
+          {loading ? 'כניסה...' : showTotp ? 'אמת קוד' : 'כניסה למערכת'}
         </button>
+
+        {showTotp && (
+          <button
+            type="button"
+            style={{ background: 'none', border: 'none', color: 'var(--admin-text-muted)', fontSize: 12, cursor: 'pointer', textDecoration: 'underline' }}
+            onClick={() => { setShowTotp(false); setTotp(''); setError(''); }}
+          >
+            ← חזרה להזנת סיסמה
+          </button>
+        )}
       </form>
     </div>
   );

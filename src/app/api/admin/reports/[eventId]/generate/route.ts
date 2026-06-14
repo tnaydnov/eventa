@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { adminGuard, jsonError } from '../../../_helpers';
 import { logger } from '@/lib/logger';
@@ -12,7 +12,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
-  const denied = adminGuard(req, 'admin-reports-generate', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-reports-generate', RATE_LIMITS.standard);
   if (denied) return denied;
 
   const { eventId } = await params;

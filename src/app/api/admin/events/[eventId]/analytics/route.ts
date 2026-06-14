@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { getServiceClient } from '@/lib/supabase';
 import { adminGuard, validateEventId, jsonError } from '../../../_helpers';
@@ -14,7 +14,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
-  const denied = adminGuard(req, 'admin-analytics', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-analytics', RATE_LIMITS.standard);
   if (denied) return denied;
 
   const { eventId } = await params;

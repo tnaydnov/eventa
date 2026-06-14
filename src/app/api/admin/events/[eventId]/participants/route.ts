@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { adminAuditLog } from '@/lib/admin-auth';
 import { isValidUUID } from '@/lib/session';
 import { RATE_LIMITS } from '@/lib/rate-limit';
@@ -16,7 +16,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
-  const denied = adminGuard(req, 'admin-participants-get', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-participants-get', RATE_LIMITS.standard);
   if (denied) return denied;
 
   const { eventId } = await params;
@@ -85,7 +85,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
-  const denied = adminGuard(req, 'admin-participants-patch', RATE_LIMITS.standard);
+  const denied = await adminGuard(req, 'admin-participants-patch', RATE_LIMITS.standard);
   if (denied) return denied;
 
   try {
