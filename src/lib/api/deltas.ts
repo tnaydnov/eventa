@@ -37,12 +37,13 @@ export interface NotificationDeltas {
  * caller can keep its existing cursor and retry on the next tick - never advancing past
  * data it didn't actually receive.
  */
-export async function getNotificationDeltas(cursor: string): Promise<NotificationDeltas | null> {
+export async function getNotificationDeltas(cursor: string): Promise<NotificationDeltas | null | 'rate-limited'> {
   try {
     const res = await fetchWithRetry(
       `/api/secure/since?cursor=${encodeURIComponent(cursor)}`,
       { method: 'GET' },
     );
+    if (res.status === 429) return 'rate-limited';
     if (!res.ok) return null;
     return (await res.json()) as NotificationDeltas;
   } catch (err) {

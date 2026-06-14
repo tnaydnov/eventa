@@ -321,6 +321,7 @@ export default function RealtimeNotificationListener() {
   // ─── Polling fallback ─────────────────────────────────────
   const pollRef = useRef<() => Promise<void>>(async () => {});
   const burstUntilRef = useRef(0);
+  const pollBackoffUntilRef = useRef(0);
   const restartPollingRef = useRef<((visible: boolean) => void) | null>(null);
   pollRef.current = async () => {
     const s = sessionRef.current;
@@ -339,6 +340,14 @@ export default function RealtimeNotificationListener() {
       // - see GET /api/secure/since (§23.4/R6). `seenIds` dedup in handleLike/handleMessage
       // makes any cursor-boundary overlap harmless.
       const deltas = await getNotificationDeltas(cursor);
+      if (deltas === 'rate-limited') {
+        // Back off for 60s - don't advance cursor so we don't miss events.
+        // Signal the schedule() loop to use a long interval instead of the normal one.
+        burstUntilRef.current = 0; // cancel burst mode
+        pollBackoffUntilRef.current = Date.now() + 60_000;
+        console.warn('[RealtimeNotificationListener] rate limited on /since, backing off 60s');
+        return;
+      }
       if (!deltas) return; // fetch failed - keep the cursor and retry on the next tick
 
       // Refresh my conversation-membership cache from the server's authoritative list
@@ -419,14 +428,17 @@ export default function RealtimeNotificationListener() {
       const schedule = () => {
         if (stopped) return;
         const now = Date.now();
+        const backoffRemaining = pollBackoffUntilRef.current - now;
         const inBurst = visible && burstUntilRef.current > now;
-        const base = inBurst
+        const base = backoffRemaining > 0
+          ? backoffRemaining
+          : inBurst
           ? POLL_INTERVAL_BURST_MS
           : (visible ? POLL_INTERVAL_VISIBLE_MS : POLL_INTERVAL_HIDDEN_MS);
         pollTimer = setTimeout(async () => {
           await pollRef.current?.();
           schedule(); // reschedule with fresh jitter each tick
-        }, jitter(base));
+        }, backoffRemaining > 0 ? base : jitter(base));
       };
       schedule();
     };
@@ -437,7 +449,7 @@ export default function RealtimeNotificationListener() {
         startPolling(false);
       } else {
         // Catch up immediately when returning, then resume faster interval
-        pollRef.current?.();
+        if (pollBackoffUntilRef.current <= Date.now()) pollRef.current?.();
         startPolling(true);
       }
     };
@@ -445,7 +457,7 @@ export default function RealtimeNotificationListener() {
     // iOS Safari app-switching path: pagehide/pageshow do not always emit visibilitychange.
     const handlePageHide = () => startPolling(false);
     const handlePageShow = () => {
-      pollRef.current?.();
+      if (pollBackoffUntilRef.current <= Date.now()) pollRef.current?.();
       startPolling(true);
     };
 
@@ -494,7 +506,9 @@ export default function RealtimeNotificationListener() {
             // Stale detection fires across many clients at once when a venue tower
             // drops; spread the immediate catch-up poll over a short random window
             // so they don't all hit Postgres in the same instant.
-            setTimeout(() => pollRef.current?.(), Math.random() * CATCHUP_SPREAD_MS);
+          setTimeout(() => {
+            if (pollBackoffUntilRef.current <= Date.now()) pollRef.current?.();
+          }, Math.random() * CATCHUP_SPREAD_MS);
           }
         }
       } else {
@@ -517,8 +531,8 @@ export default function RealtimeNotificationListener() {
     };
   }, [session]);
 
-  // Catch up immediately when returning from background
-  useAppResume(() => { pollRef.current?.(); }, !!session);
+  // Catch up immediately when returning from background (skip if rate-limited)
+  useAppResume(() => { if (pollBackoffUntilRef.current <= Date.now()) pollRef.current?.(); }, !!session);
 
   return null;
 }
