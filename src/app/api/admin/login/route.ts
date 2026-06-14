@@ -164,6 +164,18 @@ export async function POST(req: NextRequest) {
         );
       }
       const secret = getTotpSecret()!;
+      // Diagnostic: log secret fingerprint and expected codes to help debug mismatches.
+      // Only logs non-sensitive info: first/last 2 chars, length, and current valid codes.
+      try {
+        const { base32Decode: b32, generateTotp } = await import('@/lib/totp');
+        b32(secret); // throws if invalid base32
+        const now = Date.now();
+        const step = 30;
+        const codes = [-2,-1,0,1,2].map(i => generateTotp(secret, { t: now + i * step * 1000 }));
+        logger.info(`[ADMIN_TOTP_DEBUG] secret_len=${secret.length} secret_fingerprint="${secret.slice(0,2)}...${secret.slice(-2)}" submitted="${totpToken}" valid_window=[${codes.join(',')}]`);
+      } catch (diagErr) {
+        logger.error(`[ADMIN_TOTP_DEBUG] SECRET IS INVALID BASE32: ${diagErr}`);
+      }
       if (!verifyTotp(totpToken, secret, { window: 2 })) {
         recordTotpFailure(ip);
         adminAuditLog('LOGIN_TOTP_FAILED', { ip }, req);
