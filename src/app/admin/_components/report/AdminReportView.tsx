@@ -245,6 +245,7 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
   const [loading, setLoading]                 = useState(false);
   const [generating, setGenerating]           = useState(false);
   const [exportingPdf, setExportingPdf]       = useState(false);
+  const [sendingReport, setSendingReport]     = useState(false);
   const [error, setError]                     = useState<string | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
 
@@ -281,6 +282,20 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
       await fetchReport(selectedEventId);
     } catch (err) { setError(err instanceof Error ? err.message : 'שגיאה'); }
     finally { setGenerating(false); }
+  }
+
+  async function handleSendReport() {
+    if (!selectedEventId) return;
+    setSendingReport(true); setError(null);
+    try {
+      const res = await fetch(`/api/admin/reports/${selectedEventId}/send`, {
+        method: 'POST', credentials: 'include',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error ?? 'שגיאה בשליחת הדוח');
+      alert(`✅ הדוח נשלח ל: ${data.email}`);
+    } catch (err) { setError(err instanceof Error ? err.message : 'שגיאה'); }
+    finally { setSendingReport(false); }
   }
 
   async function handleDownloadPdf() {
@@ -455,8 +470,21 @@ export default function AdminReportView({ events, initialEventId }: AdminReportV
             >
               {exportingPdf ? 'מייצא PDF...' : '⬇ הורד PDF'}
             </button>
+            <button
+              className="admin-btn admin-btn--ghost"
+              onClick={handleSendReport}
+              disabled={sendingReport}
+              style={{ fontSize: '13px' }}
+            >
+              {sendingReport ? 'שולח...' : '📧 שלח דוח ללקוח'}
+            </button>
             <span style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginRight: 'auto' }}>
               עודכן: {new Date(report.generated_at).toLocaleString('he-IL')}
+              {report.email_sent_at && (
+                <span style={{ marginRight: '8px', color: 'var(--admin-text-muted)' }}>
+                  · נשלח: {new Date(report.email_sent_at).toLocaleString('he-IL')}
+                </span>
+              )}
             </span>
           </div>
 
