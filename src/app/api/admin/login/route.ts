@@ -164,7 +164,7 @@ export async function POST(req: NextRequest) {
         );
       }
       const secret = getTotpSecret()!;
-      if (!verifyTotp(totpToken, secret)) {
+      if (!verifyTotp(totpToken, secret, { window: 2 })) {
         recordTotpFailure(ip);
         adminAuditLog('LOGIN_TOTP_FAILED', { ip }, req);
         return jsonError('Invalid TOTP code', 401);
