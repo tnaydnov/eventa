@@ -25,7 +25,6 @@ const SwipeView = dynamic(() => import('./_components/SwipeView'), {
 import type { Gender } from '@/lib/database.types';
 import type { GridParticipant } from '@/lib/stores/grid';
 
-const ABOVE_FOLD_PRELOAD_COUNT = 6;
 
 /**
  * Module-level last-fetch timestamp. Persists across navigation so the
@@ -34,31 +33,6 @@ const ABOVE_FOLD_PRELOAD_COUNT = 6;
  */
 let _lastGridFetchTime = 0;
 
-function usePreloadImages(urls: string[]) {
-  useEffect(() => {
-    if (typeof document === 'undefined' || urls.length === 0) return;
-
-    const created: HTMLLinkElement[] = [];
-
-    for (const url of urls) {
-      if (document.head.querySelector(`link[data-grid-preload="${CSS.escape(url)}"]`)) continue;
-
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'image';
-      link.href = url;
-      link.setAttribute('data-grid-preload', url);
-      document.head.appendChild(link);
-      created.push(link);
-    }
-
-    return () => {
-      for (const link of created) {
-        link.remove();
-      }
-    };
-  }, [urls]);
-}
 
 /** Memoized grid card - only re-renders when participant data or highlights change. */
 const GridCard = memo(function GridCard({
@@ -376,17 +350,6 @@ function EventPageContent({
     () => new Set(gridHighlights.filter((h) => h.type === 'message').map((h) => h.participantId)),
     [gridHighlights],
   );
-
-  const preloadUrls = useMemo(
-    () => filteredParticipants
-      .slice(0, ABOVE_FOLD_PRELOAD_COUNT)
-      .flatMap((p) => (p.photos?.[0]
-        ? [getPhotoUrl(p.photos[0].storage_path, { width: 360, height: 480, quality: 75 })]
-        : [])),
-    [filteredParticipants],
-  );
-
-  usePreloadImages(preloadUrls);
 
   if (!session) return null;
 
