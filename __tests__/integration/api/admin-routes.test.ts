@@ -134,16 +134,16 @@ describe('adminGuard (_helpers.ts)', () => {
     vi.mocked(checkCsrf).mockReturnValue(true);
 
     const req = new NextRequest('http://localhost/api/admin/test', { method: 'POST' });
-    const result = adminGuard(req, 'test', { maxRequests: 10, windowMs: 60000 });
+    const result = await adminGuard(req, 'test', { maxRequests: 10, windowMs: 60000 });
     expect(result).toBeNull();
   });
 
   it('returns 429 when rate limited', async () => {
-    const { checkRateLimit } = await import('@/lib/rate-limit');
-    vi.mocked(checkRateLimit).mockReturnValue({ allowed: false, remaining: 0, resetMs: 30000 });
+    const { checkRateLimitAsync } = await import('@/lib/rate-limit');
+    vi.mocked(checkRateLimitAsync).mockResolvedValue({ allowed: false, remaining: 0, resetMs: 30000 });
 
     const req = new NextRequest('http://localhost/api/admin/test');
-    const result = adminGuard(req, 'test', { maxRequests: 10, windowMs: 60000 });
+    const result = await adminGuard(req, 'test', { maxRequests: 10, windowMs: 60000 });
     expect(result).not.toBeNull();
     expect(result!.status).toBe(429);
   });
@@ -153,7 +153,7 @@ describe('adminGuard (_helpers.ts)', () => {
     vi.mocked(verifyAdminFromRequest).mockReturnValue(false);
 
     const req = new NextRequest('http://localhost/api/admin/test');
-    const result = adminGuard(req, 'test', { maxRequests: 10, windowMs: 60000 });
+    const result = await adminGuard(req, 'test', { maxRequests: 10, windowMs: 60000 });
     expect(result).not.toBeNull();
     expect(result!.status).toBe(401);
   });

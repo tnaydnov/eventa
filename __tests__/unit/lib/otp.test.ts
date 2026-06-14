@@ -208,7 +208,7 @@ describe('verifyOtp', () => {
     });
 
     const result = await verifyOtp(phone, eventId, '999999');
-    expect(result).toEqual({ valid: false, error: 'Incorrect code' });
+    expect(result).toEqual({ valid: false, error: 'Invalid or expired code. Request a new code.' });
   });
 
   it('returns error when OTP not found (expired)', async () => {

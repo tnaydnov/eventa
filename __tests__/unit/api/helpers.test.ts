@@ -34,7 +34,8 @@ describe('getPhotoUrl', () => {
 
   it('handles empty storage path', () => {
     const url = getPhotoUrl('');
-    expect(url).toContain('/storage/v1/object/public/photos/');
+    // getPhotoUrl returns '' for empty paths (guards against broken URLs)
+    expect(url).toBe('');
   });
 
   it('handles paths with special characters', () => {
