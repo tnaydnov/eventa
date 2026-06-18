@@ -4,6 +4,10 @@ Allow: /
 # Sitemap
 Sitemap: https://www.eventa.productions/sitemap.xml
 
-# Block sensitive routes
+# Block admin and API
 Disallow: /admin
 Disallow: /api/
+
+# Block utility/private pages (noindex via metadata)
+Disallow: /guest-upload/
+Disallow: /portal/

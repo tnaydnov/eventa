@@ -8,13 +8,13 @@ import DemoPhone from './_components/demo/DemoPhone';
 import OrderForm from './_components/OrderForm';
 
 export const metadata: Metadata = {
-  title: 'Eventa Dating - הפכו כל אירוע לחוויית היכרויות',
+  title: 'היכרויות בחתונה | אפליקציית QR לרווקים ורווקות | Eventa',
   description:
-    'Eventa Dating מוסיפה שכבת היכרויות חכמה לכל אירוע - חתונות, מסיבות, אירועי חברה ועוד. סריקת QR, פרופיל תוך דקה, לייקים, מאצ׳ים וצ׳אט.',
+    'Eventa מוסיפה לחתונה שלכם חוויית היכרויות קלילה: האורחים סורקים QR, בונים פרופיל תוך דקה, עושים לייקים, מאצ׳ים וצ׳אט — בלי הורדה ובלי מבוכה.',
   alternates: { canonical: 'https://www.eventa.productions/' },
   openGraph: {
-    title: 'Eventa Dating - הפכו כל אירוע לחוויית היכרויות',
-    description: 'שכבת היכרויות חכמה לכל אירוע. סריקת QR, מאצ׳ים וצ׳אט - הכל בדפדפן.',
+    title: 'היכרויות בחתונה | אפליקציית QR לרווקים ורווקות | Eventa',
+    description: 'חוויית היכרויות לחתונה: סריקת QR, מאצ׳ים וצ׳אט בזמן אמת — בלי הורדה ובלי מבוכה.',
     url: 'https://www.eventa.productions/',
     images: [{ url: '/og-image.png', width: 1536, height: 1024, alt: 'Eventa Dating' }],
   },

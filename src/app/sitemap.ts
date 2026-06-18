@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://www.eventa.productions';
-  const lastModified = new Date('2026-02-16');
+  const lastModified = new Date('2026-06-18');
 
   return [
     {
@@ -12,10 +12,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
+      url: `${baseUrl}/how-it-works`,
+      lastModified,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/order`,
       lastModified,
       changeFrequency: 'weekly',
-      priority: 0.9,
+      priority: 0.7,
     },
     {
       url: `${baseUrl}/faq`,

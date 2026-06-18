@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 import Wizard from '../_components/wizard/Wizard';
 
 export const metadata: Metadata = {
-  title: 'הזמנת Eventa Dating לאירוע | Eventa',
+  title: 'הזמנת Eventa לחתונה או לאירוע | Eventa',
   description:
-    'הזמינו את שירות ההיכרויות של Eventa לאירוע שלכם - חתונה, מסיבה, בר/בת מצווה ועוד. בחרו סוג אירוע, עיצוב פוסטר, רקע מותאם אישית ועוד.',
+    'הזמינו חוויית היכרויות עם QR, פוסטר וצ׳אט. מלאו כמה פרטים, בחרו עיצוב, וקבלו הכל מוכן להפצה.',
   alternates: { canonical: 'https://www.eventa.productions/order' },
   robots: { index: true, follow: true },
 };
@@ -13,6 +13,12 @@ export const metadata: Metadata = {
 export default function OrderPage() {
   return (
     <main id="main-content">
+      <div className="order-intro">
+        <h1>הזמנת Eventa לחתונה או לאירוע</h1>
+        <p>
+          מלאו כמה פרטים קצרים על האירוע, בחרו את העיצוב שמתאים לכם, ואנחנו נכין עבורכם חוויית היכרויות עם QR, פרופילים, לייקים, מאצ׳ים וצ׳אט — בלי שהאורחים צריכים להוריד אפליקציה.
+        </p>
+      </div>
       <Suspense>
         <Wizard />
       </Suspense>
