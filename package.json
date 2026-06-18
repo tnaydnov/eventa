@@ -30,7 +30,7 @@
     "@supabase/supabase-js": "^2.95.3",
     "@tanstack/react-virtual": "^3.13.19",
     "browser-image-compression": "^2.0.2",
-    "dompurify": "^3.3.1",
+    "dompurify": "^3.4.11",
     "framer-motion": "^12.34.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
