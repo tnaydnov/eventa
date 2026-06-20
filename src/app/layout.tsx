@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import { Rubik, Great_Vibes } from 'next/font/google';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import WebVitalsReporter from '@/components/WebVitalsReporter';
@@ -82,6 +83,24 @@ export default function RootLayout({
             <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
           </>
         )}
+        {/* Google Ads Conversion Tracking */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=AW-18256238971"
+          strategy="afterInteractive"
+          id="google-ads-script"
+        />
+        <Script
+          id="google-ads-config"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'AW-18256238971');
+            `,
+          }}
+        />
       </head>
       <body className={rubik.className}>
         <a href="#main-content" className="skip-to-content">דלג לתוכן</a>

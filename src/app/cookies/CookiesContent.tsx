@@ -11,8 +11,8 @@ export default function CookiesContent() {
           מדיניות עוגיות זו חלה על שירות Eventa, המופעל על-ידי תומר ניידנוב, עוסק פטור, הפועל תחת השם המסחרי Eventa.
         </LegalText>
         <LegalText>
-          השירות משתמש ב<strong>עוגיות חיוניות</strong> להפעלת התחברות ואבטחת סשן.
-          איננו משתמשים בעוגיות פרסום או מעקב.
+          השירות משתמש ב<strong>עוגיות חיוניות</strong> להפעלת התחברות ואבטחת סשן,
+          וכן בעוגיות מדידה של Google Ads / Google Tag לצורך מדידת המרות ושיפור קמפיינים פרסומיים.
         </LegalText>
       </LegalSection>
 
@@ -39,6 +39,12 @@ export default function CookiesContent() {
               <td className={tdCls}>24 שעות</td>
               <td className={tdCls}>חיונית / פונקציונלית</td>
             </tr>
+            <tr>
+              <td className={tdCls}><code className="text-[var(--primary)">_gcl_*</code></td>
+              <td className={tdCls}>מדידה ואתריבוציה של המרות Google Ads</td>
+              <td className={tdCls}>עד 90 ימים</td>
+              <td className={tdCls}>מדידה / פרסום</td>
+            </tr>
           </tbody>
         </table>
       </LegalSection>
@@ -60,11 +66,13 @@ export default function CookiesContent() {
 
       <LegalSection title="ניהול עוגיות">
         <LegalText>
-          העוגיות הן פונקציונליות ונדרשות להפעלת השירות. ניתן למחוק עוגיות דרך הגדרות הדפדפן,
-          אך ייתכן שחלק מהשירות לא יעבוד לאחר מכן.
+          העוגיות החיוניות נדרשות להפעלת השירות. העוגיות מסוג מדידה (כגון עוגיות Google Ads) משמשות
+          למדידת המרות קמפיינים. ניתן למחוק עוגיות דרך הגדרות הדפדפן, אך חסימה של עוגיות חיוניות עלולה
+          להשפיע על פעולה תקינה של השירות.
         </LegalText>
         <LegalText bold>
-          Eventa אינה משתמשת בעוגיות לצרכי פרסום, מעקב, או אנליטיקה.
+          Eventa משתמשת ב־Google Ads / Google Tag לצורך מדידת המרות ושיפור קמפיינים פרסומיים.
+          איננו משתמשים בעוגיות לאנליטיקה כללית (Google Analytics) או מעקב מעבר לאתר.
         </LegalText>
       </LegalSection>
     </>

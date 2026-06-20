@@ -116,6 +116,14 @@ export default function PrivacyContent() {
         <LegalText>
           באפשרותך למחוק נתונים אלה דרך הגדרות הדפדפן (&quot;ניקוי נתוני אתר&quot;).
         </LegalText>
+
+        <LegalSubheading>Google Ads / Google Tag Manager</LegalSubheading>
+        <LegalText>
+          השירות משתמש ב־Google Tag Manager (GTM) וב־Google Ads conversion tracking לצורך מדידת המרות וביצועי קמפיינים פרסומיים.
+          Google עשוי לאחסן עוגיות מעקב (כגון _gcl_* וקוקיס נוספים של Google) בדפדפן שלך.
+          מידע זה משמש ל־Google לצורך אטריבוציה של המרות וניתוח ביצועים של קמפיינים, בהתאם 
+          <LegalLink href="https://policies.google.com/privacy">למדיניות הפרטיות של Google</LegalLink>.
+        </LegalText>
       </LegalSection>
 
       <LegalSection title="4. מטרות העיבוד">
@@ -123,8 +131,7 @@ export default function PrivacyContent() {
         <LegalList>
           <li>הפעלת השירות (פרופילים, לייקים, צ&apos;אט)</li>
           <li>אבטחה ומניעת שימוש לרעה (חסימות, בדיקות גישה, מניעת עקיפה, מניעת ספאם)</li>
-          <li>תפעול ותחזוקה (איתור תקלות ושיפור יציבות)</li>
-        </LegalList>
+          <li>תפעול ותחזוקה (איתור תקלות ושיפור יציבות)</li>          <li>מדידת המרות וניתוח ביצועי קמפיינים פרסומיים דרך Google Ads</li>        </LegalList>
         <LegalText>בנוסף, ייתכן שימוש במידע לצורך:</LegalText>
         <LegalList>
           <li>שיפור השירות ותכונותיו</li>
@@ -155,9 +162,10 @@ export default function PrivacyContent() {
           <li><strong>שרת SMTP</strong> - לצורך שליחת דוא&quot;ל הזמנות ותקשורת תפעולית.</li>
           <li><strong>OpenAI</strong> - לצורך מודרציה אוטומטית של תמונות: תמונות פרופיל ותמונות הנשלחות בצ&apos;אט נשלחות לשירות המודרציה של OpenAI (מודל omni-moderation-latest) לבדיקת תאימות להנחיות הקהילה. בהתאם לתנאי השירות של OpenAI, תשומות לממשק המודרציה אינן משמשות לאימון מודלים. לפרטים נוספים: <LegalLink href="https://openai.com/policies/privacy-policy">מדיניות הפרטיות של OpenAI</LegalLink>.</li>
           <li><strong>Falconsai / Hugging Face</strong> - שירות בדיקה משלים לתמונות פרופיל גבוליות בלבד (חוות דעת שנייה כאשר ציון המודרציה הראשי נמצא בטווח ביניים). העברת הנתונים עשויה להתבצע מחוץ לישראל.</li>
+          <li><strong>Google Ads / Google Tag Manager</strong> - לצורך מדידת המרות וניתוח ביצועי קמפיינים פרסומיים. Google עשוי לאחסן עוגיות מעקב בדפדפן. לפרטים נוספים: <LegalLink href="https://policies.google.com/privacy">מדיניות הפרטיות של Google</LegalLink>.</li>
         </LegalList>
         <LegalText bold>
-          איננו משלבים נכון למועד זה שירותי אנליטיקה / פרסום (כגון Google Analytics, Mixpanel וכו&apos;).
+          נכון למועד זה, השירות עשוי להשתמש ב־Google Ads / Google Tag לצורך מדידת המרות ושיפור קמפיינים פרסומיים. איננו מוכרים מידע אישי לצדדים שלישיים.
         </LegalText>
       </LegalSection>
 
