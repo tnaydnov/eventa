@@ -59,8 +59,8 @@ const nextConfig = {
       : 'https://*.supabase.co wss://*.supabase.co';
     // unsafe-eval only needed for Next.js dev mode
     const scriptSrc = isDev
-      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://www.googletagmanager.com"
-      : "script-src 'self' 'unsafe-inline' blob: https://www.googletagmanager.com";
+      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.googleadservices.com"
+      : "script-src 'self' 'unsafe-inline' blob: https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.googleadservices.com";
 
     return [
       {
@@ -86,9 +86,9 @@ const nextConfig = {
               scriptSrc,
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
-              `img-src 'self' data: blob: ${supabaseImg} https://images.unsplash.com https://*.unsplash.com`,
+              `img-src 'self' data: blob: ${supabaseImg} https://images.unsplash.com https://*.unsplash.com https://www.google.com https://*.doubleclick.net https://www.googleadservices.com`,
               `media-src 'self' blob: ${supabaseImg}`,
-              `connect-src 'self' ${supabaseConnect} https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com`,
+              `connect-src 'self' ${supabaseConnect} https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://*.doubleclick.net https://www.googleadservices.com`,
               "worker-src 'self' blob:",
               "frame-src 'self' https://*.creditguard.co.il https://*.cardcom.co.il https://*.cardcom.solutions https://*.yaadsarig.com https://*.meshulam.co.il https://*.upay.co.il https://*.invoice4u.co.il",
               "object-src 'none'",
