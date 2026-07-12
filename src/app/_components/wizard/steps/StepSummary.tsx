@@ -196,7 +196,7 @@ export default function StepSummary({ state, onChange, onGoToStep }: Props) {
           </div>
 
           <div className="wiz-field">
-            <label className="wiz-field__label" htmlFor="wiz-contact-email">אימייל</label>
+            <label className="wiz-field__label" htmlFor="wiz-contact-email">אימייל *</label>
             <input
               id="wiz-contact-email"
               className="wiz-field__input"
