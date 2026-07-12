@@ -14,6 +14,7 @@ import {
 } from '@/lib/config';
 import { checkCsrf } from '@/lib/session';
 import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { encryptPii, computeBlindIndex } from '@/lib/pii';
 
 const sessionSchema = z.object({
   contactName: z.string().min(1).max(ORDER_NAME_MAX_LENGTH),
@@ -87,9 +88,12 @@ export async function POST(req: NextRequest) {
         special_requests: d.specialRequests || null,
         wants_guest_messages: wantsMessages,
         contact_preference: 'pay-now',
-        contact_name: d.contactName,
-        contact_phone: d.contactPhone,
-        contact_email: d.contactEmail,
+        contact_name_enc: encryptPii(d.contactName),
+        contact_phone_enc: encryptPii(d.contactPhone),
+        contact_phone_bi: computeBlindIndex(d.contactPhone),
+        contact_email_enc: encryptPii(d.contactEmail || null),
+        contact_email_bi: computeBlindIndex(d.contactEmail || null),
+        business_terms_accepted_at: new Date().toISOString(),
         payment_status: 'awaiting_payment',
         total_price: totalAgorot,
         payment_link_token: paymentLinkToken,

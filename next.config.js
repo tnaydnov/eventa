@@ -59,8 +59,8 @@ const nextConfig = {
       : 'https://*.supabase.co wss://*.supabase.co';
     // unsafe-eval only needed for Next.js dev mode
     const scriptSrc = isDev
-      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:"
-      : "script-src 'self' 'unsafe-inline' blob:";
+      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://www.googletagmanager.com"
+      : "script-src 'self' 'unsafe-inline' blob: https://www.googletagmanager.com";
 
     return [
       {
@@ -88,7 +88,7 @@ const nextConfig = {
               "font-src 'self' https://fonts.gstatic.com",
               `img-src 'self' data: blob: ${supabaseImg} https://images.unsplash.com https://*.unsplash.com`,
               `media-src 'self' blob: ${supabaseImg}`,
-              `connect-src 'self' ${supabaseConnect}`,
+              `connect-src 'self' ${supabaseConnect} https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com`,
               "worker-src 'self' blob:",
               "frame-src 'self' https://*.creditguard.co.il https://*.cardcom.co.il https://*.cardcom.solutions https://*.yaadsarig.com https://*.meshulam.co.il https://*.upay.co.il https://*.invoice4u.co.il",
               "object-src 'none'",

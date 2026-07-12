@@ -34,7 +34,7 @@ const orderSchema = z.object({
   contactEmail: z.string().max(ORDER_EMAIL_MAX_LENGTH).email().optional()
     .or(z.literal('')),
   // Extended wizard fields (optional - absent for simple OrderForm submissions)
-  source: z.enum(['wizard', 'form']).optional(),
+  source: z.enum(['wizard', 'form', 'wizard-payment-fallback']).optional(),
   eventName: z.string().max(100).optional(),
   startsAt: z.string().max(30).optional(),
   endsAt: z.string().max(30).optional(),
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     const eventType = parsed.data.eventType || '';
 
     // Extended wizard fields (may be undefined for simple form submissions)
-    const isWizard = parsed.data.source === 'wizard';
+    const isWizard = parsed.data.source === 'wizard' || parsed.data.source === 'wizard-payment-fallback';
     const eventName = parsed.data.eventName || '';
     const startsAt = parsed.data.startsAt || '';
     const endsAt = parsed.data.endsAt || '';

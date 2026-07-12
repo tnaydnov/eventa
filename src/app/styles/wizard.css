@@ -1728,71 +1728,101 @@
   80%      { transform: translateX(2px); }
 }
 
-/* ═══ Responsive ═══ */
+/* ═══ App-Shell Layout (all viewports) ═══════════════════════════════
+ * The wizard is always a pinned-header / scrollable-body / pinned-footer
+ * shell so the logo, progress rail, and nav buttons stay visible at all
+ * times on every device. The marketing intro block is permanently hidden
+ * (its content lives in <metadata> for SEO).
+ * ═══════════════════════════════════════════════════════════════════ */
 
-/* ── Mobile: Fixed app-shell layout ─────────────────────────────────
- * On phones (≤768px) the wizard becomes a native-app-style screen:
- *  • Marketing intro is hidden (desktop-only, preserved for SEO on desktop)
- *  • Header + progress rail are pinned at the top at all times
- *  • Step content scrolls independently in the middle section
- *  • Nav buttons are pinned at the bottom with home-bar clearance
- * This eliminates the "page scrolls and loses header/buttons" problem on iOS.
- * ──────────────────────────────────────────────────────────────────── */
+/* 1. Remove above-logo marketing intro on all screen sizes */
+.order-intro {
+  display: none;
+}
+
+/* 2. Outer <main> is the fixed-height shell */
+.order-main {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* 3. Wizard fills the shell */
+.wiz-page {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 4. Header: always pinned, opaque so particles don't bleed through */
+.wiz-header {
+  flex-shrink: 0;
+  background: rgba(8, 8, 8, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* 5. Progress rail: always pinned */
+.wiz-progress {
+  flex-shrink: 0;
+  background: rgba(8, 8, 8, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* 6. Step content: the only thing that scrolls */
+.wiz-card {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding-bottom: 32px;
+}
+
+/* 7. Bottom nav: always pinned */
+.wiz-nav {
+  flex-shrink: 0;
+  background: rgba(8, 8, 8, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* 8. Success screen: scrollable within the shell */
+.wiz-success {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* ── Mobile refinements (≤768px): notch / home-bar safe areas ── */
 @media (max-width: 768px) {
-  /* 1. Hide desktop marketing intro — form fills the screen on phones */
-  .order-intro {
-    display: none;
-  }
-
-  /* 2. Outer <main> becomes a fixed-height app shell */
-  .order-main {
-    display: flex;
-    flex-direction: column;
-    height: 100dvh;
-    overflow: hidden;
-  }
-
-  /* 3. Wizard fills the shell completely */
-  .wiz-page {
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  /* 4. Header: pinned at top, opaque, notch/island-safe */
+  /* Notch / Dynamic Island clearance */
   .wiz-header {
-    flex-shrink: 0;
     padding-top: max(16px, env(safe-area-inset-top));
     padding-bottom: 10px;
-    background: rgba(8, 8, 8, 0.97);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
   }
 
-  /* Keep back button aligned with safe area */
   .wiz-back {
     top: max(16px, env(safe-area-inset-top));
   }
 
-  /* 5. Progress rail: pinned below header, opaque */
   .wiz-progress {
-    flex-shrink: 0;
     padding-top: 8px;
     padding-bottom: 10px;
-    background: rgba(8, 8, 8, 0.97);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
 
-  /* 6. Step content: only this area scrolls */
+  /* Home-bar clearance */
+  .wiz-nav {
+    padding-top: 12px;
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+
+  /* Hide scrollbar on touch devices for cleaner look */
   .wiz-card {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
-    padding-bottom: 32px;
     scrollbar-width: none;
   }
 
@@ -1800,22 +1830,7 @@
     display: none;
   }
 
-  /* 7. Bottom nav: pinned, home-bar safe */
-  .wiz-nav {
-    flex-shrink: 0;
-    padding-top: 12px;
-    padding-bottom: max(20px, env(safe-area-inset-bottom));
-    background: rgba(8, 8, 8, 0.97);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  /* 8. Success screen: scrollable within the shell */
   .wiz-success {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding: 24px 20px;
     scrollbar-width: none;
