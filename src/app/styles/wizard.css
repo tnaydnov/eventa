@@ -146,40 +146,29 @@
   z-index: 2;
   width: 100%;
   max-width: 680px;
-  padding: 20px 24px 8px;
+  padding: 16px 24px 10px;
 }
 
+/* ── Track: flex row of [node] [seg] [node] [seg] ... [node] ── */
 .wiz-progress__track {
-  position: relative;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: flex-start; /* top-align so segment margin-top targets dot center */
 }
 
-/* Connecting line behind nodes */
-.wiz-progress__line {
-  position: absolute;
-  top: 18px; /* half of the 36px dot – perfectly bisects every dot */
-  left: 20px;
-  right: 20px;
+/* Connector segment between nodes */
+.wiz-progress__seg {
+  flex: 1;
   height: 2px;
-  background: rgba(255, 255, 255, 0.06);
-  transform: translateY(-50%);
-  z-index: 0;
+  min-width: 4px;
   border-radius: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  /* margin-top: (dot_height - seg_height) / 2 = (30 - 2) / 2 = 14px */
+  margin-top: 14px;
+  transition: background 0.4s ease;
 }
 
-.wiz-progress__fill {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, rgba(212, 165, 154, 0.5), var(--primary));
-  border-radius: 1px;
-  transform: scaleX(var(--progress, 0));
-  transform-origin: right;
-  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+.wiz-progress__seg--done {
+  background: var(--primary);
 }
 
 /* Step node */
@@ -189,28 +178,29 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+  flex-shrink: 0;
   cursor: default;
 }
 
 .wiz-progress__dot {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.08);
-  background: rgba(10, 10, 10, 0.9);
+  font-size: 13px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: rgba(8, 8, 8, 1);
   color: var(--text-muted);
-  transition: border-color 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
-  position: relative;
+  transition: border-color 0.35s ease, background 0.35s ease, color 0.35s ease, box-shadow 0.35s ease;
+  flex-shrink: 0;
 }
 
 .wiz-progress__node--done .wiz-progress__dot {
   border-color: var(--primary);
-  background: rgba(212, 165, 154, 0.15);
+  background: rgba(212, 165, 154, 0.12);
   color: var(--primary);
 }
 
@@ -218,37 +208,25 @@
   border-color: var(--primary);
   background: var(--primary);
   color: #1a1a1a;
-  box-shadow:
-    0 0 20px rgba(212, 165, 154, 0.3),
-    0 0 40px rgba(212, 165, 154, 0.1);
-  transform: scale(1.1);
+  animation: wiz-dot-pulse 2.5s ease-in-out infinite;
 }
 
-/* Pulse ring on active dot */
-.wiz-progress__node--active .wiz-progress__dot::after {
-  content: '';
-  position: absolute;
-  inset: -6px;
-  border-radius: 50%;
-  border: 1px solid rgba(212, 165, 154, 0.3);
-  animation: wiz-pulse 2s ease-in-out infinite;
-}
-
-@keyframes wiz-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.6; }
-  50%      { transform: scale(1.2); opacity: 0; }
+@keyframes wiz-dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(212, 165, 154, 0.18), 0 0 10px rgba(212, 165, 154, 0.2); }
+  50%      { box-shadow: 0 0 0 5px rgba(212, 165, 154, 0.10), 0 0 18px rgba(212, 165, 154, 0.3); }
 }
 
 .wiz-progress__label {
-  font-size: 11px;
-  color: rgba(176, 176, 176, 0.4);
+  font-size: 10px;
+  color: rgba(176, 176, 176, 0.35);
   transition: color 0.3s;
   white-space: nowrap;
+  text-align: center;
 }
 
 .wiz-progress__node--active .wiz-progress__label,
 .wiz-progress__node--done .wiz-progress__label {
-  color: rgba(212, 165, 154, 0.7);
+  color: rgba(212, 165, 154, 0.65);
 }
 
 /* ── Card container ── */
@@ -1914,18 +1892,18 @@
   }
 
   .wiz-progress__label {
-    font-size: 10px;
+    font-size: 9px;
   }
 
   .wiz-progress__dot {
-    width: 30px;
-    height: 30px;
-    font-size: 12px;
+    width: 26px;
+    height: 26px;
+    font-size: 11px;
   }
 
-  /* Realign line to center of the smaller 30px dot */
-  .wiz-progress__line {
-    top: 15px;
+  /* Realign connector to center of the smaller 26px dot */
+  .wiz-progress__seg {
+    margin-top: 12px; /* (26-2)/2 */
   }
 
   .wiz-nav__btn {

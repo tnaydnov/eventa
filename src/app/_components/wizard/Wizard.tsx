@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useEffect, Fragment } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -273,12 +273,6 @@ export default function Wizard() {
   // Whether the current step's "next" should be enabled
   const isLastStep = step === totalSteps - 1;
 
-  // Progress bar fill percentage
-  const progressPercent = useMemo(
-    () => (step / (totalSteps - 1)) * 100,
-    [step, totalSteps]
-  );
-
   // ── Success screen ──
   if (success) {
     return (
@@ -397,30 +391,31 @@ export default function Wizard() {
       {/* Progress rail */}
       <div className="wiz-progress">
         <div className="wiz-progress__track">
-          <div className="wiz-progress__line">
-            <div
-              className="wiz-progress__fill"
-              style={{ '--progress': progressPercent / 100 } as React.CSSProperties}
-            />
-          </div>
           {WIZARD_STEPS.map((s, i) => (
-            <div
-              key={s.id}
-              className={`wiz-progress__node${
-                i < step ? ' wiz-progress__node--done' : ''
-              }${i === step ? ' wiz-progress__node--active' : ''}`}
-            >
-              <div className="wiz-progress__dot">
-                {i < step ? (
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" focusable="false">
-                    <path d="M3 7l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                ) : (
-                  <WizardIcon name={s.icon} size={16} />
-                )}
+            <Fragment key={s.id}>
+              <div
+                className={`wiz-progress__node${
+                  i < step ? ' wiz-progress__node--done' : ''
+                }${i === step ? ' wiz-progress__node--active' : ''}`}
+              >
+                <div className="wiz-progress__dot">
+                  {i < step ? (
+                    <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true" focusable="false">
+                      <path d="M3 7l3 3 5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                    </svg>
+                  ) : (
+                    <WizardIcon name={s.icon} size={14} />
+                  )}
+                </div>
+                <span className="wiz-progress__label">{s.label}</span>
               </div>
-              <span className="wiz-progress__label">{s.label}</span>
-            </div>
+              {i < WIZARD_STEPS.length - 1 && (
+                <div
+                  className={`wiz-progress__seg${i < step ? ' wiz-progress__seg--done' : ''}`}
+                  aria-hidden="true"
+                />
+              )}
+            </Fragment>
           ))}
         </div>
       </div>
