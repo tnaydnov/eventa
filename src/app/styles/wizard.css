@@ -1729,6 +1729,104 @@
 }
 
 /* ═══ Responsive ═══ */
+
+/* ── Mobile: Fixed app-shell layout ─────────────────────────────────
+ * On phones (≤768px) the wizard becomes a native-app-style screen:
+ *  • Marketing intro is hidden (desktop-only, preserved for SEO on desktop)
+ *  • Header + progress rail are pinned at the top at all times
+ *  • Step content scrolls independently in the middle section
+ *  • Nav buttons are pinned at the bottom with home-bar clearance
+ * This eliminates the "page scrolls and loses header/buttons" problem on iOS.
+ * ──────────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* 1. Hide desktop marketing intro — form fills the screen on phones */
+  .order-intro {
+    display: none;
+  }
+
+  /* 2. Outer <main> becomes a fixed-height app shell */
+  .order-main {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* 3. Wizard fills the shell completely */
+  .wiz-page {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* 4. Header: pinned at top, opaque, notch/island-safe */
+  .wiz-header {
+    flex-shrink: 0;
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: 10px;
+    background: rgba(8, 8, 8, 0.97);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  /* Keep back button aligned with safe area */
+  .wiz-back {
+    top: max(16px, env(safe-area-inset-top));
+  }
+
+  /* 5. Progress rail: pinned below header, opaque */
+  .wiz-progress {
+    flex-shrink: 0;
+    padding-top: 8px;
+    padding-bottom: 10px;
+    background: rgba(8, 8, 8, 0.97);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* 6. Step content: only this area scrolls */
+  .wiz-card {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    padding-bottom: 32px;
+    scrollbar-width: none;
+  }
+
+  .wiz-card::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 7. Bottom nav: pinned, home-bar safe */
+  .wiz-nav {
+    flex-shrink: 0;
+    padding-top: 12px;
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    background: rgba(8, 8, 8, 0.97);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* 8. Success screen: scrollable within the shell */
+  .wiz-success {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 24px 20px;
+    scrollbar-width: none;
+  }
+
+  .wiz-success::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ── Small phones (≤480px): UI density adjustments ── */
 @media (max-width: 480px) {
   .wiz-types {
     grid-template-columns: repeat(2, 1fr);
@@ -1747,7 +1845,11 @@
   }
 
   .wiz-step__title {
-    font-size: 24px;
+    font-size: 22px;
+  }
+
+  .wiz-step__subtitle {
+    font-size: 14px;
   }
 
   .wiz-progress__label {
@@ -1761,11 +1863,12 @@
   }
 
   .wiz-nav__btn {
-    padding: 12px 20px;
+    padding: 12px 18px;
     font-size: 14px;
   }
 }
 
+/* ── Very small phones (≤360px): tighter layout ── */
 @media (max-width: 360px) {
   .wiz-types {
     grid-template-columns: 1fr 1fr;
@@ -1777,6 +1880,12 @@
   }
 
   .wiz-card {
-    padding: 20px 16px;
+    padding: 16px 14px;
+    padding-bottom: 32px;
+  }
+
+  /* Hide step labels to prevent crowding on narrow rail */
+  .wiz-progress__label {
+    display: none;
   }
 }

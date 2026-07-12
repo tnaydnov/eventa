@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function OrderPage() {
   return (
-    <main id="main-content">
+    <main id="main-content" className="order-main">
       <div className="order-intro">
         <h1>הזמנת Eventa לחתונה או לאירוע</h1>
         <p>
