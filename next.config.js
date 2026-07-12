@@ -88,7 +88,7 @@ const nextConfig = {
               "font-src 'self' https://fonts.gstatic.com",
               `img-src 'self' data: blob: ${supabaseImg} https://images.unsplash.com https://*.unsplash.com https://www.google.com https://www.google.co.il https://*.doubleclick.net https://www.googleadservices.com`,
               `media-src 'self' blob: ${supabaseImg}`,
-              `connect-src 'self' ${supabaseConnect} https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://*.doubleclick.net https://www.googleadservices.com`,
+              `connect-src 'self' ${supabaseConnect} https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://www.google.co.il https://*.doubleclick.net https://www.googleadservices.com`,
               "worker-src 'self' blob:",
               "frame-src 'self' https://*.creditguard.co.il https://*.cardcom.co.il https://*.cardcom.solutions https://*.yaadsarig.com https://*.meshulam.co.il https://*.upay.co.il https://*.invoice4u.co.il",
               "object-src 'none'",

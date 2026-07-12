@@ -152,14 +152,14 @@
 .wiz-progress__track {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
 }
 
 /* Connecting line behind nodes */
 .wiz-progress__line {
   position: absolute;
-  top: 50%;
+  top: 18px; /* half of the 36px dot – perfectly bisects every dot */
   left: 20px;
   right: 20px;
   height: 2px;
@@ -1921,6 +1921,11 @@
     width: 30px;
     height: 30px;
     font-size: 12px;
+  }
+
+  /* Realign line to center of the smaller 30px dot */
+  .wiz-progress__line {
+    top: 15px;
   }
 
   .wiz-nav__btn {
