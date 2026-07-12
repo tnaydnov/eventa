@@ -667,6 +667,52 @@
   background: rgba(239, 68, 68, 0.7);
 }
 
+/* ── Replace / remove actions (shown after image upload) ── */
+.wiz-bg-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 14px;
+  animation: wiz-step-enter 0.3s ease forwards;
+}
+
+.wiz-bg-actions__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.wiz-bg-actions__btn--replace {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: var(--foreground);
+}
+
+.wiz-bg-actions__btn--replace:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(212, 165, 154, 0.35);
+  color: var(--primary-light);
+}
+
+.wiz-bg-actions__btn--remove {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+}
+
+.wiz-bg-actions__btn--remove:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
 /* ═══ Background Preview Phone Mockup ═══ */
 .bg-preview {
   margin-top: 24px;

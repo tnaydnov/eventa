@@ -106,7 +106,7 @@ export default function StepBackground({ state, onChange }: Props) {
         </button>
       </div>
 
-      {/* Upload zone - only when custom is selected */}
+      {/* Upload zone – only when custom selected and no image yet */}
       {state.wantsCustomBackground && !state.backgroundPreview && (
         <div
           className="wiz-upload"
@@ -121,35 +121,23 @@ export default function StepBackground({ state, onChange }: Props) {
           <p className="wiz-upload__text">גררו תמונה לכאן או לחצו לבחירה</p>
           <p className="wiz-upload__hint">JPG, PNG, WebP - עד 5MB</p>
           {fileError && <p className="wiz-upload__error" role="alert">{fileError}</p>}
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/jpeg,image/png,image/gif,image/webp,image/avif"
-            hidden
-            onChange={e => {
-              const file = e.target.files?.[0];
-              if (file) handleFile(file);
-            }}
-          />
         </div>
       )}
 
-      {/* Preview */}
-      {state.backgroundPreview && (
-        <div className="wiz-upload__preview">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={state.backgroundPreview} alt="תצוגה מקדימה" />
-          <button
-            type="button"
-            className="wiz-upload__remove"
-            onClick={clearImage}
-            aria-label="הסר תמונה"
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
-              <path d="M3 3l8 8M11 3l-8 8" />
-            </svg>
-          </button>
-        </div>
+      {/* Hidden file input – always available when custom bg is active (replace too) */}
+      {state.wantsCustomBackground && (
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp,image/avif"
+          hidden
+          onChange={e => {
+            const file = e.target.files?.[0];
+            if (file) handleFile(file);
+            // reset so the same file can be re-selected
+            e.target.value = '';
+          }}
+        />
       )}
 
       {/* Image Cropper */}
@@ -182,6 +170,36 @@ export default function StepBackground({ state, onChange }: Props) {
         wantsCustomBackground={!!state.wantsCustomBackground}
         eventName={state.eventName}
       />
+
+      {/* Replace / remove actions – shown only after an image is uploaded */}
+      {state.wantsCustomBackground && state.backgroundPreview && (
+        <div className="wiz-bg-actions">
+          {fileError && <p className="wiz-upload__error" role="alert" style={{ textAlign: 'center', marginBottom: 8 }}>{fileError}</p>}
+          <button
+            type="button"
+            className="wiz-bg-actions__btn wiz-bg-actions__btn--replace"
+            onClick={() => fileRef.current?.click()}
+          >
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
+              <path d="M4 4v5h5" />
+              <path d="M16 16v-5h-5" />
+              <path d="M4 9a8 8 0 0114 3" />
+              <path d="M16 11a8 8 0 01-14-3" />
+            </svg>
+            החלף תמונה
+          </button>
+          <button
+            type="button"
+            className="wiz-bg-actions__btn wiz-bg-actions__btn--remove"
+            onClick={clearImage}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
+              <path d="M3 3l8 8M11 3l-8 8" />
+            </svg>
+            הסר תמונה
+          </button>
+        </div>
+      )}
     </div>
   );
 }
