@@ -1,0 +1,213 @@
+/* ═══════════════════════════════════════════
+   Chat list
+   ═══════════════════════════════════════════ */
+
+.chat-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 76px;
+}
+
+.chat-list-item:active {
+  background: var(--surface-light);
+}
+
+.chat-list-item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.chat-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.chat-avatar-placeholder {
+  background: var(--surface-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-name--unread {
+  font-weight: 700;
+}
+
+.chat-last-msg--unread {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.chat-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 40px;
+}
+
+.unread-badge {
+  background: var(--primary);
+  color: white;
+  border-radius: 12px;
+  min-width: 22px;
+  height: 22px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  line-height: 1;
+}
+
+.chat-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-info .chat-name {
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.chat-info .chat-last-msg {
+  color: var(--text-muted);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-time {
+  color: var(--text-muted);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════
+   Chat room
+   ═══════════════════════════════════════════ */
+
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 16px;
+  padding-bottom: calc(70px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  min-height: 0;
+}
+
+.message-bubble {
+  max-width: 75%;
+  width: fit-content;
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 15px;
+  line-height: 1.45;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 40px;
+}
+
+.message-bubble.sent {
+  align-self: flex-end;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent-gold) 100%);
+  color: #1a1a1a;
+  border-bottom-left-radius: 4px;
+  margin-left: auto;
+}
+
+.message-bubble.received {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.13);
+  color: var(--foreground);
+  border-bottom-right-radius: 4px;
+  margin-right: auto;
+}
+
+.message-input-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  background: rgba(10, 10, 10, 0.8);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-top: 1px solid var(--glass-border);
+}
+
+.message-input-bar input {
+  flex: 1;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  color: var(--foreground);
+  font-size: max(16px, 1em);
+  outline: none;
+  direction: rtl;
+}
+
+.message-input-bar input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.message-input-bar button {
+  background: var(--primary);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a1a1a;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.message-input-bar button:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════
+   Chat image upload indicator
+   ═══════════════════════════════════════════ */
+
+.chat-upload-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(212, 165, 154, 0.12);
+  border-top: 1px solid var(--glass-border);
+  font-size: 14px;
+  color: var(--primary);
+  font-weight: 500;
+  animation: chat-upload-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes chat-upload-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}

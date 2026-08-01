@@ -1,0 +1,73 @@
+name: Security
+
+# Lightweight supply-chain + secret-hygiene checks. Complements CI (build/typecheck)
+# and CodeQL (SAST). Kept fast so it can gate PRs without slowing the team down.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 7 * * 1" # Mondays 07:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+      - name: Install dependencies
+        run: npm ci
+      # Full report (all severities, incl. devDependencies) for visibility - never fails.
+      - name: Audit (report high+)
+        run: npm audit --audit-level=high || true
+      # Hard gate: fail only on CRITICAL advisories in PRODUCTION dependencies.
+      # `--omit=dev` excludes build/test tooling (e.g. the vitest UI-server advisory),
+      # which never ships to users - gating releases on dev-only criticals is noise.
+      # Production critical advisories still fail the build.
+      - name: Audit (fail on critical in production deps)
+        run: npm audit --omit=dev --audit-level=critical
+
+  secret-hygiene:
+    name: Secret hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Server-only secrets must never be referenced from a client component, or
+      # their values could be inlined into the browser bundle. This fails the build
+      # if any file marked 'use client' touches a server-only secret.
+      - name: Ensure server secrets are not used in client code
+        run: |
+          set -euo pipefail
+          CLIENT_FILES="$(grep -rlE "^['\"]use client['\"]" src --include='*.ts' --include='*.tsx' || true)"
+          if [ -z "$CLIENT_FILES" ]; then
+            echo "No client components found; skipping."
+            exit 0
+          fi
+          SECRET_PATTERN='SUPABASE_SERVICE_ROLE_KEY|process\.env\.SMTP_|INVOICE4U_API_TOKEN|CRON_SECRET|JWT_SECRET|ADMIN_PASSWORD|ADMIN_TOTP_SECRET|FIELD_ENCRYPTION_KEY|BLIND_INDEX_KEY|OTP_PEPPER|UPSTASH_REDIS_REST_TOKEN|OPENAI_API_KEY|FALCONSAI_TOKEN|TEXTME_API_TOKEN|SECURITY_ALERT_WEBHOOK_URL'
+          if echo "$CLIENT_FILES" | xargs grep -nE "$SECRET_PATTERN" 2>/dev/null; then
+            echo "::error::A server-only secret is referenced inside a client component (see matches above)."
+            exit 1
+          fi
+          echo "OK: no server-only secrets referenced in client code."
+
+  rls-coverage:
+    name: RLS coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+      # Fails if any table created under supabase/ never enables Row-Level Security.
+      # A public table without RLS is reachable by the anon role via PostgREST.
+      - name: Check every table enables RLS
+        run: node scripts/check-rls-coverage.cjs

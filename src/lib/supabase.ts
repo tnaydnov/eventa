@@ -1,0 +1,74 @@
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
+import { SUPABASE_SERVICE_ROLE_KEY } from '@/lib/config';
+
+const _supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const _supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!_supabaseUrl || !_supabaseAnonKey) {
+  // Fail fast with a clear message instead of passing undefined to createClient
+  throw new Error(
+    'Missing required env: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set'
+  );
+}
+
+// Re-assign after guard so TypeScript knows these are `string`, not `string | undefined`
+const supabaseUrl: string = _supabaseUrl;
+const supabaseAnonKey: string = _supabaseAnonKey;
+
+/* ── Event-scoped RLS context (CLIENT-SIDE ONLY) ──────────────── */
+// This module-level var is safe because the anon client is only used
+// in the browser (single user per tab). Server-side code uses
+// getServiceClient() which does NOT read _currentEventId.
+let _currentEventId: string | null = null;
+
+/**
+ * Set the current event context for RLS event-scoping.
+ * All subsequent PostgREST queries through the anon client will
+ * include the x-event-id header, which RLS policies check.
+ * Call this once when the session is established.
+ */
+export function setEventContext(eventId: string | null) {
+  _currentEventId = eventId;
+}
+
+/** Anon client - safe for client-side / read-only operations */
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  global: {
+    fetch: (url, options = {}) => {
+      if (_currentEventId) {
+        const headers = new Headers((options as RequestInit).headers);
+        headers.set('x-event-id', _currentEventId);
+        return fetch(url, { ...(options as RequestInit), headers });
+      }
+      return fetch(url, options as RequestInit);
+    },
+  },
+});
+
+/** Service-role client - server-side only, full DB access (cached singleton) */
+let _serviceClient: SupabaseClient | null = null;
+export function getServiceClient(): SupabaseClient {
+  if (_serviceClient) return _serviceClient;
+  if (!SUPABASE_SERVICE_ROLE_KEY) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY');
+  _serviceClient = createClient(supabaseUrl, SUPABASE_SERVICE_ROLE_KEY);
+  return _serviceClient;
+}
+
+/** Alphanumeric charset for short codes (no confusing chars like 0/O, 1/l). */
+const SHORT_CODE_CHARS = 'abcdefghjkmnpqrstuvwxyz23456789';
+
+/** Generate a random short alphanumeric code (default 6 chars). */
+export function generateShortCode(len = 6): string {
+  const bytes = crypto.randomBytes(len);
+  let code = '';
+  for (let i = 0; i < len; i++) {
+    code += SHORT_CODE_CHARS[bytes[i] % SHORT_CODE_CHARS.length];
+  }
+  return code;
+}
+
+/** Generate a random 6-char join code */
+export function generateJoinCode(): string {
+  return generateShortCode(6);
+}

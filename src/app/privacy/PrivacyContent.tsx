@@ -1,0 +1,262 @@
+﻿import { LegalSection, LegalSubheading, LegalText, LegalList, LegalLink, LegalContactDetails } from '@/components/legal';
+import { BRAND_NAME, LEGAL_OPERATOR } from '@/config/site';
+
+export default function PrivacyContent() {
+  return (
+    <>
+      <LegalSection title="מבוא והגדרות">
+        <LegalText>
+          מדיניות פרטיות זו מפרטת כיצד {LEGAL_OPERATOR}, המפעיל את <strong>{BRAND_NAME}</strong>
+          (&quot;המפעיל&quot;, &quot;אנחנו&quot;, &quot;{BRAND_NAME}&quot;, &quot;השירות&quot;)
+          אוסף, משתמש, מאחסן ומוחק מידע בעת שימוש באפליקציה.
+        </LegalText>
+        <LegalText>
+          השירות מיועד לשימוש במהלך אירועים ומאפשר יצירת קשרים בין משתתפים באותו אירוע.
+        </LegalText>
+        <LegalText>
+          אנו פועלים לנקוט אמצעי אבטחה סבירים ולפעול בהתאם לדינים החלים עלינו.
+          אם אינך מסכים/ה למדיניות זו, אנא הימנע/י משימוש בשירות.
+        </LegalText>
+      </LegalSection>
+
+      <LegalSection title="1. מי מפעיל את השירות ופרטי קשר">
+        <LegalText>
+          השירות מופעל על-ידי {LEGAL_OPERATOR}.
+          לשאלות או בקשות בנושא פרטיות ניתן לפנות באמצעי הקשר המוצגים בשירות.
+        </LegalText>
+        <LegalContactDetails />
+      </LegalSection>
+
+      <LegalSection title="2. איזה מידע אנו אוספים">
+        <LegalText>אנו אוספים/מעבדים מידע בהתאם לתכונות שבהן נעשה שימוש:</LegalText>
+
+        <LegalSubheading>א. מספר טלפון נייד</LegalSubheading>
+        <LegalText>
+          מספר טלפון נייד ישראלי, משמש לאימות זהות באמצעות קוד SMS חד-פעמי (OTP)
+          ולמניעת שימוש כפול. המספר נמחק אוטומטית תוך 7 ימים מסיום האירוע.
+        </LegalText>
+
+        <LegalSubheading>ב. מידע פרופיל (מסופק על-ידך)</LegalSubheading>
+        <LegalText>
+          שם תצוגה, גיל (דיווח עצמי), מגדר, למי את/ה נמשך/ת (נטייה/העדפה),
+          &quot;מחפש/ת&quot;, עיר, ביוגרפיה, ותמונות פרופיל (עד כמות שמוגדרת בשירות).
+        </LegalText>
+
+        <LegalSubheading>ג. מידע תקשורת ותוכן</LegalSubheading>
+        <LegalText>
+          הודעות טקסט, תמונות בצ&apos;אט, התראות הקשורות ללייקים / הודעות.
+        </LegalText>
+
+        <LegalSubheading>ד. מידע התנהגות ותפעול</LegalSubheading>
+        <LegalText>
+          לייקים שנשלחו/התקבלו, התאמות / שיחות, חסימות, סטטוס פעילות
+          (למשל עדכון &quot;נראה לאחרונה&quot;, ככל שמופעל בשירות).
+        </LegalText>
+
+        <LegalSubheading>ה. הסכמות והעדפות תקשורת</LegalSubheading>
+        <LegalList>
+          <li>הסכמה לקבלת הודעות SMS מהמערכת (אופציונלי, ניתן לשינוי בכל עת בהגדרות הפרופיל).</li>
+          <li>בכפוף להסכמה, עשויות להישלח ההודעות הבאות: תזכורת לפני האירוע; הודעת ברוכים הבאים בכניסה לשירות; התראות בזמן האירוע (קיבלת לייק, קיבלת הודעה בצ&apos;אט, נוצרה התאמה חדשה, תזכורת לחזרה לשירות אם לא נרשמה פעילות); הודעת פידבק לאחר האירוע.</li>
+          <li>הודעת קוד אימות (OTP) הינה הודעה תפעולית ונשלחת ללא תלות בהסכמה לקבלת ההתראות הנ&quot;ל.</li>
+        </LegalList>
+
+        <LegalSubheading>ו. מזהים טכניים</LegalSubheading>
+        <LegalList>
+          <li>מזהה טכני / UUID הנשמר בדפדפן (למשל לצורך חיבור מחדש, מניעת שימוש כפול / עקיפת חסימות).</li>
+          <li>פרטי אירוע / משתתף מתוך סשן (eventId, participantId וכו&apos;).</li>
+        </LegalList>
+        <LegalText>
+          מזהים אלה עשויים להיחשב מזהים אישיים / מזהים טכניים, גם אם אינם כוללים שם אמיתי.
+        </LegalText>
+
+        <LegalSubheading>ז. נתוני שימוש ולוגים טכניים</LegalSubheading>
+        <LegalText>
+          בעת שימוש בשירות עשויים להיאסף באופן אוטומטי נתונים טכניים, כגון כתובת IP,
+          סוג דפדפן ומכשיר, מערכת הפעלה, זמני גישה, מזהי בקשות, נתוני שגיאה, לוגים
+          ומדדי יציבות / ביצועים (טלמטריה). מידע זה משמש לצורכי אבטחה, הגבלת קצב בקשות
+          (Rate Limiting), מניעת שימוש לרעה, איתור תקלות, שיפור יציבות השירות ועמידה בדרישות הדין.
+        </LegalText>
+
+        <LegalSubheading>ח. מידע בעל רגישות מיוחדת</LegalSubheading>
+        <LegalText>
+          חלק מהמידע הנמסר בשירות, כגון מידע לגבי העדפות היכרות, למי המשתמש/ת נמשך/ת,
+          תמונות, התכתבויות ותוכן אישי, עשוי להיחשב מידע אישי רגיש או מידע בעל רגישות מיוחדת.
+          מסירת מידע זה נעשית מרצונך ובהסכמתך, ונועדה לאפשר את הפעלת השירות והתאמתו למשתתפי האירוע.
+        </LegalText>
+        <LegalText>
+          אין חובה חוקית למסור מידע זה, אולם אי מסירת חלק מן הפרטים עשויה למנוע שימוש מלא
+          בתכונות מסוימות של השירות.
+        </LegalText>
+      </LegalSection>
+
+      <LegalSection title="3. Cookies ואחסון מקומי (LocalStorage)">
+        <LegalText>השירות משתמש באמצעים טכניים להפעלת התחברות ושמירת סשן:</LegalText>
+
+        <LegalSubheading>עוגיות חיוניות (Functional / Strictly Necessary)</LegalSubheading>
+        <LegalList>
+          <li><strong>ws_session</strong> - עוגיית סשן לצורך התחברות והפעלת השירות (כוללת מזהי אירוע / משתתף).</li>
+          <li><strong>ws_admin</strong> - עוגיית סשן לממשק אדמין.</li>
+        </LegalList>
+        <LegalText>
+          העוגיות מוגדרות כעוגיות חיוניות, ואינן מיועדות לפרסום / מעקב / אנליטיקה.
+          העוגיות מוגדרות עם מאפייני אבטחה (כגון HttpOnly, Secure בסביבת פרודקשן, SameSite בהתאם להגדרות השירות).
+        </LegalText>
+
+        <LegalSubheading>LocalStorage / אחסון דפדפן</LegalSubheading>
+        <LegalText>ייתכן שנשמרים בדפדפן מפתחות טכניים כגון:</LegalText>
+        <LegalList>
+          <li>נתוני גיבוי סשן (לשחזור מצב התחברות)</li>
+          <li>מזהה טכני אקראי (UUID)</li>
+          <li>דגלים פנימיים (למשל &quot;הפרופיל הושלם&quot;)</li>
+        </LegalList>
+        <LegalText>
+          באפשרותך למחוק נתונים אלה דרך הגדרות הדפדפן (&quot;ניקוי נתוני אתר&quot;).
+        </LegalText>
+
+        <LegalSubheading>Google Ads / Google Tag Manager</LegalSubheading>
+        <LegalText>
+          השירות משתמש ב־Google Tag Manager (GTM) וב־Google Ads conversion tracking לצורך מדידת המרות וביצועי קמפיינים פרסומיים.
+          Google עשוי לאחסן עוגיות מעקב (כגון _gcl_* וקוקיס נוספים של Google) בדפדפן שלך.
+          מידע זה משמש ל־Google לצורך אטריבוציה של המרות וניתוח ביצועים של קמפיינים, בהתאם 
+          <LegalLink href="https://policies.google.com/privacy">למדיניות הפרטיות של Google</LegalLink>.
+        </LegalText>
+      </LegalSection>
+
+      <LegalSection title="4. מטרות העיבוד">
+        <LegalText>אנו משתמשים במידע לצורך:</LegalText>
+        <LegalList>
+          <li>הפעלת השירות (פרופילים, לייקים, צ&apos;אט)</li>
+          <li>אבטחה ומניעת שימוש לרעה (חסימות, בדיקות גישה, מניעת עקיפה, מניעת ספאם)</li>
+          <li>תפעול ותחזוקה (איתור תקלות ושיפור יציבות)</li>          <li>מדידת המרות וניתוח ביצועי קמפיינים פרסומיים דרך Google Ads</li>        </LegalList>
+        <LegalText>בנוסף, ייתכן שימוש במידע לצורך:</LegalText>
+        <LegalList>
+          <li>שיפור השירות ותכונותיו</li>
+          <li>בדיקות עומסים, ניטור תקלות ופיתוח עתידי</li>
+          <li>זיהוי דפוסי שימוש מצטברים שאינם מזהים משתמשים</li>
+        </LegalList>
+        <LegalText bold>
+          איננו מוכרים מידע אישי ואיננו משתפים מידע למטרות פרסום / שיווק.
+        </LegalText>
+      </LegalSection>
+
+      <LegalSection title="5. בסיס לעיבוד">
+        <LegalText>הבסיס לעיבוד הוא:</LegalText>
+        <LegalList>
+          <li>הסכמתך בעת שימוש בשירות</li>
+          <li>הסכמה נפרדת לתכונות הדורשות הרשאות (כגון מצלמה / גלריה)</li>
+          <li>אינטרס לגיטימי של המפעיל לאבטחת השירות, מניעת הונאה, ואכיפת תנאי השימוש</li>
+        </LegalList>
+      </LegalSection>
+
+      <LegalSection title="6. שיתוף מידע עם צדדים שלישיים">
+        <LegalText>אנו משתמשים בספקי תשתית טכנית בלבד:</LegalText>
+        <LegalList>
+          <li><strong>Supabase</strong> - מסד נתונים, אחסון קבצים, תקשורת בזמן אמת</li>
+          <li><strong>Vercel</strong> - אירוח והפצת האתר (CDN / Serverless)</li>
+          <li><strong>ספק SMS (TextMe)</strong> - לצורך שליחת קוד אימות (OTP), תזכורות לפני אירוע, הודעות ברוכים הבאים ופידבק לאורחים. מספר הטלפון מועבר לספק לצורך השליחה בלבד.</li>
+          <li><strong>Invoice4U</strong> - לצורך עיבוד תשלומים, הפקת חשבוניות וסליקה. פרטי תשלום מועברים ישירות לספק ואינם נשמרים בשרתי השירות.</li>
+          <li><strong>שרת SMTP</strong> - לצורך שליחת דוא&quot;ל הזמנות ותקשורת תפעולית.</li>
+          <li><strong>OpenAI</strong> - לצורך מודרציה אוטומטית של תמונות: תמונות פרופיל ותמונות הנשלחות בצ&apos;אט נשלחות לשירות המודרציה של OpenAI (מודל omni-moderation-latest) לבדיקת תאימות להנחיות הקהילה. בהתאם לתנאי השירות של OpenAI, תשומות לממשק המודרציה אינן משמשות לאימון מודלים. לפרטים נוספים: <LegalLink href="https://openai.com/policies/privacy-policy">מדיניות הפרטיות של OpenAI</LegalLink>.</li>
+          <li><strong>Falconsai / Hugging Face</strong> - שירות בדיקה משלים לתמונות פרופיל גבוליות בלבד (חוות דעת שנייה כאשר ציון המודרציה הראשי נמצא בטווח ביניים). העברת הנתונים עשויה להתבצע מחוץ לישראל.</li>
+          <li><strong>Google Ads / Google Tag Manager</strong> - לצורך מדידת המרות וניתוח ביצועי קמפיינים פרסומיים. Google עשוי לאחסן עוגיות מעקב בדפדפן. לפרטים נוספים: <LegalLink href="https://policies.google.com/privacy">מדיניות הפרטיות של Google</LegalLink>.</li>
+        </LegalList>
+        <LegalText bold>
+          נכון למועד זה, השירות עשוי להשתמש ב־Google Ads / Google Tag לצורך מדידת המרות ושיפור קמפיינים פרסומיים. איננו מוכרים מידע אישי לצדדים שלישיים.
+        </LegalText>
+      </LegalSection>
+
+      <LegalSection title="7. אבטחת מידע">
+        <LegalText>אנו נוקטים אמצעי אבטחה סבירים, לרבות:</LegalText>
+        <LegalList>
+          <li>תקשורת מוצפנת (HTTPS / TLS)</li>
+          <li>שימוש בעוגיות HttpOnly ואבטחה מוגברת בסביבת פרודקשן</li>
+          <li>הגנות נגד CSRF, Rate Limiting, וסניטציה לקלט</li>
+          <li>בקרות גישה והרשאות</li>
+        </LegalList>
+        <LegalText>
+          יחד עם זאת, אין מערכת חסינה לחלוטין, ולכן אין באפשרותנו להבטיח אבטחה מוחלטת.
+        </LegalText>
+      </LegalSection>
+
+      <LegalSection title="8. שמירת מידע ומחיקה (Retention)">
+        <LegalText>השירות נועד להיות זמני:</LegalText>
+        <LegalList>
+          <li>
+            מידע אישי הקשור לאירוע (פרופילים, הודעות, תמונות, לייקים, חסימות)
+            נמחק בדרך כלל <strong>בתוך עד 7 ימים</strong> מסיום האירוע.
+          </li>
+          <li>
+            ייתכן עיכוב קצר במחיקה עקב גיבויים טכניים, תקלות, או צורך בהגנה מפני הונאה / עקיפה.
+          </li>
+          <li>
+            נתונים מצטברים / סטטיסטיים שאינם מזהים משתמשים עשויים להישמר לצרכי תפעול / שיווק
+            (למשל: מספר משתתפים, מספר לייקים), ללא פרטי משתמש מזהים.
+          </li>
+        </LegalList>
+      </LegalSection>
+
+      <LegalSection title="9. זכויות המשתמש/ת">
+        <LegalText>בכפוף לדינים החלים, באפשרותך:</LegalText>
+        <LegalList>
+          <li>לעדכן פרטים בפרופיל</li>
+          <li>למחוק חשבון (ככל שהאפשרות זמינה בשירות)</li>
+          <li>לבקש עיון / תיקון / מחיקה / הגבלה דרך יצירת קשר עם המפעיל</li>
+        </LegalList>
+        <LegalSubheading>מה קורה כשמוחקים חשבון</LegalSubheading>
+        <LegalText>
+          כאשר את/ה מוחק/ת את החשבון, <strong>הפרופיל, התמונות והפרטים האישיים שלך מוסרים
+          ולא יוצגו עוד למשתתפים אחרים</strong>. עם זאת, התכתבויות (צ&apos;אטים) ולייקים והתאמות
+          שכבר התקיימו עם משתתפים אחרים <strong>נשמרים אצל אותם משתתפים</strong> ומוצגים להם
+          תחת השם <strong>&quot;מחוק&quot;</strong> בלבד - <strong>ללא אפשרות לזהות מי היה/הייתה
+          מאחורי החשבון</strong>, ללא תמונה וללא פרטים מזהים. כך נשמרת הפרטיות שלך מחד, ורצף
+          השיחה של הצד השני נשמר מאידך. בכל מקרה, מידע זה נמחק ממילא בתוך עד 7 ימים מסיום האירוע.
+        </LegalText>
+        <LegalText>
+          <strong>לתשומת לב:</strong> מחיקה מן השירות הפעיל לא בהכרח מוחקת מיד גיבויים טכניים.
+        </LegalText>
+      </LegalSection>
+
+      <LegalSection title="10. קטינים">
+        <LegalText>
+          השירות מיועד לבני 18+ בלבד. איננו אוספים ביודעין מידע מקטינים.
+          אם יימצא חשד סביר לקטינות - ננקוט צעדים להסרה / חסימה / מחיקה.
+        </LegalText>
+      </LegalSection>
+
+      <LegalSection title="11. העברת מידע מחוץ לישראל">
+        <LegalText>
+          המידע עשוי להיות מאוחסן או מעובד במדינות שונות מחוץ לישראל, בהתאם למיקום שרתי הספקים
+          שבהם משתמש השירות, לרבות Supabase, Vercel, ספק ה-SMS, שרת ה-SMTP, ספק הסליקה (Invoice4U),
+          ושירותי המודרציה (OpenAI ו-Falconsai / Hugging Face).
+        </LegalText>
+        <LegalText>
+          העברה ועיבוד אלה נעשים לצורך הפעלת השירות בלבד, ובכפוף להתחייבויות חוזיות, טכניות וארגוניות
+          מקובלות לשמירה על המידע, לרבות שימוש בפרוטוקולי הצפנה (HTTPS / TLS) ושרתי ענן מאובטחים.
+        </LegalText>
+      </LegalSection>
+
+      <LegalSection title="12. צילום ותיעוד באירועים לצורכי שיווק">
+        <LegalText>
+          באירועים מסוימים שבהם מופעל השירות, נציגי Eventa או מי מטעמה עשויים לצלם תכני אווירה,
+          תיעוד של השימוש בשירות, עמדות QR ותכנים נוספים, אשר עשויים לשמש לצורכי שיווק ופרסום.
+          צילום ותיעוד כאמור עשויים להיחשב איסוף מידע אישי. הסדרת הנושא, לרבות האפשרות לבקש הימנעות
+          מפרסום מזוהה או הסרת תיעוד קיים, מפורטת ב<LegalLink href="/terms">תנאי השימוש</LegalLink>.
+        </LegalText>
+      </LegalSection>
+
+      <LegalSection title="13. שינויים במדיניות">
+        <LegalText>
+          מדיניות זו עשויה להתעדכן מעת לעת. השינויים יפורסמו בשירות.
+          המשך שימוש לאחר פרסום שינוי מהווה הסכמה למדיניות המעודכנת.
+        </LegalText>
+      </LegalSection>
+
+      <LegalSection title="14. יצירת קשר">
+        <LegalText>
+          לפניות פרטיות, שאלות או בקשות - השתמש/י באמצעי הקשר המופיעים בשירות.
+        </LegalText>
+        <LegalContactDetails />
+      </LegalSection>
+    </>
+  );
+}

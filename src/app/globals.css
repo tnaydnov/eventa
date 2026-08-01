@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+/* ── Modular CSS imports ── */
+@import "./styles/base.css";
+@import "./styles/layout.css";
+@import "./styles/components.css";
+@import "./styles/grid.css";
+@import "./styles/swipe.css";
+@import "./styles/chat.css";
+@import "./styles/profile.css";
+@import "./styles/profile-edit.css";
+@import "./styles/landing.css";
+@import "./styles/event-bg.css";
+@import "./styles/event-over.css";
+@import "./styles/join.css";
+@import "./styles/how-it-works.css";
+@import "./styles/home.css";
+@import "./styles/wizard.css";
+@import "./styles/pricing.css";
+@import "./styles/site-page.css";
+@import "./styles/faq.css";
+@import "./styles/guest-portal.css";
+@import "./styles/feedback.css";

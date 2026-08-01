@@ -1,0 +1,102 @@
+Copyright (c) 2026 the owner of this repository ("the Author").
+
+ALL RIGHTS RESERVED.
+
+===============================================================================
+ THIS IS NOT OPEN-SOURCE SOFTWARE. NO LICENCE TO USE IT IS GRANTED TO ANYONE.
+===============================================================================
+
+1. PURPOSE OF PUBLICATION
+
+   This repository is a personal project. It was written by the Author, for
+   the Author, and is published publicly for one reason only: so that the
+   source code can be READ, as a portfolio and reference artefact.
+
+   Publication does not imply any grant of rights. It is not an invitation to
+   use this software.
+
+2. NO LICENCE GRANTED
+
+   No permission, licence or right of any kind is granted to any person to
+   use, copy, reproduce, modify, adapt, translate, merge, publish, sublicense,
+   distribute, sell, host, deploy, operate, or create derivative works from
+   this software or any part of it, whether in source or binary form, whether
+   for commercial or non-commercial purposes.
+
+   All rights not expressly granted here are reserved by the Author. Nothing
+   in this repository — including its documentation, setup instructions,
+   configuration examples or README — constitutes a licence, a permission, or
+   a waiver of any right. Setup and configuration documentation is included
+   solely to explain how the project was built and operated; it is a
+   description of the Author's own system, not an instruction or an
+   authorisation for anyone else to run it.
+
+   The only things you may do without the Author's permission are those which
+   applicable law does not permit the Author to prohibit (for example, limited
+   acts of fair use or fair dealing, or rights that cannot be excluded by
+   contract), together with the viewing and forking functionality that GitHub,
+   Inc. provides to its users as an inherent part of hosting a public
+   repository on its platform (see GitHub's Terms of Service). Any fork made
+   through that platform functionality remains subject to this notice: it
+   grants you no right to use, run, modify or redistribute this software.
+
+3. THIRD-PARTY COMPONENTS
+
+   This project depends on third-party open-source packages. Those packages
+   remain governed by their own respective licences, which are unaffected by
+   this notice. This notice applies only to the original code and content
+   authored for this repository.
+
+4. NO WARRANTY
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, TITLE, ACCURACY, AND NON-INFRINGEMENT.
+
+   The Author makes no representation that the software is complete, correct,
+   secure, reliable, maintained, or fit for any purpose whatsoever. It is
+   provided as a snapshot of a personal project and is not maintained,
+   supported, or monitored.
+
+5. NO LIABILITY
+
+   TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL THE
+   AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY — WHETHER IN AN
+   ACTION OF CONTRACT, TORT (INCLUDING NEGLIGENCE), OR OTHERWISE — ARISING
+   FROM, OUT OF, OR IN CONNECTION WITH THIS SOFTWARE, ITS DOCUMENTATION, OR
+   THE USE OF OR OTHER DEALINGS IN IT.
+
+   This includes, without limitation, any direct, indirect, incidental,
+   special, exemplary, punitive or consequential damages; any loss of data,
+   profit, revenue, goodwill or business; any service interruption; any breach
+   of privacy or data-protection law; any regulatory fine or penalty; and any
+   claim brought by a third party.
+
+   Anyone who nevertheless uses this software, in whole or in part, does so
+   entirely at their own risk and on their own responsibility, and accepts
+   sole responsibility for compliance with all applicable laws — including but
+   not limited to privacy and data-protection law, electronic-communications
+   and marketing law, consumer-protection law, payment regulation, and
+   accessibility requirements.
+
+6. DOCUMENTS INCLUDED IN THIS REPOSITORY ARE NOT LEGAL ADVICE
+
+   This repository contains templates of terms of service, a privacy policy, a
+   cookie policy, an accessibility statement and a customer agreement. These
+   were drafted for the Author's own former use in a single jurisdiction, are
+   provided for reference only, are not legal advice, are not warranted to be
+   accurate, current, or compliant with any law, and must not be relied upon
+   by anyone.
+
+7. NO ENDORSEMENT OR AFFILIATION
+
+   Third-party product, service and company names referenced in this
+   repository are the property of their respective owners. Their mention
+   describes technical integrations only and does not imply any affiliation,
+   sponsorship, endorsement, or ongoing relationship.
+
+8. QUESTIONS
+
+   If you would like permission to use any part of this project, you must ask
+   the Author first and obtain that permission in writing. Absent such written
+   permission, no rights are granted.

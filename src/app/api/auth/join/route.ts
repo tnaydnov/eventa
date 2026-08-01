@@ -1,0 +1,258 @@
+﻿import { NextRequest, NextResponse } from 'next/server';
+import { getServiceClient } from '@/lib/supabase';
+import { signSessionToken, sessionCookieHeader, checkCsrf } from '@/lib/session';
+import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { joinEventSchema } from '@/lib/validations';
+import { jsonError, getSessionEpoch } from '@/lib/route-helpers';
+import { logger } from '@/lib/logger';
+import { decryptParticipantRow } from '@/lib/pii';
+
+// Fingerprint format: hex string or UUID-like, max 64 chars
+// NOTE: duplicated in /api/auth/verify-otp/route.ts - keep in sync until extracted to shared util.
+const FP_PATTERN = /^[a-f0-9-]+$/i;
+
+/**
+ * POST /api/auth/join
+ * Verifies join code, creates or reconnects participant, sets session cookie.
+ *
+ * Flow:
+ *  1. CSRF check
+ *  2. Rate limit
+ *  3. Validate input (Zod)
+ *  4. Lookup event by slug
+ *  5. Check device ban
+ *  6. Check if banned participant exists for fingerprint
+ *  7. Find/create participant
+ *  8. Issue session JWT
+ */
+export async function POST(req: NextRequest) {
+  if (!checkCsrf(req)) {
+    return jsonError('Forbidden', 403);
+  }
+
+  const ip = getClientIp(req.headers);
+  const rl = await checkRateLimitAsync(`join:${ip}`, RATE_LIMITS.auth);
+  if (!rl.allowed) {
+    return jsonError('Too many requests', 429);
+  }
+
+  try {
+    const body = await req.json();
+
+    // Validate required fields with Zod
+    const parsed = joinEventSchema.safeParse(body);
+    if (!parsed.success) {
+      return jsonError('Invalid input', 400);
+    }
+
+    const { eventSlug, joinCode } = parsed.data;
+
+    // Fingerprint is optional - sanitize to plain string or null
+    const fingerprint: string | null =
+      typeof body.fingerprint === 'string' && body.fingerprint.length > 0
+        ? (FP_PATTERN.test(body.fingerprint.slice(0, 64)) ? body.fingerprint.slice(0, 64) : null)
+        : null;
+
+    // Hardware fingerprint (canvas/WebGL/screen-based) - survives incognito
+    const hwFingerprint: string | null =
+      typeof body.hardwareFingerprint === 'string' && body.hardwareFingerprint.length > 0
+        ? (FP_PATTERN.test(body.hardwareFingerprint.slice(0, 128)) ? body.hardwareFingerprint.slice(0, 128) : null)
+        : null;
+
+    const supabase = getServiceClient();
+
+    // Find active event by slug
+    const { data: event, error: eventError } = await supabase
+      .from('events')
+      .select('id, slug, name, event_type, status, starts_at, ends_at, is_active, background_image')
+      .eq('slug', eventSlug)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (eventError) {
+      logger.error('[AUTH_JOIN] event lookup failed', { error: eventError.message });
+      return jsonError('Server error', 500);
+    }
+
+    if (!event) {
+      return jsonError('Invalid event or join code', 404);
+    }
+
+    // Check if this device is banned - check BOTH fingerprint types
+    // SAFETY: fail-closed - if the ban check query errors, treat as banned
+    const banChecks: PromiseLike<boolean>[] = [];
+    if (fingerprint) {
+      banChecks.push(
+        supabase
+          .from('banned_devices')
+          .select('id')
+          .eq('event_id', event.id)
+          .eq('device_fingerprint', fingerprint)
+          .maybeSingle()
+          .then(({ data, error }) => {
+            if (error) {
+              logger.error('[AUTH_JOIN] ban check error (device):', error.message);
+              return true; // fail-closed
+            }
+            return !!data;
+          })
+      );
+    }
+    if (hwFingerprint) {
+      banChecks.push(
+        supabase
+          .from('banned_devices')
+          .select('id')
+          .eq('event_id', event.id)
+          .eq('device_fingerprint', hwFingerprint)
+          .maybeSingle()
+          .then(({ data, error }) => {
+            if (error) {
+              logger.error('[AUTH_JOIN] ban check error (hw):', error.message);
+              return true; // fail-closed
+            }
+            return !!data;
+          })
+      );
+    }
+    if (banChecks.length > 0) {
+      const results = await Promise.all(banChecks);
+      if (results.some((banned) => banned)) {
+        return jsonError('Device is banned from this event', 403);
+      }
+    }
+
+    let participantId: string | null = null;
+    let participant: Record<string, unknown> | null = null;
+
+    // Reconnect existing participant by fingerprint (try localStorage UUID first, then hardware)
+    if (fingerprint) {
+      const { data: existing, error: lookupErr } = await supabase
+        .from('participants')
+        .select('id, event_id, device_fingerprint, hardware_fingerprint, display_name, gender, attracted_to, bio_enc, age, city, looking_for_enc, is_banned, last_seen_at, created_at')
+        .eq('event_id', event.id)
+        .eq('device_fingerprint', fingerprint)
+        .maybeSingle();
+
+      if (lookupErr) {
+        logger.error('[JOIN] reconnect lookup failed', { error: lookupErr.message });
+        return jsonError('Service temporarily unavailable', 503);
+      }
+
+      if (existing) {
+        if (existing.is_banned) {
+          return jsonError('Device is banned from this event', 403);
+        }
+        participantId = existing.id;
+        participant = decryptParticipantRow(existing);
+
+        // Update hardware fingerprint if not already set
+        if (hwFingerprint) {
+          void supabase
+              .from('participants')
+              .update({ hardware_fingerprint: hwFingerprint })
+              .eq('id', existing.id)
+              .then(({ error }) => { if (error) logger.error('[AUTH_JOIN] hw fingerprint update error:', { error: error.message }); });
+        }
+      }
+    }
+
+    // Try reconnect by hardware fingerprint (for incognito re-visits)
+    if (!participantId && hwFingerprint) {
+      const { data: existing, error: lookupErr } = await supabase
+        .from('participants')
+        .select('id, event_id, device_fingerprint, hardware_fingerprint, display_name, gender, attracted_to, bio_enc, age, city, looking_for_enc, is_banned, last_seen_at, created_at')
+        .eq('event_id', event.id)
+        .eq('hardware_fingerprint', hwFingerprint)
+        .maybeSingle();
+
+      if (lookupErr) {
+        logger.error('[JOIN] reconnect lookup failed', { error: lookupErr.message });
+        return jsonError('Service temporarily unavailable', 503);
+      }
+
+      if (existing) {
+        if (existing.is_banned) {
+          return jsonError('Device is banned from this event', 403);
+        }
+        participantId = existing.id;
+        participant = decryptParticipantRow(existing);
+
+        // Update localStorage fingerprint to current one
+        if (fingerprint) {
+          void supabase
+              .from('participants')
+              .update({ device_fingerprint: fingerprint })
+              .eq('id', existing.id)
+              .then(({ error }) => { if (error) logger.error('[AUTH_JOIN] device fingerprint update error:', { error: error.message }); });
+        }
+      }
+    }
+
+    // Create new participant stub if none found
+    if (!participantId) {
+      const { data: newP, error } = await supabase
+        .from('participants')
+        .insert({
+          event_id: event.id,
+          device_fingerprint: fingerprint,
+          hardware_fingerprint: hwFingerprint,
+          display_name: '',
+          gender: 'male',
+          attracted_to: 'all',
+          is_banned: false,
+        })
+        .select('id')
+        .single();
+
+      if (error || !newP) {
+        logger.error('[AUTH_JOIN] Failed to create participant:', error?.message);
+        return jsonError('Failed to create participant', 500);
+      }
+      participantId = newP.id;
+
+      // Activity log for new join (fire-and-forget)
+      void supabase.from('activity_log').insert({
+        event_id: event.id,
+        participant_id: newP.id,
+        action: 'join',
+      }).then(({ error }) => { if (error) logger.error('[AUTH_JOIN] activity_log error:', { error: error.message }); });
+    }
+
+    // Guard: should never happen - either existing or newly created
+    if (!participantId) {
+      return jsonError('Failed to resolve participant', 500);
+    }
+
+    // Sign session JWT and set as httpOnly cookie.
+    // Embed the participant's current session epoch so the token can be revoked
+    // later (logout-everywhere / post-ban) by bumping the epoch (migration 039).
+    const sessionEpoch = await getSessionEpoch(participantId);
+    const token = signSessionToken({
+      participantId,
+      eventId: event.id,
+      eventSlug,
+      eventName: event.name,
+      sessionEpoch,
+    });
+
+    const response = NextResponse.json({
+      eventId: event.id,
+      eventName: event.name,
+      backgroundImage: event.background_image ?? null,
+      participantId,
+      // Strip fingerprints before sending to client
+      participant: participant
+        ? (({ device_fingerprint, hardware_fingerprint, ...safe }) => safe)(
+            participant as Record<string, unknown> & { device_fingerprint?: unknown; hardware_fingerprint?: unknown }
+          )
+        : null,
+    });
+
+    response.headers.set('Set-Cookie', sessionCookieHeader(token));
+    return response;
+  } catch (err) {
+    logger.error('[AUTH_JOIN] error:', err);
+    return jsonError('Server error', 500);
+  }
+}

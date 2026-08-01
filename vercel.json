@@ -1,0 +1,83 @@
+{
+  "regions": ["fra1"],
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 15
+    },
+    "src/app/api/payment/create-session/route.ts": {
+      "maxDuration": 25
+    },
+    "src/app/api/payment/callback/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/admin/requests/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/cleanup/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/admin/auto-archive/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/cleanup-orphan-photos/route.ts": {
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/admin/auto-archive",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cleanup",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/upload-reminders",
+      "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cron/pre-event-messages",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/feedback-messages",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/dispatch-sms",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/send-reports",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/recheck-moderation",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/reconcile-payments",
+      "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-orphan-photos",
+      "schedule": "0 */6 * * *"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    }
+  ]
+}

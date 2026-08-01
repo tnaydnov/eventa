@@ -1,0 +1,596 @@
+/* ───────────────────────────────────────────────────────────────
+ * Premium Join Flow - splash, shell & form styles
+ * Used by:
+ *   - app/[eventSlug]/loading.tsx               (server splash)
+ *   - components/join/PremiumSplashScreen
+ *   - components/join/PremiumJoinShell          (client shell)
+ *   - app/[eventSlug]/join/page.tsx
+ *   - components/MobileGuard                    (desktop block)
+ *
+ * Design rules:
+ *   - Viewport-locked (no empty body scroll on the join routes)
+ *   - One stable shell, only inner content animates
+ *   - Mobile-first, RTL-safe, premium dark theme
+ *   - Reduced/no continuous background motion on mobile
+ * ─────────────────────────────────────────────────────────────── */
+
+:root {
+  --pj-bg: #0A0A0A;
+  --pj-fg: #F0EDE8;
+  --pj-muted: #B0B0B0;
+  --pj-primary: #D4A59A;
+  --pj-primary-2: #C9A580;
+  --pj-line: rgba(255, 255, 255, 0.10);
+  --pj-line-soft: rgba(255, 255, 255, 0.06);
+  --pj-surface: rgba(255, 255, 255, 0.045);
+  --pj-surface-2: rgba(255, 255, 255, 0.035);
+}
+
+/* ── Page-level crossfade wrapper ─────────────────────────────── */
+.pj-page-root {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--pj-bg);
+}
+.pj-page-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  will-change: opacity;
+}
+
+/* ── Background canvas ────────────────────────────────────────── */
+.pj-bg {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
+  background: var(--pj-bg);
+  color: var(--pj-fg);
+  overflow: hidden;
+}
+
+/* Predictable box model inside the join scope */
+.pj-bg,
+.pj-bg *,
+.pj-bg *::before,
+.pj-bg *::after,
+.pj-page-layer *,
+.pj-page-layer *::before,
+.pj-page-layer *::after {
+  box-sizing: border-box;
+}
+
+/* Soft static glows - animation only on larger / desktop */
+.pj-bg::before,
+.pj-bg::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+.pj-bg::before {
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120vw;
+  height: 70vh;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(212, 165, 154, 0.16) 0%,
+    rgba(201, 165, 128, 0.06) 38%,
+    transparent 70%
+  );
+  filter: blur(22px);
+}
+.pj-bg::after {
+  bottom: -25%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 110vw;
+  height: 60vh;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(201, 165, 128, 0.10) 0%,
+    rgba(184, 135, 124, 0.04) 42%,
+    transparent 70%
+  );
+  filter: blur(28px);
+}
+
+/* Subtle slow drift only on larger screens to avoid mobile lag */
+@media (min-width: 768px) {
+  .pj-bg::before { animation: pj-glow 12s ease-in-out infinite; }
+  .pj-bg::after  { animation: pj-glow 14s ease-in-out infinite reverse; }
+}
+@keyframes pj-glow {
+  0%, 100% { opacity: 0.85; transform: translateX(-50%) scale(1); }
+  50%      { opacity: 1;    transform: translateX(-50%) scale(1.04); }
+}
+
+/* ── Splash stage (centered) ──────────────────────────────────── */
+.pj-stage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(20px, env(safe-area-inset-top))
+    20px
+    max(20px, env(safe-area-inset-bottom))
+    20px;
+  text-align: center;
+  gap: 22px;
+  overflow: hidden;
+}
+
+.pj-splash-logo-wrap {
+  position: relative;
+  width: clamp(140px, 42vw, 200px);
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform, opacity;
+}
+.pj-splash-logo-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -22%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(212, 165, 154, 0.30) 0%,
+    rgba(212, 165, 154, 0.12) 35%,
+    transparent 70%
+  );
+  filter: blur(16px);
+  z-index: -1;
+}
+.pj-splash-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 28px rgba(212, 165, 154, 0.28));
+}
+.pj-splash-sub {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--pj-muted);
+  margin: 0;
+  max-width: 280px;
+}
+
+/* Tiny shimmer dot bar */
+.pj-splash-shimmer {
+  position: relative;
+  width: 96px;
+  height: 2px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+.pj-splash-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(212, 165, 154, 0.85) 50%,
+    transparent 100%
+  );
+  animation: pj-shimmer 1.6s linear infinite;
+}
+@keyframes pj-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ── Shell stage (welcome / phone / OTP / error) ──────────────── */
+.pj-shell-stage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(18px, env(safe-area-inset-top))
+    20px
+    max(18px, env(safe-area-inset-bottom))
+    20px;
+  gap: 22px;
+  overflow: hidden;
+}
+
+/* Short / keyboard-open screens: anchor to top so card stays visible */
+@media (max-height: 720px) {
+  .pj-shell-stage {
+    justify-content: flex-start;
+    gap: 16px;
+    padding-top: max(14px, env(safe-area-inset-top));
+  }
+}
+
+/* ── Header (logo only - wordmark is part of the asset) ───────── */
+.pj-shell-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.pj-shell-logo {
+  width: clamp(118px, 34vw, 168px);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 22px rgba(212, 165, 154, 0.22));
+}
+
+/* On very short screens, hide the header entirely so the card never scrolls */
+@media (max-height: 600px) {
+  .pj-shell-header { display: none; }
+  .pj-shell-stage { gap: 12px; }
+}
+
+/* ── Card (the only changing surface) ─────────────────────────── */
+.pj-card {
+  width: 100%;
+  max-width: 390px;
+  background: var(--pj-surface);
+  border: 1px solid var(--pj-line);
+  border-radius: 24px;
+  padding: 26px 22px 22px;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.40),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  /* If content overflows, scroll inside the card only - never the page */
+  max-height: calc(100vh - 220px);
+  max-height: calc(100dvh - 220px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  will-change: transform, opacity;
+}
+
+@media (max-height: 720px) {
+  .pj-card { max-height: calc(100vh - 180px); max-height: calc(100dvh - 180px); }
+}
+@media (max-height: 600px) {
+  .pj-card { max-height: calc(100vh - 40px); max-height: calc(100dvh - 40px); }
+}
+
+/* Inner motion wrapper for step content (no double box) */
+.pj-card-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+}
+
+/* Narrow phones - slightly tighter padding */
+@media (max-width: 360px) {
+  .pj-card { padding: 22px 18px 18px; border-radius: 20px; gap: 16px; }
+  .pj-card-inner { gap: 16px; }
+}
+
+/* Hide scrollbar inside card unless overflowing */
+.pj-card::-webkit-scrollbar { width: 0; }
+
+/* ── Typography ───────────────────────────────────────────────── */
+.pj-title {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--pj-fg);
+  margin: 0;
+  text-align: center;
+  letter-spacing: -0.2px;
+}
+.pj-subtitle {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--pj-muted);
+  margin: 0;
+  text-align: center;
+}
+.pj-blurb {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--pj-muted);
+  margin: 0;
+  text-align: center;
+}
+.pj-microcopy {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--pj-muted);
+  margin: 0;
+  text-align: center;
+  opacity: 0.75;
+}
+
+/* ── Social vibe pills (welcome screen) ───────────────────────── */
+.pj-vibes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.pj-vibe {
+  background: var(--pj-surface-2);
+  border: 1px solid var(--pj-line-soft);
+  border-radius: 16px;
+  padding: 12px 6px;
+  font-size: 11.5px;
+  line-height: 1.25;
+  color: var(--pj-fg);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 70px;
+}
+.pj-vibe-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: var(--pj-primary);
+  flex-shrink: 0;
+}
+.pj-vibe-icon svg {
+  width: 100%;
+  height: 100%;
+}
+@media (max-width: 360px) {
+  .pj-vibes { gap: 6px; }
+  .pj-vibe { padding: 10px 4px; font-size: 11px; min-height: 64px; }
+  .pj-vibe-icon { font-size: 18px; }
+}
+
+/* ── Form field group (label + input) ─────────────────────────── */
+.pj-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.pj-field-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--pj-muted);
+  text-align: start;
+  padding-inline-start: 4px;
+}
+
+/* ── Consent row (real native checkbox, visually light) ───────── */
+.pj-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 4px 2px 0;
+  cursor: pointer;
+  text-align: start;
+  position: relative;
+}
+.pj-consent:focus-within {
+  outline: 2px solid var(--pj-primary);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+.pj-consent-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.pj-consent-box {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid rgba(255, 255, 255, 0.30);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  transition: background 0.18s, border-color 0.18s;
+}
+.pj-consent[data-checked="true"] .pj-consent-box,
+.pj-consent-input:checked ~ .pj-consent-box {
+  background: var(--pj-primary);
+  border-color: var(--pj-primary);
+}
+.pj-consent-text {
+  flex: 1;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--pj-muted);
+}
+.pj-consent-text strong { color: var(--pj-fg); font-weight: 500; }
+
+.pj-link-btn {
+  color: var(--pj-primary);
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────── */
+.pj-cta {
+  width: 100%;
+  height: 54px;
+  padding: 0 18px;
+  border-radius: 16px;
+  border: none;
+  background: linear-gradient(135deg, var(--pj-primary) 0%, var(--pj-primary-2) 100%);
+  color: #1a1a1a;
+  font-size: 15.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.18s, opacity 0.18s, box-shadow 0.18s;
+  box-shadow: 0 6px 22px rgba(212, 165, 154, 0.28);
+  will-change: transform;
+}
+.pj-cta:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 26px rgba(212, 165, 154, 0.34);
+}
+.pj-cta:active:not(:disabled) {
+  transform: translateY(0);
+}
+.pj-cta:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.pj-link {
+  background: none;
+  border: none;
+  font: inherit;
+  color: var(--pj-muted);
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 8px;
+  align-self: center;
+}
+.pj-link.is-primary { color: var(--pj-primary); }
+.pj-link:disabled { cursor: default; text-decoration: none; opacity: 0.7; }
+
+/* ── Error text ───────────────────────────────────────────────── */
+.pj-error {
+  font-size: 13px;
+  color: var(--danger, #DC2626);
+  text-align: center;
+  margin: 0;
+}
+
+/* ── In-app browser notice (compact) ──────────────────────────── */
+.pj-iab {
+  width: 100%;
+  max-width: 390px;
+  background: var(--pj-surface-2);
+  border: 1px solid rgba(212, 165, 154, 0.28);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  flex-shrink: 0;
+}
+.pj-iab-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pj-iab-icon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(212, 165, 154, 0.18);
+  color: var(--pj-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+.pj-iab-text {
+  flex: 1;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--pj-fg);
+}
+.pj-iab-btn {
+  align-self: stretch;
+  background: rgba(212, 165, 154, 0.10);
+  border: 1px solid rgba(212, 165, 154, 0.30);
+  color: var(--pj-primary);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.pj-iab-btn:hover { background: rgba(212, 165, 154, 0.16); }
+
+/* ── Desktop block screen ─────────────────────────────────────── */
+.pj-desktop {
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.pj-desktop-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(212, 165, 154, 0.10);
+  border: 1px solid rgba(212, 165, 154, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+
+/* ── iOS interaction fixes ────────────────────────────────────── */
+/*
+ * iOS Safari auto-zooms any focused input with font-size < 16px.
+ * We override to the minimum 16px here - the visual size is controlled
+ * by padding and the container width, not by font-size directly.
+ * This eliminates the zoom-on-focus behaviour without restricting
+ * user-initiated pinch zoom (which would harm accessibility).
+ */
+/* ── Reduced motion ───────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .pj-bg::before,
+  .pj-bg::after,
+  .pj-splash-shimmer::after {
+    animation: none !important;
+  }
+}

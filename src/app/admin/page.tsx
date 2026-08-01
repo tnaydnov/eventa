@@ -1,0 +1,315 @@
+'use client';
+
+import { useState, useRef, useMemo } from 'react';
+import QRCode from 'qrcode';
+import ImageCropper from '@/components/ImageCropper';
+import type { Event } from '@/lib/database.types';
+import { useAdminData } from './_components/useAdminData';
+import AdminLogin from './_components/AdminLogin';
+import Sidebar, { type AdminView } from './_components/Sidebar';
+import EventsView from './_components/events/EventsView';
+import CreateEventDialog, { type CreateEventData } from './_components/events/CreateEventDialog';
+import EventAnalyticsView from './_components/analytics/EventAnalyticsView';
+import GlobalAnalyticsView from './_components/analytics/GlobalAnalyticsView';
+import RequestsView from './_components/requests/RequestsView';
+import QRDialog from './_components/QRDialog';
+import ParticipantsDialog from './_components/ParticipantsDialog';
+import AdminModerationQueue from './_components/moderation/AdminModerationQueue';
+import DashboardView from './_components/dashboard/DashboardView';
+
+/** Delay (ms) before re-reading event status after an update */
+const STATUS_REFRESH_DELAY_MS = 500;
+
+export default function AdminPage() {
+  const admin = useAdminData();
+
+  /* ─── View state ─── */
+  const [activeView, setActiveView] = useState<AdminView>('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleNavigate = (view: AdminView) => {
+    setActiveView(view);
+    setDetailEvent(null);
+  };
+
+  /* ─── QR state ─── */
+  const [qrEvent, setQrEvent] = useState<Event | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState('');
+
+  /* ─── Background upload state ─── */
+  const bgInputRef = useRef<HTMLInputElement>(null);
+  const [bgUploadId, setBgUploadId] = useState<string | null>(null);
+  const [bgCropImage, setBgCropImage] = useState<{ src: string; file: File } | null>(null);
+
+  /* ─── Create event dialog state ─── */
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+
+  /* ─── Event detail view state ─── */
+  const [detailEvent, setDetailEvent] = useState<Event | null>(null);
+
+  const pendingRequestsCount = useMemo(
+    () => admin.requests.filter(r => r.status === 'pending').length,
+    [admin.requests],
+  );
+
+
+
+  /* ─── QR helpers ─── */
+  const generateQR = async (event: Event) => {
+    const url = `${window.location.origin}/${event.slug}`;
+    try {
+      const dataUrl = await QRCode.toDataURL(url, {
+        width: 400, margin: 2,
+        color: { dark: '#000000', light: '#00000000' },
+        errorCorrectionLevel: 'H',
+      });
+      setQrDataUrl(dataUrl);
+      setQrEvent(event);
+    } catch {
+      alert('שגיאה ביצירת QR');
+    }
+  };
+
+  const downloadQR = () => {
+    if (!qrDataUrl || !qrEvent) return;
+    const link = document.createElement('a');
+    link.download = `qr-${qrEvent.slug}.png`;
+    link.href = qrDataUrl;
+    link.click();
+  };
+
+  const copyJoinUrl = (event: Event) => {
+    const url = `${window.location.origin}/${event.slug}`;
+    navigator.clipboard.writeText(url);
+    alert('הקישור הועתק! 📋');
+  };
+
+  /* ─── Background upload helpers ─── */
+  const triggerBgUpload = (eventId: string) => {
+    setBgUploadId(eventId);
+    bgInputRef.current?.click();
+  };
+
+  const handleBgFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !bgUploadId) return;
+    setBgCropImage({ src: URL.createObjectURL(file), file });
+    e.target.value = '';
+  };
+
+  const handleBgCropDone = async (croppedFile: File) => {
+    if (bgCropImage) URL.revokeObjectURL(bgCropImage.src);
+    setBgCropImage(null);
+    if (!bgUploadId) return;
+    const result = await admin.uploadBackground(bgUploadId, croppedFile);
+    if (result.ok) {
+      alert('✅ רקע הועלה!');
+    } else {
+      alert(result.error);
+    }
+    setBgUploadId(null);
+  };
+
+  const handleBgCropCancel = () => {
+    if (bgCropImage) URL.revokeObjectURL(bgCropImage.src);
+    setBgCropImage(null);
+    setBgUploadId(null);
+  };
+
+  /* ─── View event details (analytics page) ─── */
+  const handleViewDetails = (event: Event) => {
+    setDetailEvent(event);
+    setActiveView('events');
+  };
+
+  const handleBackFromDetails = () => {
+    setDetailEvent(null);
+  };
+
+  /* ─── Create event ─── */
+  const handleCreateEvent = () => setCreateDialogOpen(true);
+
+  const handleCreateSubmit = async (data: CreateEventData) => {
+    return admin.createEvent(data);
+  };
+
+  /* ─── Login screen ─── */
+  if (!admin.authed) {
+    return (
+      <div className="admin-root">
+        <AdminLogin onLogin={admin.login} />
+      </div>
+    );
+  }
+
+  /* ─── Dashboard ─── */
+  return (
+    <div className="admin-root">
+      <div className="admin-layout">
+        {/* Mobile sidebar toggle */}
+        <button
+          className="admin-sidebar-toggle"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          aria-label="פתח תפריט ניווט"
+          aria-expanded={sidebarOpen}
+        >
+          ☰
+        </button>
+
+        {/* Sidebar */}
+        <Sidebar
+          activeView={activeView}
+          onNavigate={handleNavigate}
+          totalEvents={admin.events.length}
+          pendingRequestsCount={pendingRequestsCount}
+          onLogout={admin.logout}
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
+
+        {/* Main content */}
+        <main id="main-content" className="admin-main">
+          <h1 className="sr-only">לוח בקרה - אדמין</h1>
+          <div className="admin-main__content">
+            {activeView === 'dashboard' && (
+              <DashboardView
+                events={admin.events}
+                requests={admin.requests}
+                onNavigate={handleNavigate}
+                onViewEvent={handleViewDetails}
+                onApprove={admin.approveRequest}
+                onDeny={admin.denyRequest}
+              />
+            )}
+
+            {activeView === 'events' && !detailEvent && (
+              <EventsView
+                events={admin.events}
+                loading={admin.loading}
+                onDelete={admin.deleteEvent}
+                onGenerateQR={generateQR}
+                onCopyUrl={copyJoinUrl}
+                onUploadBg={triggerBgUpload}
+                onRemoveBg={admin.removeBackground}
+                onViewDetails={handleViewDetails}
+                onUpdateStatus={admin.updateStatus}
+                onToggleQrSent={admin.toggleQrSent}
+                onTogglePayment={admin.togglePaymentStatus}
+                onCreateEvent={handleCreateEvent}
+              />
+            )}
+
+            {activeView === 'events' && detailEvent && (
+              <EventAnalyticsView
+                event={detailEvent}
+                onBack={handleBackFromDetails}
+                onGenerateQR={generateQR}
+                onCopyUrl={copyJoinUrl}
+                onUploadBg={triggerBgUpload}
+                onRemoveBg={admin.removeBackground}
+                onUpdateStatus={(id: string, status: string) => {
+                  admin.updateStatus(id, status);
+                  // Update detailEvent to reflect new status after reload
+                  setTimeout(() => {
+                    const updated = admin.events.find(e => e.id === id);
+                    if (updated) setDetailEvent(updated);
+                  }, STATUS_REFRESH_DELAY_MS);
+                }}
+                onDelete={(id: string) => {
+                  admin.deleteEvent(id);
+                  setDetailEvent(null);
+                }}
+                onArchive={(id: string) => {
+                  admin.archiveEvent(id);
+                  setDetailEvent(null);
+                }}
+                // Messaging props
+                messagingStatus={admin.messagingStatus}
+                guestPhones={admin.guestPhones}
+                messageLog={admin.messageLog}
+                loadMessagingStatus={admin.loadMessagingStatus}
+                updateMessagingConfig={admin.updateMessagingConfig}
+                triggerMessages={admin.triggerMessages}
+                loadGuestPhones={admin.loadGuestPhones}
+                adminAddGuestPhone={admin.adminAddGuestPhone}
+                adminRemoveGuestPhone={admin.adminRemoveGuestPhone}
+                adminUploadGuestFile={admin.adminUploadGuestFile}
+                regeneratePortalToken={admin.regeneratePortalToken}
+                sendClientEmail={admin.sendClientEmail}
+                sendQrPage={admin.sendQrPage}
+                loadMessageLog={admin.loadMessageLog}
+                updateEventDetails={admin.updateEventDetails}
+              />
+            )}
+
+            {activeView === 'analytics' && (
+              <GlobalAnalyticsView />
+            )}
+
+            {activeView === 'requests' && (
+              <RequestsView
+                requests={admin.requests}
+                onApprove={admin.approveRequest}
+                onDeny={admin.denyRequest}
+                onDelete={admin.deleteRequest}
+                onSendPaymentLink={admin.resendPaymentLink}
+                onReload={admin.loadRequests}
+              />
+            )}
+
+            {activeView === 'moderation' && (
+              <AdminModerationQueue />
+            )}
+
+          </div>
+        </main>
+      </div>
+
+      {/* Hidden file input for background uploads */}
+      <input
+        ref={bgInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        style={{ display: 'none' }}
+        onChange={handleBgFile}
+      />
+
+      {/* ─── Dialogs ─── */}
+      {qrEvent && (
+        <QRDialog
+          event={qrEvent}
+          dataUrl={qrDataUrl}
+          onClose={() => setQrEvent(null)}
+          onDownload={downloadQR}
+          onCopyUrl={copyJoinUrl}
+        />
+      )}
+
+      {admin.selectedEvent && (
+        <ParticipantsDialog
+          event={admin.selectedEvent}
+          participants={admin.participants}
+          onClose={admin.closeParticipants}
+          onBan={admin.banParticipant}
+        />
+      )}
+
+      {bgCropImage && (
+        <ImageCropper
+          imageSrc={bgCropImage.src}
+          aspect={9 / 16}
+          onCropDone={handleBgCropDone}
+          onCancel={handleBgCropCancel}
+          fileName={bgCropImage.file.name}
+        />
+      )}
+
+      {/* Create Event Dialog */}
+      <CreateEventDialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        onCreate={handleCreateSubmit}
+      />
+    </div>
+  );
+}

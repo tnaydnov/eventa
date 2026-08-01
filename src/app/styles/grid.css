@@ -1,0 +1,133 @@
+/* ═══════════════════════════════════════════
+   Grid
+   ═══════════════════════════════════════════ */
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 8px;
+}
+
+/* ── Virtualized grid (main event page) ── */
+.virtual-grid-scroll {
+  /* Fill remaining viewport height below header + toggle bar, above tab bar */
+  /* 100vh fallback for browsers without dvh support (Safari < 15.4) */
+  height: calc(100vh - (69px + env(safe-area-inset-top)) - (64px + env(safe-area-inset-bottom)) - 48px);
+  height: calc(100dvh - (69px + env(safe-area-inset-top)) - (64px + env(safe-area-inset-bottom)) - 48px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.virtual-grid-inner {
+  position: relative;
+  width: 100%;
+}
+
+.virtual-grid-row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 0 8px 8px;
+  box-sizing: border-box;
+}
+
+.grid-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 3/4;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.grid-card:active {
+  transform: scale(0.97);
+}
+
+.grid-card:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.grid-card-highlight {
+  animation: grid-glow 2.5s ease-in-out infinite;
+}
+
+@keyframes grid-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.88; }
+}
+
+@keyframes pulse-badge {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+.grid-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.grid-card .card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 8px 8px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.85));
+  color: white;
+}
+
+.grid-card .card-overlay .name {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.1px;
+}
+
+.grid-card-badges {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+}
+
+.badge-like {
+  background: var(--primary);
+  border-radius: 12px;
+  padding: 3px 8px;
+  display: flex;
+  align-items: center;
+  color: #1a1a1a;
+  animation: pulse-badge 2s infinite;
+}
+
+.badge-message {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  padding: 3px 8px;
+  display: flex;
+  align-items: center;
+  color: #1a1a1a;
+  animation: pulse-badge 2s infinite;
+}
+
+/* ── Likes section ── */
+.likes-section {
+  padding: 16px;
+}
+
+.likes-section h3 {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}

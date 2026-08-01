@@ -1,0 +1,48 @@
+name: CodeQL
+
+# Static application security testing (SAST) for JS/TS.
+# Runs on PRs to main, pushes to main, and a weekly schedule so newly-disclosed
+# query patterns are caught even when the code hasn't changed.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+
+permissions:
+  contents: read
+  security-events: write
+  # Required by github/codeql-action to read workflow-run metadata when uploading
+  # the SARIF results (otherwise: "Resource not accessible by integration").
+  actions: read
+
+jobs:
+  analyze:
+    name: Analyze (javascript-typescript)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          # security-extended adds higher-signal security queries beyond the default set.
+          queries: security-extended
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        # The SARIF upload fails until "Code scanning" is enabled in the repo settings
+        # (Settings → Code security and analysis → Code scanning → Set up → Default/Advanced,
+        # or, for private repos, requires GitHub Advanced Security). The analysis itself
+        # still runs and reports to the Security tab once enabled. continue-on-error keeps
+        # this from red-X'ing CI while the feature is being turned on; remove it once
+        # code scanning is enabled if you want upload failures to gate the build.
+        continue-on-error: true
+        with:
+          category: "/language:javascript-typescript"

@@ -1,0 +1,241 @@
+'use client';
+
+import type { WizardFormState } from '../wizard-config';
+import { WIZARD_TYPE_MAP } from '../wizard-config';
+import { BASE_PRICE } from '@/lib/config';
+import WizardIcon from '../WizardIcons';
+
+interface Props {
+  state: WizardFormState;
+  onChange: (patch: Partial<WizardFormState>) => void;
+  onGoToStep: (step: number) => void;
+}
+
+/** Format datetime-local value to readable Hebrew string. */
+function formatDateTime(iso: string): string {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  return d.toLocaleString('he-IL', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+export default function StepSummary({ state, onChange, onGoToStep }: Props) {
+  const typeConfig = state.eventType ? WIZARD_TYPE_MAP[state.eventType] : undefined;
+
+  return (
+    <div className="wiz-step">
+      <div className="wiz-step__header">
+        <h2 className="wiz-step__title">סיכום ההזמנה</h2>
+        <p className="wiz-step__subtitle">בדקו שהכל נכון, השלימו פרטי קשר ושלחו.</p>
+      </div>
+
+      {/* Summary cards */}
+      <div className="wiz-summary">
+        <div className="wiz-summary__card">
+          <div className="wiz-summary__card-content">
+            <div className="wiz-summary__card-label">סוג אירוע</div>
+            <div className="wiz-summary__card-value">
+              {typeConfig && <WizardIcon name={typeConfig.icon} size={16} className="wiz-summary__inline-icon" />} {typeConfig?.label}
+            </div>
+          </div>
+          <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(0)} aria-label="שנה סוג אירוע">
+            שנה
+          </button>
+        </div>
+
+        <div className="wiz-summary__card">
+          <div className="wiz-summary__card-content">
+            <div className="wiz-summary__card-label">
+              {state.eventName ? 'שם האירוע' : 'תאריך'}
+            </div>
+            <div className="wiz-summary__card-value">
+              {state.eventName && <>{state.eventName} · </>}
+              {formatDateTime(state.startsAt)}
+            </div>
+          </div>
+          <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(1)} aria-label="שנה פרטי אירוע">
+            שנה
+          </button>
+        </div>
+
+        <div className="wiz-summary__card">
+          <div className="wiz-summary__card-content">
+            <div className="wiz-summary__card-label">רקע</div>
+            <div className="wiz-summary__card-value">
+              {state.wantsCustomBackground
+                ? <><WizardIcon name="paperclip" size={14} className="wiz-summary__inline-icon" /> רקע מותאם אישית</>
+                : <><WizardIcon name="moon" size={14} className="wiz-summary__inline-icon" /> ברירת מחדל</>
+              }
+            </div>
+          </div>
+          <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(2)} aria-label="שנה רקע">
+            שנה
+          </button>
+        </div>
+
+        <div className="wiz-summary__card">
+          <div className="wiz-summary__card-content">
+            <div className="wiz-summary__card-label">פוסטר</div>
+            <div className="wiz-summary__card-value">
+              {state.posterChoice === 'qr-only'
+                ? <><WizardIcon name="qr" size={14} className="wiz-summary__inline-icon" /> QR בלבד</>
+                : <><WizardIcon name="image" size={14} className="wiz-summary__inline-icon" /> תבנית: {state.selectedTemplateLabel ?? state.selectedTemplateId ?? ''}</>
+              }
+              {state.specialRequests && ' + בקשות מיוחדות'}
+            </div>
+          </div>
+          <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(3)} aria-label="שנה פוסטר">
+            שנה
+          </button>
+        </div>
+
+        <div className={`wiz-summary__card${state.wantsGuestMessages ? '' : ' wiz-summary__card--disabled'}`}>
+          <div className="wiz-summary__card-content">
+            <div className="wiz-summary__card-label">הודעות לאורחים</div>
+            <div className={`wiz-summary__card-value${state.wantsGuestMessages ? '' : ' wiz-summary__card-value--muted'}`}>
+              <WizardIcon name="chat" size={14} className="wiz-summary__inline-icon" />
+              {state.wantsGuestMessages ? 'הודעות + Excel - כלול' : 'לא נבחר'}
+            </div>
+          </div>
+          <button type="button" className="wiz-summary__card-edit" onClick={() => onGoToStep(4)} aria-label="שנה הודעות">
+            שנה
+          </button>
+        </div>
+      </div>
+
+      {/* Price breakdown */}
+      <div className="wiz-price">
+        <div className="wiz-price__row">
+          <span>חבילת Eventa לאירוע</span>
+          <span>₪{BASE_PRICE}</span>
+        </div>
+        {state.wantsGuestMessages && (
+          <div className="wiz-price__row">
+            <span>שירות הודעות לאורחים</span>
+            <span>כלול ✓</span>
+          </div>
+        )}
+        <div className="wiz-price__divider" />
+        <div className="wiz-price__row wiz-price__row--total">
+          <span>סה״כ</span>
+          <span>₪{BASE_PRICE}</span>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="wiz-divider" />
+
+      {/* Contact preference */}
+      <div className="wiz-field" style={{ marginBottom: 16 }}>
+        <label className="wiz-field__label">איך נמשיך?</label>
+      </div>
+
+      <div className="wiz-contact-options">
+        <button
+          type="button"
+          className={`wiz-contact-opt${state.contactPreference === 'call-me' ? ' wiz-contact-opt--selected' : ''}`}
+          onClick={() => onChange({ contactPreference: 'call-me' })}
+        >
+          <div className="wiz-contact-opt__icon"><WizardIcon name="phone" size={22} /></div>
+          <div className="wiz-contact-opt__label">צרו איתי קשר</div>
+          <div className="wiz-contact-opt__desc">נחזור אליכם תוך 48 שעות</div>
+        </button>
+
+        <button
+          type="button"
+          className={`wiz-contact-opt${state.contactPreference === 'pay-now' ? ' wiz-contact-opt--selected' : ''}`}
+          onClick={() => onChange({ contactPreference: 'pay-now' })}
+        >
+          <div className="wiz-contact-opt__icon"><WizardIcon name="lock" size={22} /></div>
+          <div className="wiz-contact-opt__label">תשלום מאובטח</div>
+          <div className="wiz-contact-opt__desc">תשלום בכרטיס אשראי באתר</div>
+        </button>
+      </div>
+
+      {/* Divider */}
+      <div className="wiz-divider" />
+
+      {/* Contact fields */}
+      <div className="wiz-fields">
+        <div className="wiz-field">
+          <label className="wiz-field__label" htmlFor="wiz-contact-name">שם מלא *</label>
+          <input
+            id="wiz-contact-name"
+            className="wiz-field__input"
+            type="text"
+            placeholder="השם שלכם"
+            autoComplete="name"
+            value={state.contactName}
+            onChange={e => onChange({ contactName: e.target.value })}
+            maxLength={100}
+            required
+          />
+        </div>
+
+        <div className="wiz-field__row">
+          <div className="wiz-field">
+            <label className="wiz-field__label" htmlFor="wiz-contact-phone">טלפון *</label>
+            <input
+              id="wiz-contact-phone"
+              className="wiz-field__input"
+              type="tel"
+              placeholder="050-0000000"
+              autoComplete="tel"
+              value={state.contactPhone}
+              onChange={e => onChange({ contactPhone: e.target.value })}
+              maxLength={30}
+              dir="ltr"
+              required
+            />
+          </div>
+
+          <div className="wiz-field">
+            <label className="wiz-field__label" htmlFor="wiz-contact-email">אימייל *</label>
+            <input
+              id="wiz-contact-email"
+              className="wiz-field__input"
+              type="email"
+              placeholder="mail@example.com"
+              autoComplete="email"
+              value={state.contactEmail}
+              onChange={e => onChange({ contactEmail: e.target.value })}
+              maxLength={254}
+              dir="ltr"
+            />
+          </div>
+        </div>
+      </div>
+
+      <p className="wiz-msg-toggle-hint" style={{ marginTop: 16 }}>
+        שליחת ההזמנה מהווה בקשת הזמנה הכפופה ל
+        <a href="/business-terms" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>
+          תנאי ההזמנה ללקוחות משלמים
+        </a>
+        .
+      </p>
+
+      <label className="wiz-consent-row" style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 14, cursor: 'pointer', lineHeight: 1.7 }}>
+        <input
+          type="checkbox"
+          checked={state.businessTermsAgreed}
+          onChange={(e) => onChange({ businessTermsAgreed: e.target.checked })}
+          style={{ marginTop: 4, width: 18, height: 18, flexShrink: 0, accentColor: 'var(--primary, #b08d7e)', cursor: 'pointer' }}
+          aria-label="אישור תנאי ההזמנה"
+        />
+        <span style={{ fontSize: '0.88rem', color: '#ccc' }}>
+          קראתי והבנתי את{' '}
+          <a href="/business-terms" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>
+            תנאי ההזמנה
+          </a>
+          , לרבות מדיניות הביטולים וההחזרים, ואני מאשר/ת אותם.
+        </span>
+      </label>
+    </div>
+  );
+}
