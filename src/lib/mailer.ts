@@ -1,4 +1,5 @@
 import nodemailer, { type SendMailOptions, type Transporter } from 'nodemailer';
+import { BRAND_NAME, CONTACT_EMAIL } from '@/config/site';
 
 /* ── Email header-injection guard (defense-in-depth) ─────────────────
  * Several emails interpolate user-derived values into header fields - the
@@ -78,7 +79,21 @@ export function getMailTransporter(): Transporter {
   return _transporter;
 }
 
-/** Standard "From" header for Eventa emails. */
+/** Standard "From" header for outbound emails. */
 export function getSmtpFrom(): string {
-  return `"Eventa" <${process.env.SMTP_USER}>`;
+  return `"${BRAND_NAME}" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`;
+}
+
+/**
+ * Mailbox that receives internal operator notifications (new orders, payment
+ * confirmations, contact requests). Falls back to the public contact address,
+ * then to the SMTP account itself.
+ */
+export function getAdminNotificationEmail(): string {
+  return (
+    process.env.ADMIN_NOTIFICATION_EMAIL ||
+    CONTACT_EMAIL ||
+    process.env.SMTP_USER ||
+    ''
+  );
 }

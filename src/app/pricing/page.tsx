@@ -2,12 +2,13 @@
 import Link from 'next/link';
 import SitePageLayout from '@/components/SitePageLayout';
 import { BASE_PRICE } from '@/lib/config';
+import { absoluteUrl } from '@/config/site';
 
 export const metadata: Metadata = {
   title: 'מחירון | Eventa',
   description:
     'הפעילו את Eventa באירוע שלכם. מחיר אחד פשוט – ₪300 לאירוע, הכל כלול.',
-  alternates: { canonical: 'https://www.eventa.productions/pricing' },
+  alternates: { canonical: absoluteUrl('/pricing') },
 };
 
 /* ─── Icon components ─── */

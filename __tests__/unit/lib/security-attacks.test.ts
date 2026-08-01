@@ -64,7 +64,7 @@ describe('JWT — tamper resistance', () => {
     const now = Math.floor(Date.now() / 1000);
     const payload = {
       typ: 'session',
-      iss: 'eventa.productions',
+      iss: 'test.example.com',
       aud: 'eventa-app',
       sub: SESSION_DATA.participantId,
       eid: SESSION_DATA.eventId,
@@ -86,7 +86,7 @@ describe('JWT — tamper resistance', () => {
     const crypto = require('crypto');
     const now = Math.floor(Date.now() / 1000);
     const payload = {
-      typ: 'session', iss: 'eventa.productions', aud: 'eventa-app',
+      typ: 'session', iss: 'test.example.com', aud: 'eventa-app',
       sub: SESSION_DATA.participantId, eid: SESSION_DATA.eventId,
       esl: SESSION_DATA.eventSlug, enm: SESSION_DATA.eventName,
       iat: now, exp: now + 3600,
@@ -136,38 +136,38 @@ describe('JWT — tamper resistance', () => {
 
 describe('CSRF — Origin check', () => {
   it('SEC-CSRF-01: allows a same-origin request', () => {
-    const req = new Request('https://eventa.productions/api/secure/likes', {
+    const req = new Request('https://test.example.com/api/secure/likes', {
       method: 'POST',
       headers: {
-        'Origin': 'https://eventa.productions',
-        'Host': 'eventa.productions',
+        'Origin': 'https://test.example.com',
+        'Host': 'test.example.com',
       },
     });
     expect(checkCsrf(req as never)).toBe(true);
   });
 
   it('SEC-CSRF-02: blocks a cross-origin request', () => {
-    const req = new Request('https://eventa.productions/api/secure/likes', {
+    const req = new Request('https://test.example.com/api/secure/likes', {
       method: 'POST',
       headers: {
         'Origin': 'https://evil-attacker.com',
-        'Host': 'eventa.productions',
+        'Host': 'test.example.com',
       },
     });
     expect(checkCsrf(req as never)).toBe(false);
   });
 
   it('SEC-CSRF-03: blocks a POST request with no Origin header', () => {
-    const req = new Request('https://eventa.productions/api/secure/likes', {
+    const req = new Request('https://test.example.com/api/secure/likes', {
       method: 'POST',
-      headers: { 'Host': 'eventa.productions' },
+      headers: { 'Host': 'test.example.com' },
     });
     // No Origin header on a POST → CSRF check fails
     expect(checkCsrf(req as never)).toBe(false);
   });
 
   it('SEC-CSRF-04: allows a GET request without Origin (navigation)', () => {
-    const req = new Request('https://eventa.productions/api/auth/verify', {
+    const req = new Request('https://test.example.com/api/auth/verify', {
       method: 'GET',
     });
     expect(checkCsrf(req as never)).toBe(true);

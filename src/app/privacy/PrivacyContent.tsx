@@ -1,12 +1,13 @@
-﻿import { LegalSection, LegalSubheading, LegalText, LegalList, LegalLink } from '@/components/legal';
+﻿import { LegalSection, LegalSubheading, LegalText, LegalList, LegalLink, LegalContactDetails } from '@/components/legal';
+import { BRAND_NAME, LEGAL_OPERATOR } from '@/config/site';
 
 export default function PrivacyContent() {
   return (
     <>
       <LegalSection title="מבוא והגדרות">
         <LegalText>
-          מדיניות פרטיות זו מפרטת כיצד תומר ניידנוב, עוסק פטור, הפועל תחת השם המסחרי <strong>Eventa</strong>
-          (&quot;המפעיל&quot;, &quot;אנחנו&quot;, &quot;Eventa&quot;, &quot;השירות&quot;)
+          מדיניות פרטיות זו מפרטת כיצד {LEGAL_OPERATOR}, המפעיל את <strong>{BRAND_NAME}</strong>
+          (&quot;המפעיל&quot;, &quot;אנחנו&quot;, &quot;{BRAND_NAME}&quot;, &quot;השירות&quot;)
           אוסף, משתמש, מאחסן ומוחק מידע בעת שימוש באפליקציה.
         </LegalText>
         <LegalText>
@@ -20,15 +21,10 @@ export default function PrivacyContent() {
 
       <LegalSection title="1. מי מפעיל את השירות ופרטי קשר">
         <LegalText>
-          השירות מופעל על-ידי תומר ניידנוב, עוסק פטור, הפועל תחת השם המסחרי Eventa.
+          השירות מופעל על-ידי {LEGAL_OPERATOR}.
           לשאלות או בקשות בנושא פרטיות ניתן לפנות באמצעי הקשר המוצגים בשירות.
         </LegalText>
-        <LegalText>
-          דוא&quot;ל: <LegalLink href="mailto:contact@eventa.productions">contact@eventa.productions</LegalLink>
-        </LegalText>
-        <LegalText>
-          טלפון: <LegalLink href="tel:+972507165658">050-716-5658</LegalLink>
-        </LegalText>
+        <LegalContactDetails />
       </LegalSection>
 
       <LegalSection title="2. איזה מידע אנו אוספים">
@@ -259,12 +255,7 @@ export default function PrivacyContent() {
         <LegalText>
           לפניות פרטיות, שאלות או בקשות - השתמש/י באמצעי הקשר המופיעים בשירות.
         </LegalText>
-        <LegalText>
-          דוא&quot;ל: <LegalLink href="mailto:contact@eventa.productions">contact@eventa.productions</LegalLink>
-        </LegalText>
-        <LegalText>
-          טלפון: <LegalLink href="tel:+972507165658">050-716-5658</LegalLink>
-        </LegalText>
+        <LegalContactDetails />
       </LegalSection>
     </>
   );

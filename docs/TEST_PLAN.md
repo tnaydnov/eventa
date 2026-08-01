@@ -238,7 +238,7 @@ __tests__/
 |----|------|----------|
 | U-CFG-01 | `SESSION_MAX_AGE_S` equals 30 days | `30 * 24 * 60 * 60` |
 | U-CFG-02 | `ADMIN_MAX_AGE_S` equals 24 hours | `24 * 60 * 60` |
-| U-CFG-03 | `JWT_ISSUER` is `'eventa.productions'` | Exact match |
+| U-CFG-03 | `JWT_ISSUER` is derived from `NEXT_PUBLIC_SITE_URL`'s host | Exact match |
 | U-CFG-04 | `JWT_AUDIENCE` is `'eventa-app'` | Exact match |
 | U-CFG-05 | All cache TTLs are positive numbers | `> 0` |
 | U-CFG-06 | `MAX_CACHE_SIZE` is reasonable (500–50000) | Within range |

@@ -150,7 +150,7 @@ export async function GET(
       // Sanitize search input to prevent PostgREST filter injection
       // The .or() method parses commas as OR separators and dots as operators
       const sanitized = search.replace(/[,.()\\/]/g, '');
-      // Normalize local phone input (0505752650 → +972505752650) for DB match
+      // Normalize local phone input (0501234567 → +972501234567) for DB match
       const normalized = normalizePhone(sanitized);
       if (normalized) {
         // Exact blind-index match on phone, or name-enc search is not feasible;

@@ -25,6 +25,9 @@ jobs:
       - name: TypeScript check
         run: npm run typecheck
 
+      - name: Lint
+        run: npm run lint
+
       # Hard gate: the full unit + integration suite must pass before build/deploy.
       - name: Unit tests
         run: npm run test
@@ -33,6 +36,7 @@ jobs:
         run: npm run build
         env:
           # Dummy values so the build doesn't fail on env validation
+          NEXT_PUBLIC_SITE_URL: https://example.com
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
 

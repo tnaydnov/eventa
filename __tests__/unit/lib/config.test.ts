@@ -29,8 +29,8 @@ describe('config constants', () => {
     expect(ADMIN_MAX_AGE_S).toBe(24 * 60 * 60);
   });
 
-  it('U-CFG-03: JWT_ISSUER is eventa.productions', () => {
-    expect(JWT_ISSUER).toBe('eventa.productions');
+  it('U-CFG-03: JWT_ISSUER is derived from the configured site host', () => {
+    expect(JWT_ISSUER).toBe('test.example.com');
   });
 
   it('U-CFG-04: JWT_AUDIENCE is eventa-app', () => {

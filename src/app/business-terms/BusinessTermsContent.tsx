@@ -1,4 +1,5 @@
-import { LegalSection, LegalSubheading, LegalText, LegalList, LegalLink } from '@/components/legal';
+import { LegalSection, LegalSubheading, LegalText, LegalList, LegalLink, LegalContactDetails } from '@/components/legal';
+import { BRAND_NAME, LEGAL_OPERATOR } from '@/config/site';
 
 export default function BusinessTermsContent() {
   return (
@@ -10,8 +11,8 @@ export default function BusinessTermsContent() {
         <LegalText>
           תנאי הזמנה אלה (&quot;תנאי ההזמנה&quot;, &quot;ההסכם&quot;) חלים על לקוח המזמין את שירות
           Eventa לאירוע - בני/בנות הזוג, מארגן/ת האירוע, מפיק/ת אירוע, חברה, עמותה או כל גורם מזמין אחר
-          (&quot;הלקוח&quot;, &quot;המזמין&quot;) - מול תומר ניידנוב, עוסק פטור, הפועל תחת השם המסחרי
-          <strong> Eventa</strong> (&quot;המפעיל&quot;, &quot;Eventa&quot;).
+          (&quot;הלקוח&quot;, &quot;המזמין&quot;) - מול {LEGAL_OPERATOR}, המפעיל את
+          <strong> {BRAND_NAME}</strong> (&quot;המפעיל&quot;, &quot;{BRAND_NAME}&quot;).
         </LegalText>
         <LegalText>
           תנאי הזמנה אלה משלימים את <LegalLink href="/terms">תנאי השימוש</LegalLink> ואת
@@ -217,8 +218,7 @@ export default function BusinessTermsContent() {
             במועד החדש.
           </li>
           <li>
-            ביטול הזמנה ייעשה בפנייה בכתב לכתובת{' '}
-            <LegalLink href="mailto:contact@eventa.productions">contact@eventa.productions</LegalLink>,
+            ביטול הזמנה ייעשה בפנייה בכתב באמצעי הקשר המופיעים בשירות,
             בצירוף שם המזמין, מספר טלפון, תאריך האירוע ומספר הזמנה/חשבונית, אם קיים.
           </li>
           <li>
@@ -281,9 +281,9 @@ export default function BusinessTermsContent() {
 
       <LegalSection title="20. יצירת קשר">
         <LegalText>
-          לשאלות בנוגע לתנאי ההזמנה ניתן לפנות למפעיל: תומר ניידנוב, עוסק פטור, הפועל תחת השם המסחרי
-          Eventa, בכתובת <LegalLink href="mailto:contact@eventa.productions">contact@eventa.productions</LegalLink>.
+          לשאלות בנוגע לתנאי ההזמנה ניתן לפנות למפעיל: {LEGAL_OPERATOR}.
         </LegalText>
+        <LegalContactDetails />
       </LegalSection>
 
       <LegalSection title="תאריך עדכון">

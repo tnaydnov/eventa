@@ -23,7 +23,7 @@
  *  - Table-based layout only (no flexbox/grid) for Outlook + Gmail
  *  - No emojis in email body
  *  - English words (brand, phone, email) in dir="ltr" spans with unicode-bidi:isolate
- *  - Logo from https://www.eventa.productions/icons/Eventa_Logo.png
+ *  - Logo URLs are absolute and derived from NEXT_PUBLIC_SITE_URL (see src/config/site.ts)
  *
  * Design system:
  *  - Card shadow, pill-shaped CTAs, accent section titles, step pills
@@ -33,11 +33,12 @@
 
 import { EVENT_TYPE_LABELS } from '@/lib/constants';
 import { BASE_PRICE } from '@/lib/config';
+import { CONTACT_EMAIL, LOGO_DARK_URL, LOGO_LIGHT_URL } from '@/config/site';
 
 /** Light logo (shown on dark backgrounds / dark mode). */
-const LOGO_LIGHT = 'https://www.eventa.productions/icons/Eventa_Logo.png';
+const LOGO_LIGHT = LOGO_LIGHT_URL;
 /** Dark logo (shown on light backgrounds / light mode). */
-const LOGO_DARK  = 'https://www.eventa.productions/icons/Eventa_Logo_Dark.png';
+const LOGO_DARK  = LOGO_DARK_URL;
 
 /* ג”€ג”€ג”€ Shared palette ג”€ג”€ג”€ */
 const C = {
@@ -200,13 +201,14 @@ function tipBox(html: string): string {
         </tr>`;
 }
 
-/** Standardized support email row at bottom of card. */
+/** Standardized support email row at bottom of card. Omitted when no contact address is configured. */
 function supportRow(): string {
+  if (!CONTACT_EMAIL) return '';
   return `
         <tr>
           <td dir="rtl" style="direction:rtl;text-align:center;padding:0 32px 24px;background-color:${C.card};">
             <div dir="rtl" style="direction:rtl;text-align:center;font-size:13px;color:${C.dim};">
-              \u05DC\u05E9\u05D0\u05DC\u05D5\u05EA \u05E0\u05D9\u05EA\u05DF \u05DC\u05E4\u05E0\u05D5\u05EA \u05D0\u05DC\u05D9\u05E0\u05D5&rlm;: <a href="mailto:contact@eventa.productions" style="color:${C.accent};text-decoration:none;" dir="ltr">contact@eventa.productions</a>
+              \u05DC\u05E9\u05D0\u05DC\u05D5\u05EA \u05E0\u05D9\u05EA\u05DF \u05DC\u05E4\u05E0\u05D5\u05EA \u05D0\u05DC\u05D9\u05E0\u05D5&rlm;: <a href="mailto:${CONTACT_EMAIL}" style="color:${C.accent};text-decoration:none;" dir="ltr">${CONTACT_EMAIL}</a>
             </div>
           </td>
         </tr>`;

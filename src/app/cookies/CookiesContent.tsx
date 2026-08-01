@@ -1,4 +1,5 @@
 import { LegalSection, LegalText } from '@/components/legal';
+import { BRAND_NAME, LEGAL_OPERATOR } from '@/config/site';
 
 const thCls = 'text-right p-2.5 px-3 border-b border-white/12 text-[var(--primary)] font-semibold text-[0.8125rem]';
 const tdCls = 'text-right p-2.5 px-3 border-b border-white/[0.06] text-[#bbb] text-sm align-top';
@@ -8,7 +9,7 @@ export default function CookiesContent() {
     <>
       <LegalSection title="מבוא">
         <LegalText>
-          מדיניות עוגיות זו חלה על שירות Eventa, המופעל על-ידי תומר ניידנוב, עוסק פטור, הפועל תחת השם המסחרי Eventa.
+          מדיניות עוגיות זו חלה על שירות {BRAND_NAME}, המופעל על-ידי {LEGAL_OPERATOR}.
         </LegalText>
         <LegalText>
           השירות משתמש ב<strong>עוגיות חיוניות</strong> להפעלת התחברות ואבטחת סשן,

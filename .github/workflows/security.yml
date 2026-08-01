@@ -52,7 +52,7 @@ jobs:
             echo "No client components found; skipping."
             exit 0
           fi
-          SECRET_PATTERN='SUPABASE_SERVICE_ROLE_KEY|process\.env\.SMTP_|INVOICE4U_API_TOKEN|CRON_SECRET|JWT_SECRET|ADMIN_PASSWORD|ADMIN_TOTP_SECRET|FIELD_ENCRYPTION_KEY|BLIND_INDEX_KEY|UPSTASH_REDIS_REST_TOKEN'
+          SECRET_PATTERN='SUPABASE_SERVICE_ROLE_KEY|process\.env\.SMTP_|INVOICE4U_API_TOKEN|CRON_SECRET|JWT_SECRET|ADMIN_PASSWORD|ADMIN_TOTP_SECRET|FIELD_ENCRYPTION_KEY|BLIND_INDEX_KEY|OTP_PEPPER|UPSTASH_REDIS_REST_TOKEN|OPENAI_API_KEY|FALCONSAI_TOKEN|TEXTME_API_TOKEN|SECURITY_ALERT_WEBHOOK_URL'
           if echo "$CLIENT_FILES" | xargs grep -nE "$SECRET_PATTERN" 2>/dev/null; then
             echo "::error::A server-only secret is referenced inside a client component (see matches above)."
             exit 1

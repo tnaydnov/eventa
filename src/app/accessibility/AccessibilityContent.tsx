@@ -1,4 +1,5 @@
-import { LegalSection, LegalText, LegalList, LegalLink } from '@/components/legal';
+import { LegalSection, LegalText, LegalList, LegalLink, LegalContactDetails } from '@/components/legal';
+import { ACCESSIBILITY_CONTACT_NAME, BRAND_NAME } from '@/config/site';
 
 export default function AccessibilityContent() {
   return (
@@ -99,19 +100,12 @@ export default function AccessibilityContent() {
 
       <LegalSection title="יצירת קשר בנושא נגישות">
         <LegalText>
-          אחראי פניות נגישות: תומר ניידנוב, מטעם Eventa.
+          אחראי פניות נגישות: {ACCESSIBILITY_CONTACT_NAME}, מטעם {BRAND_NAME}.
         </LegalText>
         <LegalText>
           בכל שאלה, בקשה או דיווח על ליקוי נגישות ניתן לפנות אלינו:
         </LegalText>
-        <LegalList>
-          <li>
-            דוא&quot;ל: <LegalLink href="mailto:contact@eventa.productions">contact@eventa.productions</LegalLink>
-          </li>
-          <li>
-            טלפון: <LegalLink href="tel:+972507165658">050-716-5658</LegalLink>
-          </li>
-        </LegalList>
+        <LegalContactDetails as="list" />
         <LegalText>
           אנו מתחייבים לטפל בכל פנייה בנושא נגישות תוך 14 ימי עסקים.
         </LegalText>

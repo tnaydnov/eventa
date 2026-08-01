@@ -1,12 +1,13 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import Wizard from '../_components/wizard/Wizard';
+import { absoluteUrl } from '@/config/site';
 
 export const metadata: Metadata = {
   title: 'הזמנת Eventa לחתונה או לאירוע | Eventa',
   description:
     'הזמינו חוויית היכרויות עם QR, פוסטר וצ׳אט. מלאו כמה פרטים, בחרו עיצוב, וקבלו הכל מוכן להפצה.',
-  alternates: { canonical: 'https://www.eventa.productions/order' },
+  alternates: { canonical: absoluteUrl('/order') },
   robots: { index: true, follow: true },
 };
 

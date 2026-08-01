@@ -52,7 +52,7 @@ describe('signAdminToken', () => {
     const token = signAdminToken();
     const parts = token.split('.');
     const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
-    expect(payload.iss).toBe('eventa.productions');
+    expect(payload.iss).toBe('test.example.com');
     expect(payload.aud).toBe('eventa-app');
   });
 });
@@ -68,7 +68,7 @@ describe('verifyAdminToken', () => {
     const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
     const payload = {
       role: 'admin',
-      iss: 'eventa.productions',
+      iss: 'test.example.com',
       aud: 'eventa-app',
       iat: Math.floor(Date.now() / 1000) - 100000,
       exp: Math.floor(Date.now() / 1000) - 3600, // 1 hour ago
@@ -94,7 +94,7 @@ describe('verifyAdminToken', () => {
     const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
     const payload = {
       role: 'user', // wrong role
-      iss: 'eventa.productions',
+      iss: 'test.example.com',
       aud: 'eventa-app',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600,
@@ -132,7 +132,7 @@ describe('verifyAdminToken', () => {
     const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
     const payload = {
       role: 'admin',
-      iss: 'eventa.productions',
+      iss: 'test.example.com',
       aud: 'wrong-audience',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600,

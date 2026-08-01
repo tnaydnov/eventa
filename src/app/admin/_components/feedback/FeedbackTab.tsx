@@ -351,7 +351,7 @@ export default function FeedbackTab({ eventId, eventSlug }: { eventId: string; e
               <div className="afb-stories-list">
                 {agg.successStoryTexts.map((s, i) => (
                   <div key={i} className="afb-story-card">
-                    <p className="afb-story-text">"{s.text}"</p>
+                    <p className="afb-story-text">&quot;{s.text}&quot;</p>
                     <div className="afb-story-meta">
                       <span className="afb-story-date">
                         {new Date(s.createdAt).toLocaleDateString('he-IL', { day: 'numeric', month: 'short' })}

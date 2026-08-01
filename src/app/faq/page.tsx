@@ -1,11 +1,66 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import SitePageLayout from '@/components/SitePageLayout';
+import {
+  CONTACT_EMAIL,
+  CONTACT_PHONE_DISPLAY,
+  CONTACT_PHONE_E164,
+  SOCIAL_FACEBOOK_URL,
+  SOCIAL_INSTAGRAM_URL,
+  WHATSAPP_URL,
+  absoluteUrl,
+} from '@/config/site';
+
+/* ── Contact channels, rendered only when configured ── */
+
+const linkStyle = { color: 'var(--primary)', textDecoration: 'none' } as const;
+
+interface Channel {
+  href: string;
+  label: string;
+  /** Plain-text label used in the JSON-LD answer. */
+  text: string;
+}
+
+const CONTACT_CHANNELS: Channel[] = [
+  WHATSAPP_URL && { href: WHATSAPP_URL, label: 'WhatsApp', text: 'WhatsApp' },
+  CONTACT_PHONE_E164 && {
+    href: `tel:${CONTACT_PHONE_E164}`,
+    label: CONTACT_PHONE_DISPLAY,
+    text: `טלפון ${CONTACT_PHONE_DISPLAY}`,
+  },
+  CONTACT_EMAIL && { href: `mailto:${CONTACT_EMAIL}`, label: CONTACT_EMAIL, text: `מייל ${CONTACT_EMAIL}` },
+  SOCIAL_INSTAGRAM_URL && { href: SOCIAL_INSTAGRAM_URL, label: 'Instagram', text: 'Instagram' },
+  SOCIAL_FACEBOOK_URL && { href: SOCIAL_FACEBOOK_URL, label: 'Facebook', text: 'Facebook' },
+].filter(Boolean) as Channel[];
+
+const HAS_CONTACT_CHANNELS = CONTACT_CHANNELS.length > 0;
+
+function ContactChannelLinks() {
+  return (
+    <>
+      {CONTACT_CHANNELS.map((c, i) => (
+        <span key={c.href}>
+          {i > 0 && ', '}
+          <a
+            href={c.href}
+            {...(c.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            style={linkStyle}
+          >
+            {c.label}
+          </a>
+        </span>
+      ))}
+    </>
+  );
+}
+
+const CONTACT_CHANNELS_TEXT = CONTACT_CHANNELS.map((c) => c.text).join(', ');
 
 export const metadata: Metadata = {
   title: 'שאלות נפוצות | Eventa',
   description: 'שאלות נפוצות על Eventa - איך מזמינים, כמה זה עולה, מה האורחים צריכים לעשות ועוד.',
-  alternates: { canonical: 'https://www.eventa.productions/faq' },
+  alternates: { canonical: absoluteUrl('/faq') },
 };
 
 /* ── FAQ data grouped by category ── */
@@ -80,8 +135,17 @@ const categories: FaqCategory[] = [
       },
       {
         q: 'איך מזמינים?',
-        a: <>דרך טופס ההזמנה באתר - ממלאים פרטים, משלמים ומקבלים את הפוסטר. מעדיפים לדבר? שלחו לנו הודעה ב-<a href="https://wa.me/972507165658" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>WhatsApp</a>, התקשרו ל-<a href="tel:+972507165658" style={{ color: 'var(--primary)', textDecoration: 'none' }}>050-716-5658</a> או שלחו מייל ל-<a href="mailto:contact@eventa.productions" style={{ color: 'var(--primary)', textDecoration: 'none' }}>contact@eventa.productions</a>.</>,
-        aText: 'דרך טופס ההזמנה באתר - ממלאים פרטים, משלמים ומקבלים את הפוסטר. מעדיפים לדבר? שלחו לנו הודעה בWhatsApp, התקשרו ל-050-716-5658 או שלחו מייל ל-contact@eventa.productions.',
+        a: (
+          <>
+            דרך טופס ההזמנה באתר - ממלאים פרטים, משלמים ומקבלים את הפוסטר.
+            {HAS_CONTACT_CHANNELS && (
+              <> מעדיפים לדבר? <ContactChannelLinks />.</>
+            )}
+          </>
+        ),
+        aText:
+          'דרך טופס ההזמנה באתר - ממלאים פרטים, משלמים ומקבלים את הפוסטר.' +
+          (HAS_CONTACT_CHANNELS ? ` מעדיפים לדבר? ${CONTACT_CHANNELS_TEXT}.` : ''),
       },
     ],
   },
@@ -129,12 +193,16 @@ const categories: FaqCategory[] = [
     items: [
       {
         q: 'איך יוצרים איתכם קשר?',
-        a: <>אפשר ליצור איתנו קשר בכמה דרכים: <a href="https://wa.me/972507165658" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>WhatsApp</a> (הכי מהיר), טלפון <a href="tel:+972507165658" style={{ color: 'var(--primary)', textDecoration: 'none' }}>050-716-5658</a>, מייל <a href="mailto:contact@eventa.productions" style={{ color: 'var(--primary)', textDecoration: 'none' }}>contact@eventa.productions</a>, או דרך <a href="https://www.instagram.com/eventa.productions" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Instagram</a> ו-<a href="https://www.facebook.com/share/1AvY7s8cge/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Facebook</a>.</>,
-        aText: 'אפשר ליצור איתנו קשר בכמה דרכים: WhatsApp (הכי מהיר), טלפון 050-716-5658, מייל contact@eventa.productions, או דרך Instagram ו-Facebook.',
+        a: (
+          <>
+            אפשר ליצור איתנו קשר בכמה דרכים: <ContactChannelLinks />.
+          </>
+        ),
+        aText: `אפשר ליצור איתנו קשר בכמה דרכים: ${CONTACT_CHANNELS_TEXT}.`,
       },
     ],
   },
-];
+].filter((cat) => cat.title !== 'צרו קשר' || HAS_CONTACT_CHANNELS);
 
 /* Flatten for JSON-LD */
 const allFaqs = categories.flatMap((c) => c.items);

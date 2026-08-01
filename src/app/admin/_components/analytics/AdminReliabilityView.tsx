@@ -388,7 +388,7 @@ export default function AdminReliabilityView() {
                   <th style={{ padding: '8px 12px', fontWeight: 600 }}>סוג הודעה</th>
                   <th style={{ padding: '8px 12px', fontWeight: 600 }}>נשלחו</th>
                   <th style={{ padding: '8px 12px', fontWeight: 600 }}>נכשלו</th>
-                  <th style={{ padding: '8px 12px', fontWeight: 600 }}>סה"כ</th>
+                  <th style={{ padding: '8px 12px', fontWeight: 600 }}>סה&quot;כ</th>
                   <th style={{ padding: '8px 12px', fontWeight: 600 }}>אחוז כשל</th>
                 </tr>
               </thead>

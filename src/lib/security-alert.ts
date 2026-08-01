@@ -12,9 +12,10 @@
  * - Fail-silently (never throw into the calling code)
  */
 import { logger } from '@/lib/logger';
+import { SITE_URL } from '@/config/site';
 
 const WEBHOOK_URL = process.env.SECURITY_ALERT_WEBHOOK_URL;
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://eventa.productions';
+const APP_URL = SITE_URL;
 
 /** De-duplication map: `${type}:${key}` → last-alert timestamp */
 const recentAlerts = new Map<string, number>();

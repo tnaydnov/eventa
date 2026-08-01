@@ -7,7 +7,7 @@ import { buildClientApprovalEmail, buildAdminPayNowNotification, buildPaymentCon
 import { generatePrettySlug } from '@/lib/slug';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { APP_BASE_URL, BASE_PRICE } from '@/lib/config';
-import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
+import { getMailTransporter, getSmtpFrom, getAdminNotificationEmail } from '@/lib/mailer';
 import { decryptPii } from '@/lib/pii';
 
 /**
@@ -562,7 +562,7 @@ async function sendDocumentAndEmails(ctx: {
 
     await getMailTransporter().sendMail({
       from: getSmtpFrom(),
-      to: 'contact@eventa.productions',
+      to: getAdminNotificationEmail(),
       subject: adminEmail.subject,
       html: adminEmail.html,
     });

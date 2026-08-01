@@ -17,6 +17,7 @@ import StepPoster from './steps/StepPoster';
 import StepMessages from './steps/StepMessages';
 import StepSummary from './steps/StepSummary';
 import WizardIcon from './WizardIcons';
+import { CONTACT_EMAIL } from '@/config/site';
 
 // ─── Helpers ────────────────────────────────────────────
 
@@ -319,10 +320,12 @@ export default function Wizard() {
                 ? 'לא הצלחנו לפתוח את דף התשלום. ניצור איתכם קשר להשלמת ההזמנה.'
                 : 'קיבלנו את כל הפרטים ונחזור אליכם בהקדם. נפנה אליכם תוך 48 שעות.'}
           </p>
-          <p className="wiz-success__contact">
-            לכל שאלה או בקשה -{' '}
-            <a href="mailto:contact@eventa.productions" className="wiz-success__link">contact@eventa.productions</a>
-          </p>
+          {CONTACT_EMAIL && (
+            <p className="wiz-success__contact">
+              לכל שאלה או בקשה -{' '}
+              <a href={`mailto:${CONTACT_EMAIL}`} className="wiz-success__link">{CONTACT_EMAIL}</a>
+            </p>
+          )}
           <Link href="/" className="wiz-success__btn">
             חזרה לדף הראשי
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">

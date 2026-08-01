@@ -3,6 +3,7 @@
  * No hardcoded message strings anywhere else in the codebase.
  */
 import { APP_BASE_URL, OTP_EXPIRY_S } from '@/lib/config';
+import { BRAND_NAME, SITE_URL } from '@/config/site';
 import type { EventMessagingConfig } from './types';
 
 /** Build the join URL for an event */
@@ -18,7 +19,7 @@ export function buildFeedbackUrl(slug: string): string {
 // ── SMS Templates (plain text) ──
 
 export function otpSmsText(code: string): string {
-  return `Eventa - קוד האימות שלך: ${code}\nתוקף: ${OTP_EXPIRY_S / 60} דקות`;
+  return `${BRAND_NAME} - קוד האימות שלך: ${code}\nתוקף: ${OTP_EXPIRY_S / 60} דקות`;
 }
 
 /** Build pre-event SMS text */
@@ -26,7 +27,7 @@ export function preEventSmsText(config: EventMessagingConfig): string {
   const joinUrl = buildJoinUrl(config.eventSlug);
   return `מגיע/ה ל${config.eventName}? את/ה רווק/ה? 💍
 
-באירוע תהיה לכם הזדמנות להצטרף לאפליקציית Eventa (בלי להוריד שום דבר,לא לדאוג!) - ולראות את שאר הרווקים והרווקות שיהיו שם.
+באירוע תהיה לכם הזדמנות להצטרף לאפליקציית ${BRAND_NAME} (בלי להוריד שום דבר,לא לדאוג!) - ולראות את שאר הרווקים והרווקות שיהיו שם.
 
 אל תדאגו - זו אפליקציה ייעודית רק לאירוע זה, וכל הנתונים שלכם יימחקו כשבוע לאחר האירוע. 🔒
 
@@ -62,8 +63,8 @@ export function feedbackSmsText(config: EventMessagingConfig): string {
 נשמח לשמוע איך היה - מלאו משוב קצר של דקה:
 ${feedbackUrl}
 
-💫 אם אתם מארגנים אירוע בעצמכם - Eventa תמיד כאן:
-https://eventa.productions/
+💫 אם אתם מארגנים אירוע בעצמכם - ${BRAND_NAME} תמיד כאן:
+${SITE_URL}/
 
 תודה רבה ונתראה! 💜`;
 }

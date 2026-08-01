@@ -1,4 +1,5 @@
-import { LegalSection, LegalSubheading, LegalText, LegalList, LegalLink } from '@/components/legal';
+import { LegalSection, LegalSubheading, LegalText, LegalList, LegalLink, LegalContactDetails } from '@/components/legal';
+import { BRAND_NAME, LEGAL_OPERATOR } from '@/config/site';
 
 export default function TermsContent() {
   return (
@@ -6,8 +7,8 @@ export default function TermsContent() {
       <LegalSection title="מבוא והגדרות">
         <LegalText>
           תנאי שימוש אלה (&quot;התנאים&quot;) מהווים הסכם מחייב בינך (&quot;המשתמש/ת&quot;) לבין
-          תומר ניידנוב, עוסק פטור, הפועל תחת השם המסחרי <strong>Eventa</strong>
-          (&quot;המפעיל&quot;, &quot;Eventa&quot;, &quot;השירות&quot;, &quot;האפליקציה&quot;).
+          {LEGAL_OPERATOR}, המפעיל את <strong>{BRAND_NAME}</strong>
+          (&quot;המפעיל&quot;, &quot;{BRAND_NAME}&quot;, &quot;השירות&quot;, &quot;האפליקציה&quot;).
         </LegalText>
         <LegalText>
           השירות הוא פלטפורמה אינטרנטית זמנית לשימוש במהלך אירועים (למשל: חתונות, מסיבות, כנסים),
@@ -212,14 +213,9 @@ export default function TermsContent() {
 
       <LegalSection title="18. יצירת קשר">
         <LegalText>
-          לשאלות בנוגע לתנאים או לשירות, ניתן לפנות למפעיל: תומר ניידנוב, עוסק פטור, הפועל תחת השם המסחרי Eventa.
+          לשאלות בנוגע לתנאים או לשירות, ניתן לפנות למפעיל: {LEGAL_OPERATOR}.
         </LegalText>
-        <LegalText>
-          דוא&quot;ל: <LegalLink href="mailto:contact@eventa.productions">contact@eventa.productions</LegalLink>
-        </LegalText>
-        <LegalText>
-          טלפון: <LegalLink href="tel:+972507165658">050-716-5658</LegalLink>
-        </LegalText>
+        <LegalContactDetails />
       </LegalSection>
 
       <LegalSection title="19. הצהרת נגישות">
@@ -228,8 +224,7 @@ export default function TermsContent() {
           (תקן 5568 מבוסס WCAG 2.1 AA), במידת סבירות ביחס לאופי השירות הזמני.
         </LegalText>
         <LegalText>
-          בכל שאלה, בקשה או דיווח על ליקוי נגישות ניתן לפנות אלינו
-          בדוא&quot;ל: <LegalLink href="mailto:contact@eventa.productions">contact@eventa.productions</LegalLink>.
+          בכל שאלה, בקשה או דיווח על ליקוי נגישות ניתן לפנות אלינו באמצעי הקשר המופיעים בשירות.
         </LegalText>
       </LegalSection>
 
@@ -271,7 +266,7 @@ export default function TermsContent() {
         </LegalText>
         <LegalText>
           השירות מסופק בתשלום חד-פעמי לאירוע.
-          לביטול הזמנה יש לפנות למפעיל בדוא&quot;ל: <LegalLink href="mailto:contact@eventa.productions">contact@eventa.productions</LegalLink>,
+          לביטול הזמנה יש לפנות למפעיל באמצעי הקשר המופיעים בשירות,
           בצירוף שם מלא, מספר טלפון, תאריך האירוע ומספר הזמנה / חשבונית (אם קיים).
           להלן מדיניות הביטול, בכפוף לאמור לעיל:
         </LegalText>

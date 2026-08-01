@@ -7,7 +7,12 @@
  *
  * All values have sensible defaults; override via environment variables
  * where noted.
+ *
+ * Brand-, domain- and contact-specific values do NOT live here - they live in
+ * `src/config/site.ts`, which is the single file to edit when rebranding.
  */
+
+import { SITE_HOST, SITE_URL } from '@/config/site';
 
 // ─── Session & Auth ─────────────────────────────────────────
 
@@ -37,8 +42,11 @@ export const SESSION_MAX_AGE_S = 30 * 24 * 60 * 60;
 /** Admin JWT lifetime in seconds (default 24 hours). */
 export const ADMIN_MAX_AGE_S = 24 * 60 * 60;
 
-/** JWT issuer claim (for iss field). */
-export const JWT_ISSUER = 'eventa.productions';
+/**
+ * JWT issuer claim (`iss`). Derived from the configured site host so tokens
+ * minted by one deployment are never accepted by another.
+ */
+export const JWT_ISSUER = SITE_HOST;
 
 /** JWT audience claim (for aud field). */
 export const JWT_AUDIENCE = 'eventa-app';
@@ -98,7 +106,7 @@ export const OTP_GLOBAL_MAX_PER_DAY = parseInt(process.env.OTP_GLOBAL_MAX_PER_DA
 // ─── Messaging Configuration ────────────────────────────────
 
 /** Base URL for building join/feedback links. */
-export const APP_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://eventa.productions';
+export const APP_BASE_URL = SITE_URL;
 
 /** Whether the SMS provider is live (true) or using stubs (false). */
 export const SMS_PROVIDER_LIVE = process.env.SMS_PROVIDER_LIVE === 'true';

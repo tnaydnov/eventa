@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { BRAND_NAME, LOGO_LIGHT_URL } from '@/config/site';
 import type { MessagingConfig, EventMessagingStatus } from '../shared';
 
 interface MessagingControlsProps {
@@ -113,10 +114,10 @@ function emailShell(title: string, inner: string, subtitle?: string): string {
   return `<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>body{margin:0;padding:0;background:${PE.bg};font-family:Arial,sans-serif;direction:rtl;text-align:right;color:${PE.text}}</style></head><body>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${PE.bg};"><tr><td align="center" style="padding:24px 12px;">
 <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background:${PE.card};border-radius:12px;border:1px solid ${PE.border};overflow:hidden;">
-<tr><td style="background:${PE.text};padding:20px 24px;text-align:center;"><img src="https://www.eventa.productions/icons/Eventa_Logo.png" alt="Eventa" width="120" style="max-width:120px;height:auto;"/>${subtitle ? `<div style="text-align:center;font-size:11px;color:${PE.dim};margin-top:6px;">${subtitle}</div>` : ''}</td></tr>
+<tr><td style="background:${PE.text};padding:20px 24px;text-align:center;"><img src="${LOGO_LIGHT_URL}" alt="${BRAND_NAME}" width="120" style="max-width:120px;height:auto;"/>${subtitle ? `<div style="text-align:center;font-size:11px;color:${PE.dim};margin-top:6px;">${subtitle}</div>` : ''}</td></tr>
 ${inner}
 </table>
-<table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;"><tr><td style="padding:12px 0;text-align:center;font-size:10px;color:${PE.dim};">&copy; ${new Date().getFullYear()} Eventa</td></tr></table>
+<table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;"><tr><td style="padding:12px 0;text-align:center;font-size:10px;color:${PE.dim};">&copy; ${new Date().getFullYear()} ${BRAND_NAME}</td></tr></table>
 </td></tr></table></body></html>`;
 }
 

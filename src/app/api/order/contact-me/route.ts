@@ -3,8 +3,9 @@ import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger';
 import { getServiceClient } from '@/lib/supabase';
 import { buildAdminContactOnlyNotification, escapeHtml } from '@/lib/email-templates';
-import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
+import { getMailTransporter, getSmtpFrom, getAdminNotificationEmail } from '@/lib/mailer';
 import { decryptPii } from '@/lib/pii';
+import { BRAND_NAME, SITE_URL } from '@/config/site';
 
 /**
  * GET /api/order/contact-me?id=<requestId>
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
     try {
       await getMailTransporter().sendMail({
         from: getSmtpFrom(),
-        to: 'contact@eventa.productions',
+        to: getAdminNotificationEmail(),
         subject: emailData.subject,
         html: emailData.html,
       });
@@ -70,7 +71,7 @@ export async function GET(request: NextRequest) {
 
     return buildConfirmationPage(
       'קיבלנו! נחזור אליכם בהקדם',
-      `תודה ${decryptPii(req.contact_name_enc, null) ?? ''}, צוות Eventa יצור איתכם קשר תוך 48 שעות.`
+      `תודה ${decryptPii(req.contact_name_enc, null) ?? ''}, צוות ${BRAND_NAME} יצור איתכם קשר תוך 48 שעות.`
     );
   } catch (err) {
     logger.error('Contact-me error', { error: err instanceof Error ? err.message : String(err) });
@@ -86,7 +87,7 @@ function buildConfirmationPage(title: string, message: string): NextResponse {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Eventa</title>
+  <title>${escapeHtml(BRAND_NAME)}</title>
   <style>
     body { margin:0; background:#0a0a0a; font-family:'Segoe UI',Tahoma,Arial,sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; }
     .card { max-width:420px; text-align:center; padding:48px 32px; }
@@ -101,13 +102,13 @@ function buildConfirmationPage(title: string, message: string): NextResponse {
 </head>
 <body>
   <div class="card">
-    <div class="brand">EVENTA</div>
+    <div class="brand">${escapeHtml(BRAND_NAME.toUpperCase())}</div>
     <div class="check">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
     </div>
     <h1>${escapeHtml(title)}</h1>
     <p>${escapeHtml(message)}</p>
-    <a class="back" href="https://eventa.productions">חזרה לאתר</a>
+    <a class="back" href="${SITE_URL}">חזרה לאתר</a>
   </div>
 </body>
 </html>`;

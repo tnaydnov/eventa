@@ -5,7 +5,7 @@ import { checkCsrf } from '@/lib/session';
 import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { getServiceClient } from '@/lib/supabase';
-import { getMailTransporter, getSmtpFrom } from '@/lib/mailer';
+import { getMailTransporter, getSmtpFrom, getAdminNotificationEmail } from '@/lib/mailer';
 import {
   ORDER_NAME_MAX_LENGTH,
   ORDER_PHONE_MAX_LENGTH,
@@ -208,7 +208,7 @@ export async function POST(request: NextRequest) {
       if (adminEmail) {
         await getMailTransporter().sendMail({
           from: getSmtpFrom(),
-          to: 'contact@eventa.productions',
+          to: getAdminNotificationEmail(),
           subject: adminEmail.subject,
           html: adminEmail.html,
           ...(attachments.length > 0 ? { attachments } : {}),

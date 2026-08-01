@@ -30,7 +30,7 @@ for (const line of envContent.split('\n')) {
 
 const SUPABASE_URL = env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
-const SITE_URL = env.NEXT_PUBLIC_SITE_URL || 'https://eventa.productions';
+const SITE_URL = env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
   console.error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env.local');

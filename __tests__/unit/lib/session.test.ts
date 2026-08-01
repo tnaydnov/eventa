@@ -45,7 +45,7 @@ describe('signSessionToken', () => {
     expect(payload.eid).toBe(VALID_TOKEN_DATA.eventId);
     expect(payload.esl).toBe(VALID_TOKEN_DATA.eventSlug);
     expect(payload.enm).toBe(VALID_TOKEN_DATA.eventName);
-    expect(payload.iss).toBe('eventa.productions');
+    expect(payload.iss).toBe('test.example.com');
     expect(payload.aud).toBe('eventa-app');
     expect(typeof payload.iat).toBe('number');
     expect(typeof payload.exp).toBe('number');
@@ -162,7 +162,7 @@ describe('verifySessionToken', () => {
     const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
     const payload = {
       typ: 'session',
-      iss: 'eventa.productions',
+      iss: 'test.example.com',
       aud: 'eventa-app',
       // missing sub, eid, esl
       iat: Math.floor(Date.now() / 1000),

@@ -3,6 +3,7 @@ import { getServiceClient } from '@/lib/supabase';
 import { checkRateLimitAsync, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { escapeHtml } from '@/lib/email-templates';
+import { BRAND_NAME, SITE_URL } from '@/config/site';
 import { createClearingSession, isConfigured } from '@/lib/invoice4u';
 import { APP_BASE_URL, BASE_PRICE } from '@/lib/config';
 import { decryptPii } from '@/lib/pii';
@@ -242,7 +243,7 @@ function buildHtmlPage(title: string, message: string): string {
   <div class="card">
     <h1>${escapeHtml(title)}</h1>
     <p>${escapeHtml(message)}</p>
-    <a href="https://eventa.productions">חזרה לאתר Eventa</a>
+    <a href="${SITE_URL}">חזרה לאתר ${escapeHtml(BRAND_NAME)}</a>
   </div>
 </body>
 </html>`;
