@@ -530,6 +530,21 @@ drive the cron endpoints yourself — e.g. from `cron` or a scheduler — sendin
 Threat model, residual risks and the hardening backlog:
 [docs/SECURITY.md](docs/SECURITY.md).
 
+### Known dependency advisories
+
+`npm audit --omit=dev` currently reports advisories that cannot be resolved from
+this repository alone. They are listed here so a fork owner can make an informed
+decision rather than discovering them after deploying:
+
+| Package | Advisory | Status |
+|---|---|---|
+| `xlsx` | Prototype pollution + ReDoS (GHSA-4r6h-8v6p-xvw6, GHSA-5pgg-2g8v-p4x9) | SheetJS no longer publishes to the npm registry, so npm reports "no fix available". The patched build is distributed from the SheetJS CDN. This project only parses **operator-supplied** guest lists and generates admin exports — it never parses untrusted guest uploads — but if you widen that surface, switch to the CDN build or another parser. |
+| `postcss`, `sharp` (transitive, inside `next`) | Inherited advisories | `npm audit` proposes downgrading `next` to 9.3.3, which is not a real remediation. These are vendored by Next.js and are fixed by upgrading Next when a patched release ships. |
+
+The bundled security workflow deliberately gates only on **critical** advisories
+in production dependencies, so dev-tooling noise cannot block a release while
+genuine critical issues still fail the build.
+
 **Found a vulnerability?** Please report it privately via GitHub Security
 Advisories rather than opening a public issue.
 
