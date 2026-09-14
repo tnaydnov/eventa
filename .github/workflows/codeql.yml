@@ -1,16 +1,10 @@
 name: CodeQL
 
 # Static application security testing (SAST) for JS/TS.
-# Runs on PRs to main, pushes to main, and a weekly schedule so newly-disclosed
-# query patterns are caught even when the code hasn't changed.
+# The app is offline; retain analysis for manual use only.
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  schedule:
-    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  workflow_dispatch:
 
 permissions:
   contents: read

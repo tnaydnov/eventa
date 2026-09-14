@@ -43,6 +43,14 @@ Next.js 16 · React 19 · TypeScript · Supabase · Tailwind CSS 4
 > own deployment**. They are here to explain the engineering, not to invite or
 > authorise anyone else to run it.
 
+Automatic runs are disabled for this offline project. CI, Security, and CodeQL
+retain only manual (`workflow_dispatch`) triggers, and GitHub Actions is disabled
+in the repository settings. Dependabot's version-update configuration has been
+removed, and automated security-update pull requests are disabled in GitHub.
+The ten former Vercel cron schedules have been removed from `vercel.json`,
+which also disables automatic Git deployments with `git.deploymentEnabled: false`.
+To run a retained workflow manually, the owner must first re-enable GitHub Actions.
+
 ---
 
 ## Table of contents
@@ -458,8 +466,8 @@ npm run test:coverage # with V8 coverage
 npm run test:e2e      # Playwright (start the dev server first)
 ```
 
-CI runs typecheck → unit/integration tests → production build → bundle
-regression check on every push and pull request. The test strategy and case
+The retained manual CI workflow runs typecheck → lint → unit/integration tests →
+production build → bundle regression check. The test strategy and case
 matrix live in [docs/TEST_PLAN.md](docs/TEST_PLAN.md).
 
 ---
@@ -469,8 +477,9 @@ matrix live in [docs/TEST_PLAN.md](docs/TEST_PLAN.md).
 > Historical record of my own former deployment. That deployment has been shut
 > down, and this is not an instruction to recreate it — see [LICENSE](LICENSE).
 
-It ran on **Vercel**. [vercel.json](vercel.json) pins the region, per-route
-function timeouts, service-worker cache headers, and **ten cron jobs**:
+It ran on **Vercel**. [vercel.json](vercel.json) retains the region, per-route
+function timeouts, and service-worker cache headers, with an empty `crons` list.
+The **ten former cron jobs** below are historical documentation (all times UTC):
 
 | Schedule | Job |
 |---|---|
@@ -482,6 +491,10 @@ function timeouts, service-worker cache headers, and **ten cron jobs**:
 | `*/15 * * * *` | Re-check moderated photos |
 | `0 5 * * *` | Reconcile payments |
 | `0 */6 * * *` | Clean orphaned storage objects |
+
+Changing the repository configuration does not stop cron jobs on an existing
+Vercel deployment. If any old deployment remains, its cron jobs must also be
+disabled in the Vercel project settings.
 
 Vercel injects `CRON_SECRET` automatically; every cron route rejects requests
 that do not present it as a bearer token. Nothing in the codebase is
@@ -507,7 +520,7 @@ HTTP routes, so any scheduler could drive them.
 | **Content** | Dual-model AI photo moderation with a nightly re-check sweep and a manual review queue |
 | **Abuse** | Device + hardware fingerprint ban lists enforced on a 60-second heartbeat |
 | **Transport** | Strict CSP with violation reporting, HSTS preload, `X-Frame-Options`, `Permissions-Policy`, COOP |
-| **Supply chain** | `npm audit` gate on critical production advisories, weekly CodeQL `security-extended` scan |
+| **Supply chain** | Retained manual `npm audit` gate on critical production advisories and CodeQL `security-extended` scan |
 | **Secret leakage** | CI fails if a `'use client'` file references a server-only secret |
 
 Threat model, residual risks and the hardening backlog:

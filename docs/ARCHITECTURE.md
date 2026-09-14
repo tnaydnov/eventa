@@ -542,6 +542,10 @@ Client components call typed API functions which make `fetch()` calls to Next.js
 
 ### 12.1 Vercel (`vercel.json`)
 
+Historical deployment example: the app is offline, and the current
+`vercel.json` has an empty `crons` list. The schedules below are no longer
+configured in the repository.
+
 ```json
 {
   "regions": ["fra1"],

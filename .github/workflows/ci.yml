@@ -1,10 +1,8 @@
 name: CI
 
+# The app is offline; retain checks for manual use only.
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
   check:

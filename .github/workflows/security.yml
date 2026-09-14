@@ -1,15 +1,10 @@
 name: Security
 
 # Lightweight supply-chain + secret-hygiene checks. Complements CI (build/typecheck)
-# and CodeQL (SAST). Kept fast so it can gate PRs without slowing the team down.
+# and CodeQL (SAST). The app is offline; retain checks for manual use only.
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  schedule:
-    - cron: "0 7 * * 1" # Mondays 07:00 UTC
+  workflow_dispatch:
 
 permissions:
   contents: read
